@@ -1,0 +1,42 @@
+Fichiers créés pour l'environnement TimescaleDB
+================================================
+
+Racine (timescaledb-env/)
+-------------------------
+✓ docker-compose.yml         - Configuration Docker (TimescaleDB 2.17.0-pg17)
+✓ pyproject.toml             - Dépendances Python (uv)
+✓ .python-version            - Version Python (3.11)
+✓ .gitignore                 - Exclusions Git
+✓ README.md                  - Documentation complète (11 KB)
+✓ QUICKSTART.md              - Guide express (4 KB)
+✓ STRUCTURE.md               - Architecture détaillée (8 KB)
+✓ test-environment.sh        - Script de test automatique
+✓ FILES.txt                  - Ce fichier
+
+Sous-dossier docker/
+--------------------
+✓ init-schema.sql            - Schéma SQL des 3 tables + hypertables
+✓ generate-mock-data.py      - Générateur de données mock (13 KB)
+✓ load-mock-data.sh          - Script de chargement (bash)
+
+Racine du projet InfoClimat/
+----------------------------
+✓ README_TIMESCALEDB_ENV.md  - Documentation de l'environnement
+
+Total: 12 fichiers créés
+========================
+
+Fonctionnalités implémentées:
+- ✅ Docker Compose avec TimescaleDB
+- ✅ 3 tables: Station, HoraireTempsReel, Quotidienne
+- ✅ 2 hypertables configurées (7 et 30 jours)
+- ✅ 15 stations françaises
+- ✅ 30 jours de données mock réalistes
+- ✅ Script de génération Python avec numpy
+- ✅ Documentation complète
+- ✅ Exemples de requêtes SQL
+- ✅ Guide de démarrage rapide
+- ✅ Script de test automatique
+- ✅ Configuration uv pour Python
+
+Prêt à l'emploi pour les bénévoles! 🚀
