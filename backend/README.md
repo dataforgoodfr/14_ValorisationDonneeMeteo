@@ -4,7 +4,7 @@ API REST Django/DRF pour les donnees meteorologiques InfoClimat.
 
 ## Prerequis
 
-- Python 3.11+
+- Python >= 3.12
 - [uv](https://docs.astral.sh/uv/) pour la gestion des dependances
 - Docker (pour TimescaleDB)
 
