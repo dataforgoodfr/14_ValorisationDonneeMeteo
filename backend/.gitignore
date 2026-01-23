@@ -139,3 +139,22 @@ cython_debug/
 
 # Precommit hooks: ruff cache
 .ruff_cache
+
+# Environment variables
+.env
+.env.*
+!.env.example
+
+# Django static files
+staticfiles/
+media/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
