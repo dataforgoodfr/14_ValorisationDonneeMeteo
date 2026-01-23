@@ -1,1 +1,23 @@
-# Frontend-specific ignores (to be configured later)
+# Dependencies
+node_modules/
+
+# Build
+dist/
+
+# Local env files
+.env.local
+.env.*.local
+
+# Editor directories and files
+.vscode/*
+!.vscode/extensions.json
+.idea/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+
+# Logs
+*.log
+npm-debug.log*
