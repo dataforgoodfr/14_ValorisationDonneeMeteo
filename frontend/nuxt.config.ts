@@ -4,4 +4,8 @@ export default defineNuxtConfig({
   devtools: { enabled: true },
 
   modules: ["@nuxt/eslint", "@nuxt/test-utils", "@nuxt/ui", "@nuxt/image"],
+  css: ['~/assets/css/main.css'],
+  ui: {
+    colorMode: false
+  }
 });
