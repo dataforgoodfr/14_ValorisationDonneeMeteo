@@ -14,6 +14,8 @@ dependencies = [
     "django-filter>=24.0",
     "gunicorn>=23.0.0",
     "whitenoise>=6.7.0",
+    "factory-boy>=3.3.0",
+    "numpy>=1.26.0",
 ]
 
 [project.optional-dependencies]

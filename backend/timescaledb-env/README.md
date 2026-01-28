@@ -1,8 +1,9 @@
 # Environnement TimescaleDB pour InfoClimat
 
-Environnement Docker minimal avec TimescaleDB et données météo mock pour développement local.
+Environnement Docker minimal avec TimescaleDB pour développement local.
+Le schéma et les données sont gérés par Django.
 
-## 📋 Prérequis
+## Prérequis
 
 1. **Docker** et **Docker Compose** installés
 2. **uv** (gestionnaire de paquets Python moderne)
@@ -17,26 +18,31 @@ curl -LsSf https://astral.sh/uv/install.sh | sh
 pip install uv
 ```
 
-## 🚀 Démarrage rapide
+## Démarrage rapide
 
 ```bash
-# 1. Se placer dans le dossier
-cd timescaledb-env
+# 1. Se placer dans le dossier timescaledb-env
+cd backend/timescaledb-env
 
 # 2. Démarrer TimescaleDB
 docker-compose up -d
 
-# 3. Attendre que le container soit prêt (quelques secondes)
+# 3. Attendre que le container soit prêt
 docker-compose logs -f
 
-# 4. Générer et charger les données mock
-uv run docker/generate-mock-data.py
+# 4. Retourner dans le dossier backend et appliquer les migrations Django
+cd ..
+uv run python manage.py migrate
 
-# 5. Se connecter à la base de données
-docker exec -it infoclimat-timescaledb psql -U infoclimat -d meteodb
+# 5. Générer les données mock
+uv run python manage.py populate_weather_data
+
+# 6. Vérifier via l'API
+uv run python manage.py runserver
+# Puis ouvrir http://localhost:8000/api/stations/
 ```
 
-## 📊 Données disponibles
+## Données disponibles
 
 L'environnement contient **15 stations météo françaises** avec **30 jours de données** :
 
@@ -60,22 +66,23 @@ L'environnement contient **15 stations météo françaises** avec **30 jours de 
 
 ### Tables disponibles
 
-#### 1. `Station`
+#### 1. `weather_station`
 Métadonnées des stations météo (15 stations)
 
 **Colonnes principales :**
-- `id` : Identifiant unique (8 caractères)
+- `id` : Clé primaire auto-générée
+- `code` : Identifiant unique (8 caractères)
 - `nom` : Nom de la station
 - `lat`, `lon`, `alt` : Coordonnées GPS et altitude
 - `departement` : Numéro de département
-- `posteOuvert` : Station active (boolean)
-- `postePublic` : Données publiques (boolean)
+- `poste_ouvert` : Station active (boolean)
+- `poste_public` : Données publiques (boolean)
 
-#### 2. `HoraireTempsReel`
-Données horaires en temps réel (~10 800 enregistrements)
+#### 2. `weather_horairetempsreel`
+Données horaires en temps réel (~10 800 enregistrements) - **Hypertable TimescaleDB**
 
 **Colonnes principales :**
-- `geo_id_insee` : ID de la station
+- `station_id` : Clé étrangère vers Station
 - `validity_time` : Timestamp de la mesure
 - `t`, `td`, `tx`, `tn` : Températures (°C)
 - `u`, `ux`, `un` : Humidité relative (%)
@@ -87,27 +94,49 @@ Données horaires en temps réel (~10 800 enregistrements)
 - `n` : Nébulosité (0-8)
 - `t_10`, `t_20`, `t_50`, `t_100` : Températures du sol (°C)
 
-#### 3. `Quotidienne`
-Données journalières agrégées (~450 enregistrements)
+#### 3. `weather_quotidienne`
+Données journalières agrégées (~450 enregistrements) - **Hypertable TimescaleDB**
 
 **Colonnes principales :**
-- `NUM_POSTE` : ID de la station
-- `AAAAMMJJ` : Date
-- `RR` : Cumul de précipitations (mm)
-- `TN`, `TX`, `TM` : Températures min, max, moyenne (°C)
-- `TAMPLI` : Amplitude thermique (°C)
-- `HTN`, `HTX` : Heures des extrema (HHMM)
-- `FFM` : Vitesse moyenne du vent (m/s)
-- `FXY`, `DXY` : Rafale maximale et direction
-- `Q*` : Flags de qualité (1 = valide)
+- `station_id` : Clé étrangère vers Station
+- `date` : Date
+- `rr` : Cumul de précipitations (mm)
+- `tn`, `tx`, `tm` : Températures min, max, moyenne (°C)
+- `tampli` : Amplitude thermique (°C)
+- `htn`, `htx` : Heures des extrema (HHMM)
+- `ffm` : Vitesse moyenne du vent (m/s)
+- `fxy`, `dxy` : Rafale maximale et direction
+- `q*` : Flags de qualité (1 = valide)
 
-## 🔍 Exemples de requêtes
+## Commande Django de peuplement
+
+```bash
+# Générer toutes les données (30 jours par défaut)
+python manage.py populate_weather_data
+
+# Générer seulement 7 jours de données
+python manage.py populate_weather_data --days 7
+
+# Vider les données avant de régénérer
+python manage.py populate_weather_data --clear
+
+# Générer uniquement les stations
+python manage.py populate_weather_data --stations-only
+
+# Ne pas générer les agrégations quotidiennes
+python manage.py populate_weather_data --skip-daily
+
+# Utiliser un seed différent
+python manage.py populate_weather_data --seed 123
+```
+
+## Exemples de requêtes
 
 ### Lister les stations
 
 ```sql
-SELECT id, nom, lat, lon, alt, departement
-FROM "Station"
+SELECT id, code, nom, lat, lon, alt, departement
+FROM weather_station
 ORDER BY nom;
 ```
 
@@ -121,96 +150,47 @@ SELECT
     ff as vent_vitesse,
     dd as vent_direction,
     rr1 as pluie
-FROM "HoraireTempsReel"
-WHERE geo_id_insee = '75114001'
+FROM weather_horairetempsreel h
+JOIN weather_station s ON h.station_id = s.id
+WHERE s.code = '75114001'
 ORDER BY validity_time DESC
 LIMIT 24;
-```
-
-### Moyenne quotidienne des températures
-
-```sql
-SELECT
-    "AAAAMMJJ" as date,
-    "NUM_POSTE",
-    "TN" as temp_min,
-    "TX" as temp_max,
-    "TM" as temp_moyenne,
-    "RR" as pluie_mm
-FROM "Quotidienne"
-WHERE "NUM_POSTE" = '75114001'
-ORDER BY "AAAAMMJJ" DESC
-LIMIT 30;
-```
-
-### Stations les plus proches d'un point GPS
-
-```sql
--- Paris : 48.8566° N, 2.3522° E
-SELECT
-    id,
-    nom,
-    lat,
-    lon,
-    SQRT(POWER(lat - 48.8566, 2) + POWER(lon - 2.3522, 2)) as distance
-FROM "Station"
-ORDER BY distance
-LIMIT 5;
 ```
 
 ### Agrégation temporelle avec TimescaleDB `time_bucket`
 
 ```sql
--- Moyenne horaire des températures sur 6 heures
 SELECT
     time_bucket('6 hours', validity_time) as periode,
-    geo_id_insee,
-    AVG(t) as temp_moyenne,
-    MAX(t) as temp_max,
-    MIN(t) as temp_min
-FROM "HoraireTempsReel"
-WHERE geo_id_insee = '75114001'
-GROUP BY periode, geo_id_insee
+    s.code,
+    AVG(h.t) as temp_moyenne,
+    MAX(h.t) as temp_max,
+    MIN(h.t) as temp_min
+FROM weather_horairetempsreel h
+JOIN weather_station s ON h.station_id = s.id
+WHERE s.code = '75114001'
+GROUP BY periode, s.code
 ORDER BY periode DESC;
 ```
 
-### Comparaison entre stations
+## Architecture : Django + TimescaleDB
 
-```sql
-SELECT
-    s.nom as station,
-    AVG(h.t) as temp_moyenne,
-    AVG(h.u) as humidite_moyenne,
-    SUM(h.rr1) as pluie_totale
-FROM "HoraireTempsReel" h
-JOIN "Station" s ON h.geo_id_insee = s.id
-WHERE h.validity_time >= NOW() - INTERVAL '7 days'
-GROUP BY s.nom
-ORDER BY temp_moyenne DESC;
-```
+### Gestion du schéma par Django
 
-### Extrêmes météorologiques
+Le schéma de base de données est **entièrement géré par Django** via les migrations :
 
-```sql
--- Températures extrêmes du mois
-SELECT
-    s.nom,
-    "TX" as temp_max,
-    "HTX" as heure_max,
-    "TN" as temp_min,
-    "HTN" as heure_min,
-    "AAAAMMJJ" as date
-FROM "Quotidienne" q
-JOIN "Station" s ON q."NUM_POSTE" = s.id
-WHERE "TX" = (SELECT MAX("TX") FROM "Quotidienne")
-   OR "TN" = (SELECT MIN("TN") FROM "Quotidienne");
-```
+1. **`0001_initial.py`** : Crée les tables via l'ORM Django (Station, HoraireTempsReel, Quotidienne)
+2. **`0002_timescaledb_hypertables.py`** : Migration custom avec `RunSQL` qui :
+   - Crée l'extension TimescaleDB
+   - Convertit les tables en hypertables
+   - Crée des clés primaires composites (id + colonne de temps)
+   - Ajoute des index optimisés
 
-## 🛠️ TimescaleDB : Fonctionnalités avancées
+**Note importante** : TimescaleDB exige que toute contrainte unique inclue la colonne de partitionnement. Django génère un `id` BigAutoField comme clé primaire, mais les migrations le remplacent par une clé composite `(id, validity_time)` ou `(id, date)`.
 
 ### Hypertables configurées
 
-Les tables `HoraireTempsReel` et `Quotidienne` sont configurées comme **hypertables** :
+Les tables `weather_horairetempsreel` et `weather_quotidienne` sont configurées comme **hypertables** :
 
 ```sql
 -- Voir les hypertables
@@ -225,57 +205,7 @@ SELECT * FROM timescaledb_information.chunks;
 - Partitionnement automatique par période
 - Compression possible des anciennes données
 
-### Compression des données (optionnel)
-
-```sql
--- Activer la compression sur une hypertable
-ALTER TABLE "HoraireTempsReel" SET (
-    timescaledb.compress,
-    timescaledb.compress_segmentby = 'geo_id_insee'
-);
-
--- Ajouter une politique de compression (données > 7 jours)
-SELECT add_compression_policy(
-    '"HoraireTempsReel"',
-    INTERVAL '7 days'
-);
-```
-
-### Politique de rétention (optionnel)
-
-```sql
--- Supprimer automatiquement les données > 1 an
-SELECT add_retention_policy(
-    '"HoraireTempsReel"',
-    INTERVAL '1 year'
-);
-```
-
-### Requêtes continues (Continuous Aggregates)
-
-```sql
--- Créer une agrégation continue pour moyennes journalières
-CREATE MATERIALIZED VIEW daily_weather_summary
-WITH (timescaledb.continuous) AS
-SELECT
-    time_bucket('1 day', validity_time) AS day,
-    geo_id_insee,
-    AVG(t) as avg_temp,
-    AVG(u) as avg_humidity,
-    SUM(rr1) as total_rain
-FROM "HoraireTempsReel"
-GROUP BY day, geo_id_insee;
-
--- Rafraîchir automatiquement
-SELECT add_continuous_aggregate_policy(
-    'daily_weather_summary',
-    start_offset => INTERVAL '3 days',
-    end_offset => INTERVAL '1 hour',
-    schedule_interval => INTERVAL '1 hour'
-);
-```
-
-## 🔧 Gestion du container
+## Gestion du container
 
 ### Commandes utiles
 
@@ -289,36 +219,11 @@ docker-compose down
 # Arrêter ET supprimer les données
 docker-compose down -v
 
-# Redémarrer
-docker-compose restart
-
 # Se connecter en psql
 docker exec -it infoclimat-timescaledb psql -U infoclimat -d meteodb
 
 # Sauvegarder la base
 docker exec infoclimat-timescaledb pg_dump -U infoclimat meteodb > backup.sql
-
-# Restaurer une sauvegarde
-docker exec -i infoclimat-timescaledb psql -U infoclimat -d meteodb < backup.sql
-```
-
-### Connexion depuis Python
-
-```python
-import psycopg2
-
-conn = psycopg2.connect(
-    host='localhost',
-    port=5432,
-    database='meteodb',
-    user='infoclimat',
-    password='infoclimat2026'
-)
-
-cursor = conn.cursor()
-cursor.execute('SELECT COUNT(*) FROM "Station"')
-print(f"Nombre de stations: {cursor.fetchone()[0]}")
-conn.close()
 ```
 
 ### Connexion depuis un outil GUI
@@ -330,20 +235,7 @@ conn.close()
 - User : `infoclimat`
 - Password : `infoclimat2026`
 
-## 📖 Documentation des données
-
-### Codes de qualité (Q-prefix)
-
-Les colonnes `Q*` dans la table `Quotidienne` indiquent la qualité :
-- `1` : Donnée valide
-- `0` : Donnée manquante
-- Autres valeurs : Codes spécifiques (voir documentation Météo-France)
-
-### Format des heures (H-prefix)
-
-Les colonnes `HTN`, `HTX`, `HXY` sont au format `HHMM` (ex: `1430` = 14h30)
-
-### Unités
+## Unités
 
 - **Températures** : °C
 - **Vent** : m/s et degrés (0° = Nord, 90° = Est, 180° = Sud, 270° = Ouest)
@@ -353,34 +245,22 @@ Les colonnes `HTN`, `HTX`, `HXY` sont au format `HHMM` (ex: `1430` = 14h30)
 - **Visibilité** : mètres
 - **Nébulosité** : 0 (ciel clair) à 8 (ciel couvert)
 
-## 🐛 Dépannage
+## Dépannage
 
 ### Le container ne démarre pas
 
 ```bash
-# Vérifier les logs
 docker-compose logs
-
-# Supprimer le volume et recréer
 docker-compose down -v
 docker-compose up -d
-```
-
-### Erreur de connexion Python
-
-```bash
-# Vérifier que uv utilise les bonnes dépendances
-uv pip list
-
-# Réinstaller
-uv sync
 ```
 
 ### La base est vide
 
 ```bash
-# Régénérer les données
-uv run docker/generate-mock-data.py
+cd backend
+uv run python manage.py migrate
+uv run python manage.py populate_weather_data
 ```
 
 ### Port 5432 déjà utilisé
@@ -388,83 +268,20 @@ uv run docker/generate-mock-data.py
 Modifier dans `docker-compose.yml` :
 ```yaml
 ports:
-  - "5433:5432"  # Utiliser le port 5433 à la place
+  - "5433:5432"
 ```
 
-Et dans `docker/generate-mock-data.py` :
-```python
-DB_PARAMS = {
-    'port': 5433,  # Modifier ici aussi
-    ...
-}
+Et dans `backend/.env` :
+```
+DB_PORT=5433
 ```
 
-## 📚 Ressources
+## Ressources
 
 - [Documentation TimescaleDB](https://docs.timescale.com/)
 - [PostgreSQL Documentation](https://www.postgresql.org/docs/)
-- [InfoClimat API](https://www.infoclimat.fr/opendata/)
-- [Météo-France Données Publiques](https://donneespubliques.meteofrance.fr/)
-
-## 🤝 Contribution
-
-Cet environnement est conçu pour faciliter le développement local. N'hésitez pas à :
-- Ajouter d'autres stations dans `generate-mock-data.py`
-- Créer des vues SQL utiles
-- Améliorer les données mock pour plus de réalisme
-- Partager vos requêtes SQL intéressantes
-
-## 📝 Notes techniques
-
-### Caractéristiques des données mock
-
-- **Reproductibilité** : Seed random fixe (42) pour générer toujours les mêmes données
-- **Réalisme** :
-  - Cycles diurnes de température (min à 6h, max à 15h)
-  - Corrélations météo (pluie → baisse température → hausse humidité)
-  - Variations géographiques (altitude, latitude)
-  - Tendances baromètriques progressives
-- **Performance** : Insertion par batch de 1000 lignes
-- **Format** : Timestamps UTC en timestamp(3) (précision milliseconde)
-
-### TimescaleDB vs PostgreSQL classique
-
-**Hypertables** = Tables partitionnées automatiquement par temps
-- **Chunking** : Données découpées en morceaux (7 jours pour horaire, 30 jours pour quotidien)
-- **Compression** : Réduction de 90%+ du stockage possible
-- **Requêtes** : Optimisées pour les plages temporelles
-- **Rétention** : Suppression automatique des anciennes données
-
-**Compatibilité** : 100% compatible PostgreSQL (requêtes SQL standards)
-
-## ⚙️ Configuration
-
-### Variables d'environnement
-
-Modifiables dans `docker-compose.yml` :
-
-```yaml
-environment:
-  POSTGRES_USER: infoclimat      # Utilisateur PostgreSQL
-  POSTGRES_PASSWORD: infoclimat2026  # Mot de passe
-  POSTGRES_DB: meteodb           # Nom de la base
-```
-
-### Volumes
-
-- `timescaledb-data` : Données PostgreSQL persistantes
-- `./docker` : Scripts d'initialisation (lecture seule)
-
-## 🎯 Cas d'usage
-
-Cet environnement est parfait pour :
-- ✅ Développer des applications météo
-- ✅ Tester des requêtes SQL complexes
-- ✅ Apprendre TimescaleDB
-- ✅ Prototyper des visualisations de données
-- ✅ Former des bénévoles aux données InfoClimat
-- ❌ Production (utiliser les vraies données et une configuration sécurisée)
+- [Django Documentation](https://docs.djangoproject.com/)
 
 ---
 
-**Bon développement ! 🌦️**
+**Bon développement ! **
