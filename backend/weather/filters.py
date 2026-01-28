@@ -10,6 +10,7 @@ from .models import HoraireTempsReel, Quotidienne, Station
 class StationFilter(django_filters.FilterSet):
     """Filter for weather stations."""
 
+    code = django_filters.CharFilter()
     departement = django_filters.NumberFilter()
     poste_ouvert = django_filters.BooleanFilter()
     poste_public = django_filters.BooleanFilter()
@@ -22,13 +23,14 @@ class StationFilter(django_filters.FilterSet):
 
     class Meta:
         model = Station
-        fields = ["departement", "frequence", "poste_ouvert", "poste_public"]
+        fields = ["code", "departement", "frequence", "poste_ouvert", "poste_public"]
 
 
 class HoraireTempsReelFilter(django_filters.FilterSet):
     """Filter for hourly real-time measurements."""
 
-    geo_id_insee = django_filters.CharFilter()
+    station = django_filters.NumberFilter()
+    station_code = django_filters.CharFilter(field_name="station__code")
     validity_time_after = django_filters.DateTimeFilter(
         field_name="validity_time", lookup_expr="gte"
     )
@@ -42,15 +44,16 @@ class HoraireTempsReelFilter(django_filters.FilterSet):
 
     class Meta:
         model = HoraireTempsReel
-        fields = ["geo_id_insee"]
+        fields = ["station", "station_code"]
 
 
 class QuotidienneFilter(django_filters.FilterSet):
     """Filter for daily aggregated data."""
 
-    num_poste = django_filters.CharFilter()
-    date_after = django_filters.DateTimeFilter(field_name="date", lookup_expr="gte")
-    date_before = django_filters.DateTimeFilter(field_name="date", lookup_expr="lte")
+    station = django_filters.NumberFilter()
+    station_code = django_filters.CharFilter(field_name="station__code")
+    date_after = django_filters.DateFilter(field_name="date", lookup_expr="gte")
+    date_before = django_filters.DateFilter(field_name="date", lookup_expr="lte")
 
     # Temperature range filters
     tn_min = django_filters.NumberFilter(field_name="tn", lookup_expr="gte")
@@ -58,4 +61,4 @@ class QuotidienneFilter(django_filters.FilterSet):
 
     class Meta:
         model = Quotidienne
-        fields = ["num_poste"]
+        fields = ["station", "station_code"]

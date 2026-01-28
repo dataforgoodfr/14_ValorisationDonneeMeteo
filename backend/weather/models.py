@@ -1,6 +1,6 @@
 """
-Django models for existing TimescaleDB weather tables.
-These models use managed=False since the tables already exist.
+Django models for weather data.
+Tables are managed by Django with TimescaleDB hypertables via custom migrations.
 """
 
 from django.db import models
@@ -9,25 +9,27 @@ from django.db import models
 class Station(models.Model):
     """Weather station metadata."""
 
-    id = models.CharField(max_length=8, primary_key=True)
+    code = models.CharField(max_length=8, unique=True)
     nom = models.TextField()
     departement = models.IntegerField()
-    frequence = models.TextField()
-    poste_ouvert = models.BooleanField(db_column="posteOuvert")
-    type_poste = models.IntegerField(db_column="typePoste")
+    frequence = models.CharField(max_length=20, default="horaire")
+    poste_ouvert = models.BooleanField(default=True)
+    type_poste = models.IntegerField(default=0)
     lon = models.FloatField()
     lat = models.FloatField()
     alt = models.FloatField()
-    poste_public = models.BooleanField(db_column="postePublic")
-    created_at = models.DateTimeField(db_column="createdAt")
-    updated_at = models.DateTimeField(db_column="updatedAt")
+    poste_public = models.BooleanField(default=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
 
     class Meta:
-        managed = False
-        db_table = "Station"
+        indexes = [
+            models.Index(fields=["lat"]),
+            models.Index(fields=["lon"]),
+        ]
 
     def __str__(self) -> str:
-        return f"{self.nom} ({self.id})"
+        return f"{self.nom} ({self.code})"
 
 
 class HoraireTempsReel(models.Model):
@@ -36,151 +38,161 @@ class HoraireTempsReel(models.Model):
     TimescaleDB hypertable partitioned by validity_time.
     """
 
-    geo_id_insee = models.CharField(max_length=8, primary_key=True)
+    station = models.ForeignKey(
+        Station,
+        on_delete=models.CASCADE,
+        related_name="hourly_measurements",
+    )
     lat = models.FloatField()
     lon = models.FloatField()
     reference_time = models.DateTimeField()
     insert_time = models.DateTimeField()
-    validity_time = models.DateTimeField()
+    validity_time = models.DateTimeField(db_index=True)
 
-    # Temperature fields
-    t = models.FloatField(null=True, blank=True)
-    td = models.FloatField(null=True, blank=True)
-    tx = models.FloatField(null=True, blank=True)
-    tn = models.FloatField(null=True, blank=True)
+    # Temperature fields (°C)
+    t = models.FloatField(null=True, blank=True, help_text="Current temperature")
+    td = models.FloatField(null=True, blank=True, help_text="Dew point")
+    tx = models.FloatField(null=True, blank=True, help_text="Daily max temperature")
+    tn = models.FloatField(null=True, blank=True, help_text="Daily min temperature")
 
-    # Humidity
-    u = models.IntegerField(null=True, blank=True)
-    ux = models.IntegerField(null=True, blank=True)
-    un = models.IntegerField(null=True, blank=True)
+    # Humidity (%)
+    u = models.IntegerField(null=True, blank=True, help_text="Relative humidity")
+    ux = models.IntegerField(null=True, blank=True, help_text="Max humidity")
+    un = models.IntegerField(null=True, blank=True, help_text="Min humidity")
 
     # Wind
-    dd = models.IntegerField(null=True, blank=True)
-    ff = models.FloatField(null=True, blank=True)
-    dxy = models.IntegerField(null=True, blank=True)
-    fxy = models.FloatField(null=True, blank=True)
-    dxi = models.IntegerField(null=True, blank=True)
-    fxi = models.FloatField(null=True, blank=True)
+    dd = models.IntegerField(null=True, blank=True, help_text="Wind direction (°)")
+    ff = models.FloatField(null=True, blank=True, help_text="Wind speed (m/s)")
+    dxy = models.IntegerField(null=True, blank=True, help_text="Gust direction")
+    fxy = models.FloatField(null=True, blank=True, help_text="Gust speed (m/s)")
+    dxi = models.IntegerField(null=True, blank=True, help_text="Instant direction")
+    fxi = models.FloatField(null=True, blank=True, help_text="Instant speed (m/s)")
 
     # Precipitation
-    rr1 = models.FloatField(null=True, blank=True)
+    rr1 = models.FloatField(null=True, blank=True, help_text="Hourly rainfall (mm)")
 
-    # Soil temperature at various depths
-    t_10 = models.FloatField(null=True, blank=True)
-    t_20 = models.FloatField(null=True, blank=True)
-    t_50 = models.FloatField(null=True, blank=True)
-    t_100 = models.FloatField(null=True, blank=True)
+    # Soil temperature at various depths (°C)
+    t_10 = models.FloatField(null=True, blank=True, help_text="Soil temp at 10cm")
+    t_20 = models.FloatField(null=True, blank=True, help_text="Soil temp at 20cm")
+    t_50 = models.FloatField(null=True, blank=True, help_text="Soil temp at 50cm")
+    t_100 = models.FloatField(null=True, blank=True, help_text="Soil temp at 100cm")
 
     # Other measurements
-    vv = models.IntegerField(null=True, blank=True)
-    etat_sol = models.IntegerField(null=True, blank=True)
-    sss = models.FloatField(null=True, blank=True)
-    n = models.IntegerField(null=True, blank=True)
-    insolh = models.FloatField(null=True, blank=True)
-    ray_glo01 = models.FloatField(null=True, blank=True)
-    pres = models.FloatField(null=True, blank=True)
-    pmer = models.FloatField(null=True, blank=True)
+    vv = models.IntegerField(null=True, blank=True, help_text="Visibility (m)")
+    etat_sol = models.IntegerField(null=True, blank=True, help_text="Ground state")
+    sss = models.FloatField(null=True, blank=True, help_text="Snow depth")
+    n = models.IntegerField(null=True, blank=True, help_text="Cloud cover (0-8)")
+    insolh = models.FloatField(null=True, blank=True, help_text="Sunshine hours")
+    ray_glo01 = models.FloatField(null=True, blank=True, help_text="Solar radiation (W/m²)")
+    pres = models.FloatField(null=True, blank=True, help_text="Station pressure (hPa)")
+    pmer = models.FloatField(null=True, blank=True, help_text="Sea level pressure (hPa)")
 
     class Meta:
-        managed = False
-        db_table = "HoraireTempsReel"
+        # Note: UniqueConstraint not used because TimescaleDB hypertables require
+        # the partitioning column to be part of any unique index. We use a regular
+        # index instead, managed in the migration.
         ordering = ["-validity_time"]
 
     def __str__(self) -> str:
-        return f"{self.geo_id_insee} @ {self.validity_time}"
+        return f"{self.station.code} @ {self.validity_time}"
 
 
 class Quotidienne(models.Model):
     """
     Daily aggregated weather data.
-    TimescaleDB hypertable partitioned by AAAAMMJJ.
+    TimescaleDB hypertable partitioned by date.
     """
 
-    num_poste = models.CharField(max_length=8, primary_key=True, db_column="NUM_POSTE")
-    nom_usuel = models.TextField(db_column="NOM_USUEL")
-    lat = models.FloatField(db_column="LAT")
-    lon = models.FloatField(db_column="LON")
-    alti = models.FloatField(db_column="ALTI")
-    date = models.DateTimeField(db_column="AAAAMMJJ")
+    station = models.ForeignKey(
+        Station,
+        on_delete=models.CASCADE,
+        related_name="daily_measurements",
+    )
+    nom_usuel = models.TextField()
+    lat = models.FloatField()
+    lon = models.FloatField()
+    alti = models.FloatField()
+    date = models.DateField(db_index=True)
 
     # Rainfall
-    rr = models.FloatField(null=True, blank=True, db_column="RR")
-    qrr = models.IntegerField(null=True, blank=True, db_column="QRR")
+    rr = models.FloatField(null=True, blank=True, help_text="Daily rainfall (mm)")
+    qrr = models.IntegerField(null=True, blank=True, help_text="Quality flag")
 
     # Temperature
-    tn = models.FloatField(null=True, blank=True, db_column="TN")
-    qtn = models.IntegerField(null=True, blank=True, db_column="QTN")
-    htn = models.CharField(max_length=4, null=True, blank=True, db_column="HTN")
-    qhtn = models.IntegerField(null=True, blank=True, db_column="QHTN")
+    tn = models.FloatField(null=True, blank=True, help_text="Min temperature")
+    qtn = models.IntegerField(null=True, blank=True)
+    htn = models.CharField(max_length=4, null=True, blank=True, help_text="Time of min (HHMM)")
+    qhtn = models.IntegerField(null=True, blank=True)
 
-    tx = models.FloatField(null=True, blank=True, db_column="TX")
-    qtx = models.IntegerField(null=True, blank=True, db_column="QTX")
-    htx = models.CharField(max_length=4, null=True, blank=True, db_column="HTX")
-    qhtx = models.IntegerField(null=True, blank=True, db_column="QHTX")
+    tx = models.FloatField(null=True, blank=True, help_text="Max temperature")
+    qtx = models.IntegerField(null=True, blank=True)
+    htx = models.CharField(max_length=4, null=True, blank=True, help_text="Time of max (HHMM)")
+    qhtx = models.IntegerField(null=True, blank=True)
 
-    tm = models.FloatField(null=True, blank=True, db_column="TM")
-    qtm = models.IntegerField(null=True, blank=True, db_column="QTM")
+    tm = models.FloatField(null=True, blank=True, help_text="Mean temperature")
+    qtm = models.IntegerField(null=True, blank=True)
 
-    tntxm = models.FloatField(null=True, blank=True, db_column="TNTXM")
-    qtntxm = models.IntegerField(null=True, blank=True, db_column="QTNTXM")
+    tntxm = models.FloatField(null=True, blank=True, help_text="(TN+TX)/2")
+    qtntxm = models.IntegerField(null=True, blank=True)
 
-    tampli = models.FloatField(null=True, blank=True, db_column="TAMPLI")
-    qtampli = models.IntegerField(null=True, blank=True, db_column="QTAMPLI")
+    tampli = models.FloatField(null=True, blank=True, help_text="Temperature amplitude")
+    qtampli = models.IntegerField(null=True, blank=True)
 
     # Soil temperature
-    tnsol = models.FloatField(null=True, blank=True, db_column="TNSOL")
-    qtnsol = models.IntegerField(null=True, blank=True, db_column="QTNSOL")
+    tnsol = models.FloatField(null=True, blank=True, help_text="Min ground temp")
+    qtnsol = models.IntegerField(null=True, blank=True)
 
-    tn50 = models.FloatField(null=True, blank=True, db_column="TN50")
-    qtn50 = models.IntegerField(null=True, blank=True, db_column="QTN50")
+    tn50 = models.FloatField(null=True, blank=True, help_text="Min temp at 50cm")
+    qtn50 = models.IntegerField(null=True, blank=True)
 
     # Degree days
-    dg = models.IntegerField(null=True, blank=True, db_column="DG")
-    qdg = models.IntegerField(null=True, blank=True, db_column="QDG")
+    dg = models.IntegerField(null=True, blank=True, help_text="Degree days")
+    qdg = models.IntegerField(null=True, blank=True)
 
     # Wind
-    ffm = models.FloatField(null=True, blank=True, db_column="FFM")
-    qffm = models.IntegerField(null=True, blank=True, db_column="QFFM")
+    ffm = models.FloatField(null=True, blank=True, help_text="Mean wind speed")
+    qffm = models.IntegerField(null=True, blank=True)
 
-    ff2m = models.FloatField(null=True, blank=True, db_column="FF2M")
-    qff2m = models.IntegerField(null=True, blank=True, db_column="QFF2M")
+    ff2m = models.FloatField(null=True, blank=True, help_text="Mean wind at 2m")
+    qff2m = models.IntegerField(null=True, blank=True)
 
-    fxy = models.FloatField(null=True, blank=True, db_column="FXY")
-    qfxy = models.IntegerField(null=True, blank=True, db_column="QFXY")
-    dxy = models.IntegerField(null=True, blank=True, db_column="DXY")
-    qdxy = models.IntegerField(null=True, blank=True, db_column="QDXY")
-    hxy = models.CharField(max_length=4, null=True, blank=True, db_column="HXY")
-    qhxy = models.IntegerField(null=True, blank=True, db_column="QHXY")
+    fxy = models.FloatField(null=True, blank=True, help_text="Max gust speed")
+    qfxy = models.IntegerField(null=True, blank=True)
+    dxy = models.IntegerField(null=True, blank=True, help_text="Max gust direction")
+    qdxy = models.IntegerField(null=True, blank=True)
+    hxy = models.CharField(max_length=4, null=True, blank=True, help_text="Time of max gust")
+    qhxy = models.IntegerField(null=True, blank=True)
 
-    fxi = models.FloatField(null=True, blank=True, db_column="FXI")
-    qfxi = models.IntegerField(null=True, blank=True, db_column="QFXI")
-    dxi = models.IntegerField(null=True, blank=True, db_column="DXI")
-    qdxi = models.IntegerField(null=True, blank=True, db_column="QDXI")
-    hxi = models.CharField(max_length=4, null=True, blank=True, db_column="HXI")
-    qhxi = models.IntegerField(null=True, blank=True, db_column="QHXI")
+    fxi = models.FloatField(null=True, blank=True)
+    qfxi = models.IntegerField(null=True, blank=True)
+    dxi = models.IntegerField(null=True, blank=True)
+    qdxi = models.IntegerField(null=True, blank=True)
+    hxi = models.CharField(max_length=4, null=True, blank=True)
+    qhxi = models.IntegerField(null=True, blank=True)
 
-    fxi2 = models.FloatField(null=True, blank=True, db_column="FXI2")
-    qfxi2 = models.IntegerField(null=True, blank=True, db_column="QFXI2")
-    dxi2 = models.IntegerField(null=True, blank=True, db_column="DXI2")
-    qdxi2 = models.IntegerField(null=True, blank=True, db_column="QDXI2")
-    hxi2 = models.CharField(max_length=4, null=True, blank=True, db_column="HXI2")
-    qhxi2 = models.IntegerField(null=True, blank=True, db_column="QHXI2")
+    fxi2 = models.FloatField(null=True, blank=True)
+    qfxi2 = models.IntegerField(null=True, blank=True)
+    dxi2 = models.IntegerField(null=True, blank=True)
+    qdxi2 = models.IntegerField(null=True, blank=True)
+    hxi2 = models.CharField(max_length=4, null=True, blank=True)
+    qhxi2 = models.IntegerField(null=True, blank=True)
 
-    fxi3s = models.FloatField(null=True, blank=True, db_column="FXI3S")
-    qfxi3s = models.IntegerField(null=True, blank=True, db_column="QFXI3S")
-    dxi3s = models.IntegerField(null=True, blank=True, db_column="DXI3S")
-    qdxi3s = models.IntegerField(null=True, blank=True, db_column="QDXI3S")
-    hxi3s = models.CharField(max_length=4, null=True, blank=True, db_column="HXI3S")
-    qhxi3s = models.IntegerField(null=True, blank=True, db_column="QHXI3S")
+    fxi3s = models.FloatField(null=True, blank=True)
+    qfxi3s = models.IntegerField(null=True, blank=True)
+    dxi3s = models.IntegerField(null=True, blank=True)
+    qdxi3s = models.IntegerField(null=True, blank=True)
+    hxi3s = models.CharField(max_length=4, null=True, blank=True)
+    qhxi3s = models.IntegerField(null=True, blank=True)
 
     # Precipitation duration
-    drr = models.IntegerField(null=True, blank=True, db_column="DRR")
-    qdrr = models.IntegerField(null=True, blank=True, db_column="QDRR")
+    drr = models.IntegerField(null=True, blank=True, help_text="Precipitation duration (min)")
+    qdrr = models.IntegerField(null=True, blank=True)
 
     class Meta:
-        managed = False
-        db_table = "Quotidienne"
+        # Note: UniqueConstraint not used because TimescaleDB hypertables require
+        # the partitioning column to be part of any unique index. We use a regular
+        # index instead, managed in the migration.
         ordering = ["-date"]
 
     def __str__(self) -> str:
-        return f"{self.nom_usuel} ({self.num_poste}) - {self.date}"
+        return f"{self.nom_usuel} ({self.station.code}) - {self.date}"
