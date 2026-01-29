@@ -1,3 +1,11 @@
+<script setup lang="ts"></script>
+
 <template>
-  <h1>Footer</h1>
+  <UFooter>
+    <template #left>
+      <p class="text-muted text-sm">
+        Copyright © {{ new Date().getFullYear() }}
+      </p>
+    </template>
+  </UFooter>
 </template>
