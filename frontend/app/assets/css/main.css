@@ -1,2 +1,13 @@
 @import "tailwindcss";
 @import "@nuxt/ui";
+
+@theme {
+  --default-font-family:
+    "DM Sans", "ui-sans-serif", "system-ui", "sans-serif", "Apple Color Emoji",
+    "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
+}
+
+/* This p styling below is meant to get the font "DM Sans" detected by NuxtFonts module */
+p {
+  font-family: "DM Sans";
+}

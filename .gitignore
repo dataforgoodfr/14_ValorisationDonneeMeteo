@@ -17,3 +17,9 @@ Thumbs.db
 
 # Logs
 *.log
+
+# Nuxt Fonts
+.data
+
+# Claude
+.claude
