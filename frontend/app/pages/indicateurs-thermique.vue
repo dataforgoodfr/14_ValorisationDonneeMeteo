@@ -3,6 +3,10 @@
  - A Réaliser : https://github.com/dataforgoodfr/14_ValorisationDonneeMeteo/issues/4
 -->
 
+<script setup lang="ts"></script>
+
 <template>
-  <h1>Page Indicateur Thermique National</h1>
+  <UContainer>
+    <h1>Page Indicateur Thermique National</h1>
+  </UContainer>
 </template>

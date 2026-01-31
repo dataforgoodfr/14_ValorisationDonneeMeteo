@@ -4,5 +4,7 @@
 -->
 
 <template>
-  <h1>Page Ecart de température à la normale</h1>
+  <UContainer>
+    <h1>Page Ecart de température à la normale</h1>
+  </UContainer>
 </template>
