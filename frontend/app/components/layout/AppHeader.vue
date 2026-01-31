@@ -41,14 +41,12 @@ const items = computed<NavigationMenuItem[]>(() => [
 </script>
 
 <template>
-  <UHeader>
+  <UHeader mode="slideover">
     <template #title>
       <h1>Infoclimat Dashboard</h1>
     </template>
 
-    <template #default>
-      <UNavigationMenu content-orientation="vertical" :items="items" />
-    </template>
+    <UNavigationMenu content-orientation="vertical" :items="items" />
 
     <template #right>
       <UTooltip text="Accedez au site InfoClimat">
@@ -61,6 +59,10 @@ const items = computed<NavigationMenuItem[]>(() => [
           aria-label="infoclimat"
         />
       </UTooltip>
+    </template>
+
+    <template #body>
+      <UNavigationMenu :items="items" orientation="vertical" class="-mx-2.5" />
     </template>
   </UHeader>
 </template>
