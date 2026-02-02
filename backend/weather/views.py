@@ -40,7 +40,7 @@ class StationViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = Station.objects.all()
     serializer_class = StationSerializer
     filterset_class = StationFilter
-    search_fields = ["nom", "id"]
+    search_fields = ["nom", "code"]
     ordering_fields = ["nom", "departement", "alt"]
     ordering = ["nom"]
 
@@ -67,7 +67,7 @@ class HoraireTempsReelViewSet(viewsets.ReadOnlyModelViewSet):
     Optimized for time-series queries on TimescaleDB hypertable.
     """
 
-    queryset = HoraireTempsReel.objects.all()
+    queryset = HoraireTempsReel.objects.select_related("station").all()
     serializer_class = HoraireTempsReelSerializer
     filterset_class = HoraireTempsReelFilter
     ordering_fields = ["validity_time", "t", "rr1"]
@@ -86,9 +86,11 @@ class HoraireTempsReelViewSet(viewsets.ReadOnlyModelViewSet):
     @action(detail=False, methods=["get"])
     def latest(self, request):
         """Get the most recent measurement for each station."""
-        latest_data = HoraireTempsReel.objects.order_by(
-            "geo_id_insee", "-validity_time"
-        ).distinct("geo_id_insee")
+        latest_data = (
+            HoraireTempsReel.objects.select_related("station")
+            .order_by("station", "-validity_time")
+            .distinct("station")
+        )
         serializer = self.get_serializer(latest_data, many=True)
         return Response(serializer.data)
 
@@ -109,7 +111,7 @@ class QuotidienneViewSet(viewsets.ReadOnlyModelViewSet):
     ViewSet for daily aggregated weather data.
     """
 
-    queryset = Quotidienne.objects.all()
+    queryset = Quotidienne.objects.select_related("station").all()
     serializer_class = QuotidienneSerializer
     filterset_class = QuotidienneFilter
     ordering_fields = ["date", "tn", "tx", "rr"]
