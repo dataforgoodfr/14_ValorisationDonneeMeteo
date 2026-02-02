@@ -13,6 +13,10 @@ from django.db import migrations
 
 
 class Migration(migrations.Migration):
+    # TimescaleDB operations (CREATE EXTENSION, create_hypertable) cannot run
+    # inside a transaction block. Disable atomic execution for this migration.
+    atomic = False
+
     dependencies = [
         ("weather", "0001_initial"),
     ]
