@@ -49,6 +49,8 @@ L'API est disponible sur http://localhost:8000
 
 Genere des donnees meteo realistes pour le developpement et les tests.
 
+> **Note** : Cette commande necessite `DEBUG=True` dans les settings. Elle refuse de s'executer en production pour eviter toute suppression accidentelle de donnees.
+
 ```bash
 # Generer 30 jours de donnees (defaut)
 uv run python manage.py populate_weather_data
