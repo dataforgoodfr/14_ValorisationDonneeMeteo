@@ -14,6 +14,7 @@ class StationSerializer(serializers.ModelSerializer):
         model = Station
         fields = [
             "id",
+            "code",
             "nom",
             "departement",
             "frequence",
@@ -36,10 +37,14 @@ class StationDetailSerializer(StationSerializer):
 class HoraireTempsReelSerializer(serializers.ModelSerializer):
     """Serializer for hourly real-time measurements."""
 
+    station_code = serializers.CharField(source="station.code", read_only=True)
+
     class Meta:
         model = HoraireTempsReel
         fields = [
-            "geo_id_insee",
+            "id",
+            "station",
+            "station_code",
             "lat",
             "lon",
             "validity_time",
@@ -68,10 +73,14 @@ class HoraireTempsReelDetailSerializer(HoraireTempsReelSerializer):
 class QuotidienneSerializer(serializers.ModelSerializer):
     """Serializer for daily aggregated data."""
 
+    station_code = serializers.CharField(source="station.code", read_only=True)
+
     class Meta:
         model = Quotidienne
         fields = [
-            "num_poste",
+            "id",
+            "station",
+            "station_code",
             "nom_usuel",
             "lat",
             "lon",
