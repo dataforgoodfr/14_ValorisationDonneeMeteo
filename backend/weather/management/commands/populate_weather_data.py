@@ -7,7 +7,8 @@ import random
 from datetime import timedelta
 
 import numpy as np
-from django.core.management.base import BaseCommand
+from django.conf import settings
+from django.core.management.base import BaseCommand, CommandError
 from django.db import connection, models
 from django.utils import timezone
 
@@ -73,6 +74,13 @@ class Command(BaseCommand):
         )
 
     def handle(self, *args, **options):
+        # Safety check: refuse to run in production
+        if not settings.DEBUG:
+            raise CommandError(
+                "This command is only available in development (DEBUG=True). "
+                "It is not safe to run in production as it can delete data."
+            )
+
         # Set seeds for reproducibility
         random.seed(options["seed"])
         np.random.seed(options["seed"])
