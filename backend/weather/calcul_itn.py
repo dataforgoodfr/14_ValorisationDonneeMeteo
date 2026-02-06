@@ -1,46 +1,104 @@
+import os
+import psycopg2
+from dotenv import load_dotenv
 import pandas as pd
 from datetime import timedelta
 
+load_dotenv()
+
+conn  = psycopg2.connect(host=os.environ['DB_HOST'],
+                         user=os.environ['DB_USER'],
+                         database=os.environ['DB_NAME'],
+                         password=os.environ['DB_PASSWORD'],
+                         port=int(os.environ['DB_PORT']))
+
 
 #--------------------------------------------------------------------
-def read_data(filename):
+def read_temperatures(conn,stations_itn=[]):
    """
    Read the csv file containing the data into a pandas DataFrame. The times
    are converted into datetime object.
 
    Parameters
    ----------
-   str
-         path and name of the csv file
+   conn: psycopg2.extensions.connection
+         Connection to the database
+   stations_itn: list or tuple
+         list of the stations to be considered to calculate the ITN.
 
    Returns
    -------
-   pandas.core.frame.DataFrame
-         meteorological data from InfoClimat
+   stations: pandas.core.frame.DataFrame
+         data of the stations extracted
+   temp_hourly: pandas.core.frame.DataFrame
+         hourly measurement of the air, min and max temperature
+   temp_daily: pandas.core.frame.DataFrame
+         daily record of the min, max and 'mean' temperature
    """
 
-   data = pd.read_csv(filename,skiprows=10,header=None,delimiter=';')
+   sql_request = """SELECT
+                       *
+                    FROM
+                       weather_station
+                 """
+   if(len(stations_itn)>0):
+      sql_request += f"""WHERE
+                            nom in {stations_itn}"""
+   stations = pd.read_sql(sql_request, con=conn)
 
-   # Merge the two lines corresponding to the header
-   cols = data[:2].fillna('').agg(' '.join, axis=0).values
-   data = data[2:]
-   data.columns = cols
 
-   data = data.rename(columns={'station_id string': 'station_id',
-                            'dh_utc YYYY-MM-DD hh:mm:ss': 'dh_utc'})
-   data['dh_utc'] = pd.to_datetime(data['dh_utc'])
 
-   return data
+   sql_request = f"""SELECT
+                        w.station_id,s.nom,
+                        w.validity_time as dh_utc,
+                        w.t as temperature,
+                        w.tx as temp_max,
+                        w.tn as temp_min
+                     FROM
+                        weather_horairetempsreel as w
+                        JOIN weather_station as s
+                           ON s.id = w.station_id
+                     WHERE
+                        station_id in {tuple(stations['id'])}
+                 """
+   temp_hourly = pd.read_sql(sql_request, con=conn)
+   temp_hourly['dh_utc'] = pd.to_datetime(temp_hourly['dh_utc'])
+
+
+
+   sql_request = f"""SELECT
+                        w.station_id,s.nom,
+                        w.date, w.tx as temp_max,
+                        w.tn as temp_min,w.tntxm as temp_mean
+                     FROM
+                        weather_quotidienne as w
+                        JOIN weather_station as s
+                           ON s.id = w.station_id
+                     WHERE
+                        station_id in {tuple(stations['id'])}
+                 """
+   temp_daily = pd.read_sql(sql_request, con=conn)
+   temp_daily['date'] = pd.to_datetime(temp_daily['date'])
+
+   return stations,temp_hourly,temp_daily
 
 #--------------------------------------------------------------------
-def extract_temperatures(df):
+def separate_by_station(df,index='',columns='',values='',freq='h'):
    """
-   Extract only the temperature records and create on column for each station.
+   Pivot the data to get one column for each meteorological station.
 
    Parameters
    ----------
-   pandas.core.frame.DataFrame
-         full meteoroological data from InfoClimat
+   df: pandas.core.frame.DataFrame
+         temperature data to pivot
+   index: str
+         column to use as the new frame's index
+   columns: str
+         column to use as the new frame's columns
+   values: str
+         column(s) to use as the new frame's values
+   freq: str
+         time frequency of the new frame
 
    Returns
    -------
@@ -48,12 +106,15 @@ def extract_temperatures(df):
          temperature records, with one column per station
    """
 
-   cols = df.columns
-   data_temp = df.pivot(index=cols[0],
-                        columns=cols[1],
-                        values=cols[2])
+   assert (index != '') & (columns != '') & (values != ''), \
+            'Cannot pivot, missing arguments'
 
-   return data_temp.asfreq("h").astype(float)
+   cols = df.columns
+   data_temp = df.pivot(index=index,
+                        columns=columns,
+                        values=values)
+
+   return data_temp.asfreq(freq).astype(float)
 
 #--------------------------------------------------------------------
 def calculate_min_temperature(df):
@@ -80,7 +141,7 @@ def calculate_min_temperature(df):
       final = day+timedelta(hours = 18)
       init_str,final_str = init.isoformat(),final.isoformat()
 
-      records = temp_per_station[init_str:final_str]
+      records = df[init_str:final_str]
       # return NaN if less than 24h of data
       if(len(records.index) < 25):
          temp_min.loc[temp_min.index == day] = row*float('nan')
@@ -117,7 +178,7 @@ def calculate_max_temperature(df):
       final = day+timedelta(days = 1,hours = 6)
       init_str,final_str = init.isoformat(),final.isoformat()
 
-      records = temp_per_station[init_str:final_str]
+      records = df[init_str:final_str]
       # return NaN if less than 24h of data
       if(len(records.index) < 25):
          temp_max.loc[temp_max.index == day] = row*float('nan')
@@ -154,18 +215,47 @@ def itn_calculation(df):
 
 #--------------------------------------------------------------------
 
-filename = 'data/export_infoclimat.csv'
-data = read_data(filename)
+stations_itn = ("Nice-Côte dAzur","Marseille-Marignane",
+                "Caen - Carpiquet","Cognac - Châteaubernard",
+                "Bastia - Poretta","Dijon-Longvic",
+                "Besançon - Thise","Montélimar - Ancone",
+                "Brest-Guipavas","Nîmes - Courbessac",
+                "Toulouse-Blagnac","Bordeaux-Mérignac",
+                "Rennes-Saint-Jacques","Châteauroux - Déols",
+                "Nantes - Atlantique","Orléans - Bricy",
+                "Agen - La Garenne","Reims - Prunay","Reims - Courcy",
+                "Nancy - Essey","Nevers - Marzy",
+                "Lille-Lesquin","Clermont-Ferrand - Aulnat",
+                "Pau-Uzein","Perpignan - Rivesaltes",
+                "Strasbourg-Entzheim","Lyon-Bron",
+                "Le Mans - Arnage","Bourg - St-Maurice",
+                "Paris-Montsouris","Poitiers - Biard")
 
-temp_per_station = extract_temperatures(data[['dh_utc','station_id',
-                                              'temperature °C']])
+stations,temp_hourly,temp_daily = read_temperatures(conn,
+                                             stations_itn=stations_itn)
 
-assert (temp_per_station.dtypes == float).all(), 'Data are not in the proper format.'
 
-itn = itn_calculation(temp_per_station)
 
-#exec(open('calcul_itn.py').read())
+hourly_temp_per_station  = separate_by_station(temp_hourly,
+                                               index='dh_utc',
+                                               columns='nom',
+                                               values='temperature',
+                                               freq='h')
+daily_records_by_station = separate_by_station(temp_daily,
+                                               index='date',
+                                               columns='nom',
+                                               values=['temp_min','temp_max',
+                                                       'temp_mean'],
+                                               freq='D')
 
+
+
+assert (hourly_temp_per_station.dtypes == float).all(), \
+          'Data are not in the proper format.'
+
+itn = itn_calculation(hourly_temp_per_station)
+
+#exec(open('weather/calcul_itn.py').read())
 
 
 
