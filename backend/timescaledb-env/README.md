@@ -130,6 +130,26 @@ python manage.py populate_weather_data --skip-daily
 python manage.py populate_weather_data --seed 123
 ```
 
+## Peuplement avec les données réelles 2025
+
+Le script `populate_from_parquet.py` permet de peupler la base de données avec les données réelles du fichier `real_data_2025.parquet` :
+
+```bash
+# 1. Se placer dans le dossier timescaledb-env
+cd backend/timescaledb-env
+
+# 2. Exécuter le script de peuplement
+python populate_from_parquet.py
+```
+
+Ce script :
+- Crée ou met à jour les 4 stations météorologiques principales
+- Insère 35 242 observations horaires pour l'année 2025
+- Génère 1 472 enregistrements quotidiens agrégés
+- Respecte le schéma de données existant sans le modifier
+
+**Note** : Le script utilise les modèles Django et nécessite que la base de données soit accessible et que les migrations aient été appliquées.
+
 ## Exemples de requêtes
 
 ### Lister les stations
@@ -211,13 +231,13 @@ SELECT * FROM timescaledb_information.chunks;
 
 ```bash
 # Voir les logs
-docker-compose logs -f
+docker compose logs -f
 
 # Arrêter l'environnement
-docker-compose down
+docker compose down
 
 # Arrêter ET supprimer les données
-docker-compose down -v
+docker compose down -v
 
 # Se connecter en psql
 docker exec -it infoclimat-timescaledb psql -U infoclimat -d meteodb

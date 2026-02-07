@@ -13,7 +13,7 @@ Le fichier `real_data_2025.parquet` contient des données météorologiques rée
 ### Stations incluses
 
 - **75114001** : Paris-Montsouris
-- **33281001** : Bordeaux-Mérignac  
+- **33281001** : Bordeaux-Mérignac
 - **51449002** : Reims-Prunay
 - **67124001** : Strasbourg-Entzheim
 
