@@ -3,7 +3,7 @@ export default defineNuxtConfig({
   compatibilityDate: "2025-07-15",
   devtools: { enabled: true },
 
-  modules: ["@nuxt/eslint", "@nuxt/test-utils", "@nuxt/ui", "@nuxt/image", '@nuxt/fonts'],
+  modules: ["@nuxt/eslint", "@nuxt/test-utils", "@nuxt/ui", "@nuxt/image", '@nuxt/fonts','nuxt-echarts'],
   css: ['~/assets/css/main.css'],
   ui: {
     colorMode: false
@@ -18,5 +18,11 @@ export default defineNuxtConfig({
         { rel: 'icon', type: 'image/x-icon', href: '/favicon.ico' },
       ],
     },
+  },
+  echarts : {
+    renderer: ['svg', 'canvas'],
+    charts: ['BarChart', 'LineChart'],
+    components: ['DatasetComponent', 'GridComponent', 'TooltipComponent'],
+    features: ['LabelLayout', 'UniversalTransition'],
   },
 });
