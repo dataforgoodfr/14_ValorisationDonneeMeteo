@@ -77,8 +77,19 @@ Les donnees generees incluent 15 stations francaises avec des mesures realistes 
 - Variations de pression atmospherique coherentes
 - Rafales de vent avec direction aleatoire
 
-## Endpoints API
+## API
+### Spécifications
+Les spécifications de l'API (la cible a atteindre) sont disponibles dans `openapi/target-specs/openapi.yaml`
+```
+cd backend
+```
+```
+npx swagger-ui-watcher openapi/target-specs/openapi.yaml
+```
+La documentation est alors disponible sur `http://localhost:8000`
+Ce document est mis à jour au cours de la vie du projet
 
+### Endpoints existants
 | Endpoint | Description |
 |----------|-------------|
 | `/api/v1/stations/` | Liste des stations meteo |
