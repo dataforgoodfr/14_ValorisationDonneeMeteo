@@ -3,15 +3,20 @@ DRF ViewSets for weather data API endpoints.
 """
 
 from drf_spectacular.utils import extend_schema, extend_schema_view
-from rest_framework import viewsets
+from rest_framework import status, viewsets
 from rest_framework.decorators import action
 from rest_framework.response import Response
+from rest_framework.views import APIView
 
+from .data_generators.national_indicator_fake import generate_fake_national_indicator
 from .filters import HoraireTempsReelFilter, QuotidienneFilter, StationFilter
 from .models import HoraireTempsReel, Quotidienne, Station
 from .serializers import (
+    ErrorSerializer,
     HoraireTempsReelDetailSerializer,
     HoraireTempsReelSerializer,
+    NationalIndicatorQuerySerializer,
+    NationalIndicatorResponseSerializer,
     QuotidienneDetailSerializer,
     QuotidienneSerializer,
     StationDetailSerializer,
@@ -121,3 +126,35 @@ class QuotidienneViewSet(viewsets.ReadOnlyModelViewSet):
         if self.action == "retrieve":
             return QuotidienneDetailSerializer
         return QuotidienneSerializer
+
+
+class NationalIndicatorAPIView(APIView):
+    """
+    GET /api/v1/temperature/national-indicator
+    Implémentation mock (sans BDD), conforme au contrat OpenAPI.
+    """
+
+    authentication_classes = []
+    permission_classes = []
+
+    def get(self, request):
+        q = NationalIndicatorQuerySerializer(data=request.query_params)
+        if not q.is_valid():
+            return Response(
+                ErrorSerializer.build(
+                    code="INVALID_PARAMETER",
+                    message="Paramètre invalide ou manquant",
+                    details=q.errors,
+                ),
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        params = q.validated_data
+
+        # Génération fake
+        payload = generate_fake_national_indicator(**params)
+
+        out = NationalIndicatorResponseSerializer(data=payload)
+        out.is_valid(raise_exception=True)
+
+        return Response(out.data, status=status.HTTP_200_OK)
