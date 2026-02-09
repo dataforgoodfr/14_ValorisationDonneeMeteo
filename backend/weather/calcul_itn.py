@@ -14,6 +14,32 @@ conn  = psycopg2.connect(host=os.environ['DB_HOST'],
 
 
 #--------------------------------------------------------------------
+def sql2pandas(sql_request):
+   """
+   Given a SQL request, use a cursor to extract the data and convert
+   them into a pandas dataframe.
+
+   Parameters
+   ----------
+   str
+         SQL request to extract the data
+
+   Returns
+   -------
+   pandas.core.frame.DataFrame
+         requested data
+   """
+
+   cursor = conn.cursor()
+   cursor.execute(sql_request)
+
+   columns = cursor.description
+   result = [{columns[index][0]: column for index, column in enumerate(value)}
+                        for value in cursor.fetchall()]
+
+   return pd.DataFrame(result)
+
+#--------------------------------------------------------------------
 def read_temperatures(conn,stations_itn=[]):
    """
    Read the csv file containing the data into a pandas DataFrame. The times
@@ -44,7 +70,8 @@ def read_temperatures(conn,stations_itn=[]):
    if(len(stations_itn)>0):
       sql_request += f"""WHERE
                             code in {stations_itn}"""
-   stations = pd.read_sql(sql_request, con=conn)
+#   stations = pd.read_sql(sql_request, con=conn)
+   stations = sql2pandas(sql_request)
 
 
 
@@ -61,7 +88,8 @@ def read_temperatures(conn,stations_itn=[]):
                      WHERE
                         station_id in {tuple(stations['id'])}
                  """
-   temp_hourly = pd.read_sql(sql_request, con=conn)
+#   temp_hourly = pd.read_sql(sql_request, con=conn)
+   temp_hourly = sql2pandas(sql_request)
    temp_hourly['dh_utc'] = pd.to_datetime(temp_hourly['dh_utc'])
 
 
@@ -77,7 +105,8 @@ def read_temperatures(conn,stations_itn=[]):
                      WHERE
                         station_id in {tuple(stations['id'])}
                  """
-   temp_daily = pd.read_sql(sql_request, con=conn)
+#   temp_daily = pd.read_sql(sql_request, con=conn)
+   temp_daily = sql2pandas(sql_request)
    temp_daily['date'] = pd.to_datetime(temp_daily['date'])
 
    return stations,temp_hourly,temp_daily
