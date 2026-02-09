@@ -118,145 +118,113 @@ paths:
 
   /temperature/national-indicator:
     get:
-      summary: Indicateur thermique national
-      description: |
-        Indicateur thermique national avec courbes de température moyenne et écarts-types
-        par rapport à la baseline 1991-2020.
-
-        Permet d'afficher l'évolution de la température sur une période donnée avec
-        plusieurs niveaux d'agrégation temporelle.
-      operationId: getNationalIndicator
       tags:
         - Temperature
+      summary: Indicateur thermique national (ITN) agrégé
+      description: >
+        Retourne une série temporelle de l’indicateur thermique national (ITN).
+        La granularité de l'axe X est contrôlée par `granularity`.
+        Un filtre intra-période optionnel est contrôlé par `slice_type` et paramètres associés.
+
+        Combinaisons valides (validation côté API) :
+
+        - granularity=year :
+          - slice_type=full (défaut) : agrégat sur l'année complète
+          - slice_type=month_of_year : agrégat sur un mois donné (month_of_year requis)
+          - slice_type=day_of_month : échantillon sur un jour précis de l'année (month_of_year + day_of_month requis)
+        - granularity=month :
+          - slice_type=full (défaut) : agrégat sur le mois complet
+          - slice_type=day_of_month : échantillon sur le N-ième jour de chaque mois (day_of_month requis)
+        - granularity=day :
+          - slice_type=full uniquement (slice_type doit être absent ou full)
+
+        Règle "jours inexistants" :
+        - si day_of_month n'existe pas dans un mois (ex: 30/02, 31/04), le dernier jour du mois est utilisé.
+      operationId: getNationalIndicator
       parameters:
         - name: date_start
           in: query
           required: true
-          description: Date de début de la période à afficher
           schema:
             type: string
             format: date
-          example: "2024-01-01"
+          description: Date de début incluse (YYYY-MM-DD).
+          example: "1990-01-01"
+
         - name: date_end
           in: query
           required: true
-          description: Date de fin de la période à afficher
           schema:
             type: string
             format: date
+          description: Date de fin incluse (YYYY-MM-DD).
           example: "2024-12-31"
-        - name: aggregation
+
+        - name: granularity
           in: query
           required: true
-          description: |
-            Niveau d'agrégation temporelle des données.
-            - `year`: Une valeur par année
-            - `month`: Une valeur par mois (moyennes mensuelles)
-            - `day_of_month`: Une valeur par jour du mois (ex: tous les 15 du mois)
           schema:
             type: string
-            enum:
-              - year
-              - month
-              - day_of_month
+            enum: [ year, month, day ]
+          description: >
+            Granularité de la série temporelle.
+            - year : un point par année (date = YYYY-01-01)
+            - month : un point par mois (date = YYYY-MM-01)
+            - day : un point par jour (date = YYYY-MM-DD)
           example: month
+
+        - name: slice_type
+          in: query
+          required: false
+          schema:
+            type: string
+            enum: [ full, month_of_year, day_of_month ]
+            default: full
+          description: >
+            Filtre intra-période appliqué à chaque période (selon `granularity`).
+            - full : agrégat sur toute la période (défaut)
+            - month_of_year : agrégat sur un mois spécifique de l’année (month_of_year requis, granularity=year)
+            - day_of_month : échantillon sur un jour du mois (day_of_month requis, et si granularity=year alors month_of_year requis)
+
+        - name: month_of_year
+          in: query
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 12
+          description: >
+            Mois concerné (1..12).
+            Requis si slice_type=month_of_year.
+            Requis aussi si slice_type=day_of_month ET granularity=year (pour exprimer un jour précis de l’année).
+          example: 1
+
         - name: day_of_month
           in: query
           required: false
-          description: |
-            Numéro du jour du mois (1-31) pour l'agrégation `day_of_month`.
-            Obligatoire si aggregation=day_of_month.
           schema:
             type: integer
             minimum: 1
             maximum: 31
-          example: 15
+          description: >
+            Jour du mois concerné (1..31).
+            Requis si slice_type=day_of_month.
+            Si le jour n'existe pas dans un mois, le dernier jour du mois est utilisé.
+          example: 29
+
       responses:
-        '200':
-          description: Succès
+        "200":
+          description: Série temporelle de l'indicateur thermique national.
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/NationalIndicatorResponse'
-              examples:
-                monthly_aggregation:
-                  summary: Agrégation mensuelle sur 2024
-                  value:
-                    metadata:
-                      date_start: "2024-01-01"
-                      date_end: "2024-12-31"
-                      aggregation: "month"
-                      baseline: "1991-2020"
-                    baseline_statistics:
-                      mean_temperature: 12.8
-                    time_series:
-                      - date: "2024-01-01"
-                        temperature: 5.6
-                        baseline_mean: 4.2
-                        baseline_std_dev_upper: 5.4
-                        baseline_std_dev_lower: 3.0
-                        baseline_max: 7.8
-                        baseline_min: 0.5
-                      - date: "2024-02-01"
-                        temperature: 7.1
-                        baseline_mean: 5.5
-                        baseline_std_dev_upper: 6.8
-                        baseline_std_dev_lower: 4.2
-                        baseline_max: 9.2
-                        baseline_min: 1.8
-                yearly_aggregation:
-                  summary: Agrégation annuelle sur plusieurs années
-                  value:
-                    metadata:
-                      date_start: "2020-01-01"
-                      date_end: "2024-12-31"
-                      aggregation: "year"
-                      baseline: "1991-2020"
-                    baseline_statistics:
-                      mean_temperature: 12.8
-                    time_series:
-                      - date: "2020-01-01"
-                        temperature: 13.2
-                        baseline_mean: 12.8
-                        baseline_std_dev_upper: 13.6
-                        baseline_std_dev_lower: 12.0
-                        baseline_max: 14.5
-                        baseline_min: 11.1
-                      - date: "2021-01-01"
-                        temperature: 13.5
-                        baseline_mean: 12.8
-                        baseline_std_dev_upper: 13.6
-                        baseline_std_dev_lower: 12.0
-                        baseline_max: 14.5
-                        baseline_min: 11.1
-                day_of_month_aggregation:
-                  summary: Agrégation pour tous les 15 du mois
-                  value:
-                    metadata:
-                      date_start: "2024-01-01"
-                      date_end: "2024-12-31"
-                      aggregation: "day_of_month"
-                      day_of_month: 15
-                      baseline: "1991-2020"
-                    baseline_statistics:
-                      mean_temperature: 12.8
-                    time_series:
-                      - date: "2024-01-15"
-                        temperature: 4.8
-                        baseline_mean: 3.9
-                        baseline_std_dev_upper: 5.1
-                        baseline_std_dev_lower: 2.7
-                        baseline_max: 7.5
-                        baseline_min: 0.2
-                      - date: "2024-02-15"
-                        temperature: 6.5
-                        baseline_mean: 5.3
-                        baseline_std_dev_upper: 6.6
-                        baseline_std_dev_lower: 4.0
-                        baseline_max: 8.9
-                        baseline_min: 1.5
-        '400':
-          $ref: '#/components/responses/BadRequest'
+                $ref: "#/components/schemas/NationalIndicatorResponse"
+        "400":
+          description: Paramètre invalide ou manquant.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
 
   /photos:
     get:
@@ -377,7 +345,6 @@ components:
       type: object
       required:
         - metadata
-        - baseline_statistics
         - time_series
       properties:
         metadata:
@@ -385,42 +352,46 @@ components:
           required:
             - date_start
             - date_end
-            - aggregation
             - baseline
+            - granularity
+            - slice_type
           properties:
             date_start:
               type: string
               format: date
-              description: Date de début de la période
             date_end:
               type: string
               format: date
-              description: Date de fin de la période
-            aggregation:
+            baseline:
               type: string
-              enum: [year, month, day_of_month]
-              description: Type d'agrégation temporelle
+              description: "Période de référence (ex: 1991-2020)."
+              example: "1991-2020"
+            granularity:
+              type: string
+              enum: [year, month, day]
+              description: "Granularité de la série (axe X)."
+              example: month
+            slice_type:
+              type: string
+              enum: [full, month_of_year, day_of_month]
+              description: "Filtre intra-période appliqué à chaque période."
+              example: full
+            month_of_year:
+              type: integer
+              minimum: 1
+              maximum: 12
+              description: "Mois concerné si slice_type=month_of_year, ou si slice_type=day_of_month & granularity=year."
             day_of_month:
               type: integer
               minimum: 1
               maximum: 31
-              description: Jour du mois (présent uniquement si aggregation=day_of_month)
-            baseline:
-              type: string
-              example: "1991-2020"
-              description: Période de référence (toujours 1991-2020)
-        baseline_statistics:
-          type: object
-          required:
-            - mean_temperature
-          properties:
-            mean_temperature:
-              type: number
-              format: float
-              description: Température moyenne de la période de référence 1991-2020
+              description: >
+                Jour du mois concerné si slice_type=day_of_month.
+                Si le jour n'existe pas dans un mois, le dernier jour du mois est utilisé.
+
         time_series:
           type: array
-          description: Série temporelle selon l'agrégation choisie
+          description: "Série temporelle selon la granularité choisie"
           items:
             type: object
             required:
@@ -437,34 +408,33 @@ components:
                 format: date
                 description: |
                   Date du point de données.
-                  - aggregation=year: Premier jour de l'année (ex: "2024-01-01")
-                  - aggregation=month: Premier jour du mois (ex: "2024-01-01")
-                  - aggregation=day_of_month: Date exacte du jour (ex: "2024-01-15")
+                  - granularity=year: premier jour de l'année (ex: "2024-01-01")
+                  - granularity=month: premier jour du mois (ex: "2024-02-01")
+                  - granularity=day: date exacte du jour (ex: "2024-02-15")
               temperature:
                 type: number
                 format: float
-                description: Température observée (moyenne sur la période d'agrégation)
+                description: "Température observée (moyenne/valeur selon slice_type)"
               baseline_mean:
                 type: number
                 format: float
-                description: Température moyenne de référence 1991-2020 pour cette période
+                description: "Température moyenne de référence 1991-2020 pour cette période"
               baseline_std_dev_upper:
                 type: number
                 format: float
-                description: Écart-type supérieur (moyenne + 1 écart-type)
+                description: "Écart-type supérieur (moyenne + 1 écart-type)"
               baseline_std_dev_lower:
                 type: number
                 format: float
-                description: Écart-type inférieur (moyenne - 1 écart-type)
+                description: "Écart-type inférieur (moyenne - 1 écart-type)"
               baseline_max:
                 type: number
                 format: float
-                description: Température maximale observée sur la période 1991-2020
+                description: "Température maximale observée sur la période 1991-2020"
               baseline_min:
                 type: number
                 format: float
-                description: Température minimale observée sur la période 1991-2020
-
+                description: "Température minimale observée sur la période 1991-2020"
 
     StationsResponse:
       type: object
