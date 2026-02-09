@@ -3,7 +3,7 @@
   "type": "module",
   "private": true,
   "engines": {
-    "node": "24.13.0"
+    "node": ">=24"
   },
   "scripts": {
     "build": "nuxt build",
