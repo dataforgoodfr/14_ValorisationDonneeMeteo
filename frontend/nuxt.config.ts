@@ -19,4 +19,10 @@ export default defineNuxtConfig({
       ],
     },
   },
+  echarts : {
+    renderer: ['svg', 'canvas'],
+    charts: ['BarChart', 'LineChart'],
+    components: ['DatasetComponent', 'GridComponent', 'TooltipComponent'],
+    features: ['LabelLayout', 'UniversalTransition'],
+  },
 });
