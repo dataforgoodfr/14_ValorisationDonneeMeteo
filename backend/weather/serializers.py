@@ -100,3 +100,72 @@ class QuotidienneDetailSerializer(QuotidienneSerializer):
 
     class Meta(QuotidienneSerializer.Meta):
         fields = "__all__"
+
+
+class ErrorSerializer(serializers.Serializer):
+    error = serializers.DictField()
+
+    @staticmethod
+    def build(code: str, message: str, details: dict | None = None) -> dict:
+        payload = {"error": {"code": code, "message": message}}
+        if details is not None:
+            payload["error"]["details"] = details
+        return payload
+
+
+class NationalIndicatorQuerySerializer(serializers.Serializer):
+    date_start = serializers.DateField(required=True)
+    date_end = serializers.DateField(required=True)
+    aggregation = serializers.ChoiceField(
+        choices=["year", "month", "day_of_month"], required=True
+    )
+    day_of_month = serializers.IntegerField(required=False, min_value=1, max_value=31)
+
+    def validate(self, attrs):
+        ds = attrs["date_start"]
+        de = attrs["date_end"]
+        if ds > de:
+            raise serializers.ValidationError(
+                {"date_end": "date_end doit être >= date_start."}
+            )
+
+        agg = attrs["aggregation"]
+        dom = attrs.get("day_of_month")
+
+        if agg == "day_of_month" and dom is None:
+            raise serializers.ValidationError(
+                {"day_of_month": "Obligatoire si aggregation=day_of_month."}
+            )
+        if agg != "day_of_month" and dom is not None:
+            raise serializers.ValidationError(
+                {"day_of_month": "Interdit sauf si aggregation=day_of_month."}
+            )
+        return attrs
+
+
+class NationalIndicatorMetadataSerializer(serializers.Serializer):
+    date_start = serializers.DateField()
+    date_end = serializers.DateField()
+    aggregation = serializers.ChoiceField(choices=["year", "month", "day_of_month"])
+    day_of_month = serializers.IntegerField(required=False, min_value=1, max_value=31)
+    baseline = serializers.CharField()
+
+
+class NationalIndicatorBaselineStatisticsSerializer(serializers.Serializer):
+    mean_temperature = serializers.FloatField()
+
+
+class NationalIndicatorTimePointSerializer(serializers.Serializer):
+    date = serializers.DateField()
+    temperature = serializers.FloatField()
+    baseline_mean = serializers.FloatField()
+    baseline_std_dev_upper = serializers.FloatField()
+    baseline_std_dev_lower = serializers.FloatField()
+    baseline_max = serializers.FloatField()
+    baseline_min = serializers.FloatField()
+
+
+class NationalIndicatorResponseSerializer(serializers.Serializer):
+    metadata = NationalIndicatorMetadataSerializer()
+    baseline_statistics = NationalIndicatorBaselineStatisticsSerializer()
+    time_series = NationalIndicatorTimePointSerializer(many=True)
