@@ -279,17 +279,15 @@ def itn_calculation(df):
 #--------------------------------------------------------------------
 def calculate_return_itn():
    """
-   Extract only the temperature records and create on column for each station.
+   Main part of the script.
 
    Parameters
    ----------
-   pandas.core.frame.DataFrame
-         temperature records, with one column per station
 
    Returns
    -------
-   pandas.core.frame.DataFrame
-         computed ITN following the method of InfoClimat
+   numpy.ndarray
+         array Nx2 containing the date and ITN
    """
 
    stations_itn = ('6088001','13054001','14137001','16089001',
