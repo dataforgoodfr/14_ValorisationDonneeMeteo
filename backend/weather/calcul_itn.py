@@ -68,9 +68,9 @@ def read_temperatures(conn,stations_itn=[]):
                     FROM
                        weather_station
                  """
-#   if(len(stations_itn)>0):
-#      sql_request += f"""WHERE
-#                            code in {stations_itn}"""
+   if(len(stations_itn)>0):
+      sql_request += f"""WHERE
+                            code in {stations_itn}"""
 #   stations = pd.read_sql(sql_request, con=conn)
    stations = sql2pandas(sql_request)
 
