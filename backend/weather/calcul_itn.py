@@ -67,9 +67,9 @@ def read_temperatures(conn,stations_itn=[]):
                     FROM
                        weather_station
                  """
-   if(len(stations_itn)>0):
-      sql_request += f"""WHERE
-                            code in {stations_itn}"""
+#   if(len(stations_itn)>0):
+#      sql_request += f"""WHERE
+#                            code in {stations_itn}"""
 #   stations = pd.read_sql(sql_request, con=conn)
    stations = sql2pandas(sql_request)
 
@@ -144,6 +144,39 @@ def separate_by_station(df,index='',columns='',values='',freq='h'):
                         values=values)
 
    return data_temp.asfreq(freq).astype(float)
+
+#--------------------------------------------------------------------
+def correct_temp_Reims(df):
+   """
+   Correct the temperature of the Reims-Prunay station due to the location
+   difference with the former Reims-Courcy station.
+   This fonction might be updated in the future if a better correction
+   is find (discussion in issue #25 of GitHub).
+
+   Not tested because the data are not modelled.
+
+   Parameters
+   ----------
+   pandas.core.frame.DataFrame
+         temperature records, with one column per station
+
+   Returns
+   -------
+   pandas.core.frame.DataFrame
+         temperature records, with one column per station that include
+         correction for the Reims-Prunay station.
+   """
+
+   # Reims-Prunay: keep only the data after Reims-Courcy was decommissioned
+   corrected_df = df.copy()
+   corrected_df = corrected_df.loc[pd.notnull(test['Reims-Courcy']),
+                     'Reims-Prunay']=float('nan')
+
+   # Correction based on the difference in the mean TNTXM between
+   # the two stations during the two years of overlap
+   corrected_df['Reims-Prunay'] = corrected_df['Reims-Prunay']+0.29
+
+   return corrected_df
 
 #--------------------------------------------------------------------
 def calculate_min_temperature(df):
@@ -275,6 +308,13 @@ daily_records_by_station = separate_by_station(temp_daily,
                                                values=['temp_min','temp_max',
                                                        'temp_mean'],
                                                freq='D')
+
+
+
+if(('Reims-Courcy' in stations['nom'])&
+   ('Reims-Prunay' in stations['nom'])):
+   hourly_temp_per_station_corr  = correct_temp_Reims(hourly_temp_per_station)
+   daily_records_by_station_corr = correct_temp_Reims(daily_records_by_station)
 
 
 
