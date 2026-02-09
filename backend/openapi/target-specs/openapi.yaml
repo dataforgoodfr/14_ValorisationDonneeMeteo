@@ -1,0 +1,565 @@
+openapi: 3.0.3
+info:
+  title: InfoClimat v1 API
+  version: 0.1.0
+  description: |
+    API pour accéder aux données climatologiques comparatives en France métropolitaine.
+
+    Cette API permet d'analyser et comparer les données de température dans le temps et l'espace,
+    principalement destinée aux équipes de chaînes TV préparant des bulletins météo.
+
+    ## Fonctionnalités principales
+    - Écart de température à la normale (baseline 1991-2020)
+    - Analyse des pics de chaleur/froid
+    - Records de température
+    - Indicateur thermique national
+    - Comparaisons min/max
+    - Galerie photos communautaire
+
+  contact:
+    name: DataForGood
+    url: https://dataforgood.fr
+  license:
+    name: À définir
+
+tags:
+  - name: Temperature
+    description: Endpoints liés aux données de température (incluant écarts, pics, records, indicateurs)
+  - name: Photos
+    description: Mur photos communautaire
+  - name: Stations
+    description: Métadonnées des stations météorologiques
+
+paths:
+  /temperature/deviation:
+    get:
+      summary: Écart de température à la normale
+      description: |
+        Récupère les données d'écart de température par rapport à une baseline de référence (défaut: 1991-2020).
+        Permet des comparaisons temporelles et géographiques.
+
+        **Documentation des paramètres et schémas à compléter**
+      operationId: getTemperatureDeviation
+      tags:
+        - Temperature
+      parameters: []
+      responses:
+        '200':
+          description: Succès
+          content:
+            application/json:
+              schema:
+                type: object
+        '400':
+          $ref: '#/components/responses/BadRequest'
+
+  /temperature/extremes:
+    get:
+      summary: Pics de chaleur et de froid
+      description: |
+        Identifie et compte les jours de pics de chaleur/froid par rapport à la normale.
+
+        **Documentation des paramètres et schémas à compléter**
+      operationId: getTemperatureExtremes
+      tags:
+        - Temperature
+      parameters: []
+      responses:
+        '200':
+          description: Succès
+          content:
+            application/json:
+              schema:
+                type: object
+        '400':
+          $ref: '#/components/responses/BadRequest'
+
+  /temperature/records:
+    get:
+      summary: Records de température
+      description: |
+        Liste les records de température (min/max) battus sur une période donnée.
+
+        **Documentation des paramètres et schémas à compléter**
+      operationId: getTemperatureRecords
+      tags:
+        - Temperature
+      parameters: []
+      responses:
+        '200':
+          description: Succès
+          content:
+            application/json:
+              schema:
+                type: object
+        '400':
+          $ref: '#/components/responses/BadRequest'
+
+  /temperature/records/cumulative:
+    get:
+      summary: Cumul des records
+      description: |
+        Évolution cumulative du nombre de records chauds et froids sur une année.
+
+        **Documentation des paramètres et schémas à compléter**
+      operationId: getCumulativeRecords
+      tags:
+        - Temperature
+      parameters: []
+      responses:
+        '200':
+          description: Succès
+          content:
+            application/json:
+              schema:
+                type: object
+        '400':
+          $ref: '#/components/responses/BadRequest'
+
+  /temperature/national-indicator:
+    get:
+      summary: Indicateur thermique national
+      description: |
+        Indicateur thermique national avec courbes de température moyenne et écarts-types
+        par rapport à la baseline 1991-2020.
+
+        Permet d'afficher l'évolution de la température sur une période donnée avec
+        plusieurs niveaux d'agrégation temporelle.
+      operationId: getNationalIndicator
+      tags:
+        - Temperature
+      parameters:
+        - name: date_start
+          in: query
+          required: true
+          description: Date de début de la période à afficher
+          schema:
+            type: string
+            format: date
+          example: "2024-01-01"
+        - name: date_end
+          in: query
+          required: true
+          description: Date de fin de la période à afficher
+          schema:
+            type: string
+            format: date
+          example: "2024-12-31"
+        - name: aggregation
+          in: query
+          required: true
+          description: |
+            Niveau d'agrégation temporelle des données.
+            - `year`: Une valeur par année
+            - `month`: Une valeur par mois (moyennes mensuelles)
+            - `day_of_month`: Une valeur par jour du mois (ex: tous les 15 du mois)
+          schema:
+            type: string
+            enum:
+              - year
+              - month
+              - day_of_month
+          example: month
+        - name: day_of_month
+          in: query
+          required: false
+          description: |
+            Numéro du jour du mois (1-31) pour l'agrégation `day_of_month`.
+            Obligatoire si aggregation=day_of_month.
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 31
+          example: 15
+      responses:
+        '200':
+          description: Succès
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/NationalIndicatorResponse'
+              examples:
+                monthly_aggregation:
+                  summary: Agrégation mensuelle sur 2024
+                  value:
+                    metadata:
+                      date_start: "2024-01-01"
+                      date_end: "2024-12-31"
+                      aggregation: "month"
+                      baseline: "1991-2020"
+                    baseline_statistics:
+                      mean_temperature: 12.8
+                    time_series:
+                      - date: "2024-01-01"
+                        temperature: 5.6
+                        baseline_mean: 4.2
+                        baseline_std_dev_upper: 5.4
+                        baseline_std_dev_lower: 3.0
+                        baseline_max: 7.8
+                        baseline_min: 0.5
+                      - date: "2024-02-01"
+                        temperature: 7.1
+                        baseline_mean: 5.5
+                        baseline_std_dev_upper: 6.8
+                        baseline_std_dev_lower: 4.2
+                        baseline_max: 9.2
+                        baseline_min: 1.8
+                yearly_aggregation:
+                  summary: Agrégation annuelle sur plusieurs années
+                  value:
+                    metadata:
+                      date_start: "2020-01-01"
+                      date_end: "2024-12-31"
+                      aggregation: "year"
+                      baseline: "1991-2020"
+                    baseline_statistics:
+                      mean_temperature: 12.8
+                    time_series:
+                      - date: "2020-01-01"
+                        temperature: 13.2
+                        baseline_mean: 12.8
+                        baseline_std_dev_upper: 13.6
+                        baseline_std_dev_lower: 12.0
+                        baseline_max: 14.5
+                        baseline_min: 11.1
+                      - date: "2021-01-01"
+                        temperature: 13.5
+                        baseline_mean: 12.8
+                        baseline_std_dev_upper: 13.6
+                        baseline_std_dev_lower: 12.0
+                        baseline_max: 14.5
+                        baseline_min: 11.1
+                day_of_month_aggregation:
+                  summary: Agrégation pour tous les 15 du mois
+                  value:
+                    metadata:
+                      date_start: "2024-01-01"
+                      date_end: "2024-12-31"
+                      aggregation: "day_of_month"
+                      day_of_month: 15
+                      baseline: "1991-2020"
+                    baseline_statistics:
+                      mean_temperature: 12.8
+                    time_series:
+                      - date: "2024-01-15"
+                        temperature: 4.8
+                        baseline_mean: 3.9
+                        baseline_std_dev_upper: 5.1
+                        baseline_std_dev_lower: 2.7
+                        baseline_max: 7.5
+                        baseline_min: 0.2
+                      - date: "2024-02-15"
+                        temperature: 6.5
+                        baseline_mean: 5.3
+                        baseline_std_dev_upper: 6.6
+                        baseline_std_dev_lower: 4.0
+                        baseline_max: 8.9
+                        baseline_min: 1.5
+        '400':
+          $ref: '#/components/responses/BadRequest'
+
+  /photos:
+    get:
+      summary: Liste des photos
+      description: |
+        Galerie photos partagées par la communauté.
+
+        **Documentation des paramètres et schémas à compléter**
+      operationId: getPhotos
+      tags:
+        - Photos
+      parameters: []
+      responses:
+        '200':
+          description: Succès
+          content:
+            application/json:
+              schema:
+                type: object
+        '400':
+          $ref: '#/components/responses/BadRequest'
+
+  /stations:
+    get:
+      summary: Liste des stations météorologiques
+      description: |
+        Métadonnées des stations avec filtres sur classe, département,
+        année de création et disponibilité des données.
+      operationId: getStations
+      tags:
+        - Stations
+      parameters:
+        - name: station_class
+          in: query
+          description: Classes de stations (1=meilleure qualité, 5=moins fiable)
+          schema:
+            type: array
+            items:
+              type: integer
+              minimum: 1
+              maximum: 5
+          style: form
+          explode: false
+        - name: min_creation_year
+          in: query
+          description: Année de création minimum
+          schema:
+            type: integer
+            minimum: 1800
+            example: 2000
+        - name: department
+          in: query
+          description: Numéro de département
+          schema:
+            type: string
+            pattern: '^\d{2,3}$'
+        - name: search
+          in: query
+          description: Recherche par nom de station
+          schema:
+            type: string
+            example: "Orly"
+        - name: has_data_for_period
+          in: query
+          description: Filtre les stations ayant des données sur la période (format JSON)
+          schema:
+            type: string
+            example: '{"start":"2024-01-01","end":"2024-12-31"}'
+      responses:
+        '200':
+          description: Succès
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StationsResponse'
+              examples:
+                paris_area:
+                  summary: Stations région parisienne
+                  value:
+                    stations:
+                      - id: "07149"
+                        name: "Orly"
+                        department: "91"
+                        class: 1
+                        creation_year: 1948
+                        coordinates:
+                          lat: 48.7262
+                          lon: 2.3650
+                        altitude: 89
+                        data_availability:
+                          start_date: "1948-01-01"
+                          end_date: "2024-12-31"
+                          completeness: 0.98
+        '400':
+          $ref: '#/components/responses/BadRequest'
+
+
+components:
+  schemas:
+    Coordinates:
+      type: object
+      required:
+        - lat
+        - lon
+      properties:
+        lat:
+          type: number
+          format: double
+          minimum: -90
+          maximum: 90
+        lon:
+          type: number
+          format: double
+          minimum: -180
+          maximum: 180
+
+    NationalIndicatorResponse:
+      type: object
+      required:
+        - metadata
+        - baseline_statistics
+        - time_series
+      properties:
+        metadata:
+          type: object
+          required:
+            - date_start
+            - date_end
+            - aggregation
+            - baseline
+          properties:
+            date_start:
+              type: string
+              format: date
+              description: Date de début de la période
+            date_end:
+              type: string
+              format: date
+              description: Date de fin de la période
+            aggregation:
+              type: string
+              enum: [year, month, day_of_month]
+              description: Type d'agrégation temporelle
+            day_of_month:
+              type: integer
+              minimum: 1
+              maximum: 31
+              description: Jour du mois (présent uniquement si aggregation=day_of_month)
+            baseline:
+              type: string
+              example: "1991-2020"
+              description: Période de référence (toujours 1991-2020)
+        baseline_statistics:
+          type: object
+          required:
+            - mean_temperature
+          properties:
+            mean_temperature:
+              type: number
+              format: float
+              description: Température moyenne de la période de référence 1991-2020
+        time_series:
+          type: array
+          description: Série temporelle selon l'agrégation choisie
+          items:
+            type: object
+            required:
+              - date
+              - temperature
+              - baseline_mean
+              - baseline_std_dev_upper
+              - baseline_std_dev_lower
+              - baseline_max
+              - baseline_min
+            properties:
+              date:
+                type: string
+                format: date
+                description: |
+                  Date du point de données.
+                  - aggregation=year: Premier jour de l'année (ex: "2024-01-01")
+                  - aggregation=month: Premier jour du mois (ex: "2024-01-01")
+                  - aggregation=day_of_month: Date exacte du jour (ex: "2024-01-15")
+              temperature:
+                type: number
+                format: float
+                description: Température observée (moyenne sur la période d'agrégation)
+              baseline_mean:
+                type: number
+                format: float
+                description: Température moyenne de référence 1991-2020 pour cette période
+              baseline_std_dev_upper:
+                type: number
+                format: float
+                description: Écart-type supérieur (moyenne + 1 écart-type)
+              baseline_std_dev_lower:
+                type: number
+                format: float
+                description: Écart-type inférieur (moyenne - 1 écart-type)
+              baseline_max:
+                type: number
+                format: float
+                description: Température maximale observée sur la période 1991-2020
+              baseline_min:
+                type: number
+                format: float
+                description: Température minimale observée sur la période 1991-2020
+
+
+    StationsResponse:
+      type: object
+      required:
+        - stations
+      properties:
+        stations:
+          type: array
+          items:
+            type: object
+            required:
+              - id
+              - name
+              - department
+              - class
+              - creation_year
+              - coordinates
+              - altitude
+            properties:
+              id:
+                type: string
+                description: Identifiant unique de la station (ex "07149")
+              name:
+                type: string
+              department:
+                type: string
+              class:
+                type: integer
+                minimum: 1
+                maximum: 5
+                description: Classe de qualité (1=meilleur, 5=moins fiable)
+              creation_year:
+                type: integer
+              coordinates:
+                $ref: '#/components/schemas/Coordinates'
+              altitude:
+                type: number
+                format: float
+                description: Altitude en mètres
+              data_availability:
+                type: object
+                properties:
+                  start_date:
+                    type: string
+                    format: date
+                  end_date:
+                    type: string
+                    format: date
+                  completeness:
+                    type: number
+                    format: float
+                    minimum: 0
+                    maximum: 1
+                    description: Pourcentage de données disponibles
+
+    Error:
+      type: object
+      required:
+        - error
+      properties:
+        error:
+          type: object
+          required:
+            - code
+            - message
+          properties:
+            code:
+              type: string
+              enum:
+                - INVALID_PERIOD
+                - INVALID_PARAMETER
+                - MISSING_PARAMETER
+                - STATION_NOT_FOUND
+                - NO_DATA_AVAILABLE
+                - RATE_LIMIT_EXCEEDED
+                - INTERNAL_ERROR
+            message:
+              type: string
+            details:
+              type: object
+              additionalProperties: true
+
+  responses:
+    BadRequest:
+      description: Paramètres de requête invalides
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          examples:
+            invalid_parameter:
+              summary: Paramètre invalide
+              value:
+                error:
+                  code: "INVALID_PARAMETER"
+                  message: "Paramètre invalide ou manquant"
+                  details:
+                    parameter: "years"
