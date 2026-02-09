@@ -43,7 +43,7 @@ def read_temperatures(conn,stations_itn=[]):
                  """
    if(len(stations_itn)>0):
       sql_request += f"""WHERE
-                            nom in {stations_itn}"""
+                            code in {stations_itn}"""
    stations = pd.read_sql(sql_request, con=conn)
 
 
@@ -215,21 +215,20 @@ def itn_calculation(df):
 
 #--------------------------------------------------------------------
 
-stations_itn = ("Nice-Côte dAzur","Marseille-Marignane",
-                "Caen - Carpiquet","Cognac - Châteaubernard",
-                "Bastia - Poretta","Dijon-Longvic",
-                "Besançon - Thise","Montélimar - Ancone",
-                "Brest-Guipavas","Nîmes - Courbessac",
-                "Toulouse-Blagnac","Bordeaux-Mérignac",
-                "Rennes-Saint-Jacques","Châteauroux - Déols",
-                "Nantes - Atlantique","Orléans - Bricy",
-                "Agen - La Garenne","Reims - Prunay","Reims - Courcy",
-                "Nancy - Essey","Nevers - Marzy",
-                "Lille-Lesquin","Clermont-Ferrand - Aulnat",
-                "Pau-Uzein","Perpignan - Rivesaltes",
-                "Strasbourg-Entzheim","Lyon-Bron",
-                "Le Mans - Arnage","Bourg - St-Maurice",
-                "Paris-Montsouris","Poitiers - Biard")
+stations_itn = ('6088001','13054001','14137001','16089001',
+                '20148001','21473001',
+                '25056001', # Besançon - Thise?
+                '26198001',
+                '29075001','30189001','31069001','33281001',
+                '35281001','36063001','44020001','45055001',
+                '47091001',
+                '51449002', # Reims - Prunay
+                '51183001', # Reims - Courcy
+                '54526001','58160001','59343001','63113001',
+                '64549001',
+                '66164002', # Perpignan - Rivesaltes?
+                '67124001','69029001',
+                '72008001','73054001','75114001','86027001')
 
 stations,temp_hourly,temp_daily = read_temperatures(conn,
                                              stations_itn=stations_itn)
