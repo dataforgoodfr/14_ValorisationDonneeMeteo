@@ -9,18 +9,34 @@ const items = computed<NavigationMenuItem[]>(() => [
     icon: "material-symbols:thermostat",
     children: [
       {
-        label: "Ecarts à la normale",
+        label: "Ecart à la normale",
         description: "Une description courte de la page",
         to: "/ecart-normale",
-        icon: "material-symbols:arrow-range-rounded",
+        icon: "i-lucide-move-horizontal",
         active: route.path.startsWith("/ecart-normale"),
       },
       {
-        label: "Indicateurs thermique",
+        label: "Indicateur Thermique National",
         description: "Une description courte de la page",
-        to: "/indicateurs-thermique",
-        icon: "material-symbols:thermostat-arrow-up",
-        active: route.path.startsWith("/indicateurs-thermique"),
+        to: "/itn",
+        icon: "i-lucide-thermometer-sun",
+        active: route.path.startsWith("/itn"),
+      },
+      {
+        disabled: true,
+        label: "Min/max",
+        description: "Bientôt disponible",
+        to: "/itn",
+        icon: "i-lucide-diff",
+        // active: route.path.startsWith("/itn"),
+      },
+      {
+        disabled: true,
+        label: "Records",
+        description: "Bientôt disponible",
+        to: "/itn",
+        icon: "i-lucide-sun-snow",
+        // active: route.path.startsWith("/itn"),
       },
     ],
   },
@@ -46,7 +62,11 @@ const items = computed<NavigationMenuItem[]>(() => [
       <h1>Infoclimat Dashboard</h1>
     </template>
 
-    <UNavigationMenu content-orientation="vertical" :items="items" />
+    <UNavigationMenu
+      content-orientation="vertical"
+      :items="items"
+      :ui="{ content: 'sm:w-80' }"
+    />
 
     <template #right>
       <UTooltip text="Accedez au site InfoClimat">
