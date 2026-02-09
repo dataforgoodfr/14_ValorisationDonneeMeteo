@@ -1,6 +1,7 @@
 import os
 import psycopg2
 from dotenv import load_dotenv
+import numpy as np
 import pandas as pd
 from datetime import timedelta
 
@@ -276,52 +277,75 @@ def itn_calculation(df):
    return temp_mean.mean(axis=1)
 
 #--------------------------------------------------------------------
+def calculate_return_itn():
+   """
+   Extract only the temperature records and create on column for each station.
 
-stations_itn = ('6088001','13054001','14137001','16089001',
-                '20148001','21473001',
-                '25056001', # Besançon - Thise?
-                '26198001',
-                '29075001','30189001','31069001','33281001',
-                '35281001','36063001','44020001','45055001',
-                '47091001',
-                '51449002', # Reims - Prunay
-                '51183001', # Reims - Courcy
-                '54526001','58160001','59343001','63113001',
-                '64549001',
-                '66164002', # Perpignan - Rivesaltes?
-                '67124001','69029001',
-                '72008001','73054001','75114001','86027001')
+   Parameters
+   ----------
+   pandas.core.frame.DataFrame
+         temperature records, with one column per station
 
-stations,temp_hourly,temp_daily = read_temperatures(conn,
-                                             stations_itn=stations_itn)
+   Returns
+   -------
+   pandas.core.frame.DataFrame
+         computed ITN following the method of InfoClimat
+   """
 
+   stations_itn = ('6088001','13054001','14137001','16089001',
+                   '20148001','21473001',
+                   '25056001', # Besançon - Thise?
+                   '26198001',
+                   '29075001','30189001','31069001','33281001',
+                   '35281001','36063001','44020001','45055001',
+                   '47091001',
+                   '51449002', # Reims - Prunay
+                   '51183001', # Reims - Courcy
+                   '54526001','58160001','59343001','63113001',
+                   '64549001',
+                   '66164002', # Perpignan - Rivesaltes?
+                   '67124001','69029001',
+                   '72008001','73054001','75114001','86027001')
 
-
-hourly_temp_per_station  = separate_by_station(temp_hourly,
-                                               index='dh_utc',
-                                               columns='nom',
-                                               values='temperature',
-                                               freq='h')
-daily_records_by_station = separate_by_station(temp_daily,
-                                               index='date',
-                                               columns='nom',
-                                               values=['temp_min','temp_max',
-                                                       'temp_mean'],
-                                               freq='D')
-
-
-
-if(('Reims-Courcy' in stations['nom'])&
-   ('Reims-Prunay' in stations['nom'])):
-   hourly_temp_per_station_corr  = correct_temp_Reims(hourly_temp_per_station)
-   daily_records_by_station_corr = correct_temp_Reims(daily_records_by_station)
+   stations,temp_hourly,temp_daily = read_temperatures(conn,
+                                                stations_itn=stations_itn)
 
 
 
-assert (hourly_temp_per_station.dtypes == float).all(), \
-          'Data are not in the proper format.'
+   hourly_temp_per_station  = separate_by_station(temp_hourly,
+                                                  index='dh_utc',
+                                                  columns='nom',
+                                                  values='temperature',
+                                                  freq='h')
+   daily_records_by_station = separate_by_station(temp_daily,
+                                                  index='date',
+                                                  columns='nom',
+                                                  values=['temp_min','temp_max',
+                                                          'temp_mean'],
+                                                  freq='D')
 
-itn = itn_calculation(hourly_temp_per_station)
+
+   if(('Reims-Courcy' in stations['nom'])&
+      ('Reims-Prunay' in stations['nom'])):
+      hourly_temp_per_station_corr  = correct_temp_Reims(hourly_temp_per_station)
+      daily_records_by_station_corr = correct_temp_Reims(daily_records_by_station)
+
+
+
+   assert (hourly_temp_per_station.dtypes == float).all(), \
+             'Data are not in the proper format.'
+
+   itn = itn_calculation(hourly_temp_per_station)
+   dates  = itn.index.strftime('%Y-%m-%d').to_numpy()
+   values = itn.values
+
+   return np.array([(d,v) for d,v in zip(dates,values)])
+
+#--------------------------------------------------------------------
+
+
+#results = calculate_return_itn()
+#print(results)
 
 #exec(open('weather/calcul_itn.py').read())
 
