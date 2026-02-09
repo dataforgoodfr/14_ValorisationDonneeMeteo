@@ -116,9 +116,18 @@ class ErrorSerializer(serializers.Serializer):
 class NationalIndicatorQuerySerializer(serializers.Serializer):
     date_start = serializers.DateField(required=True)
     date_end = serializers.DateField(required=True)
-    aggregation = serializers.ChoiceField(
-        choices=["year", "month", "day_of_month"], required=True
+
+    granularity = serializers.ChoiceField(
+        choices=["year", "month", "day"], required=True
     )
+
+    slice_type = serializers.ChoiceField(
+        choices=["full", "month_of_year", "day_of_month"],
+        required=False,
+        default="full",
+    )
+
+    month_of_year = serializers.IntegerField(required=False, min_value=1, max_value=12)
     day_of_month = serializers.IntegerField(required=False, min_value=1, max_value=31)
 
     def validate(self, attrs):
@@ -129,30 +138,78 @@ class NationalIndicatorQuerySerializer(serializers.Serializer):
                 {"date_end": "date_end doit être >= date_start."}
             )
 
-        agg = attrs["aggregation"]
+        gran = attrs["granularity"]
+        slice_type = attrs.get("slice_type", "full")
+        moy = attrs.get("month_of_year")
         dom = attrs.get("day_of_month")
 
-        if agg == "day_of_month" and dom is None:
+        # granularity=day => slice_type doit être full + pas de month/day selectors
+        if gran == "day":
+            if slice_type != "full":
+                raise serializers.ValidationError(
+                    {"slice_type": "Interdit si granularity=day (doit être full)."}
+                )
+            if moy is not None:
+                raise serializers.ValidationError(
+                    {"month_of_year": "Interdit si granularity=day."}
+                )
+            if dom is not None:
+                raise serializers.ValidationError(
+                    {"day_of_month": "Interdit si granularity=day."}
+                )
+            return attrs
+
+        if slice_type == "full":
+            if moy is not None:
+                raise serializers.ValidationError(
+                    {"month_of_year": "Interdit si slice_type=full."}
+                )
+            if dom is not None:
+                raise serializers.ValidationError(
+                    {"day_of_month": "Interdit si slice_type=full."}
+                )
+            return attrs
+
+        if slice_type == "month_of_year":
+            # validé par spec: seulement pour granularity=year
+            if gran != "year":
+                raise serializers.ValidationError(
+                    {
+                        "slice_type": "month_of_year n'est valide que si granularity=year."
+                    }
+                )
+            if moy is None:
+                raise serializers.ValidationError(
+                    {"month_of_year": "Requis si slice_type=month_of_year."}
+                )
+            if dom is not None:
+                raise serializers.ValidationError(
+                    {"day_of_month": "Interdit si slice_type=month_of_year."}
+                )
+            return attrs
+
+        # slice_type == "day_of_month"
+        if dom is None:
             raise serializers.ValidationError(
-                {"day_of_month": "Obligatoire si aggregation=day_of_month."}
+                {"day_of_month": "Requis si slice_type=day_of_month."}
             )
-        if agg != "day_of_month" and dom is not None:
-            raise serializers.ValidationError(
-                {"day_of_month": "Interdit sauf si aggregation=day_of_month."}
-            )
+
+        if gran == "year":
+            # jour précis de l'année => month_of_year requis
+            if moy is None:
+                raise serializers.ValidationError(
+                    {
+                        "month_of_year": "Requis si granularity=year et slice_type=day_of_month."
+                    }
+                )
+        else:
+            # granularity=month => month_of_year interdit
+            if moy is not None:
+                raise serializers.ValidationError(
+                    {"month_of_year": "Interdit si granularity=month."}
+                )
+
         return attrs
-
-
-class NationalIndicatorMetadataSerializer(serializers.Serializer):
-    date_start = serializers.DateField()
-    date_end = serializers.DateField()
-    aggregation = serializers.ChoiceField(choices=["year", "month", "day_of_month"])
-    day_of_month = serializers.IntegerField(required=False, min_value=1, max_value=31)
-    baseline = serializers.CharField()
-
-
-class NationalIndicatorBaselineStatisticsSerializer(serializers.Serializer):
-    mean_temperature = serializers.FloatField()
 
 
 class NationalIndicatorTimePointSerializer(serializers.Serializer):
@@ -165,7 +222,18 @@ class NationalIndicatorTimePointSerializer(serializers.Serializer):
     baseline_min = serializers.FloatField()
 
 
+class NationalIndicatorMetadataSerializer(serializers.Serializer):
+    date_start = serializers.DateField()
+    date_end = serializers.DateField()
+    baseline = serializers.CharField()
+    granularity = serializers.ChoiceField(choices=["year", "month", "day"])
+    slice_type = serializers.ChoiceField(
+        choices=["full", "month_of_year", "day_of_month"]
+    )
+    month_of_year = serializers.IntegerField(required=False, min_value=1, max_value=12)
+    day_of_month = serializers.IntegerField(required=False, min_value=1, max_value=31)
+
+
 class NationalIndicatorResponseSerializer(serializers.Serializer):
     metadata = NationalIndicatorMetadataSerializer()
-    baseline_statistics = NationalIndicatorBaselineStatisticsSerializer()
     time_series = NationalIndicatorTimePointSerializer(many=True)
