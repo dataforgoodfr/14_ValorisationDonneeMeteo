@@ -168,9 +168,9 @@ paths:
             enum: [ year, month, day ]
           description: >
             Granularité de la série temporelle.
-            - year : un point par année (date = YYYY-01-01)
-            - month : un point par mois (date = YYYY-MM-01)
-            - day : un point par jour (date = YYYY-MM-DD)
+            - year : un point par année
+            - month : un point par mois
+            - day : un point par jour
           example: month
 
         - name: slice_type
