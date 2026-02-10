@@ -13,8 +13,10 @@ API REST Django/DRF pour les donnees meteorologiques InfoClimat.
 ```bash
 cd backend
 
-# Installer les dependances
-uv sync
+# Installer les dependances, ainsi que les dépendances optionnelles de dev
+uv sync --extra dev
+
+
 
 # Copier la configuration
 cp .env.example .env
@@ -72,6 +74,7 @@ uv run python manage.py populate_weather_data --seed 123
 ```
 
 Les donnees generees incluent 15 stations francaises avec des mesures realistes :
+
 - Cycles de temperature diurnes (min a 6h, max a 14h)
 - Humidite inversement correlee a la temperature
 - Variations de pression atmospherique coherentes
@@ -79,15 +82,15 @@ Les donnees generees incluent 15 stations francaises avec des mesures realistes 
 
 ## Endpoints API
 
-| Endpoint | Description |
-|----------|-------------|
-| `/api/v1/stations/` | Liste des stations meteo |
-| `/api/v1/horaire/` | Mesures horaires temps reel |
-| `/api/v1/horaire/latest/` | Derniere mesure par station |
-| `/api/v1/quotidien/` | Donnees journalieres agregees |
-| `/api/docs/` | Documentation Swagger UI |
-| `/api/redoc/` | Documentation ReDoc |
-| `/api/schema/` | Schema OpenAPI |
+| Endpoint                  | Description                   |
+| ------------------------- | ----------------------------- |
+| `/api/v1/stations/`       | Liste des stations meteo      |
+| `/api/v1/horaire/`        | Mesures horaires temps reel   |
+| `/api/v1/horaire/latest/` | Derniere mesure par station   |
+| `/api/v1/quotidien/`      | Donnees journalieres agregees |
+| `/api/docs/`              | Documentation Swagger UI      |
+| `/api/redoc/`             | Documentation ReDoc           |
+| `/api/schema/`            | Schema OpenAPI                |
 
 ## Exemples de requetes
 
@@ -179,16 +182,16 @@ backend/
 
 Les variables d'environnement sont definies dans `.env` :
 
-| Variable | Description | Defaut |
-|----------|-------------|--------|
-| `DEBUG` | Mode debug | `true` |
-| `SECRET_KEY` | Cle secrete Django | - |
-| `DB_HOST` | Hote PostgreSQL | `localhost` |
-| `DB_PORT` | Port PostgreSQL | `5432` |
-| `DB_NAME` | Nom de la base | `meteodb` |
-| `DB_USER` | Utilisateur | `infoclimat` |
-| `DB_PASSWORD` | Mot de passe | `infoclimat2026` |
-| `CORS_ALLOWED_ORIGINS` | Origins CORS | `http://localhost:5173` |
+| Variable               | Description        | Defaut                  |
+| ---------------------- | ------------------ | ----------------------- |
+| `DEBUG`                | Mode debug         | `true`                  |
+| `SECRET_KEY`           | Cle secrete Django | -                       |
+| `DB_HOST`              | Hote PostgreSQL    | `localhost`             |
+| `DB_PORT`              | Port PostgreSQL    | `5432`                  |
+| `DB_NAME`              | Nom de la base     | `meteodb`               |
+| `DB_USER`              | Utilisateur        | `infoclimat`            |
+| `DB_PASSWORD`          | Mot de passe       | `infoclimat2026`        |
+| `CORS_ALLOWED_ORIGINS` | Origins CORS       | `http://localhost:5173` |
 
 ## TimescaleDB
 
@@ -197,6 +200,7 @@ Le backend utilise TimescaleDB pour optimiser les requetes sur les donnees tempo
 ### Hypertables
 
 Les tables `weather_horairetempsreel` et `weather_quotidienne` sont configurees comme **hypertables** :
+
 - Partitionnement automatique par intervalles de temps
 - Requetes temporelles optimisees
 - Compression possible des anciennes donnees
@@ -204,6 +208,7 @@ Les tables `weather_horairetempsreel` et `weather_quotidienne` sont configurees 
 ### Migrations Django
 
 Le schema est entierement gere par Django :
+
 1. `0001_initial.py` : Creation des tables via l'ORM Django
 2. `0002_timescaledb_hypertables.py` : Conversion en hypertables via `RunSQL`
 
