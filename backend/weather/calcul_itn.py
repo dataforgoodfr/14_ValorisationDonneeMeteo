@@ -140,9 +140,9 @@ def separate_by_station(df,index='',columns='',values='',freq='h'):
             'Cannot pivot, missing arguments'
 
    cols = df.columns
-   data_temp = df.pivot(index=index,
-                        columns=columns,
-                        values=values)
+   data_temp = pd.pivot_table(df,index=index,
+                                 columns=columns,
+                                 values=values)
 
    return data_temp.asfreq(freq).astype(float)
 
@@ -261,7 +261,7 @@ def itn_calculation(df):
    Parameters
    ----------
    pandas.core.frame.DataFrame
-         temperature records, with one column per station
+         daily temperature records, with one column per station
 
    Returns
    -------
@@ -269,8 +269,8 @@ def itn_calculation(df):
          computed ITN following the method of InfoClimat
    """
 
-   temp_min  = calculate_min_temperature(df)
-   temp_max  = calculate_max_temperature(df)
+   temp_min  = df['temp_min']
+   temp_max  = df['temp_max']
 
    temp_mean = (temp_max+temp_min)/2
 
@@ -333,7 +333,7 @@ def calculate_return_itn():
    assert (hourly_temp_per_station.dtypes == float).all(), \
              'Data are not in the proper format.'
 
-   itn = itn_calculation(hourly_temp_per_station)
+   itn = itn_calculation(daily_records_by_station)
    dates  = itn.index.strftime('%Y-%m-%d').to_numpy()
    values = itn.values
 
