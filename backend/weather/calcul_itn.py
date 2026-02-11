@@ -1,4 +1,5 @@
 import os
+from collections.abc import Iterable
 from datetime import timedelta
 
 import numpy as np
@@ -9,7 +10,7 @@ os.environ.setdefault("DJANGO_SETTINGS_MODULE", "config.settings")
 
 
 # --------------------------------------------------------------------
-def sql2pandas(sql_request):
+def sql2pandas(sql_request: str) -> pd.DataFrame:
     """
     Given a SQL request, use a cursor to extract the data and convert
     them into a pandas dataframe.
@@ -38,7 +39,9 @@ def sql2pandas(sql_request):
 
 
 # --------------------------------------------------------------------
-def read_temperatures(stations_itn=None):
+def read_temperatures(
+    stations_itn: Iterable = [],
+) -> tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame]:
     """
     Read the csv file containing the data into a pandas DataFrame. The times
     are converted into datetime object.
@@ -102,7 +105,13 @@ def read_temperatures(stations_itn=None):
 
 
 # --------------------------------------------------------------------
-def separate_by_station(df, index="", columns="", values="", freq="h"):
+def separate_by_station(
+    df: pd.DataFrame,
+    index: str = "",
+    columns: str = "",
+    values: str = "",
+    freq: str = "h",
+) -> pd.DataFrame:
     """
     Pivot the data to get one column for each meteorological station.
 
@@ -135,7 +144,7 @@ def separate_by_station(df, index="", columns="", values="", freq="h"):
 
 
 # --------------------------------------------------------------------
-def correct_temperatures_Reims(df):
+def correct_temperatures_Reims(df: pd.DataFrame) -> pd.DataFrame:
     """
     Correct the temperatures of the Reims-Prunay station due to the location
     difference with the former Reims-Courcy station.
@@ -170,7 +179,7 @@ def correct_temperatures_Reims(df):
 
 
 # --------------------------------------------------------------------
-def calculate_min_temperature(df):
+def calculate_min_temperature(df: pd.DataFrame) -> pd.DataFrame:
     """
     Derive the daily minimale temperature from 18h (J-1) to 18h (J) UTC
 
@@ -208,7 +217,7 @@ def calculate_min_temperature(df):
 
 
 # --------------------------------------------------------------------
-def calculate_max_temperature(df):
+def calculate_max_temperature(df: pd.DataFrame) -> pd.DataFrame:
     """
     Derive the daily maximale temperature from 6h (J) to 6h (J+1) UTC
 
@@ -246,7 +255,7 @@ def calculate_max_temperature(df):
 
 
 # --------------------------------------------------------------------
-def itn_calculation(df):
+def itn_calculation(df: pd.DataFrame) -> pd.DataFrame:
     """
     Extract only the temperature records and create on column for each station.
 
@@ -267,7 +276,7 @@ def itn_calculation(df):
 
 
 # --------------------------------------------------------------------
-def calculate_return_itn():
+def calculate_return_itn() -> np.array:
     """
     Main part of the script.
 
