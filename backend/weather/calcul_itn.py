@@ -147,9 +147,9 @@ def separate_by_station(df,index='',columns='',values='',freq='h'):
    return data_temp.asfreq(freq).astype(float)
 
 #--------------------------------------------------------------------
-def correct_temp_Reims(df):
+def correct_temperatures_Reims(df):
    """
-   Correct the temperature of the Reims-Prunay station due to the location
+   Correct the temperatures of the Reims-Prunay station due to the location
    difference with the former Reims-Courcy station.
    This fonction might be updated in the future if a better correction
    is find (discussion in issue #25 of GitHub).
@@ -325,8 +325,8 @@ def calculate_return_itn():
 
    if(('Reims-Courcy' in stations['nom'])&
       ('Reims-Prunay' in stations['nom'])):
-      hourly_temp_per_station_corr  = correct_temp_Reims(hourly_temp_per_station)
-      daily_records_by_station_corr = correct_temp_Reims(daily_records_by_station)
+      hourly_temp_per_station_corr  = correct_temperatures_Reims(hourly_temp_per_station)
+      daily_records_by_station_corr = correct_temperatures_Reims(daily_records_by_station)
 
 
 
