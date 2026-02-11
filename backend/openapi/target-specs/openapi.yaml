@@ -1,0 +1,535 @@
+openapi: 3.0.3
+info:
+  title: InfoClimat v1 API
+  version: 0.1.0
+  description: |
+    API pour accéder aux données climatologiques comparatives en France métropolitaine.
+
+    Cette API permet d'analyser et comparer les données de température dans le temps et l'espace,
+    principalement destinée aux équipes de chaînes TV préparant des bulletins météo.
+
+    ## Fonctionnalités principales
+    - Écart de température à la normale (baseline 1991-2020)
+    - Analyse des pics de chaleur/froid
+    - Records de température
+    - Indicateur thermique national
+    - Comparaisons min/max
+    - Galerie photos communautaire
+
+  contact:
+    name: DataForGood
+    url: https://dataforgood.fr
+  license:
+    name: À définir
+
+tags:
+  - name: Temperature
+    description: Endpoints liés aux données de température (incluant écarts, pics, records, indicateurs)
+  - name: Photos
+    description: Mur photos communautaire
+  - name: Stations
+    description: Métadonnées des stations météorologiques
+
+paths:
+  /temperature/deviation:
+    get:
+      summary: Écart de température à la normale
+      description: |
+        Récupère les données d'écart de température par rapport à une baseline de référence (défaut: 1991-2020).
+        Permet des comparaisons temporelles et géographiques.
+
+        **Documentation des paramètres et schémas à compléter**
+      operationId: getTemperatureDeviation
+      tags:
+        - Temperature
+      parameters: []
+      responses:
+        '200':
+          description: Succès
+          content:
+            application/json:
+              schema:
+                type: object
+        '400':
+          $ref: '#/components/responses/BadRequest'
+
+  /temperature/extremes:
+    get:
+      summary: Pics de chaleur et de froid
+      description: |
+        Identifie et compte les jours de pics de chaleur/froid par rapport à la normale.
+
+        **Documentation des paramètres et schémas à compléter**
+      operationId: getTemperatureExtremes
+      tags:
+        - Temperature
+      parameters: []
+      responses:
+        '200':
+          description: Succès
+          content:
+            application/json:
+              schema:
+                type: object
+        '400':
+          $ref: '#/components/responses/BadRequest'
+
+  /temperature/records:
+    get:
+      summary: Records de température
+      description: |
+        Liste les records de température (min/max) battus sur une période donnée.
+
+        **Documentation des paramètres et schémas à compléter**
+      operationId: getTemperatureRecords
+      tags:
+        - Temperature
+      parameters: []
+      responses:
+        '200':
+          description: Succès
+          content:
+            application/json:
+              schema:
+                type: object
+        '400':
+          $ref: '#/components/responses/BadRequest'
+
+  /temperature/records/cumulative:
+    get:
+      summary: Cumul des records
+      description: |
+        Évolution cumulative du nombre de records chauds et froids sur une année.
+
+        **Documentation des paramètres et schémas à compléter**
+      operationId: getCumulativeRecords
+      tags:
+        - Temperature
+      parameters: []
+      responses:
+        '200':
+          description: Succès
+          content:
+            application/json:
+              schema:
+                type: object
+        '400':
+          $ref: '#/components/responses/BadRequest'
+
+  /temperature/national-indicator:
+    get:
+      tags:
+        - Temperature
+      summary: Indicateur thermique national (ITN) agrégé
+      description: >
+        Retourne une série temporelle de l’indicateur thermique national (ITN).
+        La granularité de l'axe X est contrôlée par `granularity`.
+        Un filtre intra-période optionnel est contrôlé par `slice_type` et paramètres associés.
+
+        Combinaisons valides (validation côté API) :
+
+        - granularity=year :
+          - slice_type=full (défaut) : agrégat sur l'année complète
+          - slice_type=month_of_year : agrégat sur un mois donné (month_of_year requis)
+          - slice_type=day_of_month : échantillon sur un jour précis de l'année (month_of_year + day_of_month requis)
+        - granularity=month :
+          - slice_type=full (défaut) : agrégat sur le mois complet
+          - slice_type=day_of_month : échantillon sur le N-ième jour de chaque mois (day_of_month requis)
+        - granularity=day :
+          - slice_type=full uniquement (slice_type doit être absent ou full)
+
+        Règle "jours inexistants" :
+        - si day_of_month n'existe pas dans un mois (ex: 30/02, 31/04), le dernier jour du mois est utilisé.
+      operationId: getNationalIndicator
+      parameters:
+        - name: date_start
+          in: query
+          required: true
+          schema:
+            type: string
+            format: date
+          description: Date de début incluse (YYYY-MM-DD).
+          example: "1990-01-01"
+
+        - name: date_end
+          in: query
+          required: true
+          schema:
+            type: string
+            format: date
+          description: Date de fin incluse (YYYY-MM-DD).
+          example: "2024-12-31"
+
+        - name: granularity
+          in: query
+          required: true
+          schema:
+            type: string
+            enum: [ year, month, day ]
+          description: >
+            Granularité de la série temporelle.
+            - year : un point par année
+            - month : un point par mois
+            - day : un point par jour
+          example: month
+
+        - name: slice_type
+          in: query
+          required: false
+          schema:
+            type: string
+            enum: [ full, month_of_year, day_of_month ]
+            default: full
+          description: >
+            Filtre intra-période appliqué à chaque période (selon `granularity`).
+            - full : agrégat sur toute la période (défaut)
+            - month_of_year : agrégat sur un mois spécifique de l’année (month_of_year requis, granularity=year)
+            - day_of_month : échantillon sur un jour du mois (day_of_month requis, et si granularity=year alors month_of_year requis)
+
+        - name: month_of_year
+          in: query
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 12
+          description: >
+            Mois concerné (1..12).
+            Requis si slice_type=month_of_year.
+            Requis aussi si slice_type=day_of_month ET granularity=year (pour exprimer un jour précis de l’année).
+          example: 1
+
+        - name: day_of_month
+          in: query
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 31
+          description: >
+            Jour du mois concerné (1..31).
+            Requis si slice_type=day_of_month.
+            Si le jour n'existe pas dans un mois, le dernier jour du mois est utilisé.
+          example: 29
+
+      responses:
+        "200":
+          description: Série temporelle de l'indicateur thermique national.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/NationalIndicatorResponse"
+        "400":
+          description: Paramètre invalide ou manquant.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /photos:
+    get:
+      summary: Liste des photos
+      description: |
+        Galerie photos partagées par la communauté.
+
+        **Documentation des paramètres et schémas à compléter**
+      operationId: getPhotos
+      tags:
+        - Photos
+      parameters: []
+      responses:
+        '200':
+          description: Succès
+          content:
+            application/json:
+              schema:
+                type: object
+        '400':
+          $ref: '#/components/responses/BadRequest'
+
+  /stations:
+    get:
+      summary: Liste des stations météorologiques
+      description: |
+        Métadonnées des stations avec filtres sur classe, département,
+        année de création et disponibilité des données.
+      operationId: getStations
+      tags:
+        - Stations
+      parameters:
+        - name: station_class
+          in: query
+          description: Classes de stations (1=meilleure qualité, 5=moins fiable)
+          schema:
+            type: array
+            items:
+              type: integer
+              minimum: 1
+              maximum: 5
+          style: form
+          explode: false
+        - name: min_creation_year
+          in: query
+          description: Année de création minimum
+          schema:
+            type: integer
+            minimum: 1800
+            example: 2000
+        - name: department
+          in: query
+          description: Numéro de département
+          schema:
+            type: string
+            pattern: '^\d{2,3}$'
+        - name: search
+          in: query
+          description: Recherche par nom de station
+          schema:
+            type: string
+            example: "Orly"
+        - name: has_data_for_period
+          in: query
+          description: Filtre les stations ayant des données sur la période (format JSON)
+          schema:
+            type: string
+            example: '{"start":"2024-01-01","end":"2024-12-31"}'
+      responses:
+        '200':
+          description: Succès
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StationsResponse'
+              examples:
+                paris_area:
+                  summary: Stations région parisienne
+                  value:
+                    stations:
+                      - id: "07149"
+                        name: "Orly"
+                        department: "91"
+                        class: 1
+                        creation_year: 1948
+                        coordinates:
+                          lat: 48.7262
+                          lon: 2.3650
+                        altitude: 89
+                        data_availability:
+                          start_date: "1948-01-01"
+                          end_date: "2024-12-31"
+                          completeness: 0.98
+        '400':
+          $ref: '#/components/responses/BadRequest'
+
+
+components:
+  schemas:
+    Coordinates:
+      type: object
+      required:
+        - lat
+        - lon
+      properties:
+        lat:
+          type: number
+          format: double
+          minimum: -90
+          maximum: 90
+        lon:
+          type: number
+          format: double
+          minimum: -180
+          maximum: 180
+
+    NationalIndicatorResponse:
+      type: object
+      required:
+        - metadata
+        - time_series
+      properties:
+        metadata:
+          type: object
+          required:
+            - date_start
+            - date_end
+            - baseline
+            - granularity
+            - slice_type
+          properties:
+            date_start:
+              type: string
+              format: date
+            date_end:
+              type: string
+              format: date
+            baseline:
+              type: string
+              description: "Période de référence (ex: 1991-2020)."
+              example: "1991-2020"
+            granularity:
+              type: string
+              enum: [year, month, day]
+              description: "Granularité de la série (axe X)."
+              example: month
+            slice_type:
+              type: string
+              enum: [full, month_of_year, day_of_month]
+              description: "Filtre intra-période appliqué à chaque période."
+              example: full
+            month_of_year:
+              type: integer
+              minimum: 1
+              maximum: 12
+              description: "Mois concerné si slice_type=month_of_year, ou si slice_type=day_of_month & granularity=year."
+            day_of_month:
+              type: integer
+              minimum: 1
+              maximum: 31
+              description: >
+                Jour du mois concerné si slice_type=day_of_month.
+                Si le jour n'existe pas dans un mois, le dernier jour du mois est utilisé.
+
+        time_series:
+          type: array
+          description: "Série temporelle selon la granularité choisie"
+          items:
+            type: object
+            required:
+              - date
+              - temperature
+              - baseline_mean
+              - baseline_std_dev_upper
+              - baseline_std_dev_lower
+              - baseline_max
+              - baseline_min
+            properties:
+              date:
+                type: string
+                format: date
+                description: |
+                  Date du point de données.
+                  - granularity=year: premier jour de l'année (ex: "2024-01-01")
+                  - granularity=month: premier jour du mois (ex: "2024-02-01")
+                  - granularity=day: date exacte du jour (ex: "2024-02-15")
+              temperature:
+                type: number
+                format: float
+                description: "Température observée (moyenne/valeur selon slice_type)"
+              baseline_mean:
+                type: number
+                format: float
+                description: "Température moyenne de référence 1991-2020 pour cette période"
+              baseline_std_dev_upper:
+                type: number
+                format: float
+                description: "Écart-type supérieur (moyenne + 1 écart-type)"
+              baseline_std_dev_lower:
+                type: number
+                format: float
+                description: "Écart-type inférieur (moyenne - 1 écart-type)"
+              baseline_max:
+                type: number
+                format: float
+                description: "Température maximale observée sur la période 1991-2020"
+              baseline_min:
+                type: number
+                format: float
+                description: "Température minimale observée sur la période 1991-2020"
+
+    StationsResponse:
+      type: object
+      required:
+        - stations
+      properties:
+        stations:
+          type: array
+          items:
+            type: object
+            required:
+              - id
+              - name
+              - department
+              - class
+              - creation_year
+              - coordinates
+              - altitude
+            properties:
+              id:
+                type: string
+                description: Identifiant unique de la station (ex "07149")
+              name:
+                type: string
+              department:
+                type: string
+              class:
+                type: integer
+                minimum: 1
+                maximum: 5
+                description: Classe de qualité (1=meilleur, 5=moins fiable)
+              creation_year:
+                type: integer
+              coordinates:
+                $ref: '#/components/schemas/Coordinates'
+              altitude:
+                type: number
+                format: float
+                description: Altitude en mètres
+              data_availability:
+                type: object
+                properties:
+                  start_date:
+                    type: string
+                    format: date
+                  end_date:
+                    type: string
+                    format: date
+                  completeness:
+                    type: number
+                    format: float
+                    minimum: 0
+                    maximum: 1
+                    description: Pourcentage de données disponibles
+
+    Error:
+      type: object
+      required:
+        - error
+      properties:
+        error:
+          type: object
+          required:
+            - code
+            - message
+          properties:
+            code:
+              type: string
+              enum:
+                - INVALID_PERIOD
+                - INVALID_PARAMETER
+                - MISSING_PARAMETER
+                - STATION_NOT_FOUND
+                - NO_DATA_AVAILABLE
+                - RATE_LIMIT_EXCEEDED
+                - INTERNAL_ERROR
+            message:
+              type: string
+            details:
+              type: object
+              additionalProperties: true
+
+  responses:
+    BadRequest:
+      description: Paramètres de requête invalides
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          examples:
+            invalid_parameter:
+              summary: Paramètre invalide
+              value:
+                error:
+                  code: "INVALID_PARAMETER"
+                  message: "Paramètre invalide ou manquant"
+                  details:
+                    parameter: "years"
