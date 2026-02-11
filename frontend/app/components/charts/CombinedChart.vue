@@ -43,7 +43,6 @@ const option = ref<ECOption>({
           }
         },
         formatter: function (params) {
-            console.log("Params",params)
             const Idx  = params[0].dataIndex
           return (
 
@@ -166,37 +165,6 @@ const option = ref<ECOption>({
         
         ]
 })
-  
-// function LayoutChartLines(data)
-// {
-//     return {
-//         labels: data.map(item => item.date),
-//         datasets: [
-//             {
-//                 label: 'ITN',
-//                 data: data.map(item => item.ITN),
-//                 borderColor: 'rgba(75, 192, 192, 1)',
-//                 fill: false, // No fill under the line
-//                 pointRadius: 0 // No points
-//             },
-//             {
-//                 label: 'iTN+sd',
-//                 data: data.map(item => item.iTN+item.St),
-//                 borderColor: 'rgba(255, 99, 132, 1)',
-//                 fill: false,
-//                 pointRadius: 0 // No points
-//             },
-//             {
-//                 label: 'Line 3',
-//                 data: data.map(item => item.line3),
-//                 borderColor: 'rgba(255, 206, 86, 1)',
-//                 fill: false,
-//                 pointRadius: 0 // No points
-//             }
-//         ]
-//     };
-// }
-
 
 //Generate random temp
 function GetMockupData()
@@ -215,7 +183,6 @@ function GetMockupData()
         CurDate = new Date(CurDate.getTime()+24*3600*1000)
         
     }
-
     return RetArray
 }
 </script>
