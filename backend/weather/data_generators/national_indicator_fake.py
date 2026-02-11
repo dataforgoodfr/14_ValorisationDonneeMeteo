@@ -9,23 +9,30 @@ def _clamp_day(year: int, month: int, day: int) -> int:
 
 
 def _iter_years(date_start: dt.date, date_end: dt.date):
-    for y in range(date_start.year, date_end.year + 1):
-        d = dt.date(y, 1, 1)
-        if date_start <= d <= date_end:
-            yield d
+    """
+    Renvoie les débuts d'années (YYYY-01-01) pour toutes les années
+    qui intersectent l'intervalle [date_start, date_end].
+    """
+    start = dt.date(date_start.year, 1, 1)
+    end = dt.date(date_end.year, 1, 1)
+    for y in range(start.year, end.year + 1):
+        yield dt.date(y, 1, 1)
 
 
 def _iter_months(date_start: dt.date, date_end: dt.date):
+    """
+    Renvoie les débuts de mois (YYYY-MM-01) pour tous les mois
+    qui intersectent l'intervalle [date_start, date_end].
+    """
     cur = dt.date(date_start.year, date_start.month, 1)
     end = dt.date(date_end.year, date_end.month, 1)
+
     while cur <= end:
-        if date_start <= cur <= date_end:
-            yield cur
-        cur = (
-            dt.date(cur.year + 1, 1, 1)
-            if cur.month == 12
-            else dt.date(cur.year, cur.month + 1, 1)
-        )
+        yield cur
+        if cur.month == 12:
+            cur = dt.date(cur.year + 1, 1, 1)
+        else:
+            cur = dt.date(cur.year, cur.month + 1, 1)
 
 
 def _iter_days(date_start: dt.date, date_end: dt.date):
