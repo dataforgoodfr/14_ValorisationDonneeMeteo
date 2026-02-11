@@ -45,9 +45,7 @@ def read_temperatures(stations_itn=None):
 
     Parameters
     ----------
-    conn: psycopg2.extensions.connection
-          Connection to the database
-    stations_itn: list or tuple
+    list or tuple
           list of the stations to be considered to calculate the ITN.
 
     Returns
@@ -89,7 +87,7 @@ def read_temperatures(stations_itn=None):
     sql_request = f"""SELECT
                         w.station_id,s.nom,
                         w.date, w.tx as temp_max,
-                        w.tn as temp_min,w.tntxm as temp_mean
+                        w.tn as temp_min,w.tntxm as tntxm
                      FROM
                         weather_quotidienne as w
                         JOIN weather_station as s
@@ -127,9 +125,9 @@ def separate_by_station(df, index="", columns="", values="", freq="h"):
           temperature records, with one column per station
     """
 
-    assert (index != "") & (columns != "") & (values != ""), (
-        "Cannot pivot, missing arguments"
-    )
+    assert (
+        (index != "") & (columns != "") & (values != "")
+    ), "Cannot pivot, missing arguments"
 
     data_temp = pd.pivot_table(df, index=index, columns=columns, values=values)
 
@@ -263,10 +261,7 @@ def itn_calculation(df):
           computed ITN following the method of InfoClimat
     """
 
-    temp_min = df["temp_min"]
-    temp_max = df["temp_max"]
-
-    temp_mean = (temp_max + temp_min) / 2
+    temp_mean = df["tntxm"]
 
     return temp_mean.mean(axis=1)
 
@@ -321,29 +316,21 @@ def calculate_return_itn():
 
     stations, temp_hourly, temp_daily = read_temperatures(stations_itn)
 
-    hourly_temp_per_station = separate_by_station(
-        temp_hourly,
-        index="dh_utc",
-        columns="nom",
-        values="temperature",
-        freq="h"
-    )
+    #    hourly_temp_per_station = separate_by_station(
+    #        temp_hourly, index="dh_utc", columns="nom", values="temperature", freq="h"
+    #    )
     daily_records_by_station = separate_by_station(
         temp_daily,
         index="date",
         columns="nom",
-        values=["temp_min", "temp_max", "temp_mean"],
-        freq="D"
-    )
-
-    assert (hourly_temp_per_station.dtypes is float).all(), (
-        "Data are not in the proper format."
+        values=["temp_min", "temp_max", "tntxm"],
+        freq="D",
     )
 
     if ("Reims-Courcy" in stations["nom"]) & ("Reims-Prunay" in stations["nom"]):
-#        hourly_temp_per_station_corr = correct_temperatures_Reims(
-#            hourly_temp_per_station
-#        )
+        #        hourly_temp_per_station_corr = correct_temperatures_Reims(
+        #            hourly_temp_per_station
+        #        )
         daily_records_by_station_corr = correct_temperatures_Reims(
             daily_records_by_station
         )
@@ -354,7 +341,7 @@ def calculate_return_itn():
     dates = itn.index.strftime("%Y-%m-%d").to_numpy()
     values = itn.values
 
-    return np.array([(d, v) for d, v in zip(dates, values, strict=True)])
+    return np.array(list(zip(dates, values, strict=True)))
 
 
 # --------------------------------------------------------------------
