@@ -1,17 +1,11 @@
 import os
-import psycopg2
+from django.db import connection
 from dotenv import load_dotenv
 import numpy as np
 import pandas as pd
 from datetime import timedelta
 
-load_dotenv()
-
-conn  = psycopg2.connect(host=os.environ['DB_HOST'],
-                         user=os.environ['DB_USER'],
-                         database=os.environ['DB_NAME'],
-                         password=os.environ['DB_PASSWORD'],
-                         port=int(os.environ['DB_PORT']))
+os.environ.setdefault("DJANGO_SETTINGS_MODULE", "config.settings")
 
 
 #--------------------------------------------------------------------
@@ -31,7 +25,7 @@ def sql2pandas(sql_request):
          requested data
    """
 
-   cursor = conn.cursor()
+   cursor = connection.cursor()
    cursor.execute(sql_request)
 
    columns = cursor.description
@@ -41,7 +35,7 @@ def sql2pandas(sql_request):
    return pd.DataFrame(result)
 
 #--------------------------------------------------------------------
-def read_temperatures(conn,stations_itn=[]):
+def read_temperatures(stations_itn=[]):
    """
    Read the csv file containing the data into a pandas DataFrame. The times
    are converted into datetime object.
@@ -71,7 +65,6 @@ def read_temperatures(conn,stations_itn=[]):
    if(len(stations_itn)>0):
       sql_request += f"""WHERE
                             code in {stations_itn}"""
-#   stations = pd.read_sql(sql_request, con=conn)
    stations = sql2pandas(sql_request)
 
 
@@ -89,7 +82,6 @@ def read_temperatures(conn,stations_itn=[]):
                      WHERE
                         station_id in {tuple(stations['id'])}
                  """
-#   temp_hourly = pd.read_sql(sql_request, con=conn)
    temp_hourly = sql2pandas(sql_request)
    temp_hourly['dh_utc'] = pd.to_datetime(temp_hourly['dh_utc'])
 
@@ -106,7 +98,6 @@ def read_temperatures(conn,stations_itn=[]):
                      WHERE
                         station_id in {tuple(stations['id'])}
                  """
-#   temp_daily = pd.read_sql(sql_request, con=conn)
    temp_daily = sql2pandas(sql_request)
    temp_daily['date'] = pd.to_datetime(temp_daily['date'])
 
@@ -305,8 +296,7 @@ def calculate_return_itn():
                    '67124001','69029001',
                    '72008001','73054001','75114001','86027001')
 
-   stations,temp_hourly,temp_daily = read_temperatures(conn,
-                                                stations_itn=stations_itn)
+   stations,temp_hourly,temp_daily = read_temperatures(stations_itn)
 
 
 
