@@ -10,7 +10,6 @@ on:
 env:
   REGISTRY: ghcr.io
 
-
 jobs:
   build-and-push:
     runs-on: ubuntu-24.04
