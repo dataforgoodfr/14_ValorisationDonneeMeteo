@@ -1,45 +1,17 @@
 import calendar
 import datetime as dt
 
+from weather.services.time_windows import (
+    iter_days_intersecting,
+    iter_month_starts_intersecting,
+    iter_year_starts_intersecting,
+)
+
 
 def _clamp_day(year: int, month: int, day: int) -> int:
     """Clamp-to-last-day systématique."""
     last = calendar.monthrange(year, month)[1]
     return min(day, last)
-
-
-def _iter_years(date_start: dt.date, date_end: dt.date):
-    """
-    Renvoie les débuts d'années (YYYY-01-01) pour toutes les années
-    qui intersectent l'intervalle [date_start, date_end].
-    """
-    start = dt.date(date_start.year, 1, 1)
-    end = dt.date(date_end.year, 1, 1)
-    for y in range(start.year, end.year + 1):
-        yield dt.date(y, 1, 1)
-
-
-def _iter_months(date_start: dt.date, date_end: dt.date):
-    """
-    Renvoie les débuts de mois (YYYY-MM-01) pour tous les mois
-    qui intersectent l'intervalle [date_start, date_end].
-    """
-    cur = dt.date(date_start.year, date_start.month, 1)
-    end = dt.date(date_end.year, date_end.month, 1)
-
-    while cur <= end:
-        yield cur
-        if cur.month == 12:
-            cur = dt.date(cur.year + 1, 1, 1)
-        else:
-            cur = dt.date(cur.year, cur.month + 1, 1)
-
-
-def _iter_days(date_start: dt.date, date_end: dt.date):
-    cur = date_start
-    while cur <= date_end:
-        yield cur
-        cur = cur + dt.timedelta(days=1)
 
 
 def generate_fake_national_indicator(
@@ -66,11 +38,11 @@ def generate_fake_national_indicator(
 
     # Détermine les dates de la série (axe X)
     if granularity == "year":
-        axis_dates = list(_iter_years(date_start, date_end))
+        axis_dates = list(iter_year_starts_intersecting(date_start, date_end))
     elif granularity == "month":
-        axis_dates = list(_iter_months(date_start, date_end))
+        axis_dates = list(iter_month_starts_intersecting(date_start, date_end))
     else:  # day
-        axis_dates = list(_iter_days(date_start, date_end))
+        axis_dates = list(iter_days_intersecting(date_start, date_end))
 
     # Construit metadata (sans champs inutiles)
     metadata = {
