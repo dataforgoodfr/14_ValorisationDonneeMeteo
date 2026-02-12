@@ -1,9 +1,20 @@
 // https://nuxt.com/docs/api/configuration/nuxt-config
 export default defineNuxtConfig({
+  ssr: true, //false : use client-side only rendering to generate .output/public/index.html
   compatibilityDate: "2025-07-15",
-  devtools: { enabled: true },
+  runtimeConfig: {
+    
+    public: {
+      apiBase: '' // api url will be injected when the container is launched with an env variable 
+    }
+  },
+  devtools: { enabled: false }, // false for production
+  // couche de compilation runtime genere un index static pour  nginx
+  nitro: {
+  preset: 'node-server'
+   },
 
-  modules: ["@nuxt/eslint", "@nuxt/test-utils", "@nuxt/ui", "@nuxt/image", '@nuxt/fonts'],
+  modules: ["@nuxt/test-utils", "@nuxt/ui", "@nuxt/image", '@nuxt/fonts'],
   css: ['~/assets/css/main.css'],
   ui: {
     colorMode: false
@@ -19,4 +30,5 @@ export default defineNuxtConfig({
       ],
     },
   },
+   
 });

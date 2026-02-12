@@ -1,0 +1,40 @@
+name: Build and Push Images
+
+on: 
+  workflow_dispatch
+
+env:
+  REGISTRY: ghcr.io
+  IMAGE_NAME: ${{ github.repository }}
+
+jobs:
+  build-and-push:
+    runs_on: ubuntu_latest
+    permissions:
+      contents: read
+      packages: write
+  
+    steps:
+      - name: checkout repository
+        uses: actions/checkout@v4
+      
+      - name: log in to the Container REGISTRY
+        uses : docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      
+      - name: Build and push Backend
+        uses: docker/build-push-action@v5
+        with:
+          context: ./backend
+          push : true
+          tags: ${{ env.REGISTRY }}/${{ IMAGE_NAME }}-backend:latest
+      
+      - name: Build and Push Frontend
+        uses: docker/build-push-action@v5
+        with:
+          context: ./frontend
+          push: true
+          tags: ${{ env.REGISTRY }}/$/{{ IMAGE_NAME }}-frontend:latest
