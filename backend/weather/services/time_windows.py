@@ -1,7 +1,10 @@
 import datetime as dt
+from collections.abc import Iterator
 
 
-def iter_year_starts_intersecting(date_start: dt.date, date_end: dt.date):
+def iter_year_starts_intersecting(
+    date_start: dt.date, date_end: dt.date
+) -> Iterator[dt.date]:
     """
     Renvoie les débuts d'années (YYYY-01-01) pour toutes les années
     qui intersectent l'intervalle [date_start, date_end].
@@ -10,7 +13,9 @@ def iter_year_starts_intersecting(date_start: dt.date, date_end: dt.date):
         yield dt.date(year, 1, 1)
 
 
-def iter_month_starts_intersecting(date_start: dt.date, date_end: dt.date):
+def iter_month_starts_intersecting(
+    date_start: dt.date, date_end: dt.date
+) -> Iterator[dt.date]:
     """
     Renvoie les débuts de mois (YYYY-MM-01) pour tous les mois
     qui intersectent l'intervalle [date_start, date_end].
@@ -26,7 +31,7 @@ def iter_month_starts_intersecting(date_start: dt.date, date_end: dt.date):
             cur = dt.date(cur.year, cur.month + 1, 1)
 
 
-def iter_days_intersecting(date_start: dt.date, date_end: dt.date):
+def iter_days_intersecting(date_start: dt.date, date_end: dt.date) -> Iterator[dt.date]:
     """
     Renvoie tous les jours entre date_start et date_end inclus.
     """
