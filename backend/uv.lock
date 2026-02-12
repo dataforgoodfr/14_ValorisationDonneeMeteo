@@ -423,7 +423,6 @@ dependencies = [
     { name = "django-filter" },
     { name = "djangorestframework" },
     { name = "drf-spectacular" },
-    { name = "factory-boy" },
     { name = "gunicorn" },
     { name = "numpy" },
     { name = "psycopg", extra = ["binary"] },
@@ -433,6 +432,7 @@ dependencies = [
 [package.optional-dependencies]
 dev = [
     { name = "django-extensions" },
+    { name = "factory-boy" },
     { name = "ipython" },
     { name = "pre-commit" },
     { name = "pytest" },
@@ -450,7 +450,7 @@ requires-dist = [
     { name = "django-filter", specifier = ">=24.0" },
     { name = "djangorestframework", specifier = ">=3.15.0" },
     { name = "drf-spectacular", specifier = ">=0.27.0" },
-    { name = "factory-boy", specifier = ">=3.3.0" },
+    { name = "factory-boy", marker = "extra == 'dev'", specifier = ">=3.3.0" },
     { name = "gunicorn", specifier = ">=23.0.0" },
     { name = "ipython", marker = "extra == 'dev'", specifier = ">=8.26.0" },
     { name = "numpy", specifier = ">=1.26.0" },
