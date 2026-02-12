@@ -170,7 +170,7 @@ class NationalIndicatorQuerySerializer(serializers.Serializer):
                 )
             return attrs
 
-        if slice_type == "month_of_year":
+        elif slice_type == "month_of_year":
             # validé par spec: seulement pour granularity=year
             if gran != "year":
                 raise serializers.ValidationError(
