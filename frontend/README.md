@@ -16,6 +16,26 @@ npm run dev
 
 L'application est accessible sur `http://localhost:3000`
 
+### Pre-commit
+
+#### Installation
+
+Pour installer pre-commit dans votre environnement virtuel à la racine du projet :
+
+```bash
+npm install --save-dev pre-commit
+```
+
+#### Utilisation
+
+Pour lancer les vérifications pre-commit depuis la racine du projet, utilisez la commande suivante :
+
+```bash
+npx pre-commit run --all-files
+```
+
+Cela exécutera tous les hooks de pré-commit configurés pour le projet.
+
 ### Production
 
 ```bash
