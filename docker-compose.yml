@@ -1,6 +1,10 @@
 services:
   timescaledb:
+<<<<<<< HEAD
     image: timescale/timescaledb:2.25.0-pg17
+=======
+    image: timescale/timescaledb:latest-pg17
+>>>>>>> 9348c3e (feat: setup build and push to GHCR)
     container_name: timescaledb
     environment:
       POSTGRES_USER: infoclimat
