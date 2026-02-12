@@ -4,6 +4,8 @@
 
 <script setup lang="ts">
 import type { TopLevelFormatterParams } from "echarts/types/dist/shared.js";
+import { GetChartData, TimeAxisType } from "~~/public/ChartDataProvider";
+
 
 // provide init-options
 const renderer = ref<"svg" | "canvas">("svg");
@@ -13,9 +15,9 @@ const initOptions = computed(() => ({
 }));
 provide(INIT_OPTIONS_KEY, initOptions);
 
-const source = GetMockupData();
+const source = GetChartData(TimeAxisType.Day);
 // Compute base to stack
-const base = -source.reduce(function (min, val) {
+const base = -source.reduce(function (min:number, val:unknown) {
   return Math.floor(Math.min(min, val.Min));
 }, Infinity);
 
@@ -60,7 +62,7 @@ const option = ref<ECOption>({
       );
     },
   },
-  xAxis: {
+  xAxis: [{
     type: "category",
     data: source.map(function (item) {
       return item.date;
@@ -72,7 +74,7 @@ const option = ref<ECOption>({
       },
     },
     boundaryGap: false,
-  },
+  }],
   yAxis: {
     axisLabel: {
       formatter: function (val: number) {
@@ -170,31 +172,6 @@ const option = ref<ECOption>({
   ],
 });
 
-//Generate random temp
-function GetMockupData() {
-  const RetArray = [];
-  let CurTemp = 5;
-  let CurDate = new Date("2025-01-01");
-  let Dt = 0;
-  for (let i = 0; i < 365; i++) {
-    //CurTemp+=Math.random()*5-2.5
-    CurTemp =
-      10 * Math.sin(((i - 100) / 180) * 3.141592654) +
-      6 +
-      Math.random() * 3 -
-      1.5;
-    const Std = 5 * Math.random();
-    Dt = Math.sin(((i - 100) / 18) * 3.141592654) * 4 + Math.random() * 3 - 1.5;
-    RetArray.push({
-      date: CurDate,
-      ITN: CurTemp,
-      Delta: Dt,
-      StdDev: Std,
-      Min: CurTemp - Std - Std * Math.random(),
-      Max: CurTemp + Std + Std * Math.random(),
-    });
-    CurDate = new Date(CurDate.getTime() + 24 * 3600 * 1000);
-  }
-  return RetArray;
-}
+
+
 </script>
