@@ -14,7 +14,7 @@ const value = ref("Bar Chart");
 <template>
     <UContainer>
         <h1 class="my-8">Page Ecart de température à la normale</h1>
-        <USelectMenu v-model="value" :items="items" />
+        <USelect v-model="value" :items="items" />
         <Barchart v-if="value === `Bar Chart`" />
         <LineChart v-if="value === `Line Chart`" />
     </UContainer>
