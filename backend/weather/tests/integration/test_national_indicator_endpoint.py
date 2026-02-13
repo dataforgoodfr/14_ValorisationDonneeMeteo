@@ -1,4 +1,5 @@
 from django.urls import reverse
+from rest_framework import status
 from rest_framework.test import APIClient
 
 
@@ -16,7 +17,7 @@ def test_get_national_indicator_month_happy_path():
         },
     )
 
-    assert resp.status_code == 200
+    assert resp.status_code == status.HTTP_200_OK
 
     data = resp.json()
 
