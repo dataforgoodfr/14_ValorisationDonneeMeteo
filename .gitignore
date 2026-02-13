@@ -24,3 +24,5 @@ Thumbs.db
 
 # Claude
 .claude
+# Precommit hooks: ruff cache
+.ruff_cache
