@@ -12,7 +12,8 @@ export default defineNuxtConfig({
   // couche de compilation runtime genere un index static pour  nginx
   nitro: {
   preset: 'node-server'
-   },
+
+     },
 
   modules: ["@nuxt/test-utils", "@nuxt/ui", "@nuxt/image", '@nuxt/fonts'],
   css: ['~/assets/css/main.css'],
