@@ -1,0 +1,6 @@
+{
+    "editor.codeActionsOnSave": {
+        "source.fixAll": "always"
+    },
+    "editor.formatOnSaveMode": "file"
+}
