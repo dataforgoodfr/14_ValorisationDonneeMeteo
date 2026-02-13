@@ -5,6 +5,8 @@
 
 <script setup lang="ts">
 import { provide } from "vue";
+import { GetChartData, TimeAxisType } from "~~/public/ChartDataProvider";
+
 
 // provide init-options
 const renderer = ref<"svg" | "canvas">("svg");
@@ -14,17 +16,18 @@ const initOptions = computed(() => ({
 }));
 provide(INIT_OPTIONS_KEY, initOptions);
 
+const Data = GetChartData(TimeAxisType.Day)
+
+
 const option = ref<ECOption>({
   dataset: {
-    dimensions: ["Year", "Matcha Latte"],
-    source: [
-      { Year: "2015", "Matcha Latte": 54 },
-      { Year: "2016", "Matcha Latte": 42 },
-      { Year: "2017", "Matcha Latte": 23 },
-    ],
+    dimensions: ["date", "Delta"],
+    source: Data,
   },
-  xAxis: { type: "category" },
+  xAxis: {
+    type: "time",
+  },
   yAxis: {},
-  series: [{ type: "line" }],
+  series: [{ type: "line", showSymbol: false, }],
 });
 </script>
