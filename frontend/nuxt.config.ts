@@ -1,7 +1,9 @@
 // https://nuxt.com/docs/api/configuration/nuxt-config
 export default defineNuxtConfig({
+    ssr: true, // false : use client-side only rendering to generate .output/public/index.html
     compatibilityDate: "2025-07-15",
-    devtools: { enabled: true },
+    devtools: { enabled: true }, // false for production
+
     modules: [
         "@nuxt/eslint",
         "@nuxt/test-utils",
@@ -10,6 +12,13 @@ export default defineNuxtConfig({
         "@nuxt/fonts",
         "nuxt-echarts",
     ],
+
+    runtimeConfig: {
+        public: {
+            apiBase: "", // api url will be injected when the container is launched with an env variable
+        },
+    },
+
     css: ["~/assets/css/main.css"],
     ui: {
         colorMode: false,
@@ -31,10 +40,5 @@ export default defineNuxtConfig({
         charts: ["BarChart", "LineChart"],
         components: ["DatasetComponent", "GridComponent", "TooltipComponent"],
         features: ["LabelLayout", "UniversalTransition"],
-    },
-    runtimeConfig: {
-        public: {
-            apiBase: "",
-        },
     },
 });
