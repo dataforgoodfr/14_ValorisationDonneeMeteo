@@ -31,25 +31,5 @@ const heroData = {
             :description="heroData.description"
         />
         <CombinedChart />
-        <!-- TODO : Implement template below when API "useNationalIndicator" is ready-->
-        <!-- <div
-      v-if="status === 'pending'"
-      class="flex items-center justify-center py-12"
-    >
-      <UIcon name="i-lucide-loader-circle" class="animate-spin size-6" />
-      <span class="ml-2">Chargement des données...</span>
-    </div>
-
-    <UAlert
-      v-else-if="error"
-      color="error"
-      title="Erreur de chargement"
-      :description="error.message"
-    />
-
-    <CombinedChart
-      v-else-if="data?.time_series"
-      :time-series="data.time_series"
-    /> -->
     </UContainer>
 </template>
