@@ -4,12 +4,7 @@
 
 <script setup lang="ts">
 import type { TopLevelFormatterParams } from "echarts/types/dist/shared.js";
-// TODO : Implement code below when API is ready
-// import type { NationalIndicatorDataPoint } from "~/types/api";
-
-// const props = defineProps<{
-//   timeSeries: NationalIndicatorDataPoint[];
-// }>();
+import { GetChartData, TimeAxisType } from "~~/public/ChartDataProvider";
 
 // provide init-options
 const renderer = ref<"svg" | "canvas">("svg");
@@ -19,154 +14,9 @@ const initOptions = computed(() => ({
 }));
 provide(INIT_OPTIONS_KEY, initOptions);
 
-// TODO : Implement code below when API is ready
-// function ShortDate(dateStr: string) {
-//   const date = new Date(dateStr);
-//   return [date.getMonth() + 1, date.getDate(), date.getFullYear()].join("/");
-// }
-
-// const option = computed<ECOption>(() => {
-//   const source = props.timeSeries;
-//   if (!source.length) return {};
-
-//   // Compute base to stack (same logic as before, using baseline_min)
-//   const base = -source.reduce(
-//     (min, val) => Math.floor(Math.min(min, val.baseline_min)),
-//     Infinity,
-//   );
-
-//   // Delta = temperature - baseline_mean
-//   // StdDev band = baseline_std_dev_upper - baseline_std_dev_lower
-
-//   return {
-//     tooltip: {
-//       trigger: "axis",
-//       axisPointer: {
-//         type: "cross",
-//         animation: false,
-//         label: {
-//           backgroundColor: "#ccc",
-//           borderColor: "#aaa",
-//           borderWidth: 1,
-//           shadowBlur: 0,
-//           shadowOffsetX: 0,
-//           shadowOffsetY: 0,
-//           color: "#222",
-//         },
-//       },
-//       formatter: function (params: TopLevelFormatterParams) {
-//         const first = Array.isArray(params) ? params[0] : params;
-//         if (!first) return "";
-//         const item = source[first.dataIndex];
-//         if (!item) return "";
-//         return (
-//           ShortDate(item.date) + "<br />" + item.temperature.toFixed(2) + "°C"
-//         );
-//       },
-//     },
-//     xAxis: {
-//       type: "category",
-//       data: source.map((item) => item.date),
-//       axisLabel: {
-//         formatter: function (value: string) {
-//           return ShortDate(value);
-//         },
-//       },
-//       boundaryGap: false,
-//     },
-//     yAxis: {
-//       axisLabel: {
-//         formatter: function (val: number) {
-//           return val - base + " °C";
-//         },
-//       },
-//       axisPointer: {
-//         label: {
-//           formatter: function (params) {
-//             return (Number(params.value) - base).toFixed(2) + "°c";
-//           },
-//         },
-//       },
-//       splitNumber: 3,
-//     },
-//     series: [
-//       {
-//         name: "ITN",
-//         type: "line",
-//         data: source.map((item) => base + item.temperature),
-//         lineStyle: {
-//           color: "#130707",
-//         },
-//         showSymbol: false,
-//       },
-//       {
-//         name: "Delta",
-//         type: "line",
-//         data: source.map(
-//           (item) =>
-//             base + item.temperature + (item.temperature - item.baseline_mean),
-//         ),
-//         lineStyle: {
-//           color: "#2d3ed3",
-//           width: 0.75,
-//         },
-//         showSymbol: false,
-//       },
-//       {
-//         name: "Min",
-//         type: "line",
-//         data: source.map((item) => base + item.baseline_min),
-//         stack: "MinMax",
-//         lineStyle: {
-//           opacity: 0,
-//         },
-//         showSymbol: false,
-//       },
-//       {
-//         name: "Max",
-//         type: "line",
-//         data: source.map((item) => item.baseline_max - item.baseline_min),
-//         stack: "MinMax",
-//         lineStyle: {
-//           opacity: 0,
-//         },
-//         areaStyle: {
-//           color: "#777777",
-//         },
-//         showSymbol: false,
-//       },
-//       {
-//         name: "Ldev",
-//         type: "line",
-//         data: source.map((item) => base + item.baseline_std_dev_lower),
-//         stack: "bands",
-//         lineStyle: {
-//           opacity: 0,
-//         },
-//         showSymbol: false,
-//       },
-//       {
-//         name: "UDev",
-//         type: "line",
-//         data: source.map(
-//           (item) => item.baseline_std_dev_upper - item.baseline_std_dev_lower,
-//         ),
-//         stack: "bands",
-//         lineStyle: {
-//           opacity: 0,
-//         },
-//         areaStyle: {
-//           color: "#cccccc",
-//         },
-//         showSymbol: false,
-//       },
-//     ],
-//   };
-// });
-
-const source = GetMockupData();
+const source = GetChartData(TimeAxisType.Day);
 // Compute base to stack
-const base = -source.reduce(function (min, val) {
+const base = -source.reduce(function (min: number, val: unknown) {
   return Math.floor(Math.min(min, val.Min));
 }, Infinity);
 
@@ -206,19 +56,21 @@ const option = ref<ECOption>({
       return ShortDate(item.date) + "<br />" + item.ITN.toFixed(2) + "°C";
     },
   },
-  xAxis: {
-    type: "category",
-    data: source.map(function (item) {
-      return item.date;
-    }),
-    axisLabel: {
-      formatter: function (value: string, idx: number) {
-        const date = new Date(value);
-        return ShortDate(date);
+  xAxis: [
+    {
+      type: "category",
+      data: source.map(function (item) {
+        return item.date;
+      }),
+      axisLabel: {
+        formatter: function (value: string, idx: number) {
+          const date = new Date(value);
+          return ShortDate(date);
+        },
       },
+      boundaryGap: false,
     },
-    boundaryGap: false,
-  },
+  ],
   yAxis: {
     axisLabel: {
       formatter: function (val: number) {
@@ -315,32 +167,4 @@ const option = ref<ECOption>({
     },
   ],
 });
-
-//Generate random temp
-function GetMockupData() {
-  const RetArray = [];
-  let CurTemp = 5;
-  let CurDate = new Date("2025-01-01");
-  let Dt = 0;
-  for (let i = 0; i < 365; i++) {
-    //CurTemp+=Math.random()*5-2.5
-    CurTemp =
-      10 * Math.sin(((i - 100) / 180) * 3.141592654) +
-      6 +
-      Math.random() * 3 -
-      1.5;
-    const Std = 5 * Math.random();
-    Dt = Math.sin(((i - 100) / 18) * 3.141592654) * 4 + Math.random() * 3 - 1.5;
-    RetArray.push({
-      date: CurDate,
-      ITN: CurTemp,
-      Delta: Dt,
-      StdDev: Std,
-      Min: CurTemp - Std - Std * Math.random(),
-      Max: CurTemp + Std + Std * Math.random(),
-    });
-    CurDate = new Date(CurDate.getTime() + 24 * 3600 * 1000);
-  }
-  return RetArray;
-}
 </script>
