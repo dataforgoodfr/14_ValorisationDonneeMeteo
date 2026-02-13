@@ -6,7 +6,6 @@
 import type { TopLevelFormatterParams } from "echarts/types/dist/shared.js";
 import { GetChartData, TimeAxisType } from "~~/public/ChartDataProvider";
 
-
 // provide init-options
 const renderer = ref<"svg" | "canvas">("svg");
 const initOptions = computed(() => ({
@@ -17,7 +16,7 @@ provide(INIT_OPTIONS_KEY, initOptions);
 
 const source = GetChartData(TimeAxisType.Day);
 // Compute base to stack
-const base = -source.reduce(function (min:number, val:unknown) {
+const base = -source.reduce(function (min: number, val: unknown) {
   return Math.floor(Math.min(min, val.Min));
 }, Infinity);
 
@@ -54,27 +53,24 @@ const option = ref<ECOption>({
       if (!first) return "";
       const item = source[first.dataIndex];
       if (!item) return "";
-      return (
-        ShortDate(item.date) +
-        "<br />" +
-        item.ITN.toFixed(2) +
-        "°C"
-      );
+      return ShortDate(item.date) + "<br />" + item.ITN.toFixed(2) + "°C";
     },
   },
-  xAxis: [{
-    type: "category",
-    data: source.map(function (item) {
-      return item.date;
-    }),
-    axisLabel: {
-      formatter: function (value: string, idx: number) {
-        const date = new Date(value);
-        return ShortDate(date);
+  xAxis: [
+    {
+      type: "category",
+      data: source.map(function (item) {
+        return item.date;
+      }),
+      axisLabel: {
+        formatter: function (value: string, idx: number) {
+          const date = new Date(value);
+          return ShortDate(date);
+        },
       },
+      boundaryGap: false,
     },
-    boundaryGap: false,
-  }],
+  ],
   yAxis: {
     axisLabel: {
       formatter: function (val: number) {
@@ -171,7 +167,4 @@ const option = ref<ECOption>({
     },
   ],
 });
-
-
-
 </script>
