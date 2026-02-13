@@ -20,6 +20,7 @@ Thumbs.db
 
 # Nuxt Fonts
 .data
+/node_modules
 
 # Claude
 .claude

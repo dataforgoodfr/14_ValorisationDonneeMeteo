@@ -177,21 +177,21 @@ class Quotidienne(models.Model):
     qfxi = models.IntegerField(null=True, blank=True)
     dxi = models.IntegerField(null=True, blank=True)
     qdxi = models.IntegerField(null=True, blank=True)
-    hxi = models.CharField(max_length=4, null=True, blank=True)
+    hxi = models.CharField(max_length=4, blank=True, default="")
     qhxi = models.IntegerField(null=True, blank=True)
 
     fxi2 = models.FloatField(null=True, blank=True)
     qfxi2 = models.IntegerField(null=True, blank=True)
     dxi2 = models.IntegerField(null=True, blank=True)
     qdxi2 = models.IntegerField(null=True, blank=True)
-    hxi2 = models.CharField(max_length=4, null=True, blank=True)
+    hxi2 = models.CharField(max_length=4, blank=True, default="")
     qhxi2 = models.IntegerField(null=True, blank=True)
 
     fxi3s = models.FloatField(null=True, blank=True)
     qfxi3s = models.IntegerField(null=True, blank=True)
     dxi3s = models.IntegerField(null=True, blank=True)
     qdxi3s = models.IntegerField(null=True, blank=True)
-    hxi3s = models.CharField(max_length=4, null=True, blank=True)
+    hxi3s = models.CharField(max_length=4, blank=True, default="")
     qhxi3s = models.IntegerField(null=True, blank=True)
 
     # Precipitation duration

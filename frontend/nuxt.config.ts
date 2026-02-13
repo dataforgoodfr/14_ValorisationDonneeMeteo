@@ -5,8 +5,8 @@ export default defineNuxtConfig({
     runtimeConfig: {
     
     public: {
-      apiBase: '' // api url will be injected when the container is launched with an env variable 
-    }
+      apiBase: "", // api url will be injected when the container is launched with an env variable
+    },
   },
   devtools: { enabled: false }, // false for production
   // couche de compilation runtime genere un index static pour  nginx
