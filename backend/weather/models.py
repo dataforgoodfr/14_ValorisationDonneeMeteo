@@ -83,9 +83,13 @@ class HoraireTempsReel(models.Model):
     sss = models.FloatField(null=True, blank=True, help_text="Snow depth")
     n = models.IntegerField(null=True, blank=True, help_text="Cloud cover (0-8)")
     insolh = models.FloatField(null=True, blank=True, help_text="Sunshine hours")
-    ray_glo01 = models.FloatField(null=True, blank=True, help_text="Solar radiation (W/m²)")
+    ray_glo01 = models.FloatField(
+        null=True, blank=True, help_text="Solar radiation (W/m²)"
+    )
     pres = models.FloatField(null=True, blank=True, help_text="Station pressure (hPa)")
-    pmer = models.FloatField(null=True, blank=True, help_text="Sea level pressure (hPa)")
+    pmer = models.FloatField(
+        null=True, blank=True, help_text="Sea level pressure (hPa)"
+    )
 
     class Meta:
         # Note: UniqueConstraint not used because TimescaleDB hypertables require
@@ -121,12 +125,16 @@ class Quotidienne(models.Model):
     # Temperature
     tn = models.FloatField(null=True, blank=True, help_text="Min temperature")
     qtn = models.IntegerField(null=True, blank=True)
-    htn = models.CharField(max_length=4, null=True, blank=True, help_text="Time of min (HHMM)")
+    htn = models.CharField(
+        max_length=4, blank=True, default="", help_text="Time of min (HHMM)"
+    )
     qhtn = models.IntegerField(null=True, blank=True)
 
     tx = models.FloatField(null=True, blank=True, help_text="Max temperature")
     qtx = models.IntegerField(null=True, blank=True)
-    htx = models.CharField(max_length=4, null=True, blank=True, help_text="Time of max (HHMM)")
+    htx = models.CharField(
+        max_length=4, blank=True, default="", help_text="Time of max (HHMM)"
+    )
     qhtx = models.IntegerField(null=True, blank=True)
 
     tm = models.FloatField(null=True, blank=True, help_text="Mean temperature")
@@ -160,32 +168,36 @@ class Quotidienne(models.Model):
     qfxy = models.IntegerField(null=True, blank=True)
     dxy = models.IntegerField(null=True, blank=True, help_text="Max gust direction")
     qdxy = models.IntegerField(null=True, blank=True)
-    hxy = models.CharField(max_length=4, null=True, blank=True, help_text="Time of max gust")
+    hxy = models.CharField(
+        max_length=4, blank=True, default="", help_text="Time of max gust"
+    )
     qhxy = models.IntegerField(null=True, blank=True)
 
     fxi = models.FloatField(null=True, blank=True)
     qfxi = models.IntegerField(null=True, blank=True)
     dxi = models.IntegerField(null=True, blank=True)
     qdxi = models.IntegerField(null=True, blank=True)
-    hxi = models.CharField(max_length=4, null=True, blank=True)
+    hxi = models.CharField(max_length=4, blank=True, default="")
     qhxi = models.IntegerField(null=True, blank=True)
 
     fxi2 = models.FloatField(null=True, blank=True)
     qfxi2 = models.IntegerField(null=True, blank=True)
     dxi2 = models.IntegerField(null=True, blank=True)
     qdxi2 = models.IntegerField(null=True, blank=True)
-    hxi2 = models.CharField(max_length=4, null=True, blank=True)
+    hxi2 = models.CharField(max_length=4, blank=True, default="")
     qhxi2 = models.IntegerField(null=True, blank=True)
 
     fxi3s = models.FloatField(null=True, blank=True)
     qfxi3s = models.IntegerField(null=True, blank=True)
     dxi3s = models.IntegerField(null=True, blank=True)
     qdxi3s = models.IntegerField(null=True, blank=True)
-    hxi3s = models.CharField(max_length=4, null=True, blank=True)
+    hxi3s = models.CharField(max_length=4, blank=True, default="")
     qhxi3s = models.IntegerField(null=True, blank=True)
 
     # Precipitation duration
-    drr = models.IntegerField(null=True, blank=True, help_text="Precipitation duration (min)")
+    drr = models.IntegerField(
+        null=True, blank=True, help_text="Precipitation duration (min)"
+    )
     qdrr = models.IntegerField(null=True, blank=True)
 
     class Meta:

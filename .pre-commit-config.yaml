@@ -1,0 +1,44 @@
+repos:
+  - repo: local
+    hooks:
+      - id: backend-pre-commit
+        name: Run backend pre-commit hooks
+        entry: bash -c 'cd backend && pre-commit run --all-files --config=.pre-commit-config.yaml'
+        language: system
+        pass_filenames: false
+        always_run: true
+        stages: [commit, push, manual]
+        verbose: true
+
+  # Frontend configuration (to be added later)
+  # - repo: local
+  #   hooks:
+  #     - id: frontend-pre-commit
+  #       name: Run frontend pre-commit hooks
+  #       entry: bash -c 'cd frontend && npm run lint'
+  #       language: system
+  #       pass_filenames: false
+  #       always_run: true
+  #       stages: [commit, push, manual]
+
+  # Common hooks that apply to the whole repository
+  - repo: local
+    hooks:
+      - id: prettier-local
+        name: Prettier (Local)
+        # On utilise ton Node v24 et ton prettier déjà installé
+        entry: bash -c 'cd frontend && npx prettier --write "**/*.{js,ts,vue,css,json}"'
+        language: system
+        pass_filenames: false
+        always_run: true
+
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v4.6.0
+    hooks:
+      - id: check-merge-conflict
+      - id: mixed-line-ending
+        args: [--fix=lf]
+      - id: trailing-whitespace
+        args: [--markdown-linebreak-ext=md]
+      - id: end-of-file-fixer
+      - id: check-yaml

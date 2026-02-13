@@ -14,7 +14,7 @@
 <!-- Lien(s) vers issue(s), discussion(s), doc(s). -->
 
 ## Changements
-- 
+-
 
 ## Décisions techniques
 <!-- Choix structurants, arbitrages, compromis. -->

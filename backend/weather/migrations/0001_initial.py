@@ -5,140 +5,397 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     initial = True
 
-    dependencies = [
-    ]
+    dependencies = []
 
     operations = [
         migrations.CreateModel(
-            name='Station',
+            name="Station",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('code', models.CharField(max_length=8, unique=True)),
-                ('nom', models.TextField()),
-                ('departement', models.IntegerField()),
-                ('frequence', models.CharField(default='horaire', max_length=20)),
-                ('poste_ouvert', models.BooleanField(default=True)),
-                ('type_poste', models.IntegerField(default=0)),
-                ('lon', models.FloatField()),
-                ('lat', models.FloatField()),
-                ('alt', models.FloatField()),
-                ('poste_public', models.BooleanField(default=True)),
-                ('created_at', models.DateTimeField(auto_now_add=True)),
-                ('updated_at', models.DateTimeField(auto_now=True)),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                ("code", models.CharField(max_length=8, unique=True)),
+                ("nom", models.TextField()),
+                ("departement", models.IntegerField()),
+                ("frequence", models.CharField(default="horaire", max_length=20)),
+                ("poste_ouvert", models.BooleanField(default=True)),
+                ("type_poste", models.IntegerField(default=0)),
+                ("lon", models.FloatField()),
+                ("lat", models.FloatField()),
+                ("alt", models.FloatField()),
+                ("poste_public", models.BooleanField(default=True)),
+                ("created_at", models.DateTimeField(auto_now_add=True)),
+                ("updated_at", models.DateTimeField(auto_now=True)),
             ],
             options={
-                'indexes': [models.Index(fields=['lat'], name='weather_sta_lat_eff65d_idx'), models.Index(fields=['lon'], name='weather_sta_lon_2faaae_idx')],
+                "indexes": [
+                    models.Index(fields=["lat"], name="weather_sta_lat_eff65d_idx"),
+                    models.Index(fields=["lon"], name="weather_sta_lon_2faaae_idx"),
+                ],
             },
         ),
         migrations.CreateModel(
-            name='Quotidienne',
+            name="Quotidienne",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('nom_usuel', models.TextField()),
-                ('lat', models.FloatField()),
-                ('lon', models.FloatField()),
-                ('alti', models.FloatField()),
-                ('date', models.DateField(db_index=True)),
-                ('rr', models.FloatField(blank=True, help_text='Daily rainfall (mm)', null=True)),
-                ('qrr', models.IntegerField(blank=True, help_text='Quality flag', null=True)),
-                ('tn', models.FloatField(blank=True, help_text='Min temperature', null=True)),
-                ('qtn', models.IntegerField(blank=True, null=True)),
-                ('htn', models.CharField(blank=True, help_text='Time of min (HHMM)', max_length=4, null=True)),
-                ('qhtn', models.IntegerField(blank=True, null=True)),
-                ('tx', models.FloatField(blank=True, help_text='Max temperature', null=True)),
-                ('qtx', models.IntegerField(blank=True, null=True)),
-                ('htx', models.CharField(blank=True, help_text='Time of max (HHMM)', max_length=4, null=True)),
-                ('qhtx', models.IntegerField(blank=True, null=True)),
-                ('tm', models.FloatField(blank=True, help_text='Mean temperature', null=True)),
-                ('qtm', models.IntegerField(blank=True, null=True)),
-                ('tntxm', models.FloatField(blank=True, help_text='(TN+TX)/2', null=True)),
-                ('qtntxm', models.IntegerField(blank=True, null=True)),
-                ('tampli', models.FloatField(blank=True, help_text='Temperature amplitude', null=True)),
-                ('qtampli', models.IntegerField(blank=True, null=True)),
-                ('tnsol', models.FloatField(blank=True, help_text='Min ground temp', null=True)),
-                ('qtnsol', models.IntegerField(blank=True, null=True)),
-                ('tn50', models.FloatField(blank=True, help_text='Min temp at 50cm', null=True)),
-                ('qtn50', models.IntegerField(blank=True, null=True)),
-                ('dg', models.IntegerField(blank=True, help_text='Degree days', null=True)),
-                ('qdg', models.IntegerField(blank=True, null=True)),
-                ('ffm', models.FloatField(blank=True, help_text='Mean wind speed', null=True)),
-                ('qffm', models.IntegerField(blank=True, null=True)),
-                ('ff2m', models.FloatField(blank=True, help_text='Mean wind at 2m', null=True)),
-                ('qff2m', models.IntegerField(blank=True, null=True)),
-                ('fxy', models.FloatField(blank=True, help_text='Max gust speed', null=True)),
-                ('qfxy', models.IntegerField(blank=True, null=True)),
-                ('dxy', models.IntegerField(blank=True, help_text='Max gust direction', null=True)),
-                ('qdxy', models.IntegerField(blank=True, null=True)),
-                ('hxy', models.CharField(blank=True, help_text='Time of max gust', max_length=4, null=True)),
-                ('qhxy', models.IntegerField(blank=True, null=True)),
-                ('fxi', models.FloatField(blank=True, null=True)),
-                ('qfxi', models.IntegerField(blank=True, null=True)),
-                ('dxi', models.IntegerField(blank=True, null=True)),
-                ('qdxi', models.IntegerField(blank=True, null=True)),
-                ('hxi', models.CharField(blank=True, max_length=4, null=True)),
-                ('qhxi', models.IntegerField(blank=True, null=True)),
-                ('fxi2', models.FloatField(blank=True, null=True)),
-                ('qfxi2', models.IntegerField(blank=True, null=True)),
-                ('dxi2', models.IntegerField(blank=True, null=True)),
-                ('qdxi2', models.IntegerField(blank=True, null=True)),
-                ('hxi2', models.CharField(blank=True, max_length=4, null=True)),
-                ('qhxi2', models.IntegerField(blank=True, null=True)),
-                ('fxi3s', models.FloatField(blank=True, null=True)),
-                ('qfxi3s', models.IntegerField(blank=True, null=True)),
-                ('dxi3s', models.IntegerField(blank=True, null=True)),
-                ('qdxi3s', models.IntegerField(blank=True, null=True)),
-                ('hxi3s', models.CharField(blank=True, max_length=4, null=True)),
-                ('qhxi3s', models.IntegerField(blank=True, null=True)),
-                ('drr', models.IntegerField(blank=True, help_text='Precipitation duration (min)', null=True)),
-                ('qdrr', models.IntegerField(blank=True, null=True)),
-                ('station', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='daily_measurements', to='weather.station')),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                ("nom_usuel", models.TextField()),
+                ("lat", models.FloatField()),
+                ("lon", models.FloatField()),
+                ("alti", models.FloatField()),
+                ("date", models.DateField(db_index=True)),
+                (
+                    "rr",
+                    models.FloatField(
+                        blank=True, help_text="Daily rainfall (mm)", null=True
+                    ),
+                ),
+                (
+                    "qrr",
+                    models.IntegerField(
+                        blank=True, help_text="Quality flag", null=True
+                    ),
+                ),
+                (
+                    "tn",
+                    models.FloatField(
+                        blank=True, help_text="Min temperature", null=True
+                    ),
+                ),
+                ("qtn", models.IntegerField(blank=True, null=True)),
+                (
+                    "htn",
+                    models.CharField(
+                        blank=True,
+                        help_text="Time of min (HHMM)",
+                        max_length=4,
+                        null=True,
+                    ),
+                ),
+                ("qhtn", models.IntegerField(blank=True, null=True)),
+                (
+                    "tx",
+                    models.FloatField(
+                        blank=True, help_text="Max temperature", null=True
+                    ),
+                ),
+                ("qtx", models.IntegerField(blank=True, null=True)),
+                (
+                    "htx",
+                    models.CharField(
+                        blank=True,
+                        help_text="Time of max (HHMM)",
+                        max_length=4,
+                        null=True,
+                    ),
+                ),
+                ("qhtx", models.IntegerField(blank=True, null=True)),
+                (
+                    "tm",
+                    models.FloatField(
+                        blank=True, help_text="Mean temperature", null=True
+                    ),
+                ),
+                ("qtm", models.IntegerField(blank=True, null=True)),
+                (
+                    "tntxm",
+                    models.FloatField(blank=True, help_text="(TN+TX)/2", null=True),
+                ),
+                ("qtntxm", models.IntegerField(blank=True, null=True)),
+                (
+                    "tampli",
+                    models.FloatField(
+                        blank=True, help_text="Temperature amplitude", null=True
+                    ),
+                ),
+                ("qtampli", models.IntegerField(blank=True, null=True)),
+                (
+                    "tnsol",
+                    models.FloatField(
+                        blank=True, help_text="Min ground temp", null=True
+                    ),
+                ),
+                ("qtnsol", models.IntegerField(blank=True, null=True)),
+                (
+                    "tn50",
+                    models.FloatField(
+                        blank=True, help_text="Min temp at 50cm", null=True
+                    ),
+                ),
+                ("qtn50", models.IntegerField(blank=True, null=True)),
+                (
+                    "dg",
+                    models.IntegerField(blank=True, help_text="Degree days", null=True),
+                ),
+                ("qdg", models.IntegerField(blank=True, null=True)),
+                (
+                    "ffm",
+                    models.FloatField(
+                        blank=True, help_text="Mean wind speed", null=True
+                    ),
+                ),
+                ("qffm", models.IntegerField(blank=True, null=True)),
+                (
+                    "ff2m",
+                    models.FloatField(
+                        blank=True, help_text="Mean wind at 2m", null=True
+                    ),
+                ),
+                ("qff2m", models.IntegerField(blank=True, null=True)),
+                (
+                    "fxy",
+                    models.FloatField(
+                        blank=True, help_text="Max gust speed", null=True
+                    ),
+                ),
+                ("qfxy", models.IntegerField(blank=True, null=True)),
+                (
+                    "dxy",
+                    models.IntegerField(
+                        blank=True, help_text="Max gust direction", null=True
+                    ),
+                ),
+                ("qdxy", models.IntegerField(blank=True, null=True)),
+                (
+                    "hxy",
+                    models.CharField(
+                        blank=True,
+                        help_text="Time of max gust",
+                        max_length=4,
+                        null=True,
+                    ),
+                ),
+                ("qhxy", models.IntegerField(blank=True, null=True)),
+                ("fxi", models.FloatField(blank=True, null=True)),
+                ("qfxi", models.IntegerField(blank=True, null=True)),
+                ("dxi", models.IntegerField(blank=True, null=True)),
+                ("qdxi", models.IntegerField(blank=True, null=True)),
+                ("hxi", models.CharField(blank=True, max_length=4, null=True)),
+                ("qhxi", models.IntegerField(blank=True, null=True)),
+                ("fxi2", models.FloatField(blank=True, null=True)),
+                ("qfxi2", models.IntegerField(blank=True, null=True)),
+                ("dxi2", models.IntegerField(blank=True, null=True)),
+                ("qdxi2", models.IntegerField(blank=True, null=True)),
+                ("hxi2", models.CharField(blank=True, max_length=4, null=True)),
+                ("qhxi2", models.IntegerField(blank=True, null=True)),
+                ("fxi3s", models.FloatField(blank=True, null=True)),
+                ("qfxi3s", models.IntegerField(blank=True, null=True)),
+                ("dxi3s", models.IntegerField(blank=True, null=True)),
+                ("qdxi3s", models.IntegerField(blank=True, null=True)),
+                ("hxi3s", models.CharField(blank=True, max_length=4, null=True)),
+                ("qhxi3s", models.IntegerField(blank=True, null=True)),
+                (
+                    "drr",
+                    models.IntegerField(
+                        blank=True, help_text="Precipitation duration (min)", null=True
+                    ),
+                ),
+                ("qdrr", models.IntegerField(blank=True, null=True)),
+                (
+                    "station",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="daily_measurements",
+                        to="weather.station",
+                    ),
+                ),
             ],
             options={
-                'ordering': ['-date'],
+                "ordering": ["-date"],
             },
         ),
         migrations.CreateModel(
-            name='HoraireTempsReel',
+            name="HoraireTempsReel",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('lat', models.FloatField()),
-                ('lon', models.FloatField()),
-                ('reference_time', models.DateTimeField()),
-                ('insert_time', models.DateTimeField()),
-                ('validity_time', models.DateTimeField(db_index=True)),
-                ('t', models.FloatField(blank=True, help_text='Current temperature', null=True)),
-                ('td', models.FloatField(blank=True, help_text='Dew point', null=True)),
-                ('tx', models.FloatField(blank=True, help_text='Daily max temperature', null=True)),
-                ('tn', models.FloatField(blank=True, help_text='Daily min temperature', null=True)),
-                ('u', models.IntegerField(blank=True, help_text='Relative humidity', null=True)),
-                ('ux', models.IntegerField(blank=True, help_text='Max humidity', null=True)),
-                ('un', models.IntegerField(blank=True, help_text='Min humidity', null=True)),
-                ('dd', models.IntegerField(blank=True, help_text='Wind direction (°)', null=True)),
-                ('ff', models.FloatField(blank=True, help_text='Wind speed (m/s)', null=True)),
-                ('dxy', models.IntegerField(blank=True, help_text='Gust direction', null=True)),
-                ('fxy', models.FloatField(blank=True, help_text='Gust speed (m/s)', null=True)),
-                ('dxi', models.IntegerField(blank=True, help_text='Instant direction', null=True)),
-                ('fxi', models.FloatField(blank=True, help_text='Instant speed (m/s)', null=True)),
-                ('rr1', models.FloatField(blank=True, help_text='Hourly rainfall (mm)', null=True)),
-                ('t_10', models.FloatField(blank=True, help_text='Soil temp at 10cm', null=True)),
-                ('t_20', models.FloatField(blank=True, help_text='Soil temp at 20cm', null=True)),
-                ('t_50', models.FloatField(blank=True, help_text='Soil temp at 50cm', null=True)),
-                ('t_100', models.FloatField(blank=True, help_text='Soil temp at 100cm', null=True)),
-                ('vv', models.IntegerField(blank=True, help_text='Visibility (m)', null=True)),
-                ('etat_sol', models.IntegerField(blank=True, help_text='Ground state', null=True)),
-                ('sss', models.FloatField(blank=True, help_text='Snow depth', null=True)),
-                ('n', models.IntegerField(blank=True, help_text='Cloud cover (0-8)', null=True)),
-                ('insolh', models.FloatField(blank=True, help_text='Sunshine hours', null=True)),
-                ('ray_glo01', models.FloatField(blank=True, help_text='Solar radiation (W/m²)', null=True)),
-                ('pres', models.FloatField(blank=True, help_text='Station pressure (hPa)', null=True)),
-                ('pmer', models.FloatField(blank=True, help_text='Sea level pressure (hPa)', null=True)),
-                ('station', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='hourly_measurements', to='weather.station')),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                ("lat", models.FloatField()),
+                ("lon", models.FloatField()),
+                ("reference_time", models.DateTimeField()),
+                ("insert_time", models.DateTimeField()),
+                ("validity_time", models.DateTimeField(db_index=True)),
+                (
+                    "t",
+                    models.FloatField(
+                        blank=True, help_text="Current temperature", null=True
+                    ),
+                ),
+                ("td", models.FloatField(blank=True, help_text="Dew point", null=True)),
+                (
+                    "tx",
+                    models.FloatField(
+                        blank=True, help_text="Daily max temperature", null=True
+                    ),
+                ),
+                (
+                    "tn",
+                    models.FloatField(
+                        blank=True, help_text="Daily min temperature", null=True
+                    ),
+                ),
+                (
+                    "u",
+                    models.IntegerField(
+                        blank=True, help_text="Relative humidity", null=True
+                    ),
+                ),
+                (
+                    "ux",
+                    models.IntegerField(
+                        blank=True, help_text="Max humidity", null=True
+                    ),
+                ),
+                (
+                    "un",
+                    models.IntegerField(
+                        blank=True, help_text="Min humidity", null=True
+                    ),
+                ),
+                (
+                    "dd",
+                    models.IntegerField(
+                        blank=True, help_text="Wind direction (°)", null=True
+                    ),
+                ),
+                (
+                    "ff",
+                    models.FloatField(
+                        blank=True, help_text="Wind speed (m/s)", null=True
+                    ),
+                ),
+                (
+                    "dxy",
+                    models.IntegerField(
+                        blank=True, help_text="Gust direction", null=True
+                    ),
+                ),
+                (
+                    "fxy",
+                    models.FloatField(
+                        blank=True, help_text="Gust speed (m/s)", null=True
+                    ),
+                ),
+                (
+                    "dxi",
+                    models.IntegerField(
+                        blank=True, help_text="Instant direction", null=True
+                    ),
+                ),
+                (
+                    "fxi",
+                    models.FloatField(
+                        blank=True, help_text="Instant speed (m/s)", null=True
+                    ),
+                ),
+                (
+                    "rr1",
+                    models.FloatField(
+                        blank=True, help_text="Hourly rainfall (mm)", null=True
+                    ),
+                ),
+                (
+                    "t_10",
+                    models.FloatField(
+                        blank=True, help_text="Soil temp at 10cm", null=True
+                    ),
+                ),
+                (
+                    "t_20",
+                    models.FloatField(
+                        blank=True, help_text="Soil temp at 20cm", null=True
+                    ),
+                ),
+                (
+                    "t_50",
+                    models.FloatField(
+                        blank=True, help_text="Soil temp at 50cm", null=True
+                    ),
+                ),
+                (
+                    "t_100",
+                    models.FloatField(
+                        blank=True, help_text="Soil temp at 100cm", null=True
+                    ),
+                ),
+                (
+                    "vv",
+                    models.IntegerField(
+                        blank=True, help_text="Visibility (m)", null=True
+                    ),
+                ),
+                (
+                    "etat_sol",
+                    models.IntegerField(
+                        blank=True, help_text="Ground state", null=True
+                    ),
+                ),
+                (
+                    "sss",
+                    models.FloatField(blank=True, help_text="Snow depth", null=True),
+                ),
+                (
+                    "n",
+                    models.IntegerField(
+                        blank=True, help_text="Cloud cover (0-8)", null=True
+                    ),
+                ),
+                (
+                    "insolh",
+                    models.FloatField(
+                        blank=True, help_text="Sunshine hours", null=True
+                    ),
+                ),
+                (
+                    "ray_glo01",
+                    models.FloatField(
+                        blank=True, help_text="Solar radiation (W/m²)", null=True
+                    ),
+                ),
+                (
+                    "pres",
+                    models.FloatField(
+                        blank=True, help_text="Station pressure (hPa)", null=True
+                    ),
+                ),
+                (
+                    "pmer",
+                    models.FloatField(
+                        blank=True, help_text="Sea level pressure (hPa)", null=True
+                    ),
+                ),
+                (
+                    "station",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="hourly_measurements",
+                        to="weather.station",
+                    ),
+                ),
             ],
             options={
-                'ordering': ['-validity_time'],
+                "ordering": ["-validity_time"],
             },
         ),
     ]

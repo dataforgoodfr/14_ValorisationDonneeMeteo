@@ -6,13 +6,13 @@ services:
       POSTGRES_USER: infoclimat
       POSTGRES_PASSWORD: infoclimat2026
       POSTGRES_DB: meteodb
-    
+
     volumes:
       - timescaledb-data:/var/lib/postgresql/data
       - ./timescaledb-env/meteodb_dump.sql:/docker-entrypoint-initdb.d/dump.sql:ro
     networks:
       - bd_net
-    
+
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U infoclimat -d meteodb"]
       interval: 10s
@@ -20,7 +20,7 @@ services:
       retries: 10
       start_period: 40s
     restart: unless-stopped
-  
+
   nginx:
     image: nginx:stable-alpine3.23-perl
     ports:
@@ -32,25 +32,25 @@ services:
       - backend
     networks:
       - app_net
-      
 
-  
+
+
   backend:
     build:
       context: ./backend
-    
-  
+
+
     env_file:
       - ./.env
     depends_on:
       timescaledb:
         condition: service_healthy
-      
+
     networks:
       - app_net
       - bd_net
-   
-  
+
+
   frontend:
     build:
       context: ./frontend
@@ -58,7 +58,7 @@ services:
       - ./.env
     networks:
       - app_net
-  
+
 
 volumes:
   timescaledb-data:
@@ -66,4 +66,3 @@ volumes:
 networks:
   app_net:
   bd_net:
-

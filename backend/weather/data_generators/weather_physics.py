@@ -8,7 +8,9 @@ import random
 import numpy as np
 
 
-def generate_temperature_profile(hour: int, base_temp: float, amplitude: float = 5.0) -> float:
+def generate_temperature_profile(
+    hour: int, base_temp: float, amplitude: float = 5.0
+) -> float:
     """
     Generate realistic diurnal temperature variation.
     Temperature is lowest at 6 AM, highest around 3 PM.
@@ -153,7 +155,9 @@ def generate_solar_radiation(hour: int, clouds: int) -> float | None:
     """
     if 6 <= hour <= 20:
         radiation = max(
-            0, 800 * np.sin((hour - 6) * np.pi / 14) * (1 - clouds / 10) + random.gauss(0, 50)
+            0,
+            800 * np.sin((hour - 6) * np.pi / 14) * (1 - clouds / 10)
+            + random.gauss(0, 50),
         )
         return round(float(radiation), 0) if radiation > 0 else None
     return None
