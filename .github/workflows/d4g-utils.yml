@@ -6,7 +6,7 @@ on:
       - 'd4g-utils/**' # Trigger the workflow only when changes are made in the d4g-utils directory
     branches:
       - main
-    
+
   # Allows you to run this workflow manually from the Actions tab
   workflow_dispatch:
 
@@ -31,7 +31,7 @@ jobs:
 
           # Fetch repositories from the organization
           repos=`gh repo list $ORG_NAME --limit 500 | awk ' {print $1}'`
-          
+
           echo "::set-output name=repos::$repos"
         env:
           GH_TOKEN: ${{ secrets.D4GTECH_TOKEN }}
@@ -49,20 +49,20 @@ jobs:
           done
         env:
           GH_TOKEN: ${{ secrets.D4GTECH_TOKEN }}
-  
-            
+
+
       #     for repo in ${{ steps.org_repos.outputs.repos }}; do
       #       # Clone the repository
       #       git clone "https://github.com/$repo" target_repo
-      
+
       #       # Copy all files from d4g-utils to target repository d4g-utlis
       #       rsync -av --exclude='.git' d4g-utils/ target_repo/d4g-utils
-      
+
       #       # Commit and push changes
       #       cd target_repo
       #       git add .
       #       git commit -m "Copy files from d4g-utils directory"
       #       git push origin main
-      
+
       #       cd ..
       #     done

@@ -1,25 +1,20 @@
 import type {
-  Station,
-  StationDetail,
-  StationFilters,
-  PaginatedResponse,
-} from '~/types/api'
+    PaginatedResponse,
+    Station,
+    StationDetail,
+    StationFilters,
+} from "~/types/api";
 
 export function useStations(filters?: MaybeRef<StationFilters>) {
-  const { useApiFetch } = useApiClient()
+    const { useApiFetch } = useApiClient();
 
-  return useApiFetch<PaginatedResponse<Station>>(
-    '/stations/',
-    {
-      query: filters,
-    },
-  )
+    return useApiFetch<PaginatedResponse<Station>>("/stations/", {
+        query: filters,
+    });
 }
 
 export function useStation(id: MaybeRef<number | string>) {
-  const { useApiFetch } = useApiClient()
+    const { useApiFetch } = useApiClient();
 
-  return useApiFetch<StationDetail>(
-    () => `/stations/${toValue(id)}/`,
-  )
+    return useApiFetch<StationDetail>(() => `/stations/${toValue(id)}/`);
 }

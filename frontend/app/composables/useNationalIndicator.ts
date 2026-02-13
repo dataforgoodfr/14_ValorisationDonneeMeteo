@@ -1,15 +1,17 @@
 import type {
-  NationalIndicatorParams,
-  NationalIndicatorResponse,
-} from '~/types/api'
+    NationalIndicatorParams,
+    NationalIndicatorResponse,
+} from "~/types/api";
 
-export function useNationalIndicator(params: MaybeRef<NationalIndicatorParams>) {
-  const { useApiFetch } = useApiClient()
+export function useNationalIndicator(
+    params: MaybeRef<NationalIndicatorParams>,
+) {
+    const { useApiFetch } = useApiClient();
 
-  return useApiFetch<NationalIndicatorResponse>(
-    '/temperature/national-indicator',
-    {
-      query: params,
-    },
-  )
+    return useApiFetch<NationalIndicatorResponse>(
+        "/temperature/national-indicator",
+        {
+            query: params,
+        },
+    );
 }

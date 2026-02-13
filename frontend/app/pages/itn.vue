@@ -18,11 +18,11 @@ import CombinedChart from "~/components/charts/CombinedChart.vue";
 </script>
 
 <template>
-  <UContainer>
-    <h1>Page Indicateur Thermique National</h1>
-    <CombinedChart />
-    <!-- TODO : Implement template below when API "useNationalIndicator" is ready-->
-    <!-- <div
+    <UContainer>
+        <h1>Page Indicateur Thermique National</h1>
+        <CombinedChart />
+        <!-- TODO : Implement template below when API "useNationalIndicator" is ready-->
+        <!-- <div
       v-if="status === 'pending'"
       class="flex items-center justify-center py-12"
     >
@@ -41,5 +41,5 @@ import CombinedChart from "~/components/charts/CombinedChart.vue";
       v-else-if="data?.time_series"
       :time-series="data.time_series"
     /> -->
-  </UContainer>
+    </UContainer>
 </template>

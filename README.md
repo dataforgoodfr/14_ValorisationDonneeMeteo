@@ -38,7 +38,7 @@ Pour que tout le monde adopte les mêmes pratiques, nous avons posé des princip
 
 ```bash
 git config --local pull.rebase merges
-git config --local rebase.autostash true 
+git config --local rebase.autostash true
 ```
 
 - `pull.rebase merges` applique vos commits locaux par-dessus le remote.
