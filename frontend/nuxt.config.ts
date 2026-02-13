@@ -2,7 +2,6 @@
 export default defineNuxtConfig({
     compatibilityDate: "2025-07-15",
     devtools: { enabled: true },
-
     modules: [
         "@nuxt/eslint",
         "@nuxt/test-utils",
@@ -14,6 +13,9 @@ export default defineNuxtConfig({
     css: ["~/assets/css/main.css"],
     ui: {
         colorMode: false,
+    },
+    fonts:{
+        provider: 'google'
     },
     app: {
         head: {
