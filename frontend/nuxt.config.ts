@@ -13,7 +13,7 @@ export default defineNuxtConfig({
   nitro: {
   preset: 'node-server'
 
-     },
+      },
 
   modules: ["@nuxt/test-utils", "@nuxt/ui", "@nuxt/image", '@nuxt/fonts'],
   css: ['~/assets/css/main.css'],
