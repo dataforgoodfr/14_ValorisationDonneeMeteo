@@ -13,29 +13,21 @@ export default defineNuxtConfig({
   nitro: {
   preset: 'node-server'
    },
-    modules: [
-        "@nuxt/eslint",
-        "@nuxt/test-utils",
-        "@nuxt/ui",
-        "@nuxt/image",
-        "@nuxt/fonts",
-        "nuxt-echarts",
-    ],
-    css: ["~/assets/css/main.css"],
-    ui: {
-        colorMode: false,
-    },
-    fonts:{
-        provider: 'google'
-    },
-    app: {
-        head: {
-            title: "InfoClimat - Dashboard",
-            htmlAttrs: {
-                lang: "fr",
-            },
-            link: [{ rel: "icon", type: "image/x-icon", href: "/favicon.ico" }],
-        },
+
+  modules: ["@nuxt/test-utils", "@nuxt/ui", "@nuxt/image", '@nuxt/fonts'],
+  css: ['~/assets/css/main.css'],
+  ui: {
+    colorMode: false
+  },
+  app: {
+    head: {
+      title: 'InfoClimat - Dashboard',
+      htmlAttrs: {
+        lang: 'fr',
+      },
+      link: [
+        { rel: 'icon', type: 'image/x-icon', href: '/favicon.ico' },
+      ],
     },
     echarts: {
         renderer: ["svg", "canvas"],
