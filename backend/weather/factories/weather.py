@@ -16,12 +16,11 @@ from weather.data_generators.weather_physics import (
     generate_humidity,
     generate_precipitation,
     generate_pressure,
-    generate_solar_radiation,
     generate_soil_temperatures,
+    generate_solar_radiation,
     generate_sunshine_hours,
     generate_temperature_profile,
     generate_visibility,
-    generate_wind,
 )
 from weather.models import HoraireTempsReel, Quotidienne, Station
 
@@ -34,14 +33,30 @@ class StationFactory(factory.django.DjangoModelFactory):
         django_get_or_create = ("code",)
 
     code = factory.Sequence(lambda n: STATIONS[n % len(STATIONS)][0])
-    nom = factory.LazyAttribute(lambda o: next(s[1] for s in STATIONS if s[0] == o.code))
-    lat = factory.LazyAttribute(lambda o: next(s[2] for s in STATIONS if s[0] == o.code))
-    lon = factory.LazyAttribute(lambda o: next(s[3] for s in STATIONS if s[0] == o.code))
-    alt = factory.LazyAttribute(lambda o: next(s[4] for s in STATIONS if s[0] == o.code))
-    departement = factory.LazyAttribute(lambda o: next(s[5] for s in STATIONS if s[0] == o.code))
-    type_poste = factory.LazyAttribute(lambda o: next(s[6] for s in STATIONS if s[0] == o.code))
-    poste_public = factory.LazyAttribute(lambda o: next(s[7] for s in STATIONS if s[0] == o.code))
-    poste_ouvert = factory.LazyAttribute(lambda o: next(s[8] for s in STATIONS if s[0] == o.code))
+    nom = factory.LazyAttribute(
+        lambda o: next(s[1] for s in STATIONS if s[0] == o.code)
+    )
+    lat = factory.LazyAttribute(
+        lambda o: next(s[2] for s in STATIONS if s[0] == o.code)
+    )
+    lon = factory.LazyAttribute(
+        lambda o: next(s[3] for s in STATIONS if s[0] == o.code)
+    )
+    alt = factory.LazyAttribute(
+        lambda o: next(s[4] for s in STATIONS if s[0] == o.code)
+    )
+    departement = factory.LazyAttribute(
+        lambda o: next(s[5] for s in STATIONS if s[0] == o.code)
+    )
+    type_poste = factory.LazyAttribute(
+        lambda o: next(s[6] for s in STATIONS if s[0] == o.code)
+    )
+    poste_public = factory.LazyAttribute(
+        lambda o: next(s[7] for s in STATIONS if s[0] == o.code)
+    )
+    poste_ouvert = factory.LazyAttribute(
+        lambda o: next(s[8] for s in STATIONS if s[0] == o.code)
+    )
     frequence = "horaire"
 
     @classmethod
@@ -71,7 +86,9 @@ class HoraireTempsReelFactory(factory.django.DjangoModelFactory):
         model = HoraireTempsReel
 
     station = factory.SubFactory(StationFactory)
-    validity_time = factory.LazyFunction(lambda: timezone.now().replace(minute=0, second=0, microsecond=0))
+    validity_time = factory.LazyFunction(
+        lambda: timezone.now().replace(minute=0, second=0, microsecond=0)
+    )
     reference_time = factory.LazyAttribute(lambda o: o.validity_time)
     insert_time = factory.LazyAttribute(lambda o: o.validity_time)
 
@@ -115,8 +132,12 @@ class HoraireTempsReelFactory(factory.django.DjangoModelFactory):
     # Other measurements
     vv = factory.LazyAttribute(lambda o: generate_visibility(o.rr1))
     n = factory.LazyAttribute(lambda o: generate_cloud_cover(o.rr1 > 0))
-    insolh = factory.LazyAttribute(lambda o: generate_sunshine_hours(o.validity_time.hour, o.n))
-    ray_glo01 = factory.LazyAttribute(lambda o: generate_solar_radiation(o.validity_time.hour, o.n))
+    insolh = factory.LazyAttribute(
+        lambda o: generate_sunshine_hours(o.validity_time.hour, o.n)
+    )
+    ray_glo01 = factory.LazyAttribute(
+        lambda o: generate_solar_radiation(o.validity_time.hour, o.n)
+    )
 
     # Pressure
     pres = factory.LazyAttribute(lambda o: generate_pressure(o.station.alt)[0])
@@ -154,7 +175,9 @@ class QuotidienneFactory(factory.django.DjangoModelFactory):
         model = Quotidienne
 
     station = factory.SubFactory(StationFactory)
-    date = factory.LazyFunction(lambda: timezone.now().date() - timedelta(days=random.randint(0, 30)))
+    date = factory.LazyFunction(
+        lambda: timezone.now().date() - timedelta(days=random.randint(0, 30))
+    )
 
     nom_usuel = factory.LazyAttribute(lambda o: o.station.nom)
     lat = factory.LazyAttribute(lambda o: o.station.lat)
@@ -178,7 +201,9 @@ class QuotidienneFactory(factory.django.DjangoModelFactory):
     qhtx = 1
 
     # Rainfall
-    rr = factory.LazyFunction(lambda: round(random.uniform(0, 10), 1) if random.random() < 0.3 else 0)
+    rr = factory.LazyFunction(
+        lambda: round(random.uniform(0, 10), 1) if random.random() < 0.3 else 0
+    )
     qrr = 1
 
     # Wind
@@ -188,5 +213,7 @@ class QuotidienneFactory(factory.django.DjangoModelFactory):
     qfxy = 1
     dxy = factory.LazyFunction(lambda: random.randint(0, 360))
     qdxy = 1
-    hxy = factory.LazyFunction(lambda: f"{random.randint(0, 23):02d}{random.randint(0, 5) * 10:02d}")
+    hxy = factory.LazyFunction(
+        lambda: f"{random.randint(0, 23):02d}{random.randint(0, 5) * 10:02d}"
+    )
     qhxy = 1

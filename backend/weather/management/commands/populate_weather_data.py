@@ -15,7 +15,6 @@ from django.utils import timezone
 from weather.data_generators.constants import (
     DEFAULT_BATCH_SIZE,
     DEFAULT_DAYS,
-    NUMPY_SEED,
     RANDOM_SEED,
     STATIONS,
 )

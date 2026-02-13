@@ -5,13 +5,13 @@ import { fr } from "@nuxt/ui/locale";
 </script>
 
 <template>
-  <UApp :locale="fr" class="min-h-screen flex flex-col">
-    <AppHeader />
+    <UApp :locale="fr" class="min-h-screen flex flex-col">
+        <AppHeader />
 
-    <UMain class="flex-1">
-      <NuxtPage />
-    </UMain>
+        <UMain class="flex-1">
+            <NuxtPage />
+        </UMain>
 
-    <AppFooter />
-  </UApp>
+        <AppFooter />
+    </UApp>
 </template>
