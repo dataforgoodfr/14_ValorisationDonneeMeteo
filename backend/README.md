@@ -122,8 +122,9 @@ curl http://localhost:8000/api/v1/horaire/latest/
 
 ### Pre-commit hooks
 
+*L'installation des hooks est décrite dans le [README.md](../README.md) à la racine*
+
 ```bash
-uv run pre-commit install
 uv run pre-commit run --all-files
 ```
 
