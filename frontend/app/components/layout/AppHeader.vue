@@ -6,7 +6,7 @@ const route = useRoute();
 const items = computed<NavigationMenuItem[]>(() => [
     {
         label: "Températures",
-        icon: "material-symbols:thermostat",
+        // icon: "material-symbols:thermostat",
         children: [
             {
                 label: "Ecart à la normale",
@@ -43,7 +43,7 @@ const items = computed<NavigationMenuItem[]>(() => [
     {
         disabled: true,
         label: "Pluviométrie",
-        icon: "material-symbols:rainy-outline",
+        // icon: "material-symbols:rainy-outline",
         children: [
             {
                 //To be filled
@@ -57,22 +57,35 @@ const items = computed<NavigationMenuItem[]>(() => [
 </script>
 
 <template>
-    <UHeader mode="slideover">
+    <UHeader
+        mode="slideover"
+        title="InfoClimat"
+        :ui="{ left: 'lg:flex-initial', title: 'lg:flex-initial' }"
+    >
         <template #title>
-            <h1>Infoclimat Dashboard</h1>
+            <div class="flex gap-2 mr-12">
+                <UIcon name="i-lucide-hexagon" class="size-7" />
+                <h1 class="font-title font-normal">Infoclimat</h1>
+            </div>
         </template>
-
-        <UNavigationMenu
-            content-orientation="vertical"
-            :items="items"
-            :ui="{ content: 'sm:w-80' }"
-        />
+        <template #default>
+            <UNavigationMenu
+                content-orientation="vertical"
+                :items="items"
+                :ui="{
+                    content: 'sm:w-80',
+                    link: 'border border-default rounded-md text-black',
+                    list: 'gap-2',
+                }"
+            />
+        </template>
 
         <template #right>
             <UTooltip text="Accedez au site InfoClimat">
                 <UButton
                     color="neutral"
                     variant="outline"
+                    icon="i-lucide-cloud-sun-rain"
                     label="Tout InfoClimat"
                     to="https://www.infoclimat.fr/"
                     target="_blank"
