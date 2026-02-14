@@ -6,6 +6,7 @@
 import { INIT_OPTIONS_KEY } from "vue-echarts";
 import type { TopLevelFormatterParams } from "echarts/types/dist/shared.js";
 import { GetChartData, TimeAxisType } from "~~/public/ChartDataProvider";
+import 'echarts/lib/component/toolbox';
 
 // provide init-options
 const renderer = ref<"svg" | "canvas">("svg");
@@ -28,6 +29,10 @@ function ShortDate(date: Date) {
         date.getMonth() + 1,
         date.getFullYear(),
     ].join("/");
+}
+
+function FileName(){
+    return 'YYYYMMDD_HHMMSS_IndicateurThermiqueNational_XUnit_DT'
 }
 const option = ref<ECOption>({
     dataset: {
@@ -167,5 +172,19 @@ const option = ref<ECOption>({
             showSymbol: false,
         },
     ],
+    toolbox: {
+        show: true,
+        feature: {
+        saveAsImage: {
+            show: true, // Enable export to image functionality
+            title: 'Export en png', // Customize the tooltip title
+            name: FileName(),
+            backgroundColor: 'transparent',
+            pixelRatio: 2
+        }
+        },
+        right: '30px',
+        top: '10px'
+    },
 });
 </script>
