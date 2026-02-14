@@ -5,7 +5,7 @@
 <script setup lang="ts">
 
 import type { TopLevelFormatterParams } from "echarts/types/dist/shared.js";
-import {  type ChartDataPoint, type ChartDataSerie } from "~~/public/ChartDataProvider";
+import { type ChartDataPoint, type ChartDataSerie } from "~~/public/ChartDataProvider";
 
 
 // provide init-options
@@ -45,9 +45,9 @@ function ShortDate(date: Date) {
     }
 }
 
-function YAxisFormater  (val: number) {
-                return `${val +base} °C`;
-            }
+function YAxisFormater(val: number) {
+    return `${val + base} °C`;
+}
 
 const option = ref<ECOption>({
 
@@ -117,7 +117,7 @@ const option = ref<ECOption>({
                 color: "#130707",
             },
             showSymbol: false,
-           
+
         },
         {
             name: "SerieDelta",
@@ -206,7 +206,7 @@ onMounted(async () => {
     })
 
     option.value.dataset.source = DataSetSource
-    option.value.yAxis.min= 0
+    option.value.yAxis.min = 0
 
 })
 

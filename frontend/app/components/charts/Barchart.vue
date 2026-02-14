@@ -34,7 +34,7 @@ let NegDelta = SourceDataSet?.map((item) => {
 
 const option = ref<ECOption>({
     dataset: {
-        source: [PosDelta,NegDelta]
+        source: [PosDelta, NegDelta]
     },
     xAxis: [
         {
@@ -84,15 +84,15 @@ const option = ref<ECOption>({
 onMounted(async () => {
     const resp = await fetch("MockedUpData.json")
     SourceDataSet = await resp.json() as ChartDataSerie
-    
-     PosDelta = SourceDataSet.map((item) => {
+
+    PosDelta = SourceDataSet.map((item) => {
         if (item.Delta >= 0) {
             return item.Delta;
         } else {
             return "-";
         }
     });
-     NegDelta = SourceDataSet.map((item) => {
+    NegDelta = SourceDataSet.map((item) => {
         if (item.Delta < 0) {
             return item.Delta;
         } else {
@@ -100,10 +100,11 @@ onMounted(async () => {
         }
     });
 
-    option.value.xAxis.data=SourceDataSet.map((item) => {
+    option.value.xAxis.data = SourceDataSet.map((item) => {
         const itemdate = new Date(Date.parse(item.date))
-                return `${itemdate.getDate()}/${itemdate.getMonth() + 1}`})
-    option.value.series[0].data=PosDelta
-    option.value.series[1].data=NegDelta
+        return `${itemdate.getDate()}/${itemdate.getMonth() + 1}`
+    })
+    option.value.series[0].data = PosDelta
+    option.value.series[1].data = NegDelta
 })
 </script>

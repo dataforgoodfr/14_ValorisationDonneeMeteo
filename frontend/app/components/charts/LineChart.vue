@@ -5,7 +5,7 @@
 
 <script setup lang="ts">
 import { provide } from "vue";
-import {  type ChartDataSerie } from "~~/public/ChartDataProvider";
+import { type ChartDataSerie } from "~~/public/ChartDataProvider";
 
 // provide init-options
 const renderer = ref<"svg" | "canvas">("svg");
@@ -15,7 +15,7 @@ const initOptions = computed(() => ({
 }));
 provide(INIT_OPTIONS_KEY, initOptions);
 
-let SourceDataSet:ChartDataSerie=[]
+let SourceDataSet: ChartDataSerie = []
 
 const option = ref<ECOption>({
     dataset: {
@@ -29,9 +29,10 @@ const option = ref<ECOption>({
     series: [{ type: "line", showSymbol: false }],
 });
 
-    onMounted(  async ()=> {
-        const resp = await fetch ("MockedUpData.json")
-        SourceDataSet = await resp.json()
-        
-        option.value.dataset.source = SourceDataSet})
+onMounted(async () => {
+    const resp = await fetch("MockedUpData.json")
+    SourceDataSet = await resp.json()
+
+    option.value.dataset.source = SourceDataSet
+})
 </script>
