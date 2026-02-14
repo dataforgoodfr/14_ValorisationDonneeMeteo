@@ -229,7 +229,7 @@ def calculate_return_itn() -> np.array:
         "86027001",
     )
 
-    stations, temp_hourly, temp_daily = read_temperatures(stations_itn)
+    stations, temp_daily = read_temperatures(stations_itn)
 
     daily_records_by_station = separate_by_station(
         temp_daily,
