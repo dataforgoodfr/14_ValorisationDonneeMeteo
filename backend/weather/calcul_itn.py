@@ -72,7 +72,8 @@ def read_temperatures(
     stations = sql2pandas(sql_request)
 
     sql_request = f"""SELECT
-                        w.station_id,s.nom,
+                        w.station_id,
+                        s.nom,
                         w.validity_time as dh_utc,
                         w.t as temperature,
                         w.tx as temp_max,
@@ -89,7 +90,7 @@ def read_temperatures(
 
     sql_request = f"""SELECT
                         w.station_id,
-                        w.nom_usuel,
+                        w.nom_usuel as nom,
                         w.date, w.tx as temp_max,
                         w.tn as temp_min,
                         w.tntxm as tntxm
@@ -167,13 +168,12 @@ def correct_temperatures_Reims(df: pd.DataFrame) -> pd.DataFrame:
 
     # Reims-Prunay: keep only the data after Reims-Courcy was decommissioned
     corrected_df = df.copy()
-    corrected_df = corrected_df.loc[
-        pd.notnull(corrected_df["Reims-Courcy"]), "Reims-Prunay"
-    ] = float("nan")
-
-    # Correction based on the difference in the mean TNTXM between
-    # the two stations during the two years of overlap
-    corrected_df["Reims-Prunay"] = corrected_df["Reims-Prunay"] + 0.29
+    indexes = corrected_df.columns
+    for index in indexes:
+        if "Reims-Courcy" in index:
+            corrected_df.loc["2012-05-08":, index] = float("nan")
+        elif "Reims-Prunay" in index:
+            corrected_df.loc[:"2012-05-07", index] = float("nan")
 
     return corrected_df
 
@@ -336,7 +336,7 @@ def calculate_return_itn() -> np.array:
         freq="D",
     )
 
-    if ("Reims-Courcy" in stations["nom"]) & ("Reims-Prunay" in stations["nom"]):
+    if ("Reims-Courcy" in stations["nom"]) and ("Reims-Prunay" in stations["nom"]):
         #        hourly_temp_per_station_corr = correct_temperatures_Reims(
         #            hourly_temp_per_station
         #        )
