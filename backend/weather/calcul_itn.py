@@ -1,6 +1,5 @@
 import os
 from collections.abc import Iterable
-from datetime import timedelta
 
 import numpy as np
 import pandas as pd
@@ -41,7 +40,7 @@ def sql2pandas(sql_request: str) -> pd.DataFrame:
 # --------------------------------------------------------------------
 def read_temperatures(
     stations_itn: Iterable = [],
-) -> tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame]:
+) -> tuple[pd.DataFrame, pd.DataFrame]:
     """
     Read the csv file containing the data into a pandas DataFrame. The times
     are converted into datetime object.
@@ -73,23 +72,6 @@ def read_temperatures(
 
     sql_request = f"""SELECT
                         w.station_id,
-                        s.nom,
-                        w.validity_time as dh_utc,
-                        w.t as temperature,
-                        w.tx as temp_max,
-                        w.tn as temp_min
-                     FROM
-                        weather_horairetempsreel as w
-                        JOIN weather_station as s
-                           ON s.id = w.station_id
-                     WHERE
-                        station_id in {tuple(stations["id"])}
-                 """
-    temp_hourly = sql2pandas(sql_request)
-    temp_hourly["dh_utc"] = pd.to_datetime(temp_hourly["dh_utc"])
-
-    sql_request = f"""SELECT
-                        w.station_id,
                         w.nom_usuel as nom,
                         w.date, w.tx as temp_max,
                         w.tn as temp_min,
@@ -102,7 +84,7 @@ def read_temperatures(
     temp_daily = sql2pandas(sql_request)
     temp_daily["date"] = pd.to_datetime(temp_daily["date"])
 
-    return stations, temp_hourly, temp_daily
+    return stations, temp_daily
 
 
 # --------------------------------------------------------------------
@@ -179,82 +161,6 @@ def correct_temperatures_Reims(df: pd.DataFrame) -> pd.DataFrame:
 
 
 # --------------------------------------------------------------------
-def calculate_min_temperature(df: pd.DataFrame) -> pd.DataFrame:
-    """
-    Derive the daily minimale temperature from 18h (J-1) to 18h (J) UTC
-
-    Parameters
-    ----------
-    pandas.core.frame.DataFrame
-          temperature records, with one column per station
-
-    Returns
-    -------
-    pandas.core.frame.DataFrame
-          derived minimum temperature for each station
-    """
-    # initiate
-    temp_min = df.resample("D").max()
-
-    for day in temp_min.index:
-        row = temp_min.loc[temp_min.index == day]
-
-        init = day + timedelta(days=-1, hours=18)
-        final = day + timedelta(hours=18)
-        init_str, final_str = init.isoformat(), final.isoformat()
-
-        records = df[init_str:final_str]
-        # return NaN if less than 24h of data
-        if len(records.index) < 25:
-            temp_min.loc[temp_min.index == day] = row * float("nan")
-            continue
-
-        for col in records.columns:
-            row[col] = records[col].min()
-        temp_min.loc[temp_min.index == day] = row
-
-    return temp_min
-
-
-# --------------------------------------------------------------------
-def calculate_max_temperature(df: pd.DataFrame) -> pd.DataFrame:
-    """
-    Derive the daily maximale temperature from 6h (J) to 6h (J+1) UTC
-
-    Parameters
-    ----------
-    pandas.core.frame.DataFrame
-          temperature records, with one column per station
-
-    Returns
-    -------
-    pandas.core.frame.DataFrame
-          derived maximale temperature for each station
-    """
-    # initiate
-    temp_max = df.resample("D").min()
-
-    for day in temp_max.index:
-        row = temp_max.loc[temp_max.index == day]
-
-        init = day + timedelta(hours=6)
-        final = day + timedelta(days=1, hours=6)
-        init_str, final_str = init.isoformat(), final.isoformat()
-
-        records = df[init_str:final_str]
-        # return NaN if less than 24h of data
-        if len(records.index) < 25:
-            temp_max.loc[temp_max.index == day] = row * float("nan")
-            continue
-
-        for col in records.columns:
-            row[col] = records[col].max()
-        temp_max.loc[temp_max.index == day] = row
-
-    return temp_max
-
-
-# --------------------------------------------------------------------
 def itn_calculation(df: pd.DataFrame) -> pd.DataFrame:
     """
     Extract only the temperature records and create on column for each station.
@@ -325,9 +231,6 @@ def calculate_return_itn() -> np.array:
 
     stations, temp_hourly, temp_daily = read_temperatures(stations_itn)
 
-    #    hourly_temp_per_station = separate_by_station(
-    #        temp_hourly, index="dh_utc", columns="nom", values="temperature", freq="h"
-    #    )
     daily_records_by_station = separate_by_station(
         temp_daily,
         index="date",
@@ -337,9 +240,6 @@ def calculate_return_itn() -> np.array:
     )
 
     if ("Reims-Courcy" in stations["nom"]) and ("Reims-Prunay" in stations["nom"]):
-        #        hourly_temp_per_station_corr = correct_temperatures_Reims(
-        #            hourly_temp_per_station
-        #        )
         daily_records_by_station_corr = correct_temperatures_Reims(
             daily_records_by_station
         )
