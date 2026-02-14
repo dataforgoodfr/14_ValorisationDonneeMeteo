@@ -24,7 +24,7 @@ const value = ref("Bar Chart");
             :title="heroData.title"
             :description="heroData.description"
         />
-        <USelect v-model="value" :items="items" />
+        <USelectMenu v-model="value" :items="items" />
         <Barchart v-if="value === `Bar Chart`" />
         <LineChart v-if="value === `Line Chart`" />
     </UContainer>
