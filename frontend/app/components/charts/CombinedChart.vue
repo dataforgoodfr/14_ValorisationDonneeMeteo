@@ -3,8 +3,10 @@
 </template>
 
 <script setup lang="ts">
+
 import type { TopLevelFormatterParams } from "echarts/types/dist/shared.js";
-import { GetChartData, TimeAxisType } from "~~/public/ChartDataProvider";
+import {  type ChartDataPoint, type ChartDataSerie } from "~~/public/ChartDataProvider";
+
 
 // provide init-options
 const renderer = ref<"svg" | "canvas">("svg");
@@ -12,25 +14,45 @@ const initOptions = computed(() => ({
     height: 600,
     renderer: renderer.value,
 }));
-provide(INIT_OPTIONS_KEY, initOptions);
 
-const source = GetChartData(TimeAxisType.Day);
-// Compute base to stack
-const base = -source.reduce(function (min: number, val: unknown) {
-    return Math.floor(Math.min(min, val.Min));
-}, Infinity);
+interface ITNChartDataType extends ChartDataPoint {
+    SerieITN: number,
+    SerieDelta: number,
+    SerieMinStdSDev: number,
+    SerieMaxStdDev: number,
+    SerieMin: number,
+    SerieMax: number,
+
+}
+
+provide(INIT_OPTIONS_KEY, initOptions);
+let source: ChartDataSerie = []
+let base = 0
+
+const YAxisId = "MainY"
 
 function ShortDate(date: Date) {
-    return [
-        date.getMonth() + 1,
-        date.getDate(),
-        date.getMonth() + 1,
-        date.getFullYear(),
-    ].join("/");
+    if (date?.getMonth) {
+        return [
+            date.getMonth() + 1,
+            date.getDate(),
+            date.getMonth() + 1,
+            date.getFullYear(),
+        ].join("/");
+    }
+    else {
+        return date
+    }
 }
+
+function YAxisFormater  (val: number) {
+                return `${val +base} °C`;
+            }
+
 const option = ref<ECOption>({
+
     dataset: {
-        dimensions: ["date", "ITN", "StdDev"],
+        dimensions: ["date", "ITN", "Delta", "StdDev", "Min", "Max", "SerieITN"],
         source: source,
     },
     tooltip: {
@@ -53,30 +75,26 @@ const option = ref<ECOption>({
             if (!first) return "";
             const item = source[first.dataIndex];
             if (!item) return "";
-            return `${ShortDate(item.date)}<br />${item.ITN.toFixed(2)}°C`;
+            return `${ShortDate(item.date)}<br />ITN : ${item.ITN.toFixed(2)}°C`;
         },
     },
     xAxis: [
         {
             type: "category",
-            data: source.map(function (item) {
-                return item.date;
-            }),
             axisLabel: {
-                formatter: function (value: string) {
-                    const date = new Date(value);
-                    return ShortDate(date);
-                },
+                // formatter: function (value: string) {
+                //     const date = new Date(value);
+                //     return ShortDate(date);
+                // },
             },
             boundaryGap: false,
         },
     ],
     yAxis: {
         axisLabel: {
-            formatter: function (val: number) {
-                return `${val - base} °C`;
-            },
+            formatter: YAxisFormater,
         },
+        id: YAxisId,
         axisPointer: {
             label: {
                 formatter: function (params) {
@@ -88,47 +106,46 @@ const option = ref<ECOption>({
     },
     series: [
         {
-            name: "ITN",
+            name: "SerieITN",
             type: "line",
-            data: source.map(function (item) {
-                return base + item.ITN;
-            }),
+            // data: source.map(function (item) {
+            //     return base + item.ITN;
+            // }),
+            dimensions: ['date', 'SerieITN'],
+            seriesLayoutBy: 'column',
             lineStyle: {
                 color: "#130707",
             },
             showSymbol: false,
+           
         },
         {
-            name: "Delta",
+            name: "SerieDelta",
             type: "line",
-            data: source.map(function (item) {
-                return base + item.ITN + item.Delta;
-            }),
+            dimensions: ['date', 'SerieDelta'],
             lineStyle: {
                 color: "#2d3ed3",
                 width: 0.75,
             },
             showSymbol: false,
+            yAxisId: YAxisId
         },
         {
-            name: "Min",
+            name: "SerieMin",
             type: "line",
-            data: source.map(function (item) {
-                return base + item.Min;
-            }),
+            dimensions: ['date', 'SerieMin'],
             stack: "MinMax",
             lineStyle: {
                 opacity: 0,
             },
             showSymbol: false,
+            yAxisId: YAxisId
         },
         {
-            name: "Max",
+            name: "SerieMax",
             type: "line",
-            data: source.map(function (item) {
-                return item.Max - item.Min;
-            }),
             stack: "MinMax",
+            dimensions: ['date', 'SerieMax'],
             lineStyle: {
                 opacity: 0,
             },
@@ -136,26 +153,24 @@ const option = ref<ECOption>({
                 color: "#777777",
             },
             showSymbol: false,
+            yAxisId: YAxisId
         },
         {
             name: "Ldev",
             type: "line",
-            data: source.map(function (item) {
-                return base + item.ITN - item.StdDev;
-            }),
+            dimensions: ['date', 'SerieMinStdDev'],
             stack: "bands",
             lineStyle: {
                 opacity: 0,
             },
             showSymbol: false,
+            yAxisId: YAxisId
         },
 
         {
             name: "UDev",
             type: "line",
-            data: source.map(function (item) {
-                return 2 * item.StdDev;
-            }),
+            dimensions: ['date', 'SerieMaxStdDev'],
             stack: "bands",
             lineStyle: {
                 opacity: 0,
@@ -164,7 +179,36 @@ const option = ref<ECOption>({
                 color: "#cccccc",
             },
             showSymbol: false,
+            yAxisId: YAxisId
         },
     ],
 });
+
+onMounted(async () => {
+    const resp = await fetch("MockedUpData.json")
+    source = await resp.json() as ITNChartDataType
+    base = source.reduce(function (min: number, val: ChartDataPoint) {
+        return Math.floor(Math.min(min, val.Min));
+    }, Infinity);
+
+    const DataSetSource = source.map((item) => {
+        const ItemDate = new Date(Date.parse(item.date))
+        return {
+            ...item,
+            date: ItemDate,
+            SerieITN: -base + item.ITN,
+            SerieDelta: item.ITN + item.Delta - base,
+            SerieMinStdDev: item.ITN - item.StdDev - base,
+            SerieMaxStdDev: 2 * item.StdDev,
+            SerieMin: -base + item.Min,
+            SerieMax: item.Max - item.Min,
+        }
+    })
+
+    option.value.dataset.source = DataSetSource
+    option.value.yAxis.min= 0
+
+})
+
+
 </script>
