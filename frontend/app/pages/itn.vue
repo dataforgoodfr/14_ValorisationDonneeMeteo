@@ -5,6 +5,13 @@
 
 <script setup lang="ts">
 import CombinedChart from "~/components/charts/CombinedChart.vue";
+import PagesHero from "~/components/layout/PagesHero.vue";
+
+const heroData = {
+    title: "ITN",
+    description:
+        "L'Indicateur Thermique National est la température moyenne mesurée à l'échelle du pays (moyenne des températures minimales et maximales sur 30 stations météorologiques réparties de manière équilibrée en France).",
+};
 
 // TODO : replace 'granularity' with dropdown; V0 is : 'Month' only, 'Day' and 'Year' disabled
 // const params = ref({
@@ -19,7 +26,10 @@ import CombinedChart from "~/components/charts/CombinedChart.vue";
 
 <template>
     <UContainer>
-        <h1>Page Indicateur Thermique National</h1>
+        <PagesHero
+            :title="heroData.title"
+            :description="heroData.description"
+        />
         <CombinedChart />
         <!-- TODO : Implement template below when API "useNationalIndicator" is ready-->
         <!-- <div
