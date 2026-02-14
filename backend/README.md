@@ -124,9 +124,17 @@ curl http://localhost:8000/api/v1/horaire/latest/
 
 *L'installation des hooks est décrite dans le [README.md](../README.md) à la racine*
 
+Pour exécuter les hooks backend uniquement :
+
 ```bash
-uv run pre-commit run --all-files
+# Avec uv (recommandé)
+uv run pre-commit run --all-files --config=.pre-commit-config.yaml
+
+# Ou avec le virtualenv
+.venv/bin/python -m pre_commit run --all-files --config=.pre-commit-config.yaml
 ```
+
+**Note** : Assurez-vous que le virtualenv est activé ou utilisez le chemin complet comme montré ci-dessus.
 
 ### Tests
 

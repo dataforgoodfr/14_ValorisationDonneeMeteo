@@ -20,21 +20,37 @@ L'application est accessible sur `http://localhost:3000`
 
 #### Installation
 
-Pour installer pre-commit dans votre environnement virtuel à la racine du projet :
-
-```bash
-npm install --save-dev pre-commit
-```
+Les dépendances nécessaires sont installées automatiquement avec `npm install`.
 
 #### Utilisation
 
-Pour lancer les vérifications pre-commit depuis la racine du projet, utilisez la commande suivante :
+Pour exécuter les hooks frontend uniquement depuis la racine du projet :
 
 ```bash
-npx pre-commit run --all-files
+# Méthode 1: Utiliser npm run check (recommandé)
+cd frontend
+npm run check
+
+# Méthode 2: Exécuter manuellement les commandes
+cd frontend
+npm install --legacy-peer-deps
+npx eslint --ext .js,.ts,.vue . --fix
+npx prettier --write "**/*.{js,ts,vue,css,json,html}"
+npx eslint --ext .js,.ts,.vue .
 ```
 
-Cela exécutera tous les hooks de pré-commit configurés pour le projet.
+**Note** : Les commandes utilisent `npx` pour exécuter les outils installés localement dans `node_modules`.
+
+#### Résolution des problèmes
+
+Si vous obtenez "eslint: command not found" :
+
+```bash
+cd frontend
+npm install --legacy-peer-deps
+```
+
+Cela installera toutes les dépendances nécessaires dans `node_modules`.
 
 ### Production
 
