@@ -23,3 +23,6 @@ Thumbs.db
 
 # Claude
 .claude
+
+#Mock up data
+frontend/public/MockedUpData.json
