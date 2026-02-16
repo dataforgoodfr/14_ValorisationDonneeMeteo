@@ -1,0 +1,37 @@
+---
+- name: Install Docker
+  hosts: test
+  become: true
+  tasks:
+
+    - name: Mettre à jour la liste des paquets
+      ansible.builtin.apt:
+        update_cache: yes
+
+    - name: Installer les dépendances
+      ansible.builtin.apt:
+        name:
+          - apt-transport-https
+          - ca-certificates
+          - curl
+          - software-properties-common
+        state: present
+
+    - name: Ajouter la clé GPG officielle de Docker
+      ansible.builtin.apt_key:
+        url: https://download.docker.com/linux/ubuntu/gpg
+        state: present
+
+    - name: Ajouter le dépôt APT Docker
+      ansible.builtin.apt_repository:
+        repo: deb [arch=amd64] https://download.docker.com/linux/ubuntu focal stable
+
+    - name: Installer Docker
+      ansible.builtin.apt:
+        name: docker-ce
+        state: present
+
+    - name: S'assurer que Docker est démarré
+      ansible.builtin.service:
+        name: docker
+        state: started

@@ -1,0 +1,39 @@
+---
+- name: Access GHCR
+  hosts: test
+  become: yes
+  tasks:
+    - name: Create a directory if it does not exist
+      ansible.builtin.file:
+        path: /opt/valorisationdonneemeteo
+        state: directory
+        mode: '0755'
+
+    - name: Copying .env file
+      copy:
+        src: ../../../.env
+        dest: /opt/valorisationdonneemeteo
+        mode: 0755
+      tags: [copy-env]
+
+    - name: Copying compose file
+      copy:
+        src: ../../../docker-compose.yml
+        dest: /opt/valorisationdonneemeteo
+        mode: 0755
+      tags: [copy-env]
+
+    - name: Ensure rsync is installed on the remote host
+      ansible.builtin.package:
+        name: rsync
+        state: present
+
+    - name: Copy DB dump
+      ansible.posix.synchronize:
+        src: ../../../db_data
+        dest: /opt/valorisationdonneemeteo
+
+    - name: Copy nginx conf
+      ansible.posix.synchronize:
+        src: ../../../nginx
+        dest: /opt/valorisationdonneemeteo
