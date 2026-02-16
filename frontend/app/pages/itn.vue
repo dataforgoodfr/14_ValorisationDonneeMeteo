@@ -4,6 +4,7 @@
 -->
 
 <script setup lang="ts">
+import type { container } from "#build/ui";
 import CombinedChart from "~/components/charts/CombinedChart.vue";
 import PagesHero from "~/components/layout/PagesHero.vue";
 import SelectBar from "~/components/ui/itn/selectBar.vue";
@@ -19,12 +20,14 @@ const heroData = {
 </script>
 
 <template>
-    <UContainer>
+    <UContainer class="flex flex-col gap-y-16">
         <PagesHero
             :title="heroData.title"
             :description="heroData.description"
         />
-        <SelectBar />
-        <CombinedChart />
+        <div>
+            <SelectBar />
+            <CombinedChart />
+        </div>
     </UContainer>
 </template>
