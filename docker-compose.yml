@@ -9,7 +9,7 @@ services:
 
     volumes:
       - timescaledb-data:/var/lib/postgresql/data
-      - ./timescaledb-env/meteodb_dump.sql:/docker-entrypoint-initdb.d/dump.sql:ro
+      - ./db_data/meteodb_dump.sql:/docker-entrypoint-initdb.d/dump.sql:ro
     networks:
       - bd_net
 
@@ -36,8 +36,7 @@ services:
 
 
   backend:
-    build:
-      context: ./backend
+    image: ghcr.io/dataforgoodfr/14_valorisationdonneemeteo-backend:latest
 
 
     env_file:
@@ -52,8 +51,7 @@ services:
 
 
   frontend:
-    build:
-      context: ./frontend
+    image: ghcr.io/dataforgoodfr/14_valorisationdonneemeteo-frontend:latest
     env_file:
       - ./.env
     networks:

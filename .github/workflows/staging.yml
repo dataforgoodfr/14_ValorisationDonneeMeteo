@@ -1,8 +1,8 @@
 name: Build and Push Images
 
 on:
-  push:
-    branches: [feat/ajout-backend-docker-image]
+  # push:
+  #   branches: [feat/ajout-backend-docker-image]
   workflow_dispatch:
 
 env:
@@ -17,6 +17,18 @@ jobs:
       packages: write
 
     steps:
+
+
+      - name: Get latest tag
+        id: get_tag
+        run: |
+          git fetch --tags --force
+          TAG=$(git tag --sort=-creatordate | head -n1)
+          echo "IMAGE_TAG=$TAG" >> $GITHUB_ENV
+
+      - name: print  tag
+        run: echo " Current tag   $IMAGE_TAG"
+
       - name: checkout repository
         uses: actions/checkout@v4
 
@@ -36,11 +48,55 @@ jobs:
         with:
           context: ./backend
           push : true
-          tags: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-backend:latest
+          tags: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-backend:${{ env.IMAGE_TAG }}
 
       - name: Build and Push Frontend
         uses: docker/build-push-action@v5
         with:
           context: ./frontend
           push: true
-          tags: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-frontend:latest
+          tags: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-frontend:${{ env.IMAGE_TAG }}
+
+
+      - name: Change backend name image in the compose file
+        run: |
+          sed -i "s|image: $REGISTRY/$IMAGE_NAME-backend.*|image: $REGISTRY/$IMAGE_NAME-backend:$IMAGE_TAG|" compose.test.yml
+
+      - name: Change frontend name image in the compose file
+        run: |
+          sed -i "s|image: $REGISTRY/$IMAGE_NAME-frontend.*|image: $REGISTRY/$IMAGE_NAME-frontend:$IMAGE_TAG|" compose.test.yml
+
+
+
+      - name: Setup SSH
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_ed25519
+          chmod 600 ~/.ssh/id_ed25519
+          ssh-keyscan -H ${{ secrets.TEST_HOST }} >> ~/.ssh/known_hosts
+
+
+      # - name: Create .env file
+      #   run: |
+      #     cat > .env <<EOF
+      #     DEBUG=False
+      #     SECRET_KEY=${{ secrets.SECRET_KEY_TEST}}
+      #     ALLOWED_HOSTS=${{ secrets.ALLOWED_HOSTS_TEST }}
+      #     DB_NAME=${{ secrets.DB_NAME_TEST }}
+      #     DB_USER=${{ secrets.DB_USER_TEST }}
+      #     DB_PASSWORD=${{ secrets.DB_PASSWORD_TEST }}
+      #     DB_HOST=${{ secrets.DB_HOST_TEST }}
+      #     DB_PORT=${{ secrets.DB_PORT_TEST }}
+      #     CORS_ALLOWED_ORIGINS=${{ secrets.CORS_ALLOWED_ORIGINS_TEST }}
+      #     NUXT_PUBLIC_API_BASE=${{ secrets.NUXT_PUBLIC_API_BASE_TEST }}
+      #     EOF
+
+
+
+      - name: Clean up & Deploy
+        run: |
+          ssh ${{ secrets.TEST_USER }}@${{ secrets.TEST_HOST }} << 'EOF'
+            sudo docker compose -f compose.test.yml down --remove-orphans
+            sudo docker compose -f compose.test.yml pull
+            sudo docker compose -f compose.test.yml up -d
+          EOF
