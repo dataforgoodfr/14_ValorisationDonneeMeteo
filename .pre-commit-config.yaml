@@ -7,7 +7,7 @@ repos:
         language: system
         pass_filenames: false
         always_run: true
-        stages: [ pre-commit, pre-push, manual ]
+        stages: [ commit, push, manual ]
         verbose: true
   - repo: local
     hooks:
@@ -17,7 +17,7 @@ repos:
         language: system
         pass_filenames: false
         always_run: true
-        stages: [ pre-commit, pre-push, manual ]
+        stages: [ commit, push, manual ]
         verbose: true
   - repo: https://github.com/pre-commit/pre-commit-hooks
     rev: v4.6.0

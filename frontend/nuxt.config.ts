@@ -3,9 +3,14 @@ export default defineNuxtConfig({
     ssr: true, //false : use client-side only rendering to generate .output/public/index.html
     compatibilityDate: "2025-07-15",
     runtimeConfig: {
-    
-    public: {
-      apiBase: "", // api url will be injected when the container is launched with an env variable
+        public: {
+            apiBase: "", // api url will be injected when the container is launched with an env variable
+        },
+    },
+    devtools: { enabled: false }, // false for production
+    // couche de compilation runtime genere un index static pour  nginx
+    nitro: {
+        preset: "node-server",
     },
   },
   devtools: { enabled: false }, // false for production
