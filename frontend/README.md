@@ -30,13 +30,6 @@ Pour exécuter les hooks frontend uniquement depuis la racine du projet :
 # Méthode 1: Utiliser npm run check (recommandé)
 cd frontend
 npm run check
-
-# Méthode 2: Exécuter manuellement les commandes
-cd frontend
-npm install --legacy-peer-deps
-npx eslint --ext .js,.ts,.vue . --fix
-npx prettier --write "**/*.{js,ts,vue,css,json,html}"
-npx eslint --ext .js,.ts,.vue .
 ```
 
 **Note** : Les commandes utilisent `npx` pour exécuter les outils installés localement dans `node_modules`.

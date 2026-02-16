@@ -1,32 +1,32 @@
 repos:
-    -   repo: local
-        hooks:
-            -   id: backend-pre-commit
-                name: Run backend pre-commit hooks
-                entry: bash -c 'cd backend && python3 -m pre_commit run --all-files --config=.pre-commit-config.yaml'
-                language: system
-                pass_filenames: false
-                always_run: true
-                stages: [ pre-commit, pre-push, manual ]
-                verbose: true
-    -   repo: local
-        hooks:
-            -   id: frontend-pre-commit
-                name: Run frontend pre-commit hooks
-                entry: bash -c 'cd frontend && npx eslint --ext .js,.ts,.vue . --fix; npx prettier --write "**/*.{js,ts,vue,css,json,html}"; npx eslint --ext .js,.ts,.vue .'
-                language: system
-                pass_filenames: false
-                always_run: true
-                stages: [ pre-commit, pre-push, manual ]
-                verbose: true
-    -   repo: https://github.com/pre-commit/pre-commit-hooks
-        rev: v4.6.0
-        hooks:
-            -   id: check-merge-conflict
-            -   id: mixed-line-ending
-                args: [ --fix=lf ]
-            -   id: trailing-whitespace
-                args: [ --markdown-linebreak-ext=md ]
-            -   id: end-of-file-fixer
-            -   id: check-yaml
-            -   id: check-added-large-files
+  - repo: local
+    hooks:
+      - id: backend-pre-commit
+        name: Run backend pre-commit hooks
+        entry: bash -c 'cd backend && uv run pre-commit run --all-files --config=.pre-commit-config.yaml'
+        language: system
+        pass_filenames: false
+        always_run: true
+        stages: [ pre-commit, pre-push, manual ]
+        verbose: true
+  - repo: local
+    hooks:
+      - id: frontend-pre-commit
+        name: Run frontend pre-commit hooks
+        entry: bash -c 'cd frontend && npm run check'
+        language: system
+        pass_filenames: false
+        always_run: true
+        stages: [ pre-commit, pre-push, manual ]
+        verbose: true
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v4.6.0
+    hooks:
+      - id: check-merge-conflict
+      - id: mixed-line-ending
+        args: [ --fix=lf ]
+      - id: trailing-whitespace
+        args: [ --markdown-linebreak-ext=md ]
+      - id: end-of-file-fixer
+      - id: check-yaml
+      - id: check-added-large-files
