@@ -5,7 +5,7 @@
 <script setup lang="ts">
 
 import type { TopLevelFormatterParams } from "echarts/types/dist/shared.js";
-import { type ChartDataPoint, type ChartDataSerie } from "~~/public/ChartDataProvider";
+import { GetData, type ChartDataPoint, type ChartDataSerie } from "~~/public/ChartDataProvider";
 
 
 // provide init-options
@@ -185,8 +185,8 @@ const option = ref<ECOption>({
 });
 
 onMounted(async () => {
-    const resp = await fetch("MockedUpData.json")
-    source = await resp.json() as ITNChartDataType
+    
+    source = await GetData() as ITNChartDataType[]
     base = source.reduce(function (min: number, val: ChartDataPoint) {
         return Math.floor(Math.min(min, val.Min));
     }, Infinity);

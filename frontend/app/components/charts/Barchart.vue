@@ -5,7 +5,7 @@
 
 <script setup lang="ts">
 import { provide } from "vue";
-import { type ChartDataSerie } from "~~/public/ChartDataProvider"; // provide init-options
+import { GetData, type ChartDataSerie } from "~~/public/ChartDataProvider"; // provide init-options
 
 // provide init-options
 const renderer = ref<"svg" | "canvas">("svg");
@@ -82,8 +82,7 @@ const option = ref<ECOption>({
 });
 
 onMounted(async () => {
-    const resp = await fetch("MockedUpData.json")
-    SourceDataSet = await resp.json() as ChartDataSerie
+    SourceDataSet = await GetData()
 
     PosDelta = SourceDataSet.map((item) => {
         if (item.Delta >= 0) {

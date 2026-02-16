@@ -5,7 +5,7 @@
 
 <script setup lang="ts">
 import { provide } from "vue";
-import { type ChartDataSerie } from "~~/public/ChartDataProvider";
+import { GetData, type ChartDataSerie } from "~~/public/ChartDataProvider";
 
 // provide init-options
 const renderer = ref<"svg" | "canvas">("svg");
@@ -30,8 +30,8 @@ const option = ref<ECOption>({
 });
 
 onMounted(async () => {
-    const resp = await fetch("MockedUpData.json")
-    SourceDataSet = await resp.json()
+    
+    SourceDataSet = await GetData()
 
     option.value.dataset.source = SourceDataSet
 })
