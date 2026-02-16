@@ -1,6 +1,6 @@
 services:
   timescaledb:
-    image: timescale/timescaledb:latest-pg17
+    image: timescale/timescaledb:2.25.0-pg17
     container_name: timescaledb
     environment:
       POSTGRES_USER: infoclimat
@@ -22,7 +22,7 @@ services:
     restart: unless-stopped
 
   nginx:
-    image: nginx:stable-alpine3.23-perl
+    image: nginx:1.29.5-alpine3.23-perl
     ports:
       - "80:80"
     volumes:

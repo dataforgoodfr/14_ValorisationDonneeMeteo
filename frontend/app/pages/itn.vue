@@ -22,6 +22,16 @@ const heroData = {
 
 // TODO : uncomment below when "useNationalIndicator" is working
 // const { data, status, error } = await useNationalIndicator(params);
+
+// just testing that the frontend can reach the backend api
+const config = useRuntimeConfig();
+const {
+    data: records,
+    _pending,
+    _error,
+} = await useFetch(config.public.apiBase);
+
+console.log("Données reçues :", records.value);
 </script>
 
 <template>
