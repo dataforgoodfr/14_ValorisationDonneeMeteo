@@ -1,0 +1,10 @@
+---
+- name: Access GHCR
+  hosts: test
+  become: yes
+  tasks:
+    - name: Login GHCR
+      community.general.docker_login:
+        registry_url: ghcr.io
+        username: "{{ github_username }}"
+        password: "{{ github_token }}"

@@ -1,0 +1,28 @@
+---
+- name: Create user
+  ansible.builtin.user:
+    name: "{{ item.name }}"
+    create_home: true
+    shell: /bin/bash
+  loop: "{{ ssh_user }}"
+  tags:
+    - user
+
+- name: Create .ssh dir
+  ansible.builtin.file:
+    path: "/home/{{ item.name }}/.ssh"
+    state: directory
+    owner: "{{ item.name }}"
+    group: "{{ item.name }}"
+    mode: '0700'
+  loop: "{{ ssh_user }}"
+
+
+- name: Copy ssh keys
+  ansible.posix.authorized_key:
+    user: "{{ item.name }}"
+    state: present
+    key: "{{ lookup('file', item.key) }}"
+  loop: "{{ ssh_user }}"
+  tags:
+    - key_ssh

@@ -1,0 +1,49 @@
+---
+- name: Secure SSH connexions Fail2Ban
+  hosts: test
+  become: true
+  tasks:
+
+    - name: Install fail2ban
+      apt:
+        name: fail2ban
+        state: present
+        update_cache: yes
+
+    - name: disable  password authentification
+      lineinfile:
+        path: /etc/ssh/sshd_config
+        regexp: '^#?PasswordAuthentication\s+'
+        line: 'PasswordAuthentication no'
+        state: present
+        backrefs: yes
+
+    - name: Enable publique Key connexion
+      lineinfile:
+        path: /etc/ssh/sshd_config
+        regexp: '^#?PubkeyAuthentication\s+'
+        line: 'PubkeyAuthentication yes'
+        state: present
+        backrefs: yes
+
+    - name: Restart SSH service
+      service:
+        name: ssh
+        state: restarted
+
+    - name: Fail2ban configuration
+      copy:
+        dest: /etc/fail2ban/jail.local
+        content: |
+          [sshd]
+          enabled = true
+          port    = ssh
+          logpath = %(sshd_log)s
+          maxretry = 5
+          bantime = 3600
+          findtime = 600
+
+    - name: Restart fail2ban
+      service:
+        name: fail2ban
+        state: restarted
