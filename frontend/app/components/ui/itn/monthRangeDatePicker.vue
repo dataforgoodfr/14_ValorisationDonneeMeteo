@@ -31,7 +31,7 @@ const monthYearDisplay = (date: CalendarDate) => {
 </script>
 
 <template>
-    <div class="flex items-center gap-2">
+    <div class="flex items-center gap-1">
         <UPopover>
             <UButton color="neutral" variant="outline">
                 {{ monthYearDisplay(startMonth) }}
@@ -47,7 +47,7 @@ const monthYearDisplay = (date: CalendarDate) => {
                 />
             </template>
         </UPopover>
-
+        <UIcon name="i-lucide-arrow-right" />
         <UPopover>
             <UButton color="neutral" variant="outline">
                 {{ monthYearDisplay(endMonth) }}
@@ -64,40 +64,4 @@ const monthYearDisplay = (date: CalendarDate) => {
             </template>
         </UPopover>
     </div>
-    <!-- Alternative with stuck to 1 calendar -->
-    <!-- <div class="flex items-center gap-2">
-        <UPopover>
-            <UButton color="neutral" variant="outline">
-                {{ monthYearDisplay(startMonth) }}
-            </UButton>
-            <template #content>
-                <UCalendar
-                    :model-value="startMonth"
-                    class="p-2"
-                    :month-controls="true"
-                    :year-controls="true"
-                    :min-value="minDataDate"
-                    :max-value="formattedToday"
-                    @update:model-value="handleStartUpdate"
-                />
-            </template>
-        </UPopover>
-
-        <UPopover>
-            <UButton color="neutral" variant="outline">
-                {{ monthYearDisplay(endMonth) }}
-            </UButton>
-            <template #content>
-                <UCalendar
-                    :model-value="endMonth"
-                    class="p-2"
-                    :month-controls="true"
-                    :year-controls="true"
-                    :min-value="startMonth"
-                    :max-value="formattedToday"
-                    @update:model-value="handleEndUpdate"
-                />
-            </template>
-        </UPopover>
-    </div> -->
 </template>
