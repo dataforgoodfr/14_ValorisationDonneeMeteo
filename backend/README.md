@@ -130,8 +130,6 @@ Pour exécuter les hooks backend uniquement :
 # Avec uv (recommandé)
 uv run pre-commit run --all-files --config=.pre-commit-config.yaml
 
-# Ou avec le virtualenv
-.venv/bin/python -m pre_commit run --all-files --config=.pre-commit-config.yaml
 ```
 
 **Note** : Assurez-vous que le virtualenv est activé ou utilisez le chemin complet comme montré ci-dessus.
