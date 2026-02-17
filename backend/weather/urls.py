@@ -5,7 +5,12 @@ URL routing for weather API endpoints.
 from django.urls import include, path
 from rest_framework.routers import DefaultRouter
 
-from .views import HoraireTempsReelViewSet, QuotidienneViewSet, StationViewSet
+from .views import (
+    HoraireTempsReelViewSet,
+    NationalIndicatorAPIView,
+    QuotidienneViewSet,
+    StationViewSet,
+)
 
 router = DefaultRouter()
 router.register(r"stations", StationViewSet, basename="station")
@@ -14,4 +19,9 @@ router.register(r"quotidien", QuotidienneViewSet, basename="quotidien")
 
 urlpatterns = [
     path("", include(router.urls)),
+    path(
+        "temperature/national-indicator",
+        NationalIndicatorAPIView.as_view(),
+        name="temperature-national-indicator",
+    ),
 ]

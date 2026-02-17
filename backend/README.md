@@ -236,3 +236,26 @@ SELECT * FROM timescaledb_information.hypertables;
 -- Voir les chunks (partitions)
 SELECT * FROM timescaledb_information.chunks;
 ```
+
+## Notebooks
+###ITN
+Un notebook est disponible pour visualiser les données générées par le service national-indicator (fake datasource + agrégation).
+
+1️⃣ Installer les dépendances notebook
+
+Les dépendances notebook ne sont pas installées par défaut.
+
+Depuis le dossier backend/ :
+```
+uv sync --extra notebook
+```
+
+
+2️⃣ Lancer Jupyter
+
+Toujours depuis backend/ :
+```
+uv run jupyter lab
+```
+
+Puis ouvrir le notebook situé dans `weather/notebooks/`
