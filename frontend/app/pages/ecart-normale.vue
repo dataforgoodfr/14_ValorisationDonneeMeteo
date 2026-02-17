@@ -24,7 +24,11 @@ const value = ref("Bar Chart");
             :title="heroData.title"
             :description="heroData.description"
         />
+<<<<<<< feat/#56_GenerateMockupDataFile
         <USelectMenu v-model="value" :items="items" />
+=======
+        <USelect v-model="value" :items="items" />
+>>>>>>> main
         <Barchart v-if="value === `Bar Chart`" />
         <LineChart v-if="value === `Line Chart`" />
     </UContainer>

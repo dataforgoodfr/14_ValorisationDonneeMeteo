@@ -14,8 +14,8 @@ export default defineNuxtConfig({
     ui: {
         colorMode: false,
     },
-    fonts: {
-        provider: "google",
+    fonts:{
+        provider: 'google'
     },
     app: {
         head: {
