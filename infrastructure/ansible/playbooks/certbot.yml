@@ -1,0 +1,36 @@
+---
+- name: install cerbot & generate ssl certificate
+  hosts: test
+  become: yes
+  tasks:
+    - name: Install Certbot and dependencies
+      apt:
+        name: certbot
+        state: present
+        update_cache: yes
+
+    - name: Create Certbot  directory www
+      file:
+        path: /etc/letsencrypt/certbot/www
+        state: directory
+        owner: root
+        group: root
+        mode: '0755'
+
+    - name: Generate SSL certificate using Certbot
+    #ou --webroot if you can't access the port 80
+      command: >
+        certbot certonly --standalone -w /etc/letsencrypt/certbot/www
+        --agree-tos --email noorbelkacem5@gmail.com
+        --non-interactive --expand
+        -d "{{ item }}"
+      loop: "{{ domaine_name }}"
+      tags: [run-cert]
+
+    - name: Set up auto-renewal
+      cron:
+        name: "Renew Let's Encrypt certificates"
+        job: "certbot renew --quiet"
+        minute: "0"
+        hour: "3"
+      tags: [renew]
