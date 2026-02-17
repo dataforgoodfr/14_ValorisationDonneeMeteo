@@ -1,8 +1,10 @@
 name: Build and Push Images
 
 on:
-  # push:
-  #   branches: [feat/ajout-backend-docker-image]
+  push:
+    branches: [feat/ajout-backend-docker-image]
+    tags:
+      - 'v*.*.*'
   workflow_dispatch:
 
 env:
@@ -57,23 +59,29 @@ jobs:
           push: true
           tags: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-frontend:${{ env.IMAGE_TAG }}
 
-
-      - name: Change backend name image in the compose file
-        run: |
-          sed -i "s|image: $REGISTRY/$IMAGE_NAME-backend.*|image: $REGISTRY/$IMAGE_NAME-backend:$IMAGE_TAG|" compose.test.yml
-
-      - name: Change frontend name image in the compose file
-        run: |
-          sed -i "s|image: $REGISTRY/$IMAGE_NAME-frontend.*|image: $REGISTRY/$IMAGE_NAME-frontend:$IMAGE_TAG|" compose.test.yml
-
-
-
       - name: Setup SSH
         run: |
           mkdir -p ~/.ssh
-          echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_ed25519
+          echo "${{ secrets.SSH_PRIVATE_KEY_TEST }}" > ~/.ssh/id_ed25519
           chmod 600 ~/.ssh/id_ed25519
           ssh-keyscan -H ${{ secrets.TEST_HOST }} >> ~/.ssh/known_hosts
+
+      - name: Change backend name image in the compose file
+        run: |
+          ssh ${{ secrets.TEST_USER }}@${{ secrets.TEST_HOST }} << 'EOF'
+          sudo sed -i "s|image: $REGISTRY/$IMAGE_NAME-backend.*|image: $REGISTRY/$IMAGE_NAME-backend:$IMAGE_TAG|" /opt/valorisationdonneemeteo/docker-compose.yml
+          EOF
+
+
+      - name: Change frontend name image in the compose file
+        run: |
+          ssh ${{ secrets.TEST_USER }}@${{ secrets.TEST_HOST }} << 'EOF'
+          sudo sed -i "s|image: $REGISTRY/$IMAGE_NAME-frontend.*|image: $REGISTRY/$IMAGE_NAME-frontend:$IMAGE_TAG|" /opt/valorisationdonneemeteo/docker-compose.yml
+          EOF
+
+
+
+
 
 
       # - name: Create .env file
@@ -96,7 +104,7 @@ jobs:
       - name: Clean up & Deploy
         run: |
           ssh ${{ secrets.TEST_USER }}@${{ secrets.TEST_HOST }} << 'EOF'
-            sudo docker compose -f compose.test.yml down --remove-orphans
-            sudo docker compose -f compose.test.yml pull
-            sudo docker compose -f compose.test.yml up -d
+            sudo docker compose -f /opt/valorisationdonneemeteo/docker-compose.yml down --remove-orphans
+            sudo docker compose -f /opt/valorisationdonneemeteo/docker-compose.yml pull
+            sudo docker compose -f /opt/valorisationdonneemeteo/docker-compose.yml up -d
           EOF
