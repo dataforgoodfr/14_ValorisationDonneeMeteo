@@ -3,15 +3,24 @@ DRF ViewSets for weather data API endpoints.
 """
 
 from drf_spectacular.utils import extend_schema, extend_schema_view
-from rest_framework import viewsets
+from rest_framework import status, viewsets
 from rest_framework.decorators import action
 from rest_framework.response import Response
+from rest_framework.views import APIView
+
+from weather.data_generators.national_indicator_fake import (
+    FakeNationalIndicatorDailyDataSource,
+)
+from weather.services.national_indicator.service import compute_national_indicator
 
 from .filters import HoraireTempsReelFilter, QuotidienneFilter, StationFilter
 from .models import HoraireTempsReel, Quotidienne, Station
 from .serializers import (
+    ErrorSerializer,
     HoraireTempsReelDetailSerializer,
     HoraireTempsReelSerializer,
+    NationalIndicatorQuerySerializer,
+    NationalIndicatorResponseSerializer,
     QuotidienneDetailSerializer,
     QuotidienneSerializer,
     StationDetailSerializer,
@@ -121,3 +130,53 @@ class QuotidienneViewSet(viewsets.ReadOnlyModelViewSet):
         if self.action == "retrieve":
             return QuotidienneDetailSerializer
         return QuotidienneSerializer
+
+
+class NationalIndicatorAPIView(APIView):
+    """
+    GET /api/v1/temperature/national-indicator
+    Implémentation mock (sans BDD), conforme au contrat OpenAPI.
+    """
+
+    authentication_classes = []
+    permission_classes = []
+
+    def get(self, request):
+        q = NationalIndicatorQuerySerializer(data=request.query_params)
+        if not q.is_valid():
+            return Response(
+                ErrorSerializer.build(
+                    code="INVALID_PARAMETER",
+                    message="Paramètre invalide ou manquant",
+                    details=q.errors,
+                ),
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        params = q.validated_data
+
+        # Génération fake
+        ds = FakeNationalIndicatorDailyDataSource()
+        data = compute_national_indicator(data_source=ds, **params)
+        metadata = {
+            "date_start": params["date_start"],
+            "date_end": params["date_end"],
+            "baseline": "1991-2020",
+            "granularity": params["granularity"],
+            "slice_type": params.get("slice_type", "full"),
+        }
+
+        if "month_of_year" in params:
+            metadata["month_of_year"] = params["month_of_year"]
+
+        if "day_of_month" in params:
+            metadata["day_of_month"] = params["day_of_month"]
+
+        full_payload = {
+            "metadata": metadata,
+            "time_series": data["time_series"],
+        }
+        out = NationalIndicatorResponseSerializer(data=full_payload)
+        out.is_valid(raise_exception=True)
+
+        return Response(out.data, status=status.HTTP_200_OK)
