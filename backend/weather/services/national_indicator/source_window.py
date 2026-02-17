@@ -22,7 +22,8 @@ def compute_source_window(
       -> on couvre donc le mois ciblé sur toutes les années intersectantes.
     """
     if granularity == "year" and slice_type in ("month_of_year", "day_of_month"):
-        assert month_of_year is not None
+        if month_of_year is None:
+            raise ValueError("month_of_year ne doit pas être None")
 
         years = [d.year for d in iter_year_starts_intersecting(date_start, date_end)]
         # dates validées en amont => au moins une année
