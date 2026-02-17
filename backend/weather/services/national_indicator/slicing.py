@@ -48,6 +48,10 @@ def apply_slice(
 
             # La série journalière est complète sur la fenêtre -> on retrouve le jour cible
             chosen = next(pp for pp in pts if pp.date.day == target_day)
+            if chosen is None:
+                raise ValueError(
+                    f"Jour {target_day} introuvable dans les données pour {y}-{m:02d}"
+                )
             selected.append(chosen)
 
         return selected
@@ -69,6 +73,10 @@ def apply_slice(
                 for pp in pts
                 if pp.date.month == month_of_year and pp.date.day == target_day
             )
+            if chosen is None:
+                raise ValueError(
+                    f"Jour {target_day} introuvable dans les données pour {y}"
+                )
             selected.append(chosen)
 
         return selected
