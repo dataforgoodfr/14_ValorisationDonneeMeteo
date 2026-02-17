@@ -28,11 +28,13 @@ def apply_slice(
         return daily
 
     if slice_type == "month_of_year":
-        assert month_of_year is not None
+        if month_of_year is None:
+            raise ValueError("month_of_year ne doit pas être None")
         return [p for p in daily if p.date.month == month_of_year]
 
     # slice_type == "day_of_month"
-    assert day_of_month is not None
+    if day_of_month is None:
+        raise ValueError("day_of_month ne doit pas être None")
 
     if granularity == "month":
         # 1 point par mois : choisir le N-ième jour (clamp au dernier jour du mois)
@@ -52,7 +54,8 @@ def apply_slice(
 
     if granularity == "year":
         # 1 point par année : jour précis dans un mois donné (clamp)
-        assert month_of_year is not None
+        if month_of_year is None:
+            raise ValueError("month_of_year ne doit pas être None")
 
         by_year: dict[int, list[DailyPoint]] = defaultdict(list)
         for p in daily:

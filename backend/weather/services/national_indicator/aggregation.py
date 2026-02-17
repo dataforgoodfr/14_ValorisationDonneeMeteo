@@ -106,7 +106,8 @@ def aggregate(
             continue
 
         if slice_type == "month_of_year":
-            assert month_of_year is not None
+            if month_of_year is None:
+                raise ValueError("month_of_year ne doit pas être None")
             anchor = dt.date(y, month_of_year, 1)
         else:
             anchor = dt.date(y, 1, 1)
