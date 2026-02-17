@@ -52,14 +52,19 @@ jobs:
         with:
           context: ./backend
           push : true
-          tags: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-backend:${{ env.IMAGE_TAG }}
+          tags: |
+            ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-backend:${{ env.IMAGE_TAG }}
+            ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-backend:latest
+
 
       - name: Build and Push Frontend
         uses: docker/build-push-action@v5
         with:
           context: ./frontend
           push: true
-          tags: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-frontend:${{ env.IMAGE_TAG }}
+          tags: |
+            ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-frontend:${{ env.IMAGE_TAG }}
+            ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-frontend:latest
 
       - name: Setup SSH
         run: |
@@ -71,14 +76,14 @@ jobs:
       - name: Change backend name image in the compose file
         run: |
           ssh ${{ secrets.TEST_USER }}@${{ secrets.TEST_HOST }} << 'EOF'
-          sudo sed -i "s|image: $REGISTRY/$IMAGE_NAME-backend.*|image: $REGISTRY/$IMAGE_NAME-backend:$IMAGE_TAG|" /opt/valorisationdonneemeteo/docker-compose.yml
+          sudo sed -i "s|image: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-backend.*|image: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-backend:${{ env.IMAGE_TAG }}|" /opt/valorisationdonneemeteo/docker-compose.yml
           EOF
 
 
       - name: Change frontend name image in the compose file
         run: |
           ssh ${{ secrets.TEST_USER }}@${{ secrets.TEST_HOST }} << 'EOF'
-          sudo sed -i "s|image: $REGISTRY/$IMAGE_NAME-frontend.*|image: $REGISTRY/$IMAGE_NAME-frontend:$IMAGE_TAG|" /opt/valorisationdonneemeteo/docker-compose.yml
+          sudo sed -i "s|image: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-frontend.*|image: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-frontend:${{ env.IMAGE_TAG }}|" /opt/valorisationdonneemeteo/docker-compose.yml
           EOF
 
 
