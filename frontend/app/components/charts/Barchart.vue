@@ -15,7 +15,7 @@ const initOptions = computed(() => ({
 }));
 provide(INIT_OPTIONS_KEY, initOptions);
 
-let SourceDataSet: ChartDataSerie = []
+let SourceDataSet: ChartDataSerie = [];
 
 let PosDelta = SourceDataSet?.map((item) => {
     if (item.Delta >= 0) {
@@ -34,7 +34,7 @@ let NegDelta = SourceDataSet?.map((item) => {
 
 const option = ref<ECOption>({
     dataset: {
-        source: [PosDelta, NegDelta]
+        source: [PosDelta, NegDelta],
     },
     xAxis: [
         {
@@ -82,7 +82,7 @@ const option = ref<ECOption>({
 });
 
 onMounted(async () => {
-    SourceDataSet = await GetData()
+    SourceDataSet = await GetData();
 
     PosDelta = SourceDataSet.map((item) => {
         if (item.Delta >= 0) {
@@ -100,10 +100,10 @@ onMounted(async () => {
     });
 
     option.value.xAxis.data = SourceDataSet.map((item) => {
-        const itemdate = new Date(Date.parse(item.date))
-        return `${itemdate.getDate()}/${itemdate.getMonth() + 1}`
-    })
-    option.value.series[0].data = PosDelta
-    option.value.series[1].data = NegDelta
-})
+        const itemdate = new Date(Date.parse(item.date));
+        return `${itemdate.getDate()}/${itemdate.getMonth() + 1}`;
+    });
+    option.value.series[0].data = PosDelta;
+    option.value.series[1].data = NegDelta;
+});
 </script>

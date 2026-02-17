@@ -1,9 +1,4 @@
-<script setup lang="ts">
-const props = defineProps({
-    title: { type: String, required: true },
-    description: { type: String, required: true },
-});
-</script>
+<script setup lang="ts"></script>
 
 <template>
     <UPageHero

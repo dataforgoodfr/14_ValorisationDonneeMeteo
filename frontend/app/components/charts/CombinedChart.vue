@@ -3,10 +3,12 @@
 </template>
 
 <script setup lang="ts">
-
 import type { TopLevelFormatterParams } from "echarts/types/dist/shared.js";
-import { GetData, type ChartDataPoint, type ChartDataSerie } from "~~/public/ChartDataProvider";
-
+import {
+    GetData,
+    type ChartDataPoint,
+    type ChartDataSerie,
+} from "~~/public/ChartDataProvider";
 
 // provide init-options
 const renderer = ref<"svg" | "canvas">("svg");
@@ -16,20 +18,19 @@ const initOptions = computed(() => ({
 }));
 
 interface ITNChartDataType extends ChartDataPoint {
-    SerieITN: number,
-    SerieDelta: number,
-    SerieMinStdSDev: number,
-    SerieMaxStdDev: number,
-    SerieMin: number,
-    SerieMax: number,
-
+    SerieITN: number;
+    SerieDelta: number;
+    SerieMinStdSDev: number;
+    SerieMaxStdDev: number;
+    SerieMin: number;
+    SerieMax: number;
 }
 
 provide(INIT_OPTIONS_KEY, initOptions);
-let source: ChartDataSerie = []
-let base = 0
+let source: ChartDataSerie = [];
+let base = 0;
 
-const YAxisId = "MainY"
+const YAxisId = "MainY";
 
 function ShortDate(date: Date) {
     if (date?.getMonth) {
@@ -39,9 +40,8 @@ function ShortDate(date: Date) {
             date.getMonth() + 1,
             date.getFullYear(),
         ].join("/");
-    }
-    else {
-        return date
+    } else {
+        return date;
     }
 }
 
@@ -50,9 +50,16 @@ function YAxisFormater(val: number) {
 }
 
 const option = ref<ECOption>({
-
     dataset: {
-        dimensions: ["date", "ITN", "Delta", "StdDev", "Min", "Max", "SerieITN"],
+        dimensions: [
+            "date",
+            "ITN",
+            "Delta",
+            "StdDev",
+            "Min",
+            "Max",
+            "SerieITN",
+        ],
         source: source,
     },
     tooltip: {
@@ -111,41 +118,40 @@ const option = ref<ECOption>({
             // data: source.map(function (item) {
             //     return base + item.ITN;
             // }),
-            dimensions: ['date', 'SerieITN'],
-            seriesLayoutBy: 'column',
+            dimensions: ["date", "SerieITN"],
+            seriesLayoutBy: "column",
             lineStyle: {
                 color: "#130707",
             },
             showSymbol: false,
-
         },
         {
             name: "SerieDelta",
             type: "line",
-            dimensions: ['date', 'SerieDelta'],
+            dimensions: ["date", "SerieDelta"],
             lineStyle: {
                 color: "#2d3ed3",
                 width: 0.75,
             },
             showSymbol: false,
-            yAxisId: YAxisId
+            yAxisId: YAxisId,
         },
         {
             name: "SerieMin",
             type: "line",
-            dimensions: ['date', 'SerieMin'],
+            dimensions: ["date", "SerieMin"],
             stack: "MinMax",
             lineStyle: {
                 opacity: 0,
             },
             showSymbol: false,
-            yAxisId: YAxisId
+            yAxisId: YAxisId,
         },
         {
             name: "SerieMax",
             type: "line",
             stack: "MinMax",
-            dimensions: ['date', 'SerieMax'],
+            dimensions: ["date", "SerieMax"],
             lineStyle: {
                 opacity: 0,
             },
@@ -153,24 +159,24 @@ const option = ref<ECOption>({
                 color: "#777777",
             },
             showSymbol: false,
-            yAxisId: YAxisId
+            yAxisId: YAxisId,
         },
         {
             name: "Ldev",
             type: "line",
-            dimensions: ['date', 'SerieMinStdDev'],
+            dimensions: ["date", "SerieMinStdDev"],
             stack: "bands",
             lineStyle: {
                 opacity: 0,
             },
             showSymbol: false,
-            yAxisId: YAxisId
+            yAxisId: YAxisId,
         },
 
         {
             name: "UDev",
             type: "line",
-            dimensions: ['date', 'SerieMaxStdDev'],
+            dimensions: ["date", "SerieMaxStdDev"],
             stack: "bands",
             lineStyle: {
                 opacity: 0,
@@ -179,20 +185,19 @@ const option = ref<ECOption>({
                 color: "#cccccc",
             },
             showSymbol: false,
-            yAxisId: YAxisId
+            yAxisId: YAxisId,
         },
     ],
 });
 
 onMounted(async () => {
-    
-    source = await GetData() as ITNChartDataType[]
+    source = (await GetData()) as ITNChartDataType[];
     base = source.reduce(function (min: number, val: ChartDataPoint) {
         return Math.floor(Math.min(min, val.Min));
     }, Infinity);
 
     const DataSetSource = source.map((item) => {
-        const ItemDate = new Date(Date.parse(item.date))
+        const ItemDate = new Date(Date.parse(item.date));
         return {
             ...item,
             date: ItemDate,
@@ -202,13 +207,10 @@ onMounted(async () => {
             SerieMaxStdDev: 2 * item.StdDev,
             SerieMin: -base + item.Min,
             SerieMax: item.Max - item.Min,
-        }
-    })
+        };
+    });
 
-    option.value.dataset.source = DataSetSource
-    option.value.yAxis.min = 0
-
-})
-
-
+    option.value.dataset.source = DataSetSource;
+    option.value.yAxis.min = 0;
+});
 </script>

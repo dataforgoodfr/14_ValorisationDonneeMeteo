@@ -4,7 +4,7 @@ import AppFooter from "./components/layout/AppFooter.vue";
 import AppHeader from "./components/layout/AppHeader.vue";
 import { fr } from "@nuxt/ui/locale";
 
-InitMockupData()
+InitMockupData();
 </script>
 
 <template>

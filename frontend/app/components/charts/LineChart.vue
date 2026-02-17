@@ -15,7 +15,7 @@ const initOptions = computed(() => ({
 }));
 provide(INIT_OPTIONS_KEY, initOptions);
 
-let SourceDataSet: ChartDataSerie = []
+let SourceDataSet: ChartDataSerie = [];
 
 const option = ref<ECOption>({
     dataset: {
@@ -30,9 +30,8 @@ const option = ref<ECOption>({
 });
 
 onMounted(async () => {
-    
-    SourceDataSet = await GetData()
+    SourceDataSet = await GetData();
 
-    option.value.dataset.source = SourceDataSet
-})
+    option.value.dataset.source = SourceDataSet;
+});
 </script>
