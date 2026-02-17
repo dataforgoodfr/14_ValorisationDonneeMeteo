@@ -20,6 +20,9 @@ jobs:
 
     steps:
 
+      - name: checkout repository
+        uses: actions/checkout@v4
+
 
       - name: Get latest tag
         id: get_tag
@@ -31,8 +34,7 @@ jobs:
       - name: print  tag
         run: echo " Current tag   $IMAGE_TAG"
 
-      - name: checkout repository
-        uses: actions/checkout@v4
+
 
       - name: lowercase repo name
         run: |
