@@ -1,10 +1,7 @@
-<<<<<<< feat/#56_GenerateMockupDataFile
 import fs from "fs";
 
 export const MockedUpDataFileName = "./public/MockedUpData.json";
 
-=======
->>>>>>> main
 export function GetMockupData(): ChartDataSerie {
     const RetArray: ChartDataSerie = [];
     let CurTemp = 5;
@@ -32,7 +29,6 @@ export function GetMockupData(): ChartDataSerie {
         });
         CurDate = new Date(CurDate.getTime() + 24 * 3600 * 1000);
     }
-<<<<<<< feat/#56_GenerateMockupDataFile
 
     return RetArray;
 }
@@ -53,11 +49,6 @@ export function InitMockupData(): void {
     }
 }
 
-=======
-    return RetArray;
-}
-
->>>>>>> main
 export enum TimeAxisType {
     Day,
     Month,
@@ -73,16 +64,9 @@ export interface ChartDataPoint {
     Max: number;
 }
 
-<<<<<<< feat/#56_GenerateMockupDataFile
 export type ChartDataSerie = ChartDataPoint[];
 
 export async function GetData(): Promise<ChartDataSerie> {
     const resp = await fetch("MockedUpData.json");
     return (await resp.json()) as ChartDataSerie;
-=======
-type ChartDataSerie = ChartDataPoint[];
-
-export function GetChartData(_type: TimeAxisType): ChartDataSerie {
-    return GetMockupData();
->>>>>>> main
 }

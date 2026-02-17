@@ -3,11 +3,8 @@ import { InitMockupData } from "~~/public/ChartDataProvider";
 import AppFooter from "./components/layout/AppFooter.vue";
 import AppHeader from "./components/layout/AppHeader.vue";
 import { fr } from "@nuxt/ui/locale";
-<<<<<<< feat/#56_GenerateMockupDataFile
 
 InitMockupData();
-=======
->>>>>>> main
 </script>
 
 <template>

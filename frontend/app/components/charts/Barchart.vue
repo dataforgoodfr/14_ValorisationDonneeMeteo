@@ -5,11 +5,7 @@
 
 <script setup lang="ts">
 import { provide } from "vue";
-<<<<<<< feat/#56_GenerateMockupDataFile
 import { GetData, type ChartDataSerie } from "~~/public/ChartDataProvider"; // provide init-options
-=======
-import { GetChartData, TimeAxisType } from "~~/public/ChartDataProvider"; // provide init-options
->>>>>>> main
 
 // provide init-options
 const renderer = ref<"svg" | "canvas">("svg");
@@ -19,26 +15,16 @@ const initOptions = computed(() => ({
 }));
 provide(INIT_OPTIONS_KEY, initOptions);
 
-<<<<<<< feat/#56_GenerateMockupDataFile
 let SourceDataSet: ChartDataSerie = [];
 
 let PosDelta = SourceDataSet?.map((item) => {
-=======
-const Data = GetChartData(TimeAxisType.Day);
-
-const PosDelta = Data.map((item) => {
->>>>>>> main
     if (item.Delta >= 0) {
         return item.Delta;
     } else {
         return "-";
     }
 });
-<<<<<<< feat/#56_GenerateMockupDataFile
 let NegDelta = SourceDataSet?.map((item) => {
-=======
-const NegDelta = Data.map((item) => {
->>>>>>> main
     if (item.Delta < 0) {
         return item.Delta;
     } else {
@@ -47,18 +33,12 @@ const NegDelta = Data.map((item) => {
 });
 
 const option = ref<ECOption>({
-<<<<<<< feat/#56_GenerateMockupDataFile
     dataset: {
         source: [PosDelta, NegDelta],
     },
     xAxis: [
         {
             data: SourceDataSet.map((item) => {
-=======
-    xAxis: [
-        {
-            data: Data.map((item) => {
->>>>>>> main
                 return `${item.date.getDate()}/${item.date.getMonth() + 1}`;
             }),
             silent: false,
@@ -99,7 +79,6 @@ const option = ref<ECOption>({
             large: true,
         },
     ],
-<<<<<<< feat/#56_GenerateMockupDataFile
 });
 
 onMounted(async () => {
@@ -126,7 +105,5 @@ onMounted(async () => {
     });
     option.value.series[0].data = PosDelta;
     option.value.series[1].data = NegDelta;
-=======
->>>>>>> main
 });
 </script>
