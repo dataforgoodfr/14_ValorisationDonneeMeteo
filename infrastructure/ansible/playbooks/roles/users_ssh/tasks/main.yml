@@ -26,3 +26,25 @@
   loop: "{{ ssh_user }}"
   tags:
     - key_ssh
+
+# - name: Allow users to use sudo without password
+#   community.general.sudoedit:
+#     name: passwordless-sudo-actions
+#     user: "{{ item.name }}"
+#     commands: ALL
+#     nopassword: yes
+#     state: present
+#   loop: "{{ ssh_user }}"
+#   tags:
+#     - no_password
+
+- name: Allow users to use sudo without password
+  ansible.builtin.lineinfile:
+    path: /etc/sudoers
+    state: present
+    regexp: "^{{ item.name }}"
+    line: "{{ item.name }} ALL=(ALL) NOPASSWD: ALL"
+    validate: "visudo -cf %s"
+  loop: "{{ ssh_user }}"
+  tags:
+    - no_password
