@@ -1,5 +1,6 @@
 <template>
-    <VChart :option="option" autoresize />
+    <ExportPng />
+    <VChart id="itnCombinedChart" :option="option" autoresize />
 </template>
 
 <script setup lang="ts">
@@ -7,6 +8,7 @@ import { INIT_OPTIONS_KEY } from "vue-echarts";
 import type { TopLevelFormatterParams } from "echarts/types/dist/shared.js";
 import { GetChartData, TimeAxisType } from "~~/public/ChartDataProvider";
 import 'echarts/lib/component/toolbox';
+import ExportPng from "~~/app/components/ui/itn/ExportPng.vue";
 
 // provide init-options
 const renderer = ref<"svg" | "canvas">("svg");
