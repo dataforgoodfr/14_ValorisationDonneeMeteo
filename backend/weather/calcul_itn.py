@@ -117,9 +117,9 @@ def separate_by_station(
           temperature records, with one column per station
     """
 
-    assert (
-        (index != "") & (columns != "") & (values != "")
-    ), "Cannot pivot, missing arguments"
+    assert (index != "") & (columns != "") & (values != ""), (
+        "Cannot pivot, missing arguments"
+    )
 
     data_temp = pd.pivot_table(df, index=index, columns=columns, values=values)
 
@@ -182,7 +182,7 @@ def itn_calculation(df: pd.DataFrame) -> pd.DataFrame:
 
 
 # --------------------------------------------------------------------
-def calculate_return_itn() -> np.array:
+def calculate_return_itn(stations_itn: tuple[str] = ()) -> np.array:
     """
     Main part of the script.
 
@@ -195,39 +195,42 @@ def calculate_return_itn() -> np.array:
           array Nx2 containing the date and ITN
     """
 
-    stations_itn = (
-        "6088001",
-        "13054001",
-        "14137001",
-        "16089001",
-        "20148001",
-        "21473001",
-        "25056001",  # Besançon - Thise?
-        "26198001",
-        "29075001",
-        "30189001",
-        "31069001",
-        "33281001",
-        "35281001",
-        "36063001",
-        "44020001",
-        "45055001",
-        "47091001",
-        "51449002",  # Reims - Prunay
-        "51183001",  # Reims - Courcy
-        "54526001",
-        "58160001",
-        "59343001",
-        "63113001",
-        "64549001",
-        "66164002",  # Perpignan - Rivesaltes?
-        "67124001",
-        "69029001",
-        "72008001",
-        "73054001",
-        "75114001",
-        "86027001",
-    )
+    # by default, calculate ITN for France
+    if len(stations_itn) == 0:
+        stations_itn = (
+            "6088001",  # Nice - Côte d'Azur
+            # "06088001" ?
+            "13054001",  # Marseille - Marignane
+            "14137001",  # Caen - Carpiquet
+            "16089001",  # Cognac - Châteaubernard
+            "20148001",  # Bastia - Poretta
+            "21473001",  # Dijon - Longvic
+            "25056001",  # Besançon - Thise
+            "26198001",  # Montélimar - Ancone
+            "29075001",  # Brest - Guipavas
+            "30189001",  # Nîmes - Courbessac
+            "31069001",  # Toulouse - Blagnac
+            "33281001",  # Bordeaux - Mérignac
+            "35281001",  # Rennes - St Jacques
+            "36063001",  # Châteauroux - Déols
+            "44020001",  # Nantes - Atlantique
+            "45055001",  # Orléans - Bricy
+            "47091001",  # Agen - La Garenne
+            "51183001",  # Reims - Courcy
+            "51449002",  # Reims - Prunay
+            "54526001",  # Nancy - Essey
+            "58160001",  # Nevers - Marzy
+            "59343001",  # Lille - Lesquin
+            "63113001",  # Clermont-Ferrand - Aulnat
+            "64549001",  # Pau - Uzein
+            "66136001",  # Perpignan - Rivesaltes
+            "67124001",  # Strasbourg - Entzheim
+            "69029001",  # Lyon - Bron
+            "72181001",  # Le Mans - Arnage
+            "73054001",  # Bourg - St-Maurice
+            "75114001",  # Paris - Montsouris
+            "86027001",  # Poitiers - Biard
+        )
 
     stations, temp_daily = read_temperatures(stations_itn)
 
