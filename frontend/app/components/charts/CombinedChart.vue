@@ -11,7 +11,7 @@ import 'echarts/lib/component/toolbox';
 import ExportPng from "~~/app/components/ui/itn/ExportPng.vue";
 
 // provide init-options
-const renderer = ref<"svg" | "canvas">("svg");
+const renderer = ref<"svg" | "canvas">("canvas");
 const initOptions = computed(() => ({
     height: 600,
     renderer: renderer.value,
