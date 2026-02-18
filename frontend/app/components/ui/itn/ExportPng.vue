@@ -5,7 +5,7 @@
 <script setup lang="ts">
 import * as echarts from 'echarts';
 
-function exportPngFnc(){
+async function exportPngFnc(){
     console.log("export PNG")
     const img = new Image();
     console.log(document.getElementById('itn_combined_chart'));
@@ -15,8 +15,23 @@ function exportPngFnc(){
         pixelRatio: 2,
         backgroundColor: '#fff'
     });
-    console.log(img.src)
 
+    const response = await fetch(img.src);
+
+    const blobImage = await response.blob();
+
+    const href = URL.createObjectURL(blobImage);
+
+    const anchorElement = document.createElement('a');
+    anchorElement.href = href;
+    anchorElement.download = 'YYYYMMDD_HHMMSS_IndicateurThermiqueNational_XUnit_DT';
+
+    document.body.appendChild(anchorElement);
+    anchorElement.click();
+
+    document.body.removeChild(anchorElement);
+    window.URL.revokeObjectURL(href);
+    console.log("Export PNG succeeded")
 }
 
 </script>
