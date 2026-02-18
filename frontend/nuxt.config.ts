@@ -1,6 +1,8 @@
 // https://nuxt.com/docs/api/configuration/nuxt-config
 export default defineNuxtConfig({
-    ssr: true, // false : use client-side only rendering to generate .output/public/index.html
+    // Enable SSR to improve loading time and SEO.
+    // For more info: https://nuxt.com/docs/4.x/guide/concepts/rendering#client-side-rendering.
+    ssr: true,
     compatibilityDate: "2025-07-15",
     devtools: { enabled: true }, // false for production
 
