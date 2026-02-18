@@ -33,9 +33,6 @@ function ShortDate(date: Date) {
     ].join("/");
 }
 
-function FileName(){
-    return 'YYYYMMDD_HHMMSS_IndicateurThermiqueNational_XUnit_DT'
-}
 const option = ref<ECOption>({
     dataset: {
         dimensions: ["date", "ITN", "StdDev"],
@@ -174,19 +171,5 @@ const option = ref<ECOption>({
             showSymbol: false,
         },
     ],
-    toolbox: {
-        show: true,
-        feature: {
-        saveAsImage: {
-            show: true, // Enable export to image functionality
-            title: 'Export en png', // Customize the tooltip title
-            name: FileName(),
-            backgroundColor: 'transparent',
-            pixelRatio: 2
-        }
-        },
-        right: '30px',
-        top: '10px'
-    },
 });
 </script>
