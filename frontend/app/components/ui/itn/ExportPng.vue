@@ -6,9 +6,7 @@
 import * as echarts from 'echarts';
 
 async function exportPngFnc(){
-    console.log("export PNG")
     const img = new Image();
-    console.log(document.getElementById('itn_combined_chart'));
     const chart = echarts.getInstanceByDom(document.getElementById('itnCombinedChart'));
     img.src = chart.getDataURL({
         type:"png",
@@ -31,7 +29,6 @@ async function exportPngFnc(){
 
     document.body.removeChild(anchorElement);
     window.URL.revokeObjectURL(href);
-    console.log("Export PNG succeeded")
 }
 
 </script>
