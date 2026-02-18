@@ -2,7 +2,8 @@ name: Build and Push Images
 
 on:
   push:
-    branches: [feat/ajout-backend-docker-image]
+    tags:
+      - '*' # Push events to every tag not containing /
   workflow_dispatch:
 
 env:
