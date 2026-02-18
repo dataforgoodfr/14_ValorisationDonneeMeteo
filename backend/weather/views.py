@@ -8,7 +8,7 @@ from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from weather.data_generators.national_indicator_fake import (
+from weather.data_sources.national_indicator_fake import (
     FakeNationalIndicatorDailyDataSource,
 )
 from weather.services.national_indicator.service import compute_national_indicator
