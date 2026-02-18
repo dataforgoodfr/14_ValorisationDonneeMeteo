@@ -2,6 +2,7 @@
 import PagesHero from "~/components/layout/PagesHero.vue";
 import Barchart from "~/components/charts/Barchart.vue";
 import LineChart from "~/components/charts/LineChart.vue";
+import StationTable from "~/components/ui/ecartNormale/stationTable.vue";
 
 const heroData = {
     title: "Ecart à la normale",
@@ -27,5 +28,6 @@ const value = ref("Bar Chart");
         <USelect v-model="value" :items="items" />
         <Barchart v-if="value === `Bar Chart`" />
         <LineChart v-if="value === `Line Chart`" />
+        <StationTable />
     </UContainer>
 </template>

@@ -32,4 +32,9 @@ export default defineNuxtConfig({
         components: ["DatasetComponent", "GridComponent", "TooltipComponent"],
         features: ["LabelLayout", "UniversalTransition"],
     },
+    runtimeConfig: {
+        public: {
+            apiBase: '',
+        }
+    },
 });
