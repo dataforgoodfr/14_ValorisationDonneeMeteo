@@ -4,7 +4,6 @@
 -->
 
 <script setup lang="ts">
-import type { container } from "#build/ui";
 import CombinedChart from "~/components/charts/CombinedChart.vue";
 import PagesHero from "~/components/layout/PagesHero.vue";
 import SelectBar from "~/components/ui/itn/selectBar.vue";
