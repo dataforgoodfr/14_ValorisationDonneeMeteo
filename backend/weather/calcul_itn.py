@@ -254,9 +254,3 @@ def calculate_return_itn() -> np.array:
 
 
 # --------------------------------------------------------------------
-
-
-# results = calculate_return_itn()
-# print(results)
-
-# exec(open('weather/calcul_itn.py').read())
