@@ -108,29 +108,13 @@ Données journalières agrégées (~450 enregistrements) - **Hypertable Timescal
 - `fxy`, `dxy` : Rafale maximale et direction
 - `q*` : Flags de qualité (1 = valide)
 
-## Commande Django de peuplement
+## Peuplement de la base de données
 
-```bash
-# Générer toutes les données (30 jours par défaut)
-python manage.py populate_weather_data
+### Données de développement (mock)
 
-# Générer seulement 7 jours de données
-python manage.py populate_weather_data --days 7
+Pour générer des données de test réalistes, utilisez la commande Django `populate_weather_data` documentée dans le [README principal](../README.md#populate_weather_data).
 
-# Vider les données avant de régénérer
-python manage.py populate_weather_data --clear
-
-# Générer uniquement les stations
-python manage.py populate_weather_data --stations-only
-
-# Ne pas générer les agrégations quotidiennes
-python manage.py populate_weather_data --skip-daily
-
-# Utiliser un seed différent
-python manage.py populate_weather_data --seed 123
-```
-
-## Peuplement avec les données réelles 2025
+### Peuplement avec les données réelles 2025
 
 Le script `populate_from_parquet.py` permet de peupler la base de données avec les données réelles du fichier `real_data_2025.parquet` :
 
@@ -139,7 +123,7 @@ Le script `populate_from_parquet.py` permet de peupler la base de données avec 
 cd backend/timescaledb-env
 
 # 2. Exécuter le script de peuplement
-python populate_from_parquet.py
+uv run python populate_from_parquet.py
 ```
 
 Ce script :
@@ -280,6 +264,7 @@ docker-compose up -d
 ```bash
 cd backend
 uv run python manage.py migrate
+# Utilisez la commande de peuplement documentée dans le README principal
 uv run python manage.py populate_weather_data
 ```
 

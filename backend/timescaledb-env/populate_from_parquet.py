@@ -11,12 +11,12 @@ from datetime import UTC, datetime
 import django
 import pandas as pd
 
-from weather.models import HoraireTempsReel, Quotidienne, Station
-
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "config.settings")
 django.setup()
+
+from weather.models import HoraireTempsReel, Quotidienne, Station  # noqa: E402
 
 
 def parse_datetime(date_str):
