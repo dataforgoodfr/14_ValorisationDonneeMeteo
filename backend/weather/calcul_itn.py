@@ -225,6 +225,147 @@ def compute_itn(stations_itn: tuple[str]) -> tuple[pd.DataFrame, pd.DataFrame]:
 
 
 # --------------------------------------------------------------------
+def average_itn_calculation_option1(
+    stations_itn: tuple[str],
+    start: Union[str, pd.Timestamp, datetime.datetime],
+    end: Union[str, pd.Timestamp, datetime.datetime],
+    freq: str = "monthly"
+) -> pd.DataFrame:
+    """
+    Calculate the monthly or yearly ITN by taking the average of
+    the daily ITN.
+
+    Parameters
+    ----------
+    stations_itn: tuple of str
+        the unique ID of the meteorological stations that are used to
+        calculate the ITN
+    start: str or pd.Timestamp or datetime.datetime
+        initial day of the period of interest
+    end: str or pd.Timestamp or datetime.datetime
+        final day of the period of interest
+    freq: str
+        specify whether to calculate the monthly or yearly ITN
+
+    Returns
+    -------
+    pandas.core.frame.DataFrame
+          computed monthly or yealry ITN
+    """
+
+    itn = compute_itn(stations_itn)[1]
+
+    daterange = pd.date_range(start=start,end=end)
+    if(freq == 'monthly'):
+        index = np.unique(daterange.strftime('%Y-%m'))
+    elif(freq == 'yearly'):
+        index = np.unique(daterange.strftime('%Y'))
+
+    avg_itn = pd.DataFrame(columns=['avg_itn'], index=index)
+
+    for id in index:
+        avg_itn.loc[id] = itn[id].mean()
+
+    return avg_itn
+
+
+# --------------------------------------------------------------------
+def average_itn_calculation_option2(
+    stations_itn: tuple[str],
+    start: Union[str, pd.Timestamp, datetime.datetime],
+    end: Union[str, pd.Timestamp, datetime.datetime],
+    freq: str = "monthly"
+) -> pd.DataFrame:
+    """
+    Calculate the monthly or yearly ITN with the formula of the daily ITN
+    with the average minimal and maximal temperature of the month/year.
+
+    Parameters
+    ----------
+    stations_itn: tuple of str
+        the unique ID of the meteorological stations that are used to
+        calculate the ITN
+    start: str or pd.Timestamp or datetime.datetime
+        initial day of the period of interest
+    end: str or pd.Timestamp or datetime.datetime
+        final day of the period of interest
+    freq: str
+        specify whether to calculate the monthly or yearly ITN
+
+    Returns
+    -------
+    pandas.core.frame.DataFrame
+          computed monthly or yealry ITN
+    """
+
+    daily_records_by_station = compute_itn(stations_itn)[0]
+
+    daterange = pd.date_range(start=start,end=end)
+    if(freq == 'monthly'):
+        index = np.unique(daterange.strftime('%Y-%m'))
+    elif(freq == 'yearly'):
+        index = np.unique(daterange.strftime('%Y'))
+
+    avg_itn = pd.DataFrame(columns=['avg_itn'], index=index)
+
+    for id in index:
+        temp_min  = daily_records_by_station['temp_min'].loc[id]
+        temp_max  = daily_records_by_station['temp_max'].loc[id]
+        avg_itn_by_station = (tmin.mean()+tmax.mean())/2
+        avg_itn.loc[id] = avg_itn_by_station.mean()
+
+    return avg_itn
+
+
+# --------------------------------------------------------------------
+def average_itn_calculation_option3(
+    stations_itn: tuple[str],
+    start: Union[str, pd.Timestamp, datetime.datetime],
+    end: Union[str, pd.Timestamp, datetime.datetime],
+    freq: str = "monthly"
+) -> pd.DataFrame:
+    """
+    Calculate the monthly or yearly ITN with the formula of the daily ITN
+    with the absolute minimal and maximal temperature of the month/year.
+
+    Parameters
+    ----------
+    stations_itn: tuple of str
+        the unique ID of the meteorological stations that are used to
+        calculate the ITN
+    start: str or pd.Timestamp or datetime.datetime
+        initial day of the period of interest
+    end: str or pd.Timestamp or datetime.datetime
+        final day of the period of interest
+    freq: str
+        specify whether to calculate the monthly or yearly ITN
+
+    Returns
+    -------
+    pandas.core.frame.DataFrame
+          computed monthly or yealry ITN
+    """
+
+    daily_records_by_station = compute_itn(stations_itn)[0]
+
+    daterange = pd.date_range(start=start,end=end)
+    if(freq == 'monthly'):
+        index = np.unique(daterange.strftime('%Y-%m'))
+    elif(freq == 'yearly'):
+        index = np.unique(daterange.strftime('%Y'))
+
+    avg_itn = pd.DataFrame(columns=['avg_itn'], index=index)
+
+    for id in index:
+        temp_min  = daily_records_by_station['temp_min'].loc[id]
+        temp_max  = daily_records_by_station['temp_max'].loc[id]
+        avg_itn_by_station = (tmin.min()+tmax.max())/2
+        avg_itn.loc[id] = avg_itn_by_station.mean()
+
+    return avg_itn
+
+
+# --------------------------------------------------------------------
 def itn(stations_itn: tuple[str] = ()) -> np.array:
     """
     Export the ITN in an array.
