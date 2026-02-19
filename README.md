@@ -151,18 +151,68 @@ Pensez à activer le formattage et le fix automatique lors de la sauvegarde :
 
 ## Installation des pre-commit hooks
 
-### Installer pre-commit sur votre machine
+Ce projet utilise [pre-commit](https://pre-commit.com/) pour automatiser la vérification de la qualité du code avant chaque commit.
 
-[pre-commit](https://pre-commit.com/)
+### Installer pre-commit sur votre machine
 
 #### Via pip
 
-```
+```bash
 pip install pre-commit
 ```
 
-### Activer le hook
+### Activer les hooks
 
-```
+```bash
+# À la racine du projet
 pre-commit install
 ```
+
+### Configuration
+
+Le projet utilise deux configurations de pre-commit :
+
+1. **Configuration racine** (`.pre-commit-config.yaml`) :
+   - Exécute les hooks backend et frontend
+   - Vérifie les conflits de merge, les fins de ligne, etc.
+
+2. **Configuration backend** (`backend/.pre-commit-config.yaml`) :
+   - Utilise Ruff pour le linting et le formatting Python
+   - Ignore le code DJ001 (docstring pour les classes privées)
+
+### Exécution manuelle
+
+Pour exécuter tous les hooks sur tous les fichiers :
+
+```bash
+pre-commit run --all-files
+```
+
+Pour exécuter uniquement les hooks backend :
+
+```bash
+cd backend && uv run pre-commit run --all-files --config=.pre-commit-config.yaml
+```
+
+Pour exécuter uniquement les hooks frontend :
+
+```bash
+cd frontend && npm run check
+```
+
+### Résolution des problèmes courants
+
+#### Problème d'environnement Node.js
+
+Si vous obtenez une erreur "eslint: command not found" :
+
+```bash
+cd frontend
+npm install --legacy-peer-deps
+```
+
+### Outils utilisés
+
+- **Backend** : Ruff (linting + formatting)
+- **Frontend** : ESLint + Prettier
+- **Commun** : vérification des conflits, fins de ligne, etc.
