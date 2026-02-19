@@ -132,8 +132,6 @@ uv run pre-commit run --all-files --config=.pre-commit-config.yaml
 
 ```
 
-**Note** : Assurez-vous que le virtualenv est activé ou utilisez le chemin complet comme montré ci-dessus.
-
 ### Tests
 
 ```bash
