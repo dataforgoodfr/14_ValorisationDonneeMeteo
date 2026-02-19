@@ -127,4 +127,5 @@ jobs:
             sudo docker compose -f /opt/valorisationdonneemeteo/docker-compose.yml down --remove-orphans
             sudo docker compose -f /opt/valorisationdonneemeteo/docker-compose.yml pull
             sudo docker compose -f /opt/valorisationdonneemeteo/docker-compose.yml up -d
+            sudo docker image prune -f
           EOF
