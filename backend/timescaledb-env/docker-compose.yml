@@ -1,6 +1,6 @@
 services:
   timescaledb:
-    image: timescale/timescaledb:latest-pg17
+    image: timescale/timescaledb:2.25.0-pg17
     container_name: infoclimat-timescaledb
     environment:
       POSTGRES_USER: infoclimat
