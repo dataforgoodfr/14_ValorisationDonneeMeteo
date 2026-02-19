@@ -81,19 +81,24 @@ Les donnees generees incluent 15 stations francaises avec des mesures realistes 
 - Rafales de vent avec direction aleatoire
 
 ## API
+
 ### Spécifications
+
 Les spécifications de l'API (la cible a atteindre) sont disponibles dans `openapi/target-specs/openapi.yaml`
+
 ```
 cd backend
 ```
+
 ```
 npx swagger-ui-watcher openapi/target-specs/openapi.yaml
 ```
+
 La documentation est alors disponible sur `http://localhost:8000`
 Ce document est mis à jour au cours de la vie du projet
 
 | Endpoint                  | Description                   |
-| ------------------------- | ----------------------------- |
+|---------------------------|-------------------------------|
 | `/api/v1/stations/`       | Liste des stations meteo      |
 | `/api/v1/horaire/`        | Mesures horaires temps reel   |
 | `/api/v1/horaire/latest/` | Derniere mesure par station   |
@@ -124,8 +129,12 @@ curl http://localhost:8000/api/v1/horaire/latest/
 
 *L'installation des hooks est décrite dans le [README.md](../README.md) à la racine*
 
+Pour exécuter les hooks backend uniquement :
+
 ```bash
-uv run pre-commit run --all-files
+# Avec uv (recommandé)
+cd backend
+uv run pre-commit run --all-files --config=.pre-commit-config.yaml
 ```
 
 ### Tests
@@ -194,7 +203,7 @@ backend/
 Les variables d'environnement sont definies dans `.env` :
 
 | Variable               | Description        | Defaut                  |
-| ---------------------- | ------------------ | ----------------------- |
+|------------------------|--------------------|-------------------------|
 | `DEBUG`                | Mode debug         | `true`                  |
 | `SECRET_KEY`           | Cle secrete Django | -                       |
 | `DB_HOST`              | Hote PostgreSQL    | `localhost`             |
@@ -238,6 +247,7 @@ SELECT * FROM timescaledb_information.chunks;
 ```
 
 ## Notebooks
+
 ###ITN
 Un notebook est disponible pour visualiser les données générées par le service national-indicator (fake datasource + agrégation).
 
@@ -246,14 +256,15 @@ Un notebook est disponible pour visualiser les données générées par le servi
 Les dépendances notebook ne sont pas installées par défaut.
 
 Depuis le dossier backend/ :
+
 ```
 uv sync --extra notebook
 ```
 
-
 2️⃣ Lancer Jupyter
 
 Toujours depuis backend/ :
+
 ```
 uv run jupyter lab
 ```
