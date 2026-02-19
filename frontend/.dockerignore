@@ -1,0 +1,6 @@
+node_modules
+README.md
+.output
+.nuxt
+.gitignore
+.env.example
