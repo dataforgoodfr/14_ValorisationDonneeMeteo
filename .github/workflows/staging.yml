@@ -38,9 +38,10 @@ jobs:
       - name: Get latest tag
         id: get_tag
         run: |
-          git fetch --tags --force
 
-          TAG=$(git tag --list "v*.*.*" --sort=-v:refname --merged feat/ajout-backend-docker-image  | head -n1)
+          git fetch origin $GITHUB_REF --unshallow --tags --force
+
+          TAG=$(git tag --list "v*.*.*" --sort=-v:refname --merged HEAD  | head -n1)
           echo "IMAGE_TAG=$TAG" >> $GITHUB_ENV
 
       - name: print  tag
