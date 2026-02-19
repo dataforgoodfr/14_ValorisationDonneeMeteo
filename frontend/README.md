@@ -16,6 +16,35 @@ npm run dev
 
 L'application est accessible sur `http://localhost:3000`
 
+### Pre-commit
+
+#### Installation
+
+Les dépendances nécessaires sont installées automatiquement avec `npm install`.
+
+#### Utilisation
+
+Pour exécuter les hooks frontend uniquement depuis la racine du projet :
+
+```bash
+# Méthode 1: Utiliser npm run check (recommandé)
+cd frontend
+npm run check
+```
+
+**Note** : Les commandes utilisent `npx` pour exécuter les outils installés localement dans `node_modules`.
+
+#### Résolution des problèmes
+
+Si vous obtenez "eslint: command not found" :
+
+```bash
+cd frontend
+npm install --legacy-peer-deps
+```
+
+Cela installera toutes les dépendances nécessaires dans `node_modules`.
+
 ### Production
 
 ```bash
