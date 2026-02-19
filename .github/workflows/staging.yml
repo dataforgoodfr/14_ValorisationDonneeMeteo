@@ -23,12 +23,24 @@ jobs:
       - name: checkout repository
         uses: actions/checkout@v4
 
+      # uncomment for main branch
+      # - name: Get latest tag
+      #   id: get_tag
+      #   run: |
+      #     git fetch origin main --tags --force
 
+      #     TAG=$(git tag --list "v*.*.*" --merged origin/main --sort=-v:refname | head -n1)
+      #     echo "IMAGE_TAG=$TAG" >> $GITHUB_ENV
+
+
+
+      # to test on my branch
       - name: Get latest tag
         id: get_tag
         run: |
           git fetch --tags --force
-          TAG=$(git tag --sort=-creatordate | head -n1)
+
+          TAG=$(git tag --list "v*.*.*" --merged --sort=-v:refname | head -n1)
           echo "IMAGE_TAG=$TAG" >> $GITHUB_ENV
 
       - name: print  tag
