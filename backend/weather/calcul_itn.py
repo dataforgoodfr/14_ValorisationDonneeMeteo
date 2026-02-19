@@ -182,12 +182,57 @@ def itn_calculation(df: pd.DataFrame) -> pd.DataFrame:
 
 
 # --------------------------------------------------------------------
-def calculate_return_itn(stations_itn: tuple[str] = ()) -> np.array:
+def compute_itn(stations_itn: tuple[str]) -> tuple[pd.DataFrame, pd.DataFrame]:
     """
-    Main part of the script.
+    Main part of the ITN computation. Return the daily records by stations
+    and the ITN in pandas DataFrames format.
 
     Parameters
     ----------
+    tuple of str
+        the unique ID of the meteorological stations that are used to
+        calculate the ITN
+
+    Returns
+    -------
+    daily_records_by_station(_corr): pd.DataFrame
+          temperature records, with one column per station
+    itn: pd.DataFrame
+          daily ITN
+    """
+
+    stations, temp_daily = read_temperatures(stations_itn)
+
+    daily_records_by_station = separate_by_station(
+        temp_daily,
+        index="date",
+        columns="nom",
+        values=["temp_min", "temp_max", "tntxm"],
+        freq="D",
+    )
+
+    if ("Reims-Courcy" in stations["nom"]) and ("Reims-Prunay" in stations["nom"]):
+        daily_records_by_station_corr = correct_temperatures_Reims(
+            daily_records_by_station
+        )
+        itn = itn_calculation(daily_records_by_station_corr)
+
+        return daily_records_by_station_corr,itn
+    else:
+        itn = itn_calculation(daily_records_by_station)
+
+        return daily_records_by_station,itn
+
+
+# --------------------------------------------------------------------
+def itn(stations_itn: tuple[str] = ()) -> np.array:
+    """
+    Export the ITN in an array.
+
+    Parameters
+    ----------
+    pd.DataFrame
+          daily ITN
 
     Returns
     -------
@@ -232,23 +277,7 @@ def calculate_return_itn(stations_itn: tuple[str] = ()) -> np.array:
             "86027001",  # Poitiers - Biard
         )
 
-    stations, temp_daily = read_temperatures(stations_itn)
-
-    daily_records_by_station = separate_by_station(
-        temp_daily,
-        index="date",
-        columns="nom",
-        values=["temp_min", "temp_max", "tntxm"],
-        freq="D",
-    )
-
-    if ("Reims-Courcy" in stations["nom"]) and ("Reims-Prunay" in stations["nom"]):
-        daily_records_by_station_corr = correct_temperatures_Reims(
-            daily_records_by_station
-        )
-        itn = itn_calculation(daily_records_by_station_corr)
-    else:
-        itn = itn_calculation(daily_records_by_station)
+    itn = compute_itn(stations_itn)[1]
 
     dates = itn.index.strftime("%Y-%m-%d").to_numpy()
     values = itn.values
