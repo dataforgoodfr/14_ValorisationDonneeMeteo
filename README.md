@@ -211,15 +211,6 @@ cd frontend
 npm install --legacy-peer-deps
 ```
 
-#### Problème d'environnement Python
-
-Assurez-vous que le virtualenv backend est activé :
-
-```bash
-cd backend
-source .venv/bin/activate
-```
-
 ### Outils utilisés
 
 - **Backend** : Ruff (linting + formatting)

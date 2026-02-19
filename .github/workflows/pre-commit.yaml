@@ -18,9 +18,7 @@ jobs:
     - name: Install backend dependencies
       run: |
         cd backend
-        python3 -m pip install --upgrade pip
-        python3 -m pip install pre-commit
-        python3 -m pip install -e .
+        uv sync --frozen
 
     # Setup Node.js for frontend
     - uses: actions/setup-node@v4
