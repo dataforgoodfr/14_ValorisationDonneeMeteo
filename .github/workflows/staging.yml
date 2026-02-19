@@ -40,7 +40,7 @@ jobs:
         run: |
           git fetch --tags --force
 
-          TAG=$(git tag --list "v*.*.*" --merged --sort=-v:refname | head -n1)
+          TAG=$(git tag --list "v*.*.*" --sort=-v:refname --merged feat/ajout-backend-docker-image  | head -n1)
           echo "IMAGE_TAG=$TAG" >> $GITHUB_ENV
 
       - name: print  tag
