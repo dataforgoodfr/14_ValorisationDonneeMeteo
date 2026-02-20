@@ -8,8 +8,8 @@ from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from weather.data_generators.national_indicator_fake import (
-    FakeNationalIndicatorDailyDataSource,
+from weather.data_sources.timescale import (
+    TimescaleNationalIndicatorDailyDataSource,
 )
 from weather.services.national_indicator.service import compute_national_indicator
 
@@ -156,7 +156,7 @@ class NationalIndicatorAPIView(APIView):
         params = q.validated_data
 
         # Génération fake
-        ds = FakeNationalIndicatorDailyDataSource()
+        ds = TimescaleNationalIndicatorDailyDataSource()
         data = compute_national_indicator(data_source=ds, **params)
         metadata = {
             "date_start": params["date_start"],
