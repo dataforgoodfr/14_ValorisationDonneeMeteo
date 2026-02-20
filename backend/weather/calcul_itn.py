@@ -73,7 +73,8 @@ def read_temperatures(
     sql_request = f"""SELECT
                         w.station_id,
                         w.nom_usuel as nom,
-                        w.date, w.tx as temp_max,
+                        w.date,
+                        w.tx as temp_max,
                         w.tn as temp_min,
                         w.tntxm as tntxm
                      FROM
