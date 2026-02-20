@@ -118,9 +118,9 @@ def separate_by_station(
           temperature records, with one column per station
     """
 
-    assert (index != "") & (columns != "") & (values != ""), (
-        "Cannot pivot, missing arguments"
-    )
+    assert (
+        (index != "") & (columns != "") & (values != "")
+    ), "Cannot pivot, missing arguments"
 
     data_temp = pd.pivot_table(df, index=index, columns=columns, values=values)
 
