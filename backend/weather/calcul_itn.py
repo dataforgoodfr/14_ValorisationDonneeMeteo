@@ -188,6 +188,8 @@ def calculate_return_itn(stations_itn: tuple[str] = ()) -> np.array:
 
     Parameters
     ----------
+    list or tuple
+          list of the stations to be considered to calculate the ITN.
 
     Returns
     -------
