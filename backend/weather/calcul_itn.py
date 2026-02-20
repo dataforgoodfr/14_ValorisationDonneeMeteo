@@ -372,8 +372,8 @@ def itn(stations_itn: tuple[str] = ()) -> np.array:
 
     Parameters
     ----------
-    pd.DataFrame
-          daily ITN
+    list or tuple
+          list of the stations to be considered to calculate the ITN.
 
     Returns
     -------
@@ -419,6 +419,68 @@ def itn(stations_itn: tuple[str] = ()) -> np.array:
         )
 
     itn = compute_itn(stations_itn)[1]
+
+    dates = itn.index.strftime("%Y-%m-%d").to_numpy()
+    values = itn.values
+
+    return np.array(list(zip(dates, values, strict=True)))
+
+
+# --------------------------------------------------------------------
+def monthly_itn(stations_itn: tuple[str] = ()) -> np.array:
+    """
+    Export the monthly ITN in an array.
+
+    Parameters
+    ----------
+    list or tuple
+          list of the stations to be considered to calculate the ITN.
+
+    Returns
+    -------
+    numpy.ndarray
+          array Nx2 containing the date and ITN
+    """
+
+    # by default, calculate ITN for France
+    if(len(stations_itn) == 0):
+       stations_itn = (
+           "6088001",   # Nice - Côte d'Azur
+           # "06088001" ?
+           "13054001",  # Marseille - Marignane
+           "14137001",  # Caen - Carpiquet
+           "16089001",  # Cognac - Châteaubernard
+           "20148001",  # Bastia - Poretta
+           "21473001",  # Dijon - Longvic
+           "25056001",  # Besançon - Thise
+           "26198001",  # Montélimar - Ancone
+           "29075001",  # Brest - Guipavas
+           "30189001",  # Nîmes - Courbessac
+           "31069001",  # Toulouse - Blagnac
+           "33281001",  # Bordeaux - Mérignac
+           "35281001",  # Rennes - St Jacques
+           "36063001",  # Châteauroux - Déols
+           "44020001",  # Nantes - Atlantique
+           "45055001",  # Orléans - Bricy
+           "47091001",  # Agen - La Garenne
+           "51183001",  # Reims - Courcy
+           "51449002",  # Reims - Prunay
+           "54526001",  # Nancy - Essey
+           "58160001",  # Nevers - Marzy
+           "59343001",  # Lille - Lesquin
+           "63113001",  # Clermont-Ferrand - Aulnat
+           "64549001",  # Pau - Uzein
+           "66136001",  # Perpignan - Rivesaltes
+           "67124001",  # Strasbourg - Entzheim
+           "69029001",  # Lyon - Bron
+           "72181001",  # Le Mans - Arnage
+           "73054001",  # Bourg - St-Maurice
+           "75114001",  # Paris - Montsouris
+           "86027001",  # Poitiers - Biard
+       )
+
+    itn = average_itn_calculation_option1(stations_itn,
+                        '2016-04-01','2026-01-31',"monthly")[1]
 
     dates = itn.index.strftime("%Y-%m-%d").to_numpy()
     values = itn.values
