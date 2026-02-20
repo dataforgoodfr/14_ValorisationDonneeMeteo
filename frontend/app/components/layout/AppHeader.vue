@@ -23,6 +23,13 @@ const items = computed<NavigationMenuItem[]>(() => [
                 active: route.path.startsWith("/itn"),
             },
             {
+                label: "Tester l'intégration de MapLibre",
+                description: "Afficher une carte simple",
+                to: "/map-test",
+                icon: "i-lucide-map",
+                active: route.path.startsWith("/map-test"),
+            },
+            {
                 disabled: true,
                 label: "Min/max",
                 description: "Bientôt disponible",
