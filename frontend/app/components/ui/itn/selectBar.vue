@@ -5,6 +5,7 @@ import MonthPicker from "./monthPicker.vue";
 import YearPicker from "./yearPicker.vue";
 import DayPicker from "./dayPicker.vue";
 import SliceType from "./sliceType.vue";
+import ExportPng from "./ExportPng.vue";
 
 const itnStore = useItnStore();
 const { granularity, sliceTypeSwitchEnabled } = storeToRefs(useItnStore());
@@ -71,6 +72,6 @@ const granularityValues = reactive([
 
                 <SliceType v-if="sliceTypeSwitchEnabled" />
             </div>
+            <ExportPng />
         </div>
-    </div>
 </template>
