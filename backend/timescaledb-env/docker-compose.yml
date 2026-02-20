@@ -6,6 +6,7 @@ services:
       POSTGRES_USER: infoclimat
       POSTGRES_PASSWORD: infoclimat2026
       POSTGRES_DB: meteodb
+      TIMESCALEDB_TELEMETRY: "off"
     ports:
       - "5432:5432"
     volumes:
@@ -16,7 +17,18 @@ services:
       timeout: 5s
       retries: 5
     restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          cpus: '2.0'
+          memory: 4G
+    networks:
+      - backend-network
 
 volumes:
   timescaledb-data:
     driver: local
+
+networks:
+  backend-network:
+    driver: bridge

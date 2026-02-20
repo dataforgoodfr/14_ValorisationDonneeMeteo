@@ -80,6 +80,8 @@ Les donnees generees incluent 15 stations francaises avec des mesures realistes 
 - Variations de pression atmospherique coherentes
 - Rafales de vent avec direction aleatoire
 
+> **Pour le peuplement avec des donnees reelles** : Consultez la documentation dans `timescaledb-env/README.md` pour utiliser le script `populate_from_parquet.py` avec les donnees meteorologiques reelles de 2025.
+
 ## API
 
 ### Spécifications

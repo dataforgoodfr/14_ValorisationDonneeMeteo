@@ -36,6 +36,12 @@ notebooks = [
     "jupyterlab>=4.0",
 ]
 
+# Dependencies for data population scripts (parquet processing)
+data-population = [
+    "pandas>=2.0",
+    "pyarrow>=14.0",  # For efficient parquet reading
+]
+
 [tool.ruff]
 target-version = "py311"
 line-length = 88
