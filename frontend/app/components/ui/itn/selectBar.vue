@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import ExportPng from "./ExportPng.vue";
 import monthRangeDatePicker from "./monthRangeDatePicker.vue";
 
 // Granularity Selection
@@ -14,5 +15,6 @@ const granularityValue = ref("Mois");
     <div class="flex gap-6">
         <USelect v-model="granularityValue" :items="granularity" />
         <monthRangeDatePicker />
+        <ExportPng />
     </div>
 </template>
