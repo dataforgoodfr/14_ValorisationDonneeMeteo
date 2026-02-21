@@ -23,9 +23,6 @@ Thumbs.db
 
 # Claude
 .claude
-<<<<<<< feat/#56_GenerateMockupDataFile
 
 #Mock up data
 frontend/public/MockedUpData.json
-=======
->>>>>>> main
