@@ -3,6 +3,7 @@
 </template>
 
 <script setup lang="ts">
+import { INIT_OPTIONS_KEY } from "vue-echarts";
 import type { TopLevelFormatterParams } from "echarts/types/dist/shared.js";
 import {
     GetData,

@@ -1,4 +1,9 @@
-<script setup lang="ts"></script>
+<script setup lang="ts">
+defineProps({
+    title: { type: String, required: true },
+    description: { type: String, required: true },
+});
+</script>
 
 <template>
     <UPageHero

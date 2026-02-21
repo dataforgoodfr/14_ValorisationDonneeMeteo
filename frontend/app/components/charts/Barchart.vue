@@ -4,6 +4,7 @@
 </template>
 
 <script setup lang="ts">
+import { INIT_OPTIONS_KEY } from "vue-echarts";
 import { provide } from "vue";
 import { GetData, type ChartDataSerie } from "~~/public/ChartDataProvider"; // provide init-options
 
