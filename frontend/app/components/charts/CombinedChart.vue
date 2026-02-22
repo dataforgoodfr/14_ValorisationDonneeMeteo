@@ -33,16 +33,16 @@ let base = 0;
 
 const YAxisId = "MainY";
 
-function ShortDate(date: Date) {
-    if (date?.getMonth) {
+function ShortDate(date: Date | string) {
+    if (typeof date === "string") {
+        const LocalDate = new Date(Date.parse(date));
         return [
-            date.getMonth() + 1,
-            date.getDate(),
-            date.getMonth() + 1,
-            date.getFullYear(),
+            LocalDate.getDate() + 1,
+            LocalDate.getMonth() + 1,
+            LocalDate.getFullYear(),
         ].join("/");
     } else {
-        return date;
+        return [date.getMonth() + 1, date.getFullYear()].join("/");
     }
 }
 
@@ -90,10 +90,10 @@ const option = ref<ECOption>({
         {
             type: "category",
             axisLabel: {
-                // formatter: function (value: string) {
-                //     const date = new Date(value);
-                //     return ShortDate(date);
-                // },
+                formatter: function (value: string) {
+                    const date = new Date(value);
+                    return ShortDate(date);
+                },
             },
             boundaryGap: false,
         },
