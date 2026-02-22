@@ -6,7 +6,7 @@
 <script setup lang="ts">
 import { INIT_OPTIONS_KEY } from "vue-echarts";
 import { provide } from "vue";
-import { GetChartData, TimeAxisType } from "~~/public/ChartDataProvider";
+import { GetData, type ChartDataSerie } from "~~/public/ChartDataProvider";
 
 // provide init-options
 const renderer = ref<"svg" | "canvas">("svg");
@@ -16,17 +16,23 @@ const initOptions = computed(() => ({
 }));
 provide(INIT_OPTIONS_KEY, initOptions);
 
-const Data = GetChartData(TimeAxisType.Day);
+let SourceDataSet: ChartDataSerie = [];
 
 const option = ref<ECOption>({
     dataset: {
         dimensions: ["date", "Delta"],
-        source: Data,
+        source: SourceDataSet,
     },
     xAxis: {
         type: "time",
     },
     yAxis: {},
     series: [{ type: "line", showSymbol: false }],
+});
+
+onMounted(async () => {
+    SourceDataSet = await GetData();
+
+    option.value.dataset.source = SourceDataSet;
 });
 </script>
