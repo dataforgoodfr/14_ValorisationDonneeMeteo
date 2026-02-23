@@ -33,7 +33,7 @@ let base = 0;
 
 const YAxisId = "MainY";
 
-function ShortDate(date: Date | string) {
+function ShortDate(date: Date) {
     return [date.getMonth() + 1, date.getFullYear()].join("/");
 }
 
@@ -183,11 +183,16 @@ const option = ref<ECOption>({
 });
 
 onMounted(async () => {
-    option.value.dataset.source = await getAndPrepareData();
+    const { sourceData, datasetData } = await getAndPrepareData();
+    option.value.dataset.source = datasetData;
     option.value.yAxis.min = 0;
+    source = sourceData;
 });
 
-async function getAndPrepareData(): Promise<ITNChartDataType[]> {
+async function getAndPrepareData(): Promise<{
+    sourceData: ITNChartDataType[];
+    datasetData: ITNChartDataType[];
+}> {
     const source = (await GetData()) as ITNChartDataType[];
     base = source.reduce(function (min: number, val: ChartDataPoint) {
         return Math.floor(Math.min(min, val.Min));
@@ -207,6 +212,6 @@ async function getAndPrepareData(): Promise<ITNChartDataType[]> {
         };
     });
 
-    return DataSetSource;
+    return { sourceData: source, datasetData: DataSetSource };
 }
 </script>
