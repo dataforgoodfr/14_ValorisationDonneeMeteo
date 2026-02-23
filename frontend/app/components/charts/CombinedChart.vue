@@ -34,16 +34,7 @@ let base = 0;
 const YAxisId = "MainY";
 
 function ShortDate(date: Date | string) {
-    if (typeof date === "string") {
-        const LocalDate = new Date(Date.parse(date));
-        return [
-            LocalDate.getDate() + 1,
-            LocalDate.getMonth() + 1,
-            LocalDate.getFullYear(),
-        ].join("/");
-    } else {
-        return [date.getMonth() + 1, date.getFullYear()].join("/");
-    }
+    return [date.getMonth() + 1, date.getFullYear()].join("/");
 }
 
 function YAxisFormater(val: number) {
@@ -83,7 +74,7 @@ const option = ref<ECOption>({
             if (!first) return "";
             const item = source[first.dataIndex];
             if (!item) return "";
-            return `${ShortDate(item.date)}<br />ITN : ${item.ITN.toFixed(2)}°C`;
+            return `${item.date}<br />ITN : ${item.ITN.toFixed(2)}°C`;
         },
     },
     xAxis: [
