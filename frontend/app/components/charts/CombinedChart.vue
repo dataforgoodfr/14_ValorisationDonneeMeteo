@@ -183,7 +183,12 @@ const option = ref<ECOption>({
 });
 
 onMounted(async () => {
-    source = (await GetData()) as ITNChartDataType[];
+    option.value.dataset.source = await getAndPrepareData();
+    option.value.yAxis.min = 0;
+});
+
+async function getAndPrepareData(): Promise<ITNChartDataType[]> {
+    const source = (await GetData()) as ITNChartDataType[];
     base = source.reduce(function (min: number, val: ChartDataPoint) {
         return Math.floor(Math.min(min, val.Min));
     }, Infinity);
@@ -202,7 +207,6 @@ onMounted(async () => {
         };
     });
 
-    option.value.dataset.source = DataSetSource;
-    option.value.yAxis.min = 0;
-});
+    return DataSetSource;
+}
 </script>
