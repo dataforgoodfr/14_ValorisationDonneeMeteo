@@ -1,23 +1,21 @@
 // https://nuxt.com/docs/api/configuration/nuxt-config
 export default defineNuxtConfig({
-    ssr: true, //false : use client-side only rendering to generate .output/public/index.html
+    // Enable SSR to improve loading time and SEO.
+    // For more info: https://nuxt.com/docs/4.x/guide/concepts/rendering#client-side-rendering.
+    ssr: true,
     compatibilityDate: "2025-07-15",
     runtimeConfig: {
         public: {
             apiBase: "", // api url will be injected when the container is launched with an env variable
         },
     },
-    devtools: { enabled: false }, // false for production
-    // couche de compilation runtime genere un index static pour  nginx
+    devtools: { enabled: false }, // false for production, true for dev
+
+    // Nitro conf for Node server
     nitro: {
         preset: "node-server",
     },
-  },
-  devtools: { enabled: false }, // false for production
-  // couche de compilation runtime genere un index static pour  nginx
-  nitro: {
-  preset: 'node-server'
-   },
+
     modules: [
         "@nuxt/eslint",
         "@nuxt/test-utils",
@@ -26,12 +24,6 @@ export default defineNuxtConfig({
         "@nuxt/fonts",
         "nuxt-echarts",
     ],
-
-    runtimeConfig: {
-        public: {
-            apiBase: "", // api url will be injected when the container is launched with an env variable
-        },
-    },
 
     css: ["~/assets/css/main.css"],
     ui: {
@@ -55,6 +47,4 @@ export default defineNuxtConfig({
         components: ["DatasetComponent", "GridComponent", "TooltipComponent"],
         features: ["LabelLayout", "UniversalTransition"],
     },
-  },
-
 });

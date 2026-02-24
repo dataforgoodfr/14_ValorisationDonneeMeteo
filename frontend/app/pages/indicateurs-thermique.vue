@@ -6,7 +6,7 @@
 <script setup lang="ts">
 const config = useRuntimeConfig();
 // just testing that the frontend can reach the backend api
-const { data: records, pending, error } = await useFetch(config.public.apiBase);
+const { data: records } = await useFetch(config.public.apiBase);
 
 console.log("Données reçues :", records.value);
 </script>
