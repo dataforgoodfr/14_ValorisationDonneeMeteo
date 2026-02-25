@@ -1,91 +1,46 @@
-import os
 from collections.abc import Iterable
 
 import numpy as np
 import pandas as pd
-from django.db import connection
 
-os.environ.setdefault("DJANGO_SETTINGS_MODULE", "config.settings")
+from weather.itn.gateway import ReadTemperaturesGateway
 
+DEFAULT_ITN_STATIONS_LIST = (
+    "06088001",  # Nice - Côte d'Azur
+    "13054001",  # Marseille - Marignane
+    "14137001",  # Caen - Carpiquet
+    "16089001",  # Cognac - Châteaubernard
+    "20148001",  # Bastia - Poretta
+    "21473001",  # Dijon - Longvic
+    "25056001",  # Besançon - Thise
+    "26198001",  # Montélimar - Ancone
+    "29075001",  # Brest - Guipavas
+    "30189001",  # Nîmes - Courbessac
+    "31069001",  # Toulouse - Blagnac
+    "33281001",  # Bordeaux - Mérignac
+    "35281001",  # Rennes - St Jacques
+    "36063001",  # Châteauroux - Déols
+    "44020001",  # Nantes - Atlantique
+    "45055001",  # Orléans - Bricy
+    "47091001",  # Agen - La Garenne
+    "51183001",  # Reims - Courcy
+    "51449002",  # Reims - Prunay
+    "54526001",  # Nancy - Essey
+    "58160001",  # Nevers - Marzy
+    "59343001",  # Lille - Lesquin
+    "63113001",  # Clermont-Ferrand - Aulnat
+    "64549001",  # Pau - Uzein
+    "66136001",  # Perpignan - Rivesaltes
+    "67124001",  # Strasbourg - Entzheim
+    "69029001",  # Lyon - Bron
+    "72181001",  # Le Mans - Arnage
+    "73054001",  # Bourg - St-Maurice
+    "75114001",  # Paris - Montsouris
+    "86027001",  # Poitiers - Biard
+)
 
-# --------------------------------------------------------------------
-def sql2pandas(sql_request: str) -> pd.DataFrame:
-    """
-    Given a SQL request, use a cursor to extract the data and convert
-    them into a pandas dataframe.
-
-    Parameters
-    ----------
-    str
-          SQL request to extract the data
-
-    Returns
-    -------
-    pandas.core.frame.DataFrame
-          requested data
-    """
-
-    cursor = connection.cursor()
-    cursor.execute(sql_request)
-
-    columns = cursor.description
-    result = [
-        {columns[index][0]: column for index, column in enumerate(value)}
-        for value in cursor.fetchall()
-    ]
-
-    return pd.DataFrame(result)
-
-
-# --------------------------------------------------------------------
-def read_temperatures(
-    stations_itn: Iterable = [],
-) -> tuple[pd.DataFrame, pd.DataFrame]:
-    """
-    Read the csv file containing the data into a pandas DataFrame. The times
-    are converted into datetime object.
-
-    Parameters
-    ----------
-    list or tuple
-          list of the stations to be considered to calculate the ITN.
-
-    Returns
-    -------
-    stations: pandas.core.frame.DataFrame
-          data of the stations extracted
-    temp_daily: pandas.core.frame.DataFrame
-          daily record of the min, max and 'mean' temperature
-    """
-
-    sql_request = """SELECT
-                       id,
-                       code,
-                       nom
-                    FROM
-                       weather_station
-                 """
-    if len(stations_itn) > 0:
-        sql_request += f"""WHERE
-                            code in {stations_itn}"""
-    stations = sql2pandas(sql_request)
-
-    sql_request = f"""SELECT
-                        w.station_id,
-                        w.nom_usuel as nom,
-                        w.date,
-                        w.tx as temp_max,
-                        w.tn as temp_min,
-                        w.tntxm as tntxm
-                     FROM
-                        weather_quotidienne as w
-                     WHERE
-                        w.station_id in {tuple(stations["id"])}
-                 """
-    temp_daily = sql2pandas(sql_request)
-    temp_daily["date"] = pd.to_datetime(temp_daily["date"])
-
-    return stations, temp_daily
+REIMS_PRUNAY_ID = "51449002"
+REIMS_COURCY_ID = "51183001"
 
 
 # --------------------------------------------------------------------
@@ -93,7 +48,7 @@ def separate_by_station(
     df: pd.DataFrame,
     index: str = "",
     columns: str = "",
-    values: str = "",
+    values: list[str] | str = "",
     freq: str = "h",
 ) -> pd.DataFrame:
     """
@@ -119,7 +74,7 @@ def separate_by_station(
     """
 
     assert (
-        (index != "") & (columns != "") & (values != "")
+        (index != "") and (columns != "") and (values != "")
     ), "Cannot pivot, missing arguments"
 
     data_temp = pd.pivot_table(df, index=index, columns=columns, values=values)
@@ -182,7 +137,11 @@ def itn_calculation(df: pd.DataFrame) -> pd.DataFrame:
 
 
 # --------------------------------------------------------------------
-def calculate_return_itn(stations_itn: tuple[str] = ()) -> np.array:
+def calculate_return_itn(
+    *,
+    stations_itn: Iterable | None = None,
+    read_temperatures_gateway: ReadTemperaturesGateway,
+) -> np.ndarray:
     """
     Main part of the script.
 
@@ -198,43 +157,10 @@ def calculate_return_itn(stations_itn: tuple[str] = ()) -> np.array:
     """
 
     # by default, calculate ITN for France
-    if len(stations_itn) == 0:
-        stations_itn = (
-            "6088001",  # Nice - Côte d'Azur
-            # "06088001" ?
-            "13054001",  # Marseille - Marignane
-            "14137001",  # Caen - Carpiquet
-            "16089001",  # Cognac - Châteaubernard
-            "20148001",  # Bastia - Poretta
-            "21473001",  # Dijon - Longvic
-            "25056001",  # Besançon - Thise
-            "26198001",  # Montélimar - Ancone
-            "29075001",  # Brest - Guipavas
-            "30189001",  # Nîmes - Courbessac
-            "31069001",  # Toulouse - Blagnac
-            "33281001",  # Bordeaux - Mérignac
-            "35281001",  # Rennes - St Jacques
-            "36063001",  # Châteauroux - Déols
-            "44020001",  # Nantes - Atlantique
-            "45055001",  # Orléans - Bricy
-            "47091001",  # Agen - La Garenne
-            "51183001",  # Reims - Courcy
-            "51449002",  # Reims - Prunay
-            "54526001",  # Nancy - Essey
-            "58160001",  # Nevers - Marzy
-            "59343001",  # Lille - Lesquin
-            "63113001",  # Clermont-Ferrand - Aulnat
-            "64549001",  # Pau - Uzein
-            "66136001",  # Perpignan - Rivesaltes
-            "67124001",  # Strasbourg - Entzheim
-            "69029001",  # Lyon - Bron
-            "72181001",  # Le Mans - Arnage
-            "73054001",  # Bourg - St-Maurice
-            "75114001",  # Paris - Montsouris
-            "86027001",  # Poitiers - Biard
-        )
+    if stations_itn is None:
+        stations_itn = DEFAULT_ITN_STATIONS_LIST
 
-    stations, temp_daily = read_temperatures(stations_itn)
+    stations, temp_daily = read_temperatures_gateway(stations_itn)
 
     daily_records_by_station = separate_by_station(
         temp_daily,
@@ -244,7 +170,9 @@ def calculate_return_itn(stations_itn: tuple[str] = ()) -> np.array:
         freq="D",
     )
 
-    if ("Reims-Courcy" in stations["nom"]) and ("Reims-Prunay" in stations["nom"]):
+    if (REIMS_COURCY_ID in stations["id"].values) and (
+        REIMS_PRUNAY_ID in stations["id"].values
+    ):
         daily_records_by_station_corr = correct_temperatures_Reims(
             daily_records_by_station
         )
