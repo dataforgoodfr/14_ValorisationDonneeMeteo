@@ -54,14 +54,14 @@ def read_temperatures(
     -------
     stations: pandas.core.frame.DataFrame
           data of the stations extracted
-    temp_hourly: pandas.core.frame.DataFrame
-          hourly measurement of the air, min and max temperature
     temp_daily: pandas.core.frame.DataFrame
           daily record of the min, max and 'mean' temperature
     """
 
     sql_request = """SELECT
-                       *
+                       id,
+                       code,
+                       nom
                     FROM
                        weather_station
                  """
