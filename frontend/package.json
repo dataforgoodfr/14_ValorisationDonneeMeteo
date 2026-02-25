@@ -11,8 +11,8 @@
         "generate": "nuxt generate",
         "preview": "nuxt preview",
         "postinstall": "nuxt prepare",
-        "lint": "eslint .",
-        "lint:fix": "npx nuxi prepare && npm run lint -- --fix",
+        "lint": "eslint --ext .js,.ts,.vue .",
+        "lint:fix": "npm run lint -- --fix",
         "format": "prettier --write '**/*.{js,ts,vue,css,json,html}'",
         "test:unit": "vitest run",
         "check": "npm run lint:fix && npm run format && npm run lint"

@@ -1,0 +1,9 @@
+---
+- name: Install tailscale
+  hosts: test
+  become: yes
+  tasks:
+    - name: Install tailscale
+      shell: |
+        curl -fsSL https://tailscale.com/install.sh | sh
+        tailscale up --authkey={{ tailscale_auth_key }} --ssh --advertise-tags=tag:staging-vm --reset

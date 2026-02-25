@@ -77,51 +77,85 @@ jobs:
             ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-frontend:${{ env.IMAGE_TAG }}
             ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-frontend:latest
 
-      - name: Setup SSH
-        run: |
-          mkdir -p ~/.ssh
-          echo "${{ secrets.SSH_PRIVATE_KEY_TEST }}" > ~/.ssh/id_ed25519
-          chmod 600 ~/.ssh/id_ed25519
-          ssh-keyscan -H ${{ secrets.TEST_HOST }} >> ~/.ssh/known_hosts
+      # - name: Setup SSH
+      #   run: |
+      #     mkdir -p ~/.ssh
+      #     echo "${{ secrets.SSH_PRIVATE_KEY_TEST }}" > ~/.ssh/id_ed25519
+      #     chmod 600 ~/.ssh/id_ed25519
+      #     ssh-keyscan -H ${{ secrets.TEST_HOST }} >> ~/.ssh/known_hosts
+
+
+
+      # - name: Change backend name image in the compose file
+      #   run: |
+      #     ssh ${{ secrets.TEST_USER }}@${{ secrets.TEST_HOST }} << 'EOF'
+      #     sudo sed -i "s|image: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-backend.*|image: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-backend:${{ env.IMAGE_TAG }}|" /opt/valorisationdonneemeteo/docker-compose.yml
+      #     EOF
+
+
+      # - name: Change frontend name image in the compose file
+      #   run: |
+      #     ssh ${{ secrets.TEST_USER }}@${{ secrets.TEST_HOST }} << 'EOF'
+      #     sudo sed -i "s|image: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-frontend.*|image: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-frontend:${{ env.IMAGE_TAG }}|" /opt/valorisationdonneemeteo/docker-compose.yml
+      #     EOF
+
+
+
+
+
+
+      # # - name: Create .env file
+      # #   run: |
+      # #     cat > .env <<EOF
+      # #     DEBUG=False
+      # #     SECRET_KEY=${{ secrets.SECRET_KEY_TEST}}
+      # #     ALLOWED_HOSTS=${{ secrets.ALLOWED_HOSTS_TEST }}
+      # #     DB_NAME=${{ secrets.DB_NAME_TEST }}
+      # #     DB_USER=${{ secrets.DB_USER_TEST }}
+      # #     DB_PASSWORD=${{ secrets.DB_PASSWORD_TEST }}
+      # #     DB_HOST=${{ secrets.DB_HOST_TEST }}
+      # #     DB_PORT=${{ secrets.DB_PORT_TEST }}
+      # #     CORS_ALLOWED_ORIGINS=${{ secrets.CORS_ALLOWED_ORIGINS_TEST }}
+      # #     NUXT_PUBLIC_API_BASE=${{ secrets.NUXT_PUBLIC_API_BASE_TEST }}
+      # #     EOF
+
+
+
+      # - name: Clean up & Deploy
+      #   run: |
+      #     ssh ${{ secrets.TEST_USER }}@${{ secrets.TEST_HOST }} << 'EOF'
+      #       sudo docker compose -f /opt/valorisationdonneemeteo/docker-compose.yml down --remove-orphans
+      #       sudo docker compose -f /opt/valorisationdonneemeteo/docker-compose.yml pull
+      #       sudo docker compose -f /opt/valorisationdonneemeteo/docker-compose.yml up -d
+      #       sudo docker image prune -f
+      #     EOF
+# test with tailscale connexion
+      - name: Connect to Tailscale
+        uses: tailscale/github-action@v4
+        with:
+          oauth-client-id: ${{ secrets.TS_OAUTH_CLIENT_ID }}
+          oauth-secret: ${{ secrets.TS_OAUTH_SECRET }}
+          tags: tag:ci
+          version: latest
+
+
 
       - name: Change backend name image in the compose file
         run: |
-          ssh ${{ secrets.TEST_USER }}@${{ secrets.TEST_HOST }} << 'EOF'
+          ssh ${{ secrets.TEST_USER }}@${{ secrets.TEST_HOST_TAILSCALE }} << 'EOF'
           sudo sed -i "s|image: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-backend.*|image: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-backend:${{ env.IMAGE_TAG }}|" /opt/valorisationdonneemeteo/docker-compose.yml
           EOF
 
 
       - name: Change frontend name image in the compose file
         run: |
-          ssh ${{ secrets.TEST_USER }}@${{ secrets.TEST_HOST }} << 'EOF'
+          ssh ${{ secrets.TEST_USER }}@${{ secrets.TEST_HOST_TAILSCALE }} << 'EOF'
           sudo sed -i "s|image: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-frontend.*|image: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-frontend:${{ env.IMAGE_TAG }}|" /opt/valorisationdonneemeteo/docker-compose.yml
           EOF
 
-
-
-
-
-
-      # - name: Create .env file
-      #   run: |
-      #     cat > .env <<EOF
-      #     DEBUG=False
-      #     SECRET_KEY=${{ secrets.SECRET_KEY_TEST}}
-      #     ALLOWED_HOSTS=${{ secrets.ALLOWED_HOSTS_TEST }}
-      #     DB_NAME=${{ secrets.DB_NAME_TEST }}
-      #     DB_USER=${{ secrets.DB_USER_TEST }}
-      #     DB_PASSWORD=${{ secrets.DB_PASSWORD_TEST }}
-      #     DB_HOST=${{ secrets.DB_HOST_TEST }}
-      #     DB_PORT=${{ secrets.DB_PORT_TEST }}
-      #     CORS_ALLOWED_ORIGINS=${{ secrets.CORS_ALLOWED_ORIGINS_TEST }}
-      #     NUXT_PUBLIC_API_BASE=${{ secrets.NUXT_PUBLIC_API_BASE_TEST }}
-      #     EOF
-
-
-
       - name: Clean up & Deploy
         run: |
-          ssh ${{ secrets.TEST_USER }}@${{ secrets.TEST_HOST }} << 'EOF'
+          ssh ${{ secrets.TEST_USER }}@${{ secrets.TEST_HOST_TAILSCALE }} << 'EOF'
             sudo docker compose -f /opt/valorisationdonneemeteo/docker-compose.yml down --remove-orphans
             sudo docker compose -f /opt/valorisationdonneemeteo/docker-compose.yml pull
             sudo docker compose -f /opt/valorisationdonneemeteo/docker-compose.yml up -d
