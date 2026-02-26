@@ -18,11 +18,6 @@ const heroLinks = ref<ButtonProps[]>([
         to: "/ecart-normale",
         color: "neutral",
     },
-    {
-        label: "Tester MapLibre",
-        to: "/map-test",
-        color: "neutral",
-    },
 ]);
 </script>
 
