@@ -43,10 +43,6 @@ export default defineNuxtConfig({
             },
             link: [
                 { rel: "icon", type: "image/x-icon", href: "/favicon.ico" },
-                {
-                    rel: "stylesheet",
-                    href: "https://unpkg.com/maplibre-gl@5.18.0/dist/maplibre-gl.css",
-                },
             ],
         },
     },
