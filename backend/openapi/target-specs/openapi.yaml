@@ -82,8 +82,10 @@ paths:
               type: string
           style: form
           explode: false
-          description: Liste d'identifiants de stations spécifiques à inclure pour superposer les graphes.
-          example: ["07149", "07255"]
+          description: >
+            Liste d'identifiants de stations spécifiques à inclure pour superposer les graphes.
+            Si ce paramètre est absent ou vide, et que 'include_national' vaut 'false', l'API retourne une erreur 400.
+          example: "07149,07255"
 
         - name: include_national
           in: query
@@ -91,7 +93,9 @@ paths:
           schema:
             type: boolean
             default: true
-          description: Permet d'afficher ou masquer les données moyennées sur toute la France.
+          description: >
+            Permet d'afficher ou masquer les données moyennées sur toute la France.
+            Si ce paramètre est défini à 'false', et que 'station_ids' est absent ou vide, l'API retourne une erreur 400.
 
       responses:
         "200":
@@ -101,11 +105,8 @@ paths:
               schema:
                 $ref: "#/components/schemas/TemperatureDeviationResponse"
         "400":
-          description: Paramètre invalide ou manquant.
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/Error"
+          $ref: '#/components/responses/BadRequest'
+
   /temperature/extremes:
     get:
       summary: Pics de chaleur et de froid
@@ -542,6 +543,31 @@ components:
                     minimum: 0
                     maximum: 1
                     description: Pourcentage de données disponibles
+
+    TemperatureDeviationPoint:
+      type: object
+      required:
+        - date
+        - deviation
+        - temperature
+        - baseline_mean
+      properties:
+        date:
+          type: string
+          format: date
+        deviation:
+          type: number
+          format: float
+          description: "Écart de température par rapport à la normale (temperature - baseline_mean)"
+        temperature:
+          type: number
+          format: float
+          description: "Température moyenne observée sur la période"
+        baseline_mean:
+          type: number
+          format: float
+          description: "Température moyenne de référence 1991-2020 pour cette période"
+
     TemperatureDeviationResponse:
       type: object
       required:
@@ -574,45 +600,41 @@ components:
           type: array
           description: "Liste des séries de données (moyenne nationale et/ou stations demandées pour superposition)"
           items:
-            type: object
-            required:
-              - is_national
-              - data
-            properties:
-              is_national:
-                type: boolean
-                description: "Vrai s'il s'agit de la moyenne sur toute la France"
-              station_id:
-                type: string
-                description: "Identifiant de la station (absent ou null si is_national=true)"
-              station_name:
-                type: string
-                description: "Nom de la station (utile pour la légende du graphe)"
-              data:
-                type: array
-                items:
-                  type: object
-                  required:
-                    - date
-                    - deviation
-                    - temperature
-                    - baseline_mean
-                  properties:
-                    date:
-                      type: string
-                      format: date
-                    deviation:
-                      type: number
-                      format: float
-                      description: "Écart de température par rapport à la normale (temperature - baseline_mean)"
-                    temperature:
-                      type: number
-                      format: float
-                      description: "Température moyenne observée sur la période"
-                    baseline_mean:
-                      type: number
-                      format: float
-                      description: "Température moyenne de référence 1991-2020 pour cette période"
+            oneOf:
+              - type: object
+                required:
+                  - is_national
+                  - data
+                properties:
+                  is_national:
+                    type: boolean
+                    enum: [true]
+                    description: "Série correspondant à la moyenne nationale"
+                  data:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/TemperatureDeviationPoint"
+              - type: object
+                required:
+                  - is_national
+                  - station_id
+                  - station_name
+                  - data
+                properties:
+                  is_national:
+                    type: boolean
+                    enum: [false]
+                    description: "Série correspondant à une station spécifique"
+                  station_id:
+                    type: string
+                    description: "Identifiant de la station"
+                  station_name:
+                    type: string
+                    description: "Nom de la station (utile pour la légende du graphe)"
+                  data:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/TemperatureDeviationPoint"
     Error:
       type: object
       required:
