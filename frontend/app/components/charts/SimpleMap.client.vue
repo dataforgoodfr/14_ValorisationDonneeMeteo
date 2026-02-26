@@ -1,7 +1,5 @@
 <template>
-    <ClientOnly>
-        <div ref="mapContainer" class="map-wrapper"></div>
-    </ClientOnly>
+    <div ref="mapContainer" class="map-wrapper"></div>
 </template>
 
 <script setup lang="ts">
@@ -18,8 +16,8 @@ onMounted(async () => {
             map = new maplibregl.Map({
                 container: mapContainer.value,
                 style: "https://demotiles.maplibre.org/style.json",
-                center: [2.3522, 48.8566],
-                zoom: 4,
+                center: [1.8752, 46.6061],
+                zoom: 5,
             });
         } catch (error) {
             console.error("Error creating map:", error);
@@ -37,6 +35,6 @@ onUnmounted(() => {
 <style scoped>
 .map-wrapper {
     width: 100%;
-    height: 600px;
+    height: 800px;
 }
 </style>
