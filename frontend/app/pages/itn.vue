@@ -5,6 +5,7 @@
 
 <script setup lang="ts">
 import CombinedChart from "~/components/charts/CombinedChart.vue";
+import ItnChart from "~/components/charts/ItnChart.vue";
 import PagesHero from "~/components/layout/PagesHero.vue";
 import SelectBar from "~/components/ui/itn/selectBar.vue";
 
@@ -26,6 +27,7 @@ const heroData = {
         />
         <div>
             <SelectBar />
+            <ItnChart />
             <CombinedChart />
         </div>
     </UContainer>
