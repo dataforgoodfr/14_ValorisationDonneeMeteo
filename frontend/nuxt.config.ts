@@ -14,8 +14,12 @@ export default defineNuxtConfig({
         "@nuxt/fonts",
         "@nuxt/icon",
         "nuxt-echarts",
+<<<<<<< HEAD
         "@pinia/nuxt",
         "@primevue/nuxt-module",
+=======
+        'nuxt-maplibre',
+>>>>>>> f063928 (feat: add maplibre module to Nuxt)
     ],
 
     runtimeConfig: {
