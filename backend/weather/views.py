@@ -155,7 +155,6 @@ class NationalIndicatorAPIView(APIView):
 
         params = q.validated_data
 
-        # Génération fake
         ds = TimescaleNationalIndicatorDailyDataSource()
         data = compute_national_indicator(data_source=ds, **params)
         metadata = {
