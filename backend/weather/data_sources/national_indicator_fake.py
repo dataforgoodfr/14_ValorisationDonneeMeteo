@@ -5,7 +5,7 @@ import math
 import random
 
 from weather.services.national_indicator.service import compute_national_indicator
-from weather.services.national_indicator.types import DailyPoint
+from weather.services.national_indicator.types import DailyPoint, DailySeriesQuery
 from weather.services.time_windows import iter_days_intersecting
 
 
@@ -15,15 +15,17 @@ class FakeNationalIndicatorDailyDataSource:
 
     def fetch_daily_series(
         self,
-        *,
-        date_start: dt.date,
-        date_end: dt.date,
-        seed: int | None = None,
+        query: DailySeriesQuery,
     ) -> list[DailyPoint]:
         rng = random.Random(self._seed)
         out: list[DailyPoint] = []
 
-        for d in iter_days_intersecting(date_start, date_end):
+        if query.target_dates is not None:
+            days = query.target_dates
+        else:
+            days = tuple(iter_days_intersecting(query.date_start, query.date_end))
+
+        for d in days:
             baseline_mean, sigma, bmin, bmax = _climatology_for_date(d)
             temperature = baseline_mean + rng.gauss(0.0, sigma)
 

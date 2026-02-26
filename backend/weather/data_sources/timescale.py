@@ -15,7 +15,7 @@ from weather.services.national_indicator.stations import (
     expected_reims_code,
     expected_station_codes,
 )
-from weather.services.national_indicator.types import DailyPoint
+from weather.services.national_indicator.types import DailyPoint, DailySeriesQuery
 
 
 @dataclass(frozen=True)
@@ -65,19 +65,21 @@ class TimescaleNationalIndicatorDailyDataSource(NationalIndicatorDailyDataSource
 
     def fetch_daily_series(
         self,
-        *,
-        date_start: dt.date,
-        date_end: dt.date,
+        query: DailySeriesQuery,
     ) -> list[DailyPoint]:
-        rows = (
-            Quotidienne.objects.filter(
-                date__gte=date_start,
-                date__lte=date_end,
-                station__code__in=ITN_STATION_CODES_FOR_QUERY,
-                tntxm__isnull=False,
-            )
-            .values_list("date", "station__code", "tntxm")
-            .order_by("date", "station__code")
+        qs = Quotidienne.objects.filter(
+            date__gte=query.date_start,
+            date__lte=query.date_end,
+            station__code__in=ITN_STATION_CODES_FOR_QUERY,
+            tntxm__isnull=False,
+        )
+
+        # Réduction volumétrie: si on a une liste exacte de dates à prélever
+        if query.target_dates is not None:
+            qs = qs.filter(date__in=query.target_dates)
+
+        rows = qs.values_list("date", "station__code", "tntxm").order_by(
+            "date", "station__code"
         )
 
         out: list[DailyPoint] = []

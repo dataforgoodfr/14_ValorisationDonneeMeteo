@@ -16,6 +16,7 @@ from weather.services.national_indicator.stations import (
     REIMS_SWITCH_DATE,
     expected_reims_code,
 )
+from weather.services.national_indicator.types import DailySeriesQuery
 
 
 def make_station(code: str) -> Station:
@@ -67,8 +68,12 @@ def test_fetch_daily_series_happy_path_one_day_baseline_mean_equals_temperature(
     mk_day(itn_stations, day, always_val=10.0, reims_val=40.0)
 
     ds = TimescaleNationalIndicatorDailyDataSource()
-    series = ds.fetch_daily_series(date_start=day, date_end=day)
-
+    series = ds.fetch_daily_series(
+        DailySeriesQuery(
+            date_start=day,
+            date_end=day,
+        )
+    )
     assert len(series) == 1
     p = series[0]
     assert p.date == day
@@ -81,8 +86,12 @@ def test_fetch_daily_series_drop_if_incomplete_day(itn_stations):
     mk_day(itn_stations, day, incomplete=True)
 
     ds = TimescaleNationalIndicatorDailyDataSource()
-    series = ds.fetch_daily_series(date_start=day, date_end=day)
-
+    series = ds.fetch_daily_series(
+        DailySeriesQuery(
+            date_start=day,
+            date_end=day,
+        )
+    )
     assert series == []
 
 
@@ -99,8 +108,12 @@ def test_fetch_daily_series_accepts_double_reims_and_uses_expected(itn_stations)
     QuotidienneFactory(station=itn_stations[REIMS_COURCY], date=day, tntxm=999.0)
 
     ds = TimescaleNationalIndicatorDailyDataSource()
-    series = ds.fetch_daily_series(date_start=day, date_end=day)
-
+    series = ds.fetch_daily_series(
+        DailySeriesQuery(
+            date_start=day,
+            date_end=day,
+        )
+    )
     assert len(series) == 1
     assert series[0].temperature == (29 * 10.0 + 30.0) / 30.0
 
@@ -116,8 +129,12 @@ def test_fetch_daily_series_multiple_days_keeps_only_valid_days_sorted(itn_stati
     mk_day(itn_stations, day3, always_val=10.0, reims_val=40.0)
 
     ds = TimescaleNationalIndicatorDailyDataSource()
-    series = ds.fetch_daily_series(date_start=day1, date_end=day3)
-
+    series = ds.fetch_daily_series(
+        DailySeriesQuery(
+            date_start=day1,
+            date_end=day3,
+        )
+    )
     assert [p.date for p in series] == [day1, day3]
     assert series[0].temperature == (29 * 10.0 + 20.0) / 30.0
     assert series[1].temperature == (29 * 10.0 + 40.0) / 30.0
