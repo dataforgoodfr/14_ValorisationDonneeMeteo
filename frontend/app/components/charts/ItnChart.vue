@@ -174,8 +174,8 @@ const option = ref<ECOption>({
         source: data.time_series,
     },
     grid: {
-        left: 0,
-        right: 0,
+        left: 10,
+        right: 10,
         containLabel: true,
     },
     xAxis: {
