@@ -25,9 +25,11 @@ const heroData = {
             :title="heroData.title"
             :description="heroData.description"
         />
-        <div>
-            <SelectBar />
-            <ItnChart />
+        <div
+            class="inline-flex flex-col divide-y divide-gray-200 border border-gray-200 rounded-lg overflow-hidden w-fit"
+        >
+            <SelectBar class="px-3 py-2" />
+            <ItnChart class="px-3 py-2" />
             <CombinedChart />
         </div>
     </UContainer>

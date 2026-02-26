@@ -154,16 +154,13 @@ const data = {
 // provide init-options
 const renderer = ref<"svg" | "canvas">("svg");
 const initOptions = computed(() => ({
+    width: "auto",
     height: 600,
     renderer: renderer.value,
 }));
 provide(INIT_OPTIONS_KEY, initOptions);
 
 const option = ref<ECOption>({
-    title: {
-        left: "center",
-        text: "Indicateur Thermique National",
-    },
     dataset: {
         dimensions: [
             "date",
@@ -175,6 +172,11 @@ const option = ref<ECOption>({
             "baseline_min",
         ],
         source: data.time_series,
+    },
+    grid: {
+        left: 0,
+        right: 0,
+        containLabel: true,
     },
     xAxis: {
         type: "time",
