@@ -1,5 +1,4 @@
 <template>
-    <p>linechart</p>
     <VChart :option="option" autoresize />
 </template>
 
