@@ -181,18 +181,37 @@ paths:
       description: |
         Liste les records de température (min/max) battus sur une période donnée.
 
-        **Documentation des paramètres et schémas à compléter**
       operationId: getTemperatureRecords
       tags:
         - Temperature
-      parameters: []
+      parameters: 
+        - name: searchspan
+          in: query
+          description: Intervalle de recherche
+          schema:
+            type: string
+            example: "1991-2026"
+
       responses:
         '200':
           description: Succès
           content:
             application/json:
               schema:
-                type: object
+                $ref: '#/components/schemas/TemperatureRecordsResponse'
+              examples:
+                paris_area:
+                  summary: Records de température
+                  value:
+                    stations:
+                      - id: "07149"
+                        name: "Orly"
+                        min: -7.2
+                        max: +32.1
+                        mindate: "1954-02-01"
+                        maxdate: "2025-07-25"
+
+              
         '400':
           $ref: '#/components/responses/BadRequest'
 
@@ -206,7 +225,9 @@ paths:
       operationId: getCumulativeRecords
       tags:
         - Temperature
-      parameters: []
+      parameters: [
+      
+      ]
       responses:
         '200':
           description: Succès
@@ -706,6 +727,52 @@ components:
             details:
               type: object
               additionalProperties: true
+
+    TemperatureRecordsResponse:
+      type: object
+      required:
+        - stationsrecord
+      properties:
+        stations:
+          type: array
+          items:
+            type: object
+            required:
+              - id
+              - name
+              - min
+              - max
+              - mnindate
+              - maxdate              
+            properties:
+              id:
+                type: string
+                description: Identifiant unique de la station (ex "07149")
+              name:
+                type: string
+              min:
+                type: number
+                format: float
+                minimum: -70
+                maximum: 100
+                description: valeur minimale de tempéature enregistrée sur la station pour la période
+              max:
+                type: number
+                format: float
+                minimum: -70
+                maximum: 100
+                description: valeur maximale de tempéature enregistrée sur la station pour la période
+              mindate:
+                type: string
+                format: date
+                description: horodate (UTC) d'enregistrement de la valeur maximale de tempéature pour la station pour la période
+              maxdate:
+                type: string
+                format: date
+                description: horodate (UTC) d'enregistrement de la valeur maximale de tempéature pour la station pour la période
+              
+        
+
 
   responses:
     BadRequest:
