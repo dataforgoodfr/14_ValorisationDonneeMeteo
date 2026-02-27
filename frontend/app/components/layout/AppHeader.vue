@@ -73,7 +73,7 @@ const items = computed<NavigationMenuItem[]>(() => [
                 content-orientation="vertical"
                 :items="items"
                 :ui="{
-                    content: 'sm:w-80',
+                    content: 'min-w-fit',
                     link: 'border border-default rounded-md text-black',
                     list: 'gap-2',
                 }"

@@ -1,18 +1,70 @@
 <script setup lang="ts">
-import monthRangeDatePicker from "./monthRangeDatePicker.vue";
+import { useItnStore } from "#imports";
+import { storeToRefs } from "pinia";
+import MonthlyDatePicker from "./monthlyDatePicker.vue";
+import DailyDatePicker from "./dailyDatePicker.vue";
 
-// Granularity Selection
-const granularity = ref([
-    { label: "Jour", value: "day", disabled: true },
+const { granularity, slice_type } = storeToRefs(useItnStore());
+
+const isMeanType = ref(false);
+
+// Granularity Selection values
+const granularityValues = reactive([
+    { label: "Jour", value: "day" },
     { label: "Mois", value: "month" },
-    { label: "Année", value: "year", disabled: true },
+    { label: "Année", value: "year" },
 ]);
-const granularityValue = ref("Mois");
+
+// Slice Type Selection values
+const sliceTypeValues = reactive([
+    { label: "Jour", value: "day" },
+    { label: "Mois", value: "month" },
+    { label: "Année", value: "year" },
+]);
 </script>
 
 <template>
-    <div class="flex gap-6">
-        <USelect v-model="granularityValue" :items="granularity" />
-        <monthRangeDatePicker />
+    <div class="flex gap-6 px-3 py-2">
+        <div id="main-filter" class="flex gap-6">
+            <UFormField label="Granularité" name="granularity">
+                <USelect
+                    v-model="granularity"
+                    :items="granularityValues"
+                    name="granularity"
+                />
+            </UFormField>
+
+            <!-- <monthRangeDatePicker /> -->
+            <MonthlyDatePicker v-if="granularity === 'month'" />
+            <DailyDatePicker v-if="granularity === 'day'" />
+
+            <USeparator
+                orientation="vertical"
+                class="w-px bg-gray-200 self-stretch"
+            />
+            <USwitch
+                v-model="isMeanType"
+                disabled
+                unchecked-icon="i-lucide-x"
+                checked-icon="i-lucide-check"
+                label="Type de moyenne"
+                :ui="{
+                    root: 'flex-col justify-between text-center items-center',
+                    container: 'my-auto',
+                }"
+            />
+
+            <UFormField
+                v-if="isMeanType"
+                label="Type de moyenne"
+                name="slice_type"
+            >
+                <USelect
+                    v-model="slice_type"
+                    placeholder="Type de moyenne"
+                    :items="sliceTypeValues"
+                />
+            </UFormField>
+        </div>
     </div>
 </template>
