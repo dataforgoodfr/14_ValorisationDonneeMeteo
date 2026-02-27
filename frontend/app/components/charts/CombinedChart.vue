@@ -6,7 +6,7 @@
 import { INIT_OPTIONS_KEY } from "vue-echarts";
 import type { TopLevelFormatterParams } from "echarts/types/dist/shared.js";
 import { GetChartData, TimeAxisType } from "~~/public/ChartDataProvider";
-import 'echarts/lib/component/toolbox';
+import "echarts/lib/component/toolbox";
 
 // provide init-options
 const renderer = ref<"svg" | "canvas">("canvas");

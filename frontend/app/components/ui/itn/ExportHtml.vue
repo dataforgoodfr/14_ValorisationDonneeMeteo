@@ -1,18 +1,21 @@
 <template>
-    <UButton id="exportHtmlButton" color="neutral" @click="exportHtmlFnc">Export en HTML</UButton>
+    <UButton id="exportHtmlButton" color="neutral" @click="exportHtmlFnc"
+        >Export en HTML</UButton
+    >
 </template>
 
-
 <script setup lang="ts">
-import * as echarts from 'echarts';
+import * as echarts from "echarts";
 
-async function exportHtmlFnc(){
+async function exportHtmlFnc() {
     const img = new Image();
-    const chart = echarts.getInstanceByDom(document.getElementById('itnCombinedChart'));
+    const chart = echarts.getInstanceByDom(
+        document.getElementById("itnCombinedChart"),
+    );
     img.src = chart.getDataURL({
-        type:"png",
+        type: "png",
         pixelRatio: 2,
-        backgroundColor: '#fff'
+        backgroundColor: "#fff",
     });
 
     const response = await fetch(img.src);
@@ -23,5 +26,4 @@ async function exportHtmlFnc(){
     window.open(fileURL, "_blank");
     URL.revokeObjectURL(fileURL);
 }
-
 </script>
