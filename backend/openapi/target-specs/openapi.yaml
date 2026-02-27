@@ -95,11 +95,11 @@ paths:
 
       responses:
         "200":
-          description: Séries temporelles de l'écart à la normale (France et/ou stations).
+          description: Succès
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/TemperatureDeviationResponse"
+                type: object
         "400":
           description: Paramètre invalide ou manquant.
           content:
