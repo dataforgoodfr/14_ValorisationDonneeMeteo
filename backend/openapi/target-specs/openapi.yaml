@@ -228,10 +228,10 @@ paths:
                     stations:
                       - id: "07149"
                         name: "Orly"
-                        min: -7.2
-                        max: +32.1
-                        mindate: "1954-02-01"
-                        maxdate: "2025-07-25"
+                        TNN: -7.2
+                        TXX: +32.1
+                        TNN_date: "1954-02-01"
+                        TXX_date: "2025-07-25"
 
               
         '400':
@@ -762,39 +762,36 @@ components:
             required:
               - id
               - name
-              - record_min
-              - record_max
-              - record_min_date
-              - record_max_date
+              - TNN
+              - TXX
+              - TNN_date
+              - TXX_date
             properties:
               id:
                 type: string
                 description: Identifiant unique de la station (ex "07149")
               name:
                 type: string
-              record_min:
+              TNN:
                 type: number
                 format: float
                 minimum: -70
                 maximum: 100
-                description: valeur minimale de tempéature enregistrée sur la station pour la période
-              record_max:
+                description: valeur minimale de température enregistrée sur la station pour la période
+              TXX:
                 type: number
                 format: float
                 minimum: -70
                 maximum: 100
-                description: valeur maximale de tempéature enregistrée sur la station pour la période
-              record_min_date:
+                description: valeur maximale de température enregistrée sur la station pour la période
+              TNN_date:
                 type: string
                 format: date
-                description: horodate (UTC) d'enregistrement de la valeur maximale de tempéature pour la station pour la période
-              record_max_date:
+                description: horodate (UTC) d'enregistrement de la valeur maximale de température pour la station pour la période
+              TXX_date:
                 type: string
                 format: date
-                description: horodate (UTC) d'enregistrement de la valeur maximale de tempéature pour la station pour la période
-              
-        
-
+                description: horodate (UTC) d'enregistrement de la valeur maximale de température pour la station pour la période
 
   responses:
     BadRequest:
