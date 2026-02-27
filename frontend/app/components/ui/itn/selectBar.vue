@@ -8,7 +8,6 @@ import SliceType from "./sliceType.vue";
 import ExportCsv from "./ExportCsv.vue";
 import ExportPng from "./ExportPng.vue";
 import ExportHtml from "./ExportHtml.vue";
-import monthRangeDatePicker from "./monthRangeDatePicker.vue";
 
 const itnStore = useItnStore();
 const { granularity, sliceTypeSwitchEnabled } = storeToRefs(useItnStore());
@@ -76,12 +75,8 @@ const granularityValues = reactive([
                 <SliceType v-if="sliceTypeSwitchEnabled" />
             </div>
             <ExportPng />
+            <ExportHtml />
+            <ExportCsv />
         </div>
-    <div class="flex gap-6">
-        <USelect v-model="granularityValue" :items="granularity" />
-        <monthRangeDatePicker />
-        <ExportPng />
-        <ExportHtml />
-        <ExportCsv />
     </div>
 </template>

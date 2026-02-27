@@ -10,30 +10,45 @@ import { formatFileName } from "~~/public/utils";
 
 async function exportPngFnc() {
     const img = new Image();
-    const chart = echarts.getInstanceByDom(
-        document.getElementById("itnCombinedChart"),
-    );
-    img.src = chart.getDataURL({
-        type: "png",
-        pixelRatio: 2,
-        backgroundColor: "#fff",
-    });
+    const itnCombinedChartElement = document.getElementById("itnCombinedChart");
+    if (itnCombinedChartElement != null) {
+        const chart = echarts.getInstanceByDom(itnCombinedChartElement);
 
-    const response = await fetch(img.src);
+        if (chart) {
+            img.src = chart.getDataURL({
+                type: "png",
+                pixelRatio: 2,
+                backgroundColor: "#fff",
+            });
 
-    const blobImage = await response.blob();
+            const response = await fetch(img.src);
 
-    const href = URL.createObjectURL(blobImage);
+            const blobImage = await response.blob();
 
-    const anchorElement = document.createElement("a");
-    anchorElement.href = href;
-    // ATTENTION : l'intervalle de temps est codé en dur !
-    anchorElement.download = formatFileName("mois", "20251001_to_20251231");
+            const href = URL.createObjectURL(blobImage);
 
-    document.body.appendChild(anchorElement);
-    anchorElement.click();
+            const anchorElement = document.createElement("a");
+            anchorElement.href = href;
+            // ATTENTION : l'intervalle de temps est codé en dur !
+            anchorElement.download = formatFileName(
+                "mois",
+                "20251001_to_20251231",
+            );
 
-    document.body.removeChild(anchorElement);
-    window.URL.revokeObjectURL(href);
+            document.body.appendChild(anchorElement);
+            anchorElement.click();
+
+            document.body.removeChild(anchorElement);
+            window.URL.revokeObjectURL(href);
+        } else {
+            throw showError(
+                "La variable 'chart' est 'undefined'. Veuillez contacter votre administrateur.",
+            );
+        }
+    } else {
+        throw showError(
+            "La balise html 'itnCombinedChart' n'existe pas. Veuillez contacter votre administrateur.",
+        );
+    }
 }
 </script>
