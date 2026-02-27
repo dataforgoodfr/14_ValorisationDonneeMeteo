@@ -1,8 +1,7 @@
 <script setup lang="ts">
 import { useItnStore } from "~/stores/itnStore";
 import { storeToRefs } from "pinia";
-
-import { useCustomDate } from "~/composables/useCustomDate";
+import { useCustomDate } from "#imports";
 
 const itnStore = useItnStore();
 const { picked_date_start, picked_date_end } = storeToRefs(itnStore);
