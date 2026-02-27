@@ -17,21 +17,7 @@ from weather.services.national_indicator.stations import (
     expected_reims_code,
 )
 from weather.services.national_indicator.types import DailySeriesQuery
-
-
-def make_station(code: str) -> Station:
-    return Station.objects.create(
-        code=code,
-        nom=f"ITN {code}",
-        lat=1.0,
-        lon=1.0,
-        alt=1.0,
-        departement=0,
-        type_poste=1,
-        poste_public=True,
-        poste_ouvert=True,
-        frequence="horaire",
-    )
+from weather.tests.conftest import make_station
 
 
 @pytest.fixture()
