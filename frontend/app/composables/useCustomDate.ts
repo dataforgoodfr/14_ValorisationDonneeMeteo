@@ -14,7 +14,6 @@ export function useCustomDate() {
         });
         return dateFormatterYYYMM.format(date.toDate(getLocalTimeZone()));
     };
-
     const todayYYYYMD = computed(() => {
         const today = new Date();
         return new CalendarDate(today.getFullYear(), today.getMonth() + 1, 1);
@@ -30,15 +29,9 @@ export function useCustomDate() {
         return new CalendarDate(today.getFullYear() - 1, today.getMonth() + 1, 1);
     });
 
-    // First date with meteo data
-    // const absoluteMinDataDateYYYYMD = new CalendarDate(1946, 1, 1);
-    const absoluteMinDataDateYYYYMD = new CalendarDate(2020, 1, 1);
+    const absoluteMinDataDateYYYYMD = computed(() => new CalendarDate(1946, 1, 1));
 
     return {
-        monthYearDisplay,
-        todayYYYYMD,
-        twoDaysAgoYYYMD,
-        lastYearYYYYMD,
-        absoluteMinDataDateYYYYMD,
+        monthYearDisplay, todayYYYYMD, twoDaysAgoYYYMD, lastYearYYYYMD, absoluteMinDataDateYYYYMD
     };
 }
