@@ -41,7 +41,7 @@ def itn_stations(db) -> dict[str, Station]:
     return {code: make_station(code) for code in codes}
 
 
-def mk_day(
+def seed_itn_day(
     itn_stations: dict[str, Station],
     day: dt.date,
     *,
@@ -65,7 +65,7 @@ def test_fetch_daily_series_happy_path_one_day_baseline_mean_equals_temperature(
     itn_stations,
 ):
     day = dt.date(2025, 1, 1)
-    mk_day(itn_stations, day, always_val=10.0, reims_val=40.0)
+    seed_itn_day(itn_stations, day, always_val=10.0, reims_val=40.0)
 
     ds = TimescaleNationalIndicatorDailyDataSource()
     series = ds.fetch_daily_series(
@@ -83,7 +83,7 @@ def test_fetch_daily_series_happy_path_one_day_baseline_mean_equals_temperature(
 @pytest.mark.django_db
 def test_fetch_daily_series_drop_if_incomplete_day(itn_stations):
     day = dt.date(2025, 1, 1)
-    mk_day(itn_stations, day, incomplete=True)
+    seed_itn_day(itn_stations, day, incomplete=True)
 
     ds = TimescaleNationalIndicatorDailyDataSource()
     series = ds.fetch_daily_series(
@@ -124,9 +124,9 @@ def test_fetch_daily_series_multiple_days_keeps_only_valid_days_sorted(itn_stati
     day2 = dt.date(2025, 1, 2)
     day3 = dt.date(2025, 1, 3)
 
-    mk_day(itn_stations, day1, always_val=10.0, reims_val=20.0)
-    mk_day(itn_stations, day2, incomplete=True)  # drop
-    mk_day(itn_stations, day3, always_val=10.0, reims_val=40.0)
+    seed_itn_day(itn_stations, day1, always_val=10.0, reims_val=20.0)
+    seed_itn_day(itn_stations, day2, incomplete=True)  # drop
+    seed_itn_day(itn_stations, day3, always_val=10.0, reims_val=40.0)
 
     ds = TimescaleNationalIndicatorDailyDataSource()
     series = ds.fetch_daily_series(
