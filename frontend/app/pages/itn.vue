@@ -14,9 +14,6 @@ const heroData = {
     description:
         "L'Indicateur Thermique National est la température moyenne mesurée à l'échelle du pays (moyenne des températures minimales et maximales sur 30 stations météorologiques réparties de manière équilibrée en France).",
 };
-
-// TODO : uncomment below when "useNationalIndicator" is working
-// const { data, status, error } = await useNationalIndicator(params);
 </script>
 
 <template>

@@ -1,37 +1,25 @@
 <script setup lang="ts">
-import { useCustomDate } from "#imports";
+import { useItnStore } from "#imports";
+import { storeToRefs } from "pinia";
 import monthRangeDatePicker from "./monthRangeDatePicker.vue";
-import type { CalendarDate } from "@internationalized/date";
 
-const date = useCustomDate();
-const selectState = reactive({
-    date_start: date.lastYearYYYYMD.value,
-    date_end: date.twoDaysAgoYYYMD.value,
-    granularity: "month" as "year" | "month" | "day",
-    slice_type: undefined as
-        | undefined
-        | "full"
-        | "month_of_year"
-        | "day_of_month",
-    month_of_year: undefined as undefined | number,
-    day_of_month: undefined as undefined | number,
-});
-
-// Granularity Selection
-const granularity = ref([
-    { label: "Jour", value: "day", disabled: true },
-    { label: "Mois", value: "month" },
-    { label: "Année", value: "year", disabled: true },
-]);
+const { granularity, slice_type } = storeToRefs(useItnStore());
 
 const isMeanType = ref(false);
 
-const meanType = ref([
+// Granularity Selection values
+const granularityValues = reactive([
     { label: "Jour", value: "day" },
     { label: "Mois", value: "month" },
     { label: "Année", value: "year" },
 ]);
-const meanTypeValue = ref("");
+
+// Slice Type Selection values
+const sliceTypeValues = reactive([
+    { label: "Jour", value: "day" },
+    { label: "Mois", value: "month" },
+    { label: "Année", value: "year" },
+]);
 </script>
 
 <template>
@@ -39,22 +27,13 @@ const meanTypeValue = ref("");
         <div id="main-filter" class="flex gap-6">
             <UFormField label="Granularité" name="granularity">
                 <USelect
-                    v-model="selectState.granularity"
-                    :items="granularity"
+                    v-model="granularity"
+                    :items="granularityValues"
                     name="granularity"
                 />
             </UFormField>
 
-            <monthRangeDatePicker
-                :start-month="selectState.date_start"
-                :end-month="selectState.date_end"
-            />
-            <USeparator
-                orientation="vertical"
-                class="w-px bg-gray-200 self-stretch"
-            />
-            <UButton type="submit"> Rafraichir </UButton>
-
+            <monthRangeDatePicker />
             <USeparator
                 orientation="vertical"
                 class="w-px bg-gray-200 self-stretch"
@@ -76,9 +55,9 @@ const meanTypeValue = ref("");
                 name="slice_type"
             >
                 <USelect
-                    v-model="meanTypeValue"
+                    v-model="slice_type"
                     placeholder="Type de moyenne"
-                    :items="meanType"
+                    :items="sliceTypeValues"
                 />
             </UFormField>
         </div>
