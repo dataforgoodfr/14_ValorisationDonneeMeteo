@@ -27,7 +27,6 @@ const heroData = {
         >
             <SelectBar />
             <ItnChart class="px-3 py-2" />
-            <CombinedChart />
         </div>
     </UContainer>
 </template>
