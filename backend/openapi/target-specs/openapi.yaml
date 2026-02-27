@@ -184,20 +184,30 @@ paths:
       operationId: getTemperatureRecords
       tags:
         - Temperature
-      parameters: 
-        - name: searchspan
+      parameters:
+        - name: date_start
           in: query
-          description: Intervalle de recherche
+          required: true
           schema:
             type: string
-            example: "1991-2026"
-        - name: namefilter
+            format: date
+          description: Date de début incluse (YYYY-MM-DD).
+          example: "1990-01-01"
+        - name: date_end
+          in: query
+          required: true
+          schema:
+            type: string
+            format: date
+          description: Date de fin incluse (YYYY-MM-DD).
+          example: "2024-12-31"
+        - name: station_name_filter
           in: query
           description: filtre sur le nom de la station
           schema:
             type: string
             example: "par"
-        - name: departementfilter
+        - name: departement_filter
           in: query
           description: filtre sur le département de la station
           schema:
@@ -752,33 +762,33 @@ components:
             required:
               - id
               - name
-              - min
-              - max
-              - mnindate
-              - maxdate              
+              - record_min
+              - record_max
+              - record_min_date
+              - record_max_date
             properties:
               id:
                 type: string
                 description: Identifiant unique de la station (ex "07149")
               name:
                 type: string
-              min:
+              record_min:
                 type: number
                 format: float
                 minimum: -70
                 maximum: 100
                 description: valeur minimale de tempéature enregistrée sur la station pour la période
-              max:
+              record_max:
                 type: number
                 format: float
                 minimum: -70
                 maximum: 100
                 description: valeur maximale de tempéature enregistrée sur la station pour la période
-              mindate:
+              record_min_date:
                 type: string
                 format: date
                 description: horodate (UTC) d'enregistrement de la valeur maximale de tempéature pour la station pour la période
-              maxdate:
+              record_max_date:
                 type: string
                 format: date
                 description: horodate (UTC) d'enregistrement de la valeur maximale de tempéature pour la station pour la période
