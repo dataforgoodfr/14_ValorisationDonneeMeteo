@@ -99,13 +99,13 @@ paths:
 
       responses:
         "200":
-          description: Succès
+          description: Séries temporelles de l'écart à la normale (France et/ou stations).
           content:
             application/json:
               schema:
-                type: object
+                $ref: "#/components/schemas/TemperatureDeviationResponse"
         "400":
-          $ref: "#/components/responses/BadRequest"
+          $ref: '#/components/responses/BadRequest'
 
   /temperature/extremes:
     get:
