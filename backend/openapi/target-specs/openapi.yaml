@@ -191,6 +191,18 @@ paths:
           schema:
             type: string
             example: "1991-2026"
+        - name: namefilter
+          in: query
+          description: filtre sur le nom de la station
+          schema:
+            type: string
+            example: "par"
+        - name: departementfilter
+          in: query
+          description: filtre sur le département de la station
+          schema:
+            type: string
+            example: "31"
 
       responses:
         '200':
