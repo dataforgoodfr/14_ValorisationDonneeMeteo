@@ -4,6 +4,7 @@ import datetime as dt
 
 import pytest
 
+from weather.bootstrap_itn import ITNDependencyProvider
 from weather.factories.weather import QuotidienneFactory
 from weather.models import Station
 from weather.services.national_indicator.stations import (
@@ -51,3 +52,9 @@ def seed_itn_day(itn_stations):
         QuotidienneFactory(station=itn_stations[reims_code], date=day, tntxm=reims_val)
 
     return _seed
+
+
+@pytest.fixture(autouse=True)
+def reset_itn_dependency():
+    yield
+    ITNDependencyProvider.reset()

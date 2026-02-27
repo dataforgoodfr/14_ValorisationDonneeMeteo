@@ -6,16 +6,55 @@ import pytest
 from django.urls import reverse
 from rest_framework.test import APIClient
 
+from weather.bootstrap_itn import ITNDependencyProvider
+from weather.services.national_indicator.protocols import (
+    NationalIndicatorDailyDataSource,
+)
+from weather.services.national_indicator.types import (
+    DailyPoint,
+    DailySeriesQuery,
+)
+
 pytestmark = pytest.mark.django_db
 
 
 def test_get_national_indicator_month_happy_path(client, seed_itn_day):
-    # 2 jours seedés en janvier
-    d1 = dt.date(2025, 1, 1)
-    d2 = dt.date(2025, 1, 2)
+    class InMemoryITNDependency(NationalIndicatorDailyDataSource):
+        def fetch_daily_series(
+            self,
+            query: DailySeriesQuery,
+        ) -> list[DailyPoint]:
+            if query.target_dates is not None:
+                days = query.target_dates
+            else:
+                days = self._iter_days(query.date_start, query.date_end)
 
-    seed_itn_day(d1, always_val=10.0, reims_val=20.0)  # ITN1
-    seed_itn_day(d2, always_val=10.0, reims_val=40.0)  # ITN2
+            out = []
+
+            for d in days:
+                out.append(
+                    DailyPoint(
+                        date=d,
+                        temperature=10.0,
+                        baseline_mean=9.0,
+                        baseline_std_dev_upper=11.0,
+                        baseline_std_dev_lower=7.0,
+                        baseline_max=15.0,
+                        baseline_min=5.0,
+                    )
+                )
+
+            return out
+
+        @staticmethod
+        def _iter_days(start: dt.date, end: dt.date):
+            d = start
+            one = dt.timedelta(days=1)
+            while d <= end:
+                yield d
+                d += one
+
+    ITNDependencyProvider.set_builder(InMemoryITNDependency)
 
     url = reverse("temperature-national-indicator")
     resp = client.get(
@@ -38,12 +77,10 @@ def test_get_national_indicator_month_happy_path(client, seed_itn_day):
     ts = payload["time_series"]
     assert len(ts) == 1
 
-    itn1 = (29 * 10.0 + 20.0) / 30.0
-    itn2 = (29 * 10.0 + 40.0) / 30.0
-    expected_month = (itn1 + itn2) / 2
+    expected_itn_month = 10
 
     # compute_national_indicator arrondit à 2 décimales
-    assert ts[0]["temperature"] == round(expected_month, 2)
+    assert ts[0]["temperature"] == round(expected_itn_month, 2)
 
 
 def test_get_national_indicator_missing_required_parameter_returns_400():
