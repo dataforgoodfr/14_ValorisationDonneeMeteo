@@ -1,5 +1,4 @@
 <template>
-    <p>barchart</p>
     <VChart :option="option" autoresize />
 </template>
 

@@ -7,12 +7,14 @@ export default defineNuxtConfig({
     devtools: { enabled: true }, // false for production
 
     modules: [
-        "@nuxt/eslint",
-        "@nuxt/test-utils",
-        "@nuxt/ui",
-        "@nuxt/image",
-        "@nuxt/fonts",
-        "nuxt-echarts",
+      "@nuxt/eslint",
+      "@nuxt/test-utils",
+      "@nuxt/ui",
+      "@nuxt/image",
+      "@nuxt/fonts",
+      '@nuxt/icon',
+      "nuxt-echarts",
+      "@pinia/nuxt",
     ],
 
     runtimeConfig: {
