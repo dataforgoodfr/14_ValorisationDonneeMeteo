@@ -34,24 +34,78 @@ paths:
   /temperature/deviation:
     get:
       summary: Écart de température à la normale
-      description: |
-        Récupère les données d'écart de température par rapport à une baseline de référence (défaut: 1991-2020).
-        Permet des comparaisons temporelles et géographiques.
-
-        **Documentation des paramètres et schémas à compléter**
+      description: >
+        Récupère les données d'écart de température par rapport à la normale (baseline fixe 1991-2020).
+        Permet de comparer l'écart à la normale moyen en France avec celui de stations spécifiques.
+        La granularité temporelle est ajustable (jour, mois, année) pour s'adapter à l'axe des abscisses.
       operationId: getTemperatureDeviation
       tags:
         - Temperature
-      parameters: []
+      parameters:
+        - name: date_start
+          in: query
+          required: true
+          schema:
+            type: string
+            format: date
+          description: Date de début incluse (YYYY-MM-DD).
+          example: "2025-02-01"
+
+        - name: date_end
+          in: query
+          required: true
+          schema:
+            type: string
+            format: date
+          description: Date de fin incluse (YYYY-MM-DD).
+          example: "2026-01-31"
+
+        - name: granularity
+          in: query
+          required: true
+          schema:
+            type: string
+            enum: [ year, month, day ]
+          description: >
+            Unité de l'axe des abscisses.
+            - year : agrégation par année
+            - month : agrégation par mois
+            - day : agrégation par jour
+          example: month
+
+        - name: station_ids
+          in: query
+          required: false
+          schema:
+            type: array
+            items:
+              type: string
+          style: form
+          explode: false
+          description: >
+            Liste d'identifiants de stations spécifiques à inclure pour superposer les graphes.
+            Si ce paramètre est absent ou vide, et que 'include_national' vaut 'false', l'API retourne une erreur 400.
+          example: "07149,07255"
+
+        - name: include_national
+          in: query
+          required: false
+          schema:
+            type: boolean
+            default: true
+          description: >
+            Permet d'afficher ou masquer les données moyennées sur toute la France.
+            Si ce paramètre est défini à 'false', et que 'station_ids' est absent ou vide, l'API retourne une erreur 400.
+
       responses:
         "200":
-          description: Succès
+          description: Séries temporelles de l'écart à la normale (France et/ou stations).
           content:
             application/json:
               schema:
-                type: object
+                $ref: "#/components/schemas/TemperatureDeviationResponse"
         "400":
-          $ref: "#/components/responses/BadRequest"
+          $ref: '#/components/responses/BadRequest'
 
   /temperature/extremes:
     get:
@@ -519,6 +573,97 @@ components:
                     maximum: 1
                     description: Pourcentage de données disponibles
 
+    TemperatureDeviationPoint:
+      type: object
+      required:
+        - date
+        - deviation
+        - temperature
+        - baseline_mean
+      properties:
+        date:
+          type: string
+          format: date
+        deviation:
+          type: number
+          format: float
+          description: "Écart de température par rapport à la normale (temperature - baseline_mean)"
+        temperature:
+          type: number
+          format: float
+          description: "Température moyenne observée sur la période"
+        baseline_mean:
+          type: number
+          format: float
+          description: "Température moyenne de référence 1991-2020 pour cette période"
+
+    TemperatureDeviationResponse:
+      type: object
+      required:
+        - metadata
+        - series
+      properties:
+        metadata:
+          type: object
+          required:
+            - date_start
+            - date_end
+            - baseline
+            - granularity
+          properties:
+            date_start:
+              type: string
+              format: date
+            date_end:
+              type: string
+              format: date
+            baseline:
+              type: string
+              description: "Période de référence fixe imposée par les règles métier."
+              example: "1991-2020"
+            granularity:
+              type: string
+              enum: [year, month, day]
+              description: "Granularité de la série (axe X)."
+        series:
+          type: array
+          description: "Liste des séries de données (moyenne nationale et/ou stations demandées pour superposition)"
+          items:
+            oneOf:
+              - type: object
+                required:
+                  - is_national
+                  - data
+                properties:
+                  is_national:
+                    type: boolean
+                    enum: [true]
+                    description: "Série correspondant à la moyenne nationale"
+                  data:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/TemperatureDeviationPoint"
+              - type: object
+                required:
+                  - is_national
+                  - station_id
+                  - station_name
+                  - data
+                properties:
+                  is_national:
+                    type: boolean
+                    enum: [false]
+                    description: "Série correspondant à une station spécifique"
+                  station_id:
+                    type: string
+                    description: "Identifiant de la station"
+                  station_name:
+                    type: string
+                    description: "Nom de la station (utile pour la légende du graphe)"
+                  data:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/TemperatureDeviationPoint"
     Error:
       type: object
       required:
