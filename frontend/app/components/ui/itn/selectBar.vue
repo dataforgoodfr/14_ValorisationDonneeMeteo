@@ -7,7 +7,6 @@ import DayPicker from "./dayPicker.vue";
 import ExportCsv from "./ExportCsv.vue";
 import ExportPng from "./ExportPng.vue";
 import ExportHtml from "./ExportHtml.vue";
-import monthRangeDatePicker from "./monthRangeDatePicker.vue";
 
 const { granularity, slice_type } = storeToRefs(useItnStore());
 
@@ -71,12 +70,8 @@ const sliceTypeValues = reactive([
                 />
             </UFormField>
             <ExportPng />
+            <ExportHtml />
+            <ExportCsv />
         </div>
-    <div class="flex gap-6">
-        <USelect v-model="granularityValue" :items="granularity" />
-        <monthRangeDatePicker />
-        <ExportPng />
-        <ExportHtml />
-        <ExportCsv />
     </div>
 </template>
