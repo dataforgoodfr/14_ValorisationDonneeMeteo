@@ -28,7 +28,6 @@ const itnStore = useItnStore();
 // provide init-options
 const renderer = ref<"svg" | "canvas">("svg");
 const initOptions = computed(() => ({
-    width: "auto",
     height: 600,
     renderer: renderer.value,
 }));
@@ -45,15 +44,16 @@ const option = computed<ECOption>(() => ({
             "baseline_max",
             "baseline_min",
         ],
-        source: itnStore.itnData?.time_series.map((point) => ({
-            date: point.date,
-            temperature: point.temperature,
-            baseline_mean: point.baseline_mean,
-            baseline_std_dev_upper: point.baseline_std_dev_upper,
-            baseline_std_dev_lower: point.baseline_std_dev_lower,
-            baseline_max: point.baseline_max,
-            baseline_min: point.baseline_min,
-        })),
+        source:
+            itnStore.itnData?.time_series.map((point) => ({
+                date: point.date,
+                temperature: point.temperature,
+                baseline_mean: point.baseline_mean,
+                baseline_std_dev_upper: point.baseline_std_dev_upper,
+                baseline_std_dev_lower: point.baseline_std_dev_lower,
+                baseline_max: point.baseline_max,
+                baseline_min: point.baseline_min,
+            })) ?? [],
     },
     grid: {
         left: 10,
