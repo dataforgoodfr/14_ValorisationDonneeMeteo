@@ -5,13 +5,33 @@ import type {
 
 export function useNationalIndicator(
     params: MaybeRef<NationalIndicatorParams>,
+    enabled?: MaybeRef<boolean>,
 ) {
     const { useApiFetch } = useApiClient();
 
-    return useApiFetch<NationalIndicatorResponse>(
+    if (enabled === undefined) {
+        return useApiFetch<NationalIndicatorResponse>(
+            "/temperature/national-indicator",
+            { query: params },
+        );
+    }
+
+    const isEnabled = toRef(enabled);
+
+    const result = useApiFetch<NationalIndicatorResponse>(
         "/temperature/national-indicator",
         {
             query: params,
+            immediate: isEnabled.value,
+            watch: false,
         },
     );
+
+    watch([isEnabled, params], () => {
+        if (isEnabled.value) {
+            result.execute();
+        }
+    });
+
+    return result;
 }
