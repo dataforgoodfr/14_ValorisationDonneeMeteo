@@ -33,7 +33,19 @@ export const useItnStore = defineStore('itnStore', () => {
         day_of_month: day_of_month.value,
     }));
 
-    const { data: itnData, pending, error } = useNationalIndicator(params);
+    const isParamsValid = computed(() => {
+        const min = dates.absoluteMinDataDateYYYYMD.value;
+        const max = dates.twoDaysAgoYYYMD.value;
+        const start = picked_date_start.value;
+        const end = picked_date_end.value;
+        return (
+            start.compare(min) >= 0 &&
+            end.compare(max) <= 0 &&
+            start.compare(end) <= 0
+        );
+    });
 
-    return { picked_date_start, picked_date_end, granularity, slice_type, month_of_year, day_of_month, itnData, pending, error }
+    const { data: itnData, pending, error } = useNationalIndicator(params, isParamsValid);
+
+    return { picked_date_start, picked_date_end, granularity, slice_type, month_of_year, day_of_month, itnData, pending, error, isParamsValid }
 })

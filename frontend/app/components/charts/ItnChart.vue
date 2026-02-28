@@ -69,5 +69,11 @@ const option = computed<ECOption>(() => ({
 </script>
 
 <template>
-    <VChart :option="option" :init-options="initOptions" autoresize />
+    <VChart
+        :option="option"
+        :init-options="initOptions"
+        :loading="itnStore.pending"
+        :loading-options="{ text: 'Chargement…', color: '#3b82f6' }"
+        autoresize
+    />
 </template>
