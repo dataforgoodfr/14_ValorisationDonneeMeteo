@@ -1,37 +1,26 @@
-import {
-    CalendarDate,
-    DateFormatter,
-    getLocalTimeZone,
-} from "@internationalized/date";
-
 export function useCustomDate() {
 
-    // Return only month and year : (YYYY, M)
-    const monthYearDisplay = (date: CalendarDate) => {
-        const dateFormatterYYYMM = new DateFormatter("en-US", {
-            year: "numeric",
-            month: "long",
-        });
-        return dateFormatterYYYMM.format(date.toDate(getLocalTimeZone()));
-    };
-    const todayYYYYMD = computed(() => {
-        const today = new Date();
-        return new CalendarDate(today.getFullYear(), today.getMonth() + 1, 1);
+    const twoDaysAgo = computed(() => {
+        const todayDate = new Date();
+        todayDate.setDate(todayDate.getDate() - 2)
+
+        return new Date(todayDate)
     });
 
-    const twoDaysAgoYYYMD = computed(() => {
-        const twoDaysAgoDate = new Date();
-        return new CalendarDate(twoDaysAgoDate.getFullYear(), twoDaysAgoDate.getMonth() + 1, twoDaysAgoDate.getDate() - 2);
+    const lastYear = computed(() => {
+        const todayDate = new Date();
+        todayDate.setFullYear(todayDate.getFullYear() - 1)
+
+        return new Date(todayDate)
     });
 
-    const lastYearYYYYMD = computed(() => {
-        const today = new Date();
-        return new CalendarDate(today.getFullYear() - 1, today.getMonth() + 1, 1);
-    });
+    const absoluteMinDataDate = computed(() => {
+        const minDataDate = new Date(1946, 0, 1)
 
-    const absoluteMinDataDateYYYYMD = computed(() => new CalendarDate(1946, 1, 1));
+        return minDataDate
+    });
 
     return {
-        monthYearDisplay, todayYYYYMD, twoDaysAgoYYYMD, lastYearYYYYMD, absoluteMinDataDateYYYYMD
+        twoDaysAgo, lastYear, absoluteMinDataDate
     };
 }

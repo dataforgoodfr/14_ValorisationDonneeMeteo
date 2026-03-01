@@ -1,23 +1,14 @@
-import { CalendarDate } from "@internationalized/date";
 import type { NationalIndicatorParams } from "~/types/api";
 import { useCustomDate } from "#imports";
 
-// Stores a CalendarDate as a serializable POJO ref, exposes it as a writable computed.
-// Required because Pinia serializes ref state for SSR and CalendarDate is not a POJO.
-function calendarDateRef(initial: CalendarDate) {
-    const raw = ref({ year: initial.year, month: initial.month, day: initial.day });
-    return computed<CalendarDate>({
-        get: () => new CalendarDate(raw.value.year, raw.value.month, raw.value.day),
-        set: (val) => { raw.value = { year: val.year, month: val.month, day: val.day } },
-    });
-}
+
 
 const dates = useCustomDate()
 
 export const useItnStore = defineStore('itnStore', () => {
 
-    const picked_date_start = calendarDateRef(dates.lastYearYYYYMD.value);
-    const picked_date_end = calendarDateRef(dates.twoDaysAgoYYYMD.value);
+    const picked_date_start = ref(dates.lastYear.value);
+    const picked_date_end = ref(dates.twoDaysAgo.value);
 
     const granularity = ref("month" as "year" | "month" | "day")
     const slice_type = ref<undefined | "full" | "month_of_year" | "day_of_month">(undefined)
@@ -33,19 +24,8 @@ export const useItnStore = defineStore('itnStore', () => {
         day_of_month: day_of_month.value,
     }));
 
-    const isParamsValid = computed(() => {
-        const min = dates.absoluteMinDataDateYYYYMD.value;
-        const max = dates.twoDaysAgoYYYMD.value;
-        const start = picked_date_start.value;
-        const end = picked_date_end.value;
-        return (
-            start.compare(min) >= 0 &&
-            end.compare(max) <= 0 &&
-            start.compare(end) <= 0
-        );
-    });
 
-    const { data: itnData, pending, error } = useNationalIndicator(params, isParamsValid);
+    const { data: itnData, pending, error } = useNationalIndicator(params);
 
-    return { picked_date_start, picked_date_end, granularity, slice_type, month_of_year, day_of_month, itnData, pending, error, isParamsValid }
+    return { picked_date_start, picked_date_end, granularity, slice_type, month_of_year, day_of_month, itnData, pending, error }
 })

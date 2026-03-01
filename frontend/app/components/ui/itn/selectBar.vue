@@ -1,8 +1,9 @@
 <script setup lang="ts">
 import { useItnStore } from "#imports";
 import { storeToRefs } from "pinia";
-import MonthlyDatePicker from "./monthlyDatePicker.vue";
-import DailyDatePicker from "./dailyDatePicker.vue";
+import MonthPicker from "./monthPicker.vue";
+import YearPicker from "./yearPicker.vue";
+import DayPicker from "./dayPicker.vue";
 
 const { granularity, slice_type } = storeToRefs(useItnStore());
 
@@ -34,9 +35,9 @@ const sliceTypeValues = reactive([
                 />
             </UFormField>
 
-            <!-- <monthRangeDatePicker /> -->
-            <MonthlyDatePicker v-if="granularity === 'month'" />
-            <DailyDatePicker v-if="granularity === 'day'" />
+            <DayPicker v-if="granularity === 'day'" />
+            <MonthPicker v-if="granularity === 'month'" />
+            <YearPicker v-if="granularity === 'year'" />
 
             <USeparator
                 orientation="vertical"
