@@ -122,6 +122,7 @@ const pt = {
                 v-model="picked_date_end"
                 :min-date="picked_date_start"
                 :max-date="dates.twoDaysAgo.value"
+                date-format="dd/mm/yy"
                 :pt="pt"
                 unstyled
                 append-to="self"
