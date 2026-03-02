@@ -1,6 +1,5 @@
 import datetime as dt
 
-from weather.bootstrap_itn import ITNDependencyProvider
 from weather.services.national_indicator.protocols import (
     NationalIndicatorDailyDataSource,
 )
@@ -35,8 +34,6 @@ class FakeDailySeriesDS(NationalIndicatorDailyDataSource):
 
 def test_itn_acceptance_month_day_of_month_clamp():
     ds = FakeDailySeriesDS(lambda d: d.day)
-    ITNDependencyProvider.set_builder(lambda: ds)
-
     res = compute_national_indicator(
         data_source=ds,
         date_start=dt.date(2025, 1, 1),
