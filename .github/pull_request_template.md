@@ -4,7 +4,7 @@
 - [ ] Refactor
 - [ ] Chore / Tech debt
 - [ ] Documentation
-- [ ] Autre (à préciser)
+- [ ] c'est po nice
 
 ## Objectif
 <!-- Problème résolu ou fonctionnalité apportée. Une phrase claire. -->
