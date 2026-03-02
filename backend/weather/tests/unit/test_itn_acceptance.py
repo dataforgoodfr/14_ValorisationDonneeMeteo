@@ -82,5 +82,8 @@ def test_itn_acceptance_year_day_of_month_with_month_and_clamp_leap_year():
 
     ts = res["time_series"]
     assert len(ts) == 2
-    assert ts[0]["temperature"] == 29.0  # 2024 bissextile
-    assert ts[1]["temperature"] == 28.0  # 2025 non bissextile
+    assert ts[0]["date"] == dt.date(2024, 2, 29).isoformat()  # 2024 bissextile
+    assert ts[1]["date"] == dt.date(2025, 2, 28).isoformat()  # 2025 non bissextile
+
+    assert ts[0]["temperature"] == 29.0
+    assert ts[1]["temperature"] == 28.0
