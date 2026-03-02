@@ -15,7 +15,7 @@ from weather.services.national_indicator.stations import (
 )
 
 
-def _build_complete_itn_mapping(
+def _build_station_code_to_fixed_temperature_map(
     day: dt.date,
     *,
     reims_station_temperature: float = 20.0,
@@ -47,7 +47,7 @@ def test_expected_station_codes_reims_at_switch_is_prunay():
 
 def test_compute_itn_ok_returns_mean_over_30_slots():
     day = dt.date(2025, 1, 1)
-    m = _build_complete_itn_mapping(
+    m = _build_station_code_to_fixed_temperature_map(
         day, reims_station_temperature=40.0, always_station_temperature=10.0
     )
     itn = compute_itn_for_day(day, m)
@@ -56,7 +56,7 @@ def test_compute_itn_ok_returns_mean_over_30_slots():
 
 def test_compute_itn_drop_if_missing_any_always_station():
     day = dt.date(2025, 1, 1)
-    m = _build_complete_itn_mapping(day)
+    m = _build_station_code_to_fixed_temperature_map(day)
     m.pop(next(iter(ITN_ALWAYS_STATION_CODES)))
     assert compute_itn_for_day(day, m) is None
 
@@ -71,7 +71,7 @@ def test_compute_itn_drop_if_missing_expected_reims():
 def test_compute_itn_accepts_double_reims_and_keeps_expected_one():
     # après le pivot => Prunay attendue
     day = REIMS_SWITCH_DATE
-    m = _build_complete_itn_mapping(
+    m = _build_station_code_to_fixed_temperature_map(
         day, reims_station_temperature=30.0, always_station_temperature=10.0
     )
     # ajoute l'autre Reims (Courcy) avec une valeur "piège"
@@ -84,6 +84,6 @@ def test_compute_itn_accepts_double_reims_and_keeps_expected_one():
 
 def test_compute_itn_drop_if_extra_station_not_allowed():
     day = dt.date(2025, 1, 1)
-    m = _build_complete_itn_mapping(day)
+    m = _build_station_code_to_fixed_temperature_map(day)
     m["99999999"] = 12.3  # station parasite
     assert compute_itn_for_day(day, m) is None
