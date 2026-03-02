@@ -1,19 +1,20 @@
+from __future__ import annotations
+
 from collections.abc import Callable
 
-from weather.data_sources.timescale import TimescaleNationalIndicatorDailyDataSource
 from weather.services.national_indicator.protocols import (
     NationalIndicatorDailyDataSource,
 )
 
 
-class ITNDependencyProvider:
-    """
-    Point unique de câblage de la datasource ITN.
-    """
+def _default_builder() -> NationalIndicatorDailyDataSource:
+    from weather.data_sources.timescale import TimescaleNationalIndicatorDailyDataSource
 
-    _builder: Callable[[], NationalIndicatorDailyDataSource] = (
-        TimescaleNationalIndicatorDailyDataSource
-    )
+    return TimescaleNationalIndicatorDailyDataSource()
+
+
+class ITNDependencyProvider:
+    _builder: Callable[[], NationalIndicatorDailyDataSource] = _default_builder
 
     @classmethod
     def set_builder(
@@ -27,4 +28,4 @@ class ITNDependencyProvider:
 
     @classmethod
     def reset(cls) -> None:
-        cls._builder = TimescaleNationalIndicatorDailyDataSource
+        cls._builder = _default_builder

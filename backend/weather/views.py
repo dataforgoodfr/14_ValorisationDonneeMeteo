@@ -8,6 +8,7 @@ from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
+from weather.bootstrap_itn import ITNDependencyProvider
 from weather.services.national_indicator.use_case import get_national_indicator
 
 from .filters import HoraireTempsReelFilter, QuotidienneFilter, StationFilter
@@ -151,7 +152,8 @@ class NationalIndicatorAPIView(APIView):
             )
 
         params = q.validated_data
-        data = get_national_indicator(**params)
+        ds = ITNDependencyProvider.get_dep()
+        data = get_national_indicator(data_source=ds, **params)
         metadata = {
             "date_start": params["date_start"],
             "date_end": params["date_end"],
