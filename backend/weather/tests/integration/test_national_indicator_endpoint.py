@@ -1,7 +1,5 @@
 from __future__ import annotations
 
-import datetime as dt
-
 import pytest
 from django.urls import reverse
 from rest_framework.test import APIClient
@@ -14,6 +12,7 @@ from weather.services.national_indicator.types import (
     DailyPoint,
     DailySeriesQuery,
 )
+from weather.utils.date_range import iter_days_intersecting
 
 pytestmark = pytest.mark.django_db
 
@@ -27,7 +26,7 @@ def test_get_national_indicator_month_happy_path(client, seed_itn_day):
             if query.target_dates is not None:
                 days = query.target_dates
             else:
-                days = self._iter_days(query.date_start, query.date_end)
+                days = iter_days_intersecting(query.date_start, query.date_end)
 
             out = []
 
@@ -45,14 +44,6 @@ def test_get_national_indicator_month_happy_path(client, seed_itn_day):
                 )
 
             return out
-
-        @staticmethod
-        def _iter_days(start: dt.date, end: dt.date):
-            d = start
-            one = dt.timedelta(days=1)
-            while d <= end:
-                yield d
-                d += one
 
     ITNDependencyProvider.set_builder(InMemoryITNDependency)
 

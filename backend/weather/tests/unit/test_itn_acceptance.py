@@ -6,6 +6,7 @@ from weather.services.national_indicator.protocols import (
 )
 from weather.services.national_indicator.service import compute_national_indicator
 from weather.services.national_indicator.types import DailyPoint, DailySeriesQuery
+from weather.utils.date_range import iter_days_intersecting
 
 
 class FakeDailySeriesDS(NationalIndicatorDailyDataSource):
@@ -16,7 +17,7 @@ class FakeDailySeriesDS(NationalIndicatorDailyDataSource):
         if query.target_dates is not None:
             days = query.target_dates
         else:
-            days = tuple(self._iter_days(query.date_start, query.date_end))
+            days = tuple(iter_days_intersecting(query.date_start, query.date_end))
 
         return [
             DailyPoint(
@@ -30,14 +31,6 @@ class FakeDailySeriesDS(NationalIndicatorDailyDataSource):
             )
             for d in days
         ]
-
-    @staticmethod
-    def _iter_days(start: dt.date, end: dt.date):
-        d = start
-        one = dt.timedelta(days=1)
-        while d <= end:
-            yield d
-            d += one
 
 
 def test_itn_acceptance_month_day_of_month_clamp():

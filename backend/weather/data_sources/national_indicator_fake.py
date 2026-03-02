@@ -6,7 +6,7 @@ import random
 
 from weather.services.national_indicator.service import compute_national_indicator
 from weather.services.national_indicator.types import DailyPoint, DailySeriesQuery
-from weather.services.time_windows import iter_days_intersecting
+from weather.utils.date_range import iter_days_intersecting
 
 
 class FakeNationalIndicatorDailyDataSource:

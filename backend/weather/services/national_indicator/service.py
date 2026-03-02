@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import datetime as dt
 
-from weather.utils.dates import (
+from weather.utils.date_range import (
     days_in_month_in_range,
     monthly_points_in_range,
     yearly_points_in_range,
