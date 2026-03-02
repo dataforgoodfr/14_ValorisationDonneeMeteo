@@ -18,6 +18,20 @@ from weather.services.national_indicator.stations import (
 from weather.services.national_indicator.types import DailyPoint, DailySeriesQuery
 
 
+def _normalize_reims(
+    day: dt.date, station_code_to_temp_map: dict[str, float]
+) -> dict[str, float]:
+    reims_expected = expected_reims_code(day)
+    reims_other = REIMS_PRUNAY if reims_expected == REIMS_COURCY else REIMS_COURCY
+
+    if reims_other not in station_code_to_temp_map:
+        return station_code_to_temp_map
+
+    m = dict(station_code_to_temp_map)
+    m.pop(reims_other, None)
+    return m
+
+
 @dataclass(frozen=True)
 class BaselineStub:
     """
@@ -36,21 +50,19 @@ class BaselineStub:
         return temperature - 1
 
 
-def compute_itn_for_day(day: dt.date, mapping: dict[str, float]) -> float | None:
+def compute_itn_for_day(
+    day: dt.date, station_code_to_temp_map: dict[str, float]
+) -> float | None:
     expected_stations_for_day = expected_station_codes(day)
-    reims_expected = expected_reims_code(day)
-    reims_other = REIMS_PRUNAY if reims_expected == REIMS_COURCY else REIMS_COURCY
 
     # Normalisation : ignorer l'autre Reims si elle existe
-    if reims_other in mapping:
-        mapping = dict(mapping)
-        mapping.pop(reims_other)
-
+    station_code_to_temp_map = _normalize_reims(day, station_code_to_temp_map)
     # Égalité stricte sur les 30 slots
-    if set(mapping.keys()) != expected_stations_for_day:
+    computed_stations_codes = set(station_code_to_temp_map.keys())
+    if computed_stations_codes != expected_stations_for_day:
         return None
 
-    return sum(mapping[c] for c in expected_stations_for_day) / 30.0
+    return sum(station_code_to_temp_map[c] for c in expected_stations_for_day) / 30.0
 
 
 class TimescaleNationalIndicatorDailyDataSource(NationalIndicatorDailyDataSource):
@@ -86,12 +98,13 @@ class TimescaleNationalIndicatorDailyDataSource(NationalIndicatorDailyDataSource
 
         # rows: Iterable[tuple[date, str, float]]
         for day, day_rows in groupby(rows, key=lambda r: r[0]):
-            mapping: dict[str, float] = {}
+            station_code_to_temp_map: dict[str, float] = {}
             for _, station_code, tntxm in day_rows:
                 # en cas de doublon station/jour, on écrase (ne devrait pas arriver)
-                mapping[str(station_code)] = float(tntxm)
+                station_code_to_temp_map[str(station_code)] = float(tntxm)
 
-            itn = compute_itn_for_day(day, mapping)
+            itn = compute_itn_for_day(day, station_code_to_temp_map)
+            print(f"itn : {itn}")
             if itn is None:
                 continue  # drop le point
 
