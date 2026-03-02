@@ -9,7 +9,7 @@ export const useItnStore = defineStore("itnStore", () => {
 
     const granularity = ref("month" as "year" | "month" | "day");
     const slice_type = ref<
-        undefined | "full" | "month_of_year" | "day_of_month"
+        undefined | "full" | "month_of_year" | "month_of_month"
     >(undefined);
     const month_of_year = ref<undefined | number>(undefined);
     const day_of_month = ref<undefined | number>(undefined);
