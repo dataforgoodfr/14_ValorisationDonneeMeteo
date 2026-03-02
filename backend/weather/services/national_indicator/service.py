@@ -2,7 +2,11 @@ from __future__ import annotations
 
 import datetime as dt
 
-from weather.utils.dates import clamp_day_to_month_end
+from weather.utils.dates import (
+    days_in_month_in_range,
+    monthly_points_in_range,
+    yearly_points_in_range,
+)
 
 from .aggregation import aggregate
 from .protocols import NationalIndicatorDailyDataSource
@@ -34,16 +38,11 @@ def compute_target_dates(
         if month_of_year is None:
             raise ValueError("month_of_year ne doit pas être None")
 
-        # On veut tous les jours du mois X entre date_start et date_end
-        # => on construit la liste exacte des dates à garder.
-        out: list[dt.date] = []
-        d = date_start
-        one_day = dt.timedelta(days=1)
-        while d <= date_end:
-            if d.month == month_of_year:
-                out.append(d)
-            d += one_day
-        return tuple(out)
+        return days_in_month_in_range(
+            date_start=date_start,
+            date_end=date_end,
+            month=month_of_year,
+        )
 
     # slice_type == "day_of_month"
     if day_of_month is None:
@@ -51,42 +50,22 @@ def compute_target_dates(
 
     if granularity == "month":
         # 1 point par mois: (année, mois) -> clamp(day_of_month) -> date
-        out: list[dt.date] = []
-        y, m = date_start.year, date_start.month
-
-        def next_month(year: int, month: int) -> tuple[int, int]:
-            if month == 12:
-                return year + 1, 1
-            return year, month + 1
-
-        # On itère mois par mois sur l'intervalle
-        while True:
-            first = dt.date(y, m, 1)
-            if first > date_end:
-                break
-
-            target_day = clamp_day_to_month_end(y, m, day_of_month)
-            candidate = dt.date(y, m, target_day)
-
-            if date_start <= candidate <= date_end:
-                out.append(candidate)
-
-            y, m = next_month(y, m)
-
-        return tuple(out)
+        return monthly_points_in_range(
+            date_start=date_start,
+            date_end=date_end,
+            day_of_month=day_of_month,
+        )
 
     if granularity == "year":
         # 1 point par année: mois fixé (month_of_year) + clamp(day_of_month)
         if month_of_year is None:
             raise ValueError("month_of_year ne doit pas être None")
-
-        out: list[dt.date] = []
-        for y in range(date_start.year, date_end.year + 1):
-            target_day = clamp_day_to_month_end(y, month_of_year, day_of_month)
-            candidate = dt.date(y, month_of_year, target_day)
-            if date_start <= candidate <= date_end:
-                out.append(candidate)
-        return tuple(out)
+        return yearly_points_in_range(
+            date_start=date_start,
+            date_end=date_end,
+            month=month_of_year,
+            day_of_month=day_of_month,
+        )
 
     # Si granularity == "day", le serializer doit empêcher day_of_month
     return None
