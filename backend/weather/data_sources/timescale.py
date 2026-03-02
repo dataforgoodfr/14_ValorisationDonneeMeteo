@@ -36,8 +36,8 @@ class BaselineStub:
         return temperature - 1
 
 
-def _compute_itn_for_day(day: dt.date, mapping: dict[str, float]) -> float | None:
-    expected = expected_station_codes(day)
+def compute_itn_for_day(day: dt.date, mapping: dict[str, float]) -> float | None:
+    expected_stations_for_day = expected_station_codes(day)
     reims_expected = expected_reims_code(day)
     reims_other = REIMS_PRUNAY if reims_expected == REIMS_COURCY else REIMS_COURCY
 
@@ -47,10 +47,10 @@ def _compute_itn_for_day(day: dt.date, mapping: dict[str, float]) -> float | Non
         mapping.pop(reims_other)
 
     # Égalité stricte sur les 30 slots
-    if set(mapping.keys()) != expected:
+    if set(mapping.keys()) != expected_stations_for_day:
         return None
 
-    return sum(mapping[c] for c in expected) / 30.0
+    return sum(mapping[c] for c in expected_stations_for_day) / 30.0
 
 
 class TimescaleNationalIndicatorDailyDataSource(NationalIndicatorDailyDataSource):
@@ -91,7 +91,7 @@ class TimescaleNationalIndicatorDailyDataSource(NationalIndicatorDailyDataSource
                 # en cas de doublon station/jour, on écrase (ne devrait pas arriver)
                 mapping[str(station_code)] = float(tntxm)
 
-            itn = _compute_itn_for_day(day, mapping)
+            itn = compute_itn_for_day(day, mapping)
             if itn is None:
                 continue  # drop le point
 
