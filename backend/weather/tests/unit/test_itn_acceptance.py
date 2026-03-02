@@ -1,4 +1,5 @@
 import datetime as dt
+from collections.abc import Callable
 
 from weather.services.national_indicator.protocols import (
     NationalIndicatorDailyDataSource,
@@ -9,8 +10,8 @@ from weather.utils.date_range import iter_days_intersecting
 
 
 class FakeDailySeriesDS(NationalIndicatorDailyDataSource):
-    def __init__(self, f):
-        self._f = f
+    def __init__(self, day_to_temp_func: Callable):
+        self._day_to_temp = day_to_temp_func
 
     def fetch_daily_series(self, query: DailySeriesQuery) -> list[DailyPoint]:
         if query.target_dates is not None:
@@ -21,7 +22,7 @@ class FakeDailySeriesDS(NationalIndicatorDailyDataSource):
         return [
             DailyPoint(
                 date=d,
-                temperature=float(self._f(d)),
+                temperature=float(self._day_to_temp(d)),
                 baseline_mean=0.0,
                 baseline_std_dev_upper=0.0,
                 baseline_std_dev_lower=0.0,
