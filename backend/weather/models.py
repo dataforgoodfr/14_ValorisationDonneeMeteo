@@ -4,7 +4,7 @@ Tables are managed by Django with TimescaleDB hypertables via custom migrations.
 """
 
 from django.db import models
-
+#Conflicts with TimescaleDB
 
 class Station(models.Model):
     """Weather station metadata."""
