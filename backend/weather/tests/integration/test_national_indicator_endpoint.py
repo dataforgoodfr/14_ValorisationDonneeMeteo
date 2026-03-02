@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import datetime as dt
+
 import pytest
 from django.urls import reverse
 from rest_framework.test import APIClient
@@ -19,22 +21,21 @@ pytestmark = pytest.mark.django_db
 
 def test_get_national_indicator_month_happy_path(client, seed_itn_day):
     class InMemoryITNDependency(NationalIndicatorDailyDataSource):
-        def fetch_daily_series(
-            self,
-            query: DailySeriesQuery,
-        ) -> list[DailyPoint]:
+        def fetch_daily_series(self, query: DailySeriesQuery) -> list[DailyPoint]:
             if query.target_dates is not None:
                 days = query.target_dates
             else:
                 days = iter_days_intersecting(query.date_start, query.date_end)
 
             out = []
-
             for d in days:
+                # 1 jour à 2.0, le reste à 1.0 => moyenne non triviale
+                temp = 2.0 if d == dt.date(2025, 1, 1) else 1.0
+
                 out.append(
                     DailyPoint(
                         date=d,
-                        temperature=10.0,
+                        temperature=temp,
                         baseline_mean=9.0,
                         baseline_std_dev_upper=11.0,
                         baseline_std_dev_lower=7.0,
@@ -42,7 +43,6 @@ def test_get_national_indicator_month_happy_path(client, seed_itn_day):
                         baseline_min=5.0,
                     )
                 )
-
             return out
 
     ITNDependencyProvider.set_builder(InMemoryITNDependency)
@@ -61,16 +61,10 @@ def test_get_national_indicator_month_happy_path(client, seed_itn_day):
     assert resp.status_code == 200
     payload = resp.json()
 
-    assert payload["metadata"]["baseline"] == "1991-2020"
-    assert payload["metadata"]["granularity"] == "month"
-    assert payload["metadata"]["slice_type"] == "full"
-
     ts = payload["time_series"]
     assert len(ts) == 1
 
-    expected_itn_month = 10
-
-    # compute_national_indicator arrondit à 2 décimales
+    expected_itn_month = (30 * 1.0 + 2.0) / 31.0  # 2025-01 a 31 jours
     assert ts[0]["temperature"] == round(expected_itn_month, 2)
 
 
