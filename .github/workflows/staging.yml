@@ -143,22 +143,22 @@ jobs:
 
       - name: Change backend name image in the compose file
         run: |
-          ssh -o StrictHostKeyChecking=no ${{ secrets.TEST_USER }}@${{ secrets.TEST_HOST_TAILSCALE }} << 'EOF'
-          sudo sed -i "s|image: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-backend.*|image: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-backend:${{ env.IMAGE_TAG }}|" /opt/valorisationdonneemeteo/docker-compose.yml
+          ssh -o StrictHostKeyChecking=no ${{ secrets.CI_USER }}@${{ secrets.CI_TAILSCALE_HOST }} << 'EOF'
+          sudo sed -i "s|image: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-backend.*|image: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-backend:${{ env.IMAGE_TAG }}|" /opt/d4g-staging/docker-compose.yml
           EOF
 
 
       - name: Change frontend name image in the compose file
         run: |
-          ssh -o StrictHostKeyChecking=no ${{ secrets.TEST_USER }}@${{ secrets.TEST_HOST_TAILSCALE }} << 'EOF'
-          sudo sed -i "s|image: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-frontend.*|image: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-frontend:${{ env.IMAGE_TAG }}|" /opt/valorisationdonneemeteo/docker-compose.yml
+          ssh -o StrictHostKeyChecking=no ${{ secrets.CI_USER }}@${{ secrets.CI_TAILSCALE_HOST }} << 'EOF'
+          sudo sed -i "s|image: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-frontend.*|image: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-frontend:${{ env.IMAGE_TAG }}|" /opt/d4g-staging/docker-compose.yml
           EOF
 
       - name: Clean up & Deploy
         run: |
-          ssh -o StrictHostKeyChecking=no ${{ secrets.TEST_USER }}@${{ secrets.TEST_HOST_TAILSCALE }} << 'EOF'
-            sudo docker compose -f /opt/valorisationdonneemeteo/docker-compose.yml down --remove-orphans
-            sudo docker compose -f /opt/valorisationdonneemeteo/docker-compose.yml pull
-            sudo docker compose -f /opt/valorisationdonneemeteo/docker-compose.yml up -d
+          ssh -o StrictHostKeyChecking=no ${{ secrets.CI_USER }}@${{ secrets.CI_TAILSCALE_HOST }} << 'EOF'
+            sudo docker compose -f /opt/d4g-staging/docker-compose.yml down --remove-orphans
+            sudo docker compose -f /opt/d4g-staging/docker-compose.yml pull
+            sudo docker compose -f /opt/d4g-staging/docker-compose.yml up -d
             sudo docker image prune -f
           EOF
