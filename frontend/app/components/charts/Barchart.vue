@@ -1,9 +1,9 @@
 <template>
-    <p>barchart</p>
     <VChart :option="option" autoresize />
 </template>
 
 <script setup lang="ts">
+import { INIT_OPTIONS_KEY } from "vue-echarts";
 import { provide } from "vue";
 import { GetChartData, TimeAxisType } from "~~/public/ChartDataProvider"; // provide init-options
 

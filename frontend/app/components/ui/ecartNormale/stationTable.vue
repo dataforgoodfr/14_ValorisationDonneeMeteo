@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import type { TableColumn } from "@nuxt/ui";
-import type { Station, PaginatedResponse } from "~/types/api";
+import type { PaginatedResponse, Station } from "~/types/api";
 import { refDebounced } from "@vueuse/core";
 
 const { useApiFetch } = useApiClient();
@@ -66,8 +66,8 @@ const columns: TableColumn<Station>[] = [
 const table = useTemplateRef("table");
 
 // Handle row selection to update graph
-function onSelectStation(event: Event, row: any) {
-    selectedStation.value = row.original;
+function onSelectStation(_event: Event, _row: unknown) {
+    // selectedStation.value = row.original;
     // Update your graph here with selectedStation.value
     console.log("Selected station:", selectedStation.value);
 }
