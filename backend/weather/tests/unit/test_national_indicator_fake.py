@@ -1,6 +1,6 @@
 import datetime as dt
 
-from weather.data_generators.national_indicator_fake import (
+from weather.data_sources.national_indicator_fake import (
     generate_fake_national_indicator,
 )
 

@@ -8,10 +8,8 @@ from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from weather.data_generators.national_indicator_fake import (
-    FakeNationalIndicatorDailyDataSource,
-)
-from weather.services.national_indicator.service import compute_national_indicator
+from weather.bootstrap_itn import ITNDependencyProvider
+from weather.services.national_indicator.use_case import get_national_indicator
 
 from .filters import HoraireTempsReelFilter, QuotidienneFilter, StationFilter
 from .models import HoraireTempsReel, Quotidienne, Station
@@ -154,10 +152,8 @@ class NationalIndicatorAPIView(APIView):
             )
 
         params = q.validated_data
-
-        # Génération fake
-        ds = FakeNationalIndicatorDailyDataSource()
-        data = compute_national_indicator(data_source=ds, **params)
+        ds = ITNDependencyProvider.get_dep()
+        data = get_national_indicator(data_source=ds, **params)
         metadata = {
             "date_start": params["date_start"],
             "date_end": params["date_end"],

@@ -1,7 +1,9 @@
 import datetime as dt
 
-from weather.services.time_windows import iter_year_starts_intersecting
-from weather.utils.dates import clamp_day_to_month_end
+from weather.utils.date_range import (
+    clamp_day_to_month_end,
+    iter_year_starts_intersecting,
+)
 
 
 def compute_source_window(
