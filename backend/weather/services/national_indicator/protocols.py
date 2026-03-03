@@ -1,9 +1,8 @@
 from __future__ import annotations
 
-import datetime as dt
 from typing import Protocol
 
-from .types import DailyPoint
+from .types import DailyPoint, DailySeriesQuery
 
 
 class NationalIndicatorDailyDataSource(Protocol):
@@ -16,7 +15,5 @@ class NationalIndicatorDailyDataSource(Protocol):
 
     def fetch_daily_series(
         self,
-        *,
-        date_start: dt.date,
-        date_end: dt.date,
+        query: DailySeriesQuery,
     ) -> list[DailyPoint]: ...

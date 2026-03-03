@@ -1,7 +1,7 @@
 from collections import defaultdict
 
 from weather.services.national_indicator.types import DailyPoint
-from weather.utils.dates import clamp_day_to_month_end
+from weather.utils.date_range import clamp_day_to_month_end
 
 
 def apply_slice(
