@@ -2,7 +2,6 @@ name: Build and Push Images
 
 on:
   push:
-    branches: [main]
     tags:
       - 'v*.*.*'
   workflow_dispatch:
@@ -26,7 +25,7 @@ jobs:
       - name: Get latest tag
         id: get_tag
         run: |
-          git fetch origin main --tags --force
+          git fetch origin main --unshallow --tags --force
 
           TAG=$(git tag --list "v*.*.*" --merged origin/main --sort=-v:refname | head -n1)
           echo "IMAGE_TAG=$TAG" >> $GITHUB_ENV
