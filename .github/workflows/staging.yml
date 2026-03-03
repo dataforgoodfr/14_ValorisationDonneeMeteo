@@ -2,13 +2,13 @@ name: Build and Push Images
 
 on:
   push:
+    branches: [main]
     tags:
-      - '*' # Push events to every tag not containing /
+      - 'v*.*.*'
   workflow_dispatch:
 
 env:
   REGISTRY: ghcr.io
-
 
 jobs:
   build-and-push:
@@ -18,8 +18,24 @@ jobs:
       packages: write
 
     steps:
+
       - name: checkout repository
         uses: actions/checkout@v4
+
+      # uncomment for main branch
+      - name: Get latest tag
+        id: get_tag
+        run: |
+          git fetch origin main --tags --force
+
+          TAG=$(git tag --list "v*.*.*" --merged origin/main --sort=-v:refname | head -n1)
+          echo "IMAGE_TAG=$TAG" >> $GITHUB_ENV
+
+
+      - name: print  tag
+        run: echo " Current tag   $IMAGE_TAG"
+
+
 
       - name: lowercase repo name
         run: |
@@ -31,17 +47,56 @@ jobs:
           registry: ${{ env.REGISTRY }}
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
-
       - name: Build and push Backend
         uses: docker/build-push-action@v5
         with:
           context: ./backend
           push : true
-          tags: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-backend:latest
+          tags: |
+            ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-backend:${{ env.IMAGE_TAG }}
+            ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-backend:latest
+
 
       - name: Build and Push Frontend
         uses: docker/build-push-action@v5
         with:
           context: ./frontend
           push: true
-          tags: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-frontend:latest
+          tags: |
+            ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-frontend:${{ env.IMAGE_TAG }}
+            ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-frontend:latest
+
+
+# test with tailscale connexion
+      - name: Connect to Tailscale
+        uses: tailscale/github-action@v4
+        with:
+          oauth-client-id: ${{ secrets.TS_OAUTH_CLIENT_ID }}
+          oauth-secret: ${{ secrets.TS_OAUTH_SECRET }}
+          tags: tag:ci
+
+
+
+
+
+      - name: Change backend name image in the compose file
+        run: |
+          ssh -o StrictHostKeyChecking=no ${{ secrets.CI_USER }}@${{ secrets.CI_TAILSCALE_HOST }} << 'EOF'
+          sudo sed -i "s|image: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-backend.*|image: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-backend:${{ env.IMAGE_TAG }}|" /opt/d4g-staging/docker-compose.yml
+          EOF
+
+
+      - name: Change frontend name image in the compose file
+        run: |
+          ssh -o StrictHostKeyChecking=no ${{ secrets.CI_USER }}@${{ secrets.CI_TAILSCALE_HOST }} << 'EOF'
+          sudo sed -i "s|image: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-frontend.*|image: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-frontend:${{ env.IMAGE_TAG }}|" /opt/d4g-staging/docker-compose.yml
+          EOF
+
+      - name: Clean up & Deploy
+        run: |
+          ssh -o StrictHostKeyChecking=no ${{ secrets.CI_USER }}@${{ secrets.CI_TAILSCALE_HOST }} << 'EOF'
+            sudo docker compose -f /opt/d4g-staging/docker-compose.yml down --remove-orphans
+            sudo docker compose -f /opt/d4g-staging/docker-compose.yml pull
+            sudo docker compose -f /opt/d4g-staging/docker-compose.yml up -d
+            sudo docker image prune -f
+          EOF
