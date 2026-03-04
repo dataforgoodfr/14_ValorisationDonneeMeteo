@@ -15,11 +15,15 @@ export default defineNuxtConfig({
         "@nuxt/icon",
         "nuxt-echarts",
 <<<<<<< HEAD
+<<<<<<< HEAD
         "@pinia/nuxt",
         "@primevue/nuxt-module",
 =======
         'nuxt-maplibre',
 >>>>>>> f063928 (feat: add maplibre module to Nuxt)
+=======
+        "nuxt-maplibre",
+>>>>>>> d274998 (chore: resolve conflicts)
     ],
 
     runtimeConfig: {
@@ -41,9 +45,7 @@ export default defineNuxtConfig({
             htmlAttrs: {
                 lang: "fr",
             },
-            link: [
-                { rel: "icon", type: "image/x-icon", href: "/favicon.ico" },
-            ],
+            link: [{ rel: "icon", type: "image/x-icon", href: "/favicon.ico" }],
         },
     },
     echarts: {
