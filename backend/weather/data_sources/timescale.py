@@ -1,8 +1,8 @@
 from __future__ import annotations
 
 import datetime as dt
+from collections import defaultdict
 from dataclasses import dataclass
-from itertools import groupby
 
 from weather.models import QuotidienneITN
 from weather.services.national_indicator.protocols import (
@@ -91,24 +91,30 @@ class TimescaleNationalIndicatorDailyDataSource(NationalIndicatorDailyDataSource
         if query.target_dates is not None:
             qs = qs.filter(date__in=query.target_dates)
 
-        rows = (
-            qs.values_list("date", "station_code", "tntxm")
-            .order_by("date", "station_code")
-            .iterator(chunk_size=10_000)
+        rows = qs.values_list("date", "station_code", "tntxm").iterator(
+            chunk_size=10_000
         )
-        out: list[DailyPoint] = []
-        i = 0
-        for day, day_rows in groupby(rows, key=lambda r: r[0]):
-            i += 1
-            station_code_to_temp_map: dict[str, float] = {}
-            for _, station_code, tntxm in day_rows:
-                station_code_to_temp_map[str(station_code)] = float(tntxm)
 
-            itn = compute_itn_for_day(day, station_code_to_temp_map)
+        # day -> {station_code -> tntxm}
+        by_day: dict[dt.date, dict[str, float]] = defaultdict(dict)
+
+        for day, station_code, tntxm in rows:
+            code = str(station_code)
+            day_map = by_day[day]
+            if code in day_map:
+                raise ValueError(
+                    f"Duplicate station/day in v_quotidienne_itn: station_code={code}, date={day}"
+                )
+            day_map[code] = float(tntxm)
+
+        out: list[DailyPoint] = []
+        b = self._baseline
+
+        for day in sorted(by_day.keys()):
+            itn = compute_itn_for_day(day, by_day[day])
             if itn is None:
                 continue
 
-            b = self._baseline
             out.append(
                 DailyPoint(
                     date=day,
@@ -120,6 +126,5 @@ class TimescaleNationalIndicatorDailyDataSource(NationalIndicatorDailyDataSource
                     baseline_min=b.min_,
                 )
             )
-        print(f"rows : {i}")
-        print(f"list of daily points :{len(out)} points")
+
         return out
