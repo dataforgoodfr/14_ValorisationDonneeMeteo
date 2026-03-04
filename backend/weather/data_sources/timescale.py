@@ -54,15 +54,21 @@ def compute_itn_for_day(
     day: dt.date, station_code_to_temp_map: dict[str, float]
 ) -> float | None:
     expected_stations_for_day = expected_station_codes(day)
-
+    if len(expected_stations_for_day) != 30:
+        raise ValueError(
+            f"Expected 30 stations, got {len(expected_stations_for_day)} for {day}"
+        )
     # Normalisation : ignorer l'autre Reims si elle existe
     station_code_to_temp_map = _normalize_reims(day, station_code_to_temp_map)
     # Égalité stricte sur les 30 slots
     computed_stations_codes = set(station_code_to_temp_map.keys())
+
     if computed_stations_codes != expected_stations_for_day:
         return None
 
-    return sum(station_code_to_temp_map[c] for c in expected_stations_for_day) / 30.0
+    return sum(station_code_to_temp_map[c] for c in expected_stations_for_day) / float(
+        len(expected_stations_for_day)
+    )
 
 
 class TimescaleNationalIndicatorDailyDataSource(NationalIndicatorDailyDataSource):
@@ -90,10 +96,10 @@ class TimescaleNationalIndicatorDailyDataSource(NationalIndicatorDailyDataSource
             .order_by("date", "station_code")
             .iterator(chunk_size=10_000)
         )
-
         out: list[DailyPoint] = []
-
+        i = 0
         for day, day_rows in groupby(rows, key=lambda r: r[0]):
+            i += 1
             station_code_to_temp_map: dict[str, float] = {}
             for _, station_code, tntxm in day_rows:
                 station_code_to_temp_map[str(station_code)] = float(tntxm)
@@ -114,5 +120,6 @@ class TimescaleNationalIndicatorDailyDataSource(NationalIndicatorDailyDataSource
                     baseline_min=b.min_,
                 )
             )
-
+        print(f"rows : {i}")
+        print(f"list of daily points :{len(out)} points")
         return out
