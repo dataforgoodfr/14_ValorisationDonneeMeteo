@@ -249,7 +249,9 @@ def calculate_return_itn(stations_itn: Iterable | None = None) -> np.array:
         freq="D",
     )
 
-    if ("Reims-Courcy" in stations["nom"]) and ("Reims-Prunay" in stations["nom"]):
+    if (REIMS_COURCY_ID in stations["id"].values) and (
+        REIMS_PRUNAY_ID in stations["id"].values
+    ):
         daily_records_by_station_corr = correct_temperatures_Reims(
             daily_records_by_station
         )
