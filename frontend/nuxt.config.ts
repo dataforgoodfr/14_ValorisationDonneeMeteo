@@ -18,6 +18,9 @@ export default defineNuxtConfig({
         "@primevue/nuxt-module",
         "nuxt-maplibre",
     ],
+    maplibre: {
+        css: false,
+    },
 
     runtimeConfig: {
         public: {
@@ -25,7 +28,7 @@ export default defineNuxtConfig({
         },
     },
 
-    css: ["~/assets/css/main.css"],
+    css: ["~/assets/css/main.css", "maplibre-gl/dist/maplibre-gl.css"],
     ui: {
         colorMode: false,
     },
