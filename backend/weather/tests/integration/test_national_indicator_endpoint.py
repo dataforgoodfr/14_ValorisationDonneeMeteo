@@ -2,7 +2,6 @@ from __future__ import annotations
 
 import datetime as dt
 
-import pytest
 from django.urls import reverse
 from rest_framework.test import APIClient
 
@@ -16,10 +15,8 @@ from weather.services.national_indicator.types import (
 )
 from weather.utils.date_range import iter_days_intersecting
 
-pytestmark = pytest.mark.django_db
 
-
-def test_get_national_indicator_month_happy_path(client, seed_itn_day):
+def test_get_national_indicator_month_happy_path(client):
     class InMemoryITNDependency(NationalIndicatorDailyDataSource):
         def fetch_daily_series(self, query: DailySeriesQuery) -> list[DailyPoint]:
             if query.target_dates is not None:
