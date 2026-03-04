@@ -8,6 +8,44 @@ from django.db import connection
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "config.settings")
 
 
+DEFAULT_ITN_STATIONS_LIST = (
+    "06088001",  # Nice - Côte d'Azur
+    "13054001",  # Marseille - Marignane
+    "14137001",  # Caen - Carpiquet
+    "16089001",  # Cognac - Châteaubernard
+    "20148001",  # Bastia - Poretta
+    "21473001",  # Dijon - Longvic
+    "25056001",  # Besançon - Thise
+    "26198001",  # Montélimar - Ancone
+    "29075001",  # Brest - Guipavas
+    "30189001",  # Nîmes - Courbessac
+    "31069001",  # Toulouse - Blagnac
+    "33281001",  # Bordeaux - Mérignac
+    "35281001",  # Rennes - St Jacques
+    "36063001",  # Châteauroux - Déols
+    "44020001",  # Nantes - Atlantique
+    "45055001",  # Orléans - Bricy
+    "47091001",  # Agen - La Garenne
+    "51183001",  # Reims - Courcy
+    "51449002",  # Reims - Prunay
+    "54526001",  # Nancy - Essey
+    "58160001",  # Nevers - Marzy
+    "59343001",  # Lille - Lesquin
+    "63113001",  # Clermont-Ferrand - Aulnat
+    "64549001",  # Pau - Uzein
+    "66136001",  # Perpignan - Rivesaltes
+    "67124001",  # Strasbourg - Entzheim
+    "69029001",  # Lyon - Bron
+    "72181001",  # Le Mans - Arnage
+    "73054001",  # Bourg - St-Maurice
+    "75114001",  # Paris - Montsouris
+    "86027001",  # Poitiers - Biard
+)
+
+REIMS_PRUNAY_ID = "51449002"
+REIMS_COURCY_ID = "51183001"
+
+
 # --------------------------------------------------------------------
 def sql2pandas(sql_request: str) -> pd.DataFrame:
     """
@@ -182,7 +220,7 @@ def itn_calculation(df: pd.DataFrame) -> pd.DataFrame:
 
 
 # --------------------------------------------------------------------
-def calculate_return_itn(stations_itn: tuple[str] = ()) -> np.array:
+def calculate_return_itn(stations_itn: Iterable | None = None) -> np.array:
     """
     Main part of the script.
 
@@ -198,41 +236,8 @@ def calculate_return_itn(stations_itn: tuple[str] = ()) -> np.array:
     """
 
     # by default, calculate ITN for France
-    if len(stations_itn) == 0:
-        stations_itn = (
-            "6088001",  # Nice - Côte d'Azur
-            # "06088001" ?
-            "13054001",  # Marseille - Marignane
-            "14137001",  # Caen - Carpiquet
-            "16089001",  # Cognac - Châteaubernard
-            "20148001",  # Bastia - Poretta
-            "21473001",  # Dijon - Longvic
-            "25056001",  # Besançon - Thise
-            "26198001",  # Montélimar - Ancone
-            "29075001",  # Brest - Guipavas
-            "30189001",  # Nîmes - Courbessac
-            "31069001",  # Toulouse - Blagnac
-            "33281001",  # Bordeaux - Mérignac
-            "35281001",  # Rennes - St Jacques
-            "36063001",  # Châteauroux - Déols
-            "44020001",  # Nantes - Atlantique
-            "45055001",  # Orléans - Bricy
-            "47091001",  # Agen - La Garenne
-            "51183001",  # Reims - Courcy
-            "51449002",  # Reims - Prunay
-            "54526001",  # Nancy - Essey
-            "58160001",  # Nevers - Marzy
-            "59343001",  # Lille - Lesquin
-            "63113001",  # Clermont-Ferrand - Aulnat
-            "64549001",  # Pau - Uzein
-            "66136001",  # Perpignan - Rivesaltes
-            "67124001",  # Strasbourg - Entzheim
-            "69029001",  # Lyon - Bron
-            "72181001",  # Le Mans - Arnage
-            "73054001",  # Bourg - St-Maurice
-            "75114001",  # Paris - Montsouris
-            "86027001",  # Poitiers - Biard
-        )
+    if stations_itn is None:
+        stations_itn = DEFAULT_ITN_STATIONS_LIST
 
     stations, temp_daily = read_temperatures(stations_itn)
 
