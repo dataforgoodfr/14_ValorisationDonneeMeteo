@@ -14,16 +14,9 @@ export default defineNuxtConfig({
         "@nuxt/fonts",
         "@nuxt/icon",
         "nuxt-echarts",
-<<<<<<< HEAD
-<<<<<<< HEAD
         "@pinia/nuxt",
         "@primevue/nuxt-module",
-=======
-        'nuxt-maplibre',
->>>>>>> f063928 (feat: add maplibre module to Nuxt)
-=======
         "nuxt-maplibre",
->>>>>>> d274998 (chore: resolve conflicts)
     ],
 
     runtimeConfig: {
@@ -45,7 +38,13 @@ export default defineNuxtConfig({
             htmlAttrs: {
                 lang: "fr",
             },
-            link: [{ rel: "icon", type: "image/x-icon", href: "/favicon.ico" }],
+            link: [
+                { rel: "icon", type: "image/x-icon", href: "/favicon.ico" },
+                {
+                    rel: "stylesheet",
+                    href: "https://unpkg.com/maplibre-gl@5.18.0/dist/maplibre-gl.css",
+                },
+            ],
         },
     },
     echarts: {
