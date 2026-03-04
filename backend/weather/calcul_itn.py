@@ -220,24 +220,26 @@ def itn_calculation(df: pd.DataFrame) -> pd.DataFrame:
 
 
 # --------------------------------------------------------------------
-def calculate_return_itn(stations_itn: Iterable | None = None) -> np.array:
+def compute_itn(
+    stations_itn: Iterable | None = None,
+) -> tuple[pd.DataFrame, pd.DataFrame]:
     """
-    Main part of the script.
+    Main part of the ITN computation. Return the daily records by stations
+    and the ITN in pandas DataFrames format.
 
     Parameters
     ----------
     list or tuple
-          list of the stations to be considered to calculate the ITN.
+        the unique ID of the meteorological stations that are used to
+        calculate the ITN
 
     Returns
     -------
-    numpy.ndarray
-          array Nx2 containing the date and ITN
+    daily_records_by_station(_corr): pd.DataFrame
+          temperature records, with one column per station
+    itn: pd.DataFrame
+          daily ITN
     """
-
-    # by default, calculate ITN for France
-    if stations_itn is None:
-        stations_itn = DEFAULT_ITN_STATIONS_LIST
 
     stations, temp_daily = read_temperatures(stations_itn)
 
@@ -256,8 +258,35 @@ def calculate_return_itn(stations_itn: Iterable | None = None) -> np.array:
             daily_records_by_station
         )
         itn = itn_calculation(daily_records_by_station_corr)
+
+        return daily_records_by_station_corr, itn
     else:
         itn = itn_calculation(daily_records_by_station)
+
+        return daily_records_by_station, itn
+
+
+# --------------------------------------------------------------------
+def itn(stations_itn: Iterable | None = None) -> np.array:
+    """
+    Export the ITN in an array.
+
+    Parameters
+    ----------
+    list or tuple
+          list of the stations to be considered to calculate the ITN.
+
+    Returns
+    -------
+    numpy.ndarray
+          array Nx2 containing the date and ITN
+    """
+
+    # by default, calculate ITN for France
+    if stations_itn is None:
+        stations_itn = DEFAULT_ITN_STATIONS_LIST
+
+    itn = compute_itn(stations_itn)[1]
 
     dates = itn.index.strftime("%Y-%m-%d").to_numpy()
     values = itn.values
