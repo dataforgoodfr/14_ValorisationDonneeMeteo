@@ -21,7 +21,6 @@ export default defineNuxtConfig({
     maplibre: {
         css: false,
     },
-
     runtimeConfig: {
         public: {
             apiBase: "", // api url will be injected when the container is launched with an env variable
