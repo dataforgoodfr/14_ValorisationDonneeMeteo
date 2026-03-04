@@ -131,7 +131,7 @@ def separate_by_station(
     df: pd.DataFrame,
     index: str = "",
     columns: str = "",
-    values: str = "",
+    values: list[str] | str = "",
     freq: str = "h",
 ) -> pd.DataFrame:
     """
@@ -157,7 +157,7 @@ def separate_by_station(
     """
 
     assert (
-        (index != "") & (columns != "") & (values != "")
+        (index != "") and (columns != "") and (values != "")
     ), "Cannot pivot, missing arguments"
 
     data_temp = pd.pivot_table(df, index=index, columns=columns, values=values)
