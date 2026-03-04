@@ -16,6 +16,7 @@ export default defineNuxtConfig({
         "nuxt-echarts",
         "@pinia/nuxt",
         "@primevue/nuxt-module",
+        "nuxt-maplibre",
     ],
 
     runtimeConfig: {
@@ -37,7 +38,13 @@ export default defineNuxtConfig({
             htmlAttrs: {
                 lang: "fr",
             },
-            link: [{ rel: "icon", type: "image/x-icon", href: "/favicon.ico" }],
+            link: [
+                { rel: "icon", type: "image/x-icon", href: "/favicon.ico" },
+                {
+                    rel: "stylesheet",
+                    href: "https://unpkg.com/maplibre-gl@5.18.0/dist/maplibre-gl.css",
+                },
+            ],
         },
     },
     echarts: {
