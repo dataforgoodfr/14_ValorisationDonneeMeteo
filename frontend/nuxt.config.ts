@@ -18,7 +18,9 @@ export default defineNuxtConfig({
         "@primevue/nuxt-module",
         "nuxt-maplibre",
     ],
-
+    maplibre: {
+        css: false,
+    },
     runtimeConfig: {
         public: {
             apiBase: "", // api url will be injected when the container is launched with an env variable
