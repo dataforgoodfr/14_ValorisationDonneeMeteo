@@ -1,3 +1,4 @@
+import datetime
 import os
 from collections.abc import Iterable
 
@@ -78,6 +79,8 @@ def sql2pandas(sql_request: str) -> pd.DataFrame:
 # --------------------------------------------------------------------
 def read_temperatures(
     stations_itn: Iterable | None = None,
+    start_date: str | pd.Timestamp | datetime.datetime | None = None,
+    end_date: str | pd.Timestamp | datetime.datetime | None = None,
 ) -> tuple[pd.DataFrame, pd.DataFrame]:
     """
     Read the csv file containing the data into a pandas DataFrame. The times
@@ -120,6 +123,12 @@ def read_temperatures(
                      WHERE
                         station_id in {tuple(stations["id"])}
                  """
+    if (start_date is not None) and (end_date is not None):
+        sql_request += f"""and date >= '{start_date}' and date <= '{end_date}' """
+    elif start_date is not None:
+        sql_request += f"""and date >= '{start_date}' """
+    elif end_date is not None:
+        sql_request += f"""and date <= '{end_date}' """
     temp_daily = sql2pandas(sql_request)
     temp_daily["date"] = pd.to_datetime(temp_daily["date"])
 
@@ -222,6 +231,8 @@ def itn_calculation(df: pd.DataFrame) -> pd.DataFrame:
 # --------------------------------------------------------------------
 def compute_itn(
     stations_itn: Iterable | None = None,
+    start_date: str | pd.Timestamp | datetime.datetime | None = None,
+    end_date: str | pd.Timestamp | datetime.datetime | None = None,
 ) -> tuple[pd.DataFrame, pd.DataFrame]:
     """
     Main part of the ITN computation. Return the daily records by stations
@@ -241,7 +252,7 @@ def compute_itn(
           daily ITN
     """
 
-    stations, temp_daily = read_temperatures(stations_itn)
+    stations, temp_daily = read_temperatures(stations_itn, start_date, end_date)
 
     daily_records_by_station = separate_by_station(
         temp_daily,
@@ -267,7 +278,11 @@ def compute_itn(
 
 
 # --------------------------------------------------------------------
-def itn(stations_itn: Iterable | None = None) -> np.array:
+def itn(
+    stations_itn: Iterable | None = None,
+    start_date: str | pd.Timestamp | datetime.datetime | None = None,
+    end_date: str | pd.Timestamp | datetime.datetime | None = None,
+) -> np.array:
     """
     Export the ITN in an array.
 
@@ -286,7 +301,7 @@ def itn(stations_itn: Iterable | None = None) -> np.array:
     if stations_itn is None:
         stations_itn = DEFAULT_ITN_STATIONS_LIST
 
-    itn = compute_itn(stations_itn)[1]
+    itn = compute_itn(stations_itn, start_date, end_date)[1]
 
     dates = itn.index.strftime("%Y-%m-%d").to_numpy()
     values = itn.values
