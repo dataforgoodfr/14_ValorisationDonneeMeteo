@@ -77,7 +77,7 @@ def sql2pandas(sql_request: str) -> pd.DataFrame:
 
 # --------------------------------------------------------------------
 def read_temperatures(
-    stations_itn: Iterable = [],
+    stations_itn: Iterable | None = None,
 ) -> tuple[pd.DataFrame, pd.DataFrame]:
     """
     Read the csv file containing the data into a pandas DataFrame. The times
@@ -103,7 +103,7 @@ def read_temperatures(
                     FROM
                        weather_station
                  """
-    if len(stations_itn) > 0:
+    if stations_itn is not None:
         sql_request += f"""WHERE
                             code in {stations_itn}"""
     stations = sql2pandas(sql_request)
