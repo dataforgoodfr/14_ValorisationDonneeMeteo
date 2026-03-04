@@ -93,6 +93,11 @@ DATABASES = {
     }
 }
 
+# No migrations
+MIGRATION_MODULES = {
+    "weather": None,
+}
+
 # Password validation
 AUTH_PASSWORD_VALIDATORS = []
 
