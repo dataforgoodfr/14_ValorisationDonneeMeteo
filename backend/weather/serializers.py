@@ -10,7 +10,6 @@ from .models import Station
 class StationSerializer(serializers.ModelSerializer):
     code = serializers.CharField(source="station_code", read_only=True)
     nom = serializers.CharField(source="name", read_only=True)
-    frequence = serializers.CharField(source="frequency", read_only=True)
     poste_ouvert = serializers.BooleanField(source="is_open", read_only=True)
     type_poste = serializers.IntegerField(source="station_type", read_only=True)
     poste_public = serializers.BooleanField(source="is_public", read_only=True)
@@ -21,7 +20,6 @@ class StationSerializer(serializers.ModelSerializer):
             "code",
             "nom",
             "departement",
-            "frequence",
             "poste_ouvert",
             "type_poste",
             "lon",
