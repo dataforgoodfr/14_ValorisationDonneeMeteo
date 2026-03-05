@@ -119,14 +119,14 @@ paths:
         - Temperature
       parameters: []
       responses:
-        '200':
+        "200":
           description: Succès
           content:
             application/json:
               schema:
                 type: object
-        '400':
-          $ref: '#/components/responses/BadRequest'
+        "400":
+          $ref: "#/components/responses/BadRequest"
 
   /temperature/records:
     get:
@@ -134,20 +134,60 @@ paths:
       description: |
         Liste les records de température (min/max) battus sur une période donnée.
 
-        **Documentation des paramètres et schémas à compléter**
       operationId: getTemperatureRecords
       tags:
         - Temperature
-      parameters: []
+      parameters:
+        - name: date_start
+          in: query
+          required: true
+          schema:
+            type: string
+            format: date
+          description: Date de début incluse (YYYY-MM-DD).
+          example: "1990-01-01"
+        - name: date_end
+          in: query
+          required: true
+          schema:
+            type: string
+            format: date
+          description: Date de fin incluse (YYYY-MM-DD).
+          example: "2024-12-31"
+        - name: station_name_filter
+          in: query
+          description: filtre sur le nom de la station
+          schema:
+            type: string
+            example: "par"
+        - name: departement_filter
+          in: query
+          description: filtre sur le département de la station
+          schema:
+            type: string
+            example: "31"
+
       responses:
-        '200':
+        "200":
           description: Succès
           content:
             application/json:
               schema:
-                type: object
-        '400':
-          $ref: '#/components/responses/BadRequest'
+                $ref: "#/components/schemas/TemperatureRecordsResponse"
+              examples:
+                paris_area:
+                  summary: Records de température
+                  value:
+                    stations:
+                      - id: "07149"
+                        name: "Orly"
+                        TNN: -7.2
+                        TXX: +32.1
+                        TNN_date: "1954-02-01"
+                        TXX_date: "2025-07-25"
+
+        "400":
+          $ref: "#/components/responses/BadRequest"
 
   /temperature/records/cumulative:
     get:
@@ -161,14 +201,14 @@ paths:
         - Temperature
       parameters: []
       responses:
-        '200':
+        "200":
           description: Succès
           content:
             application/json:
               schema:
                 type: object
-        '400':
-          $ref: '#/components/responses/BadRequest'
+        "400":
+          $ref: "#/components/responses/BadRequest"
 
   /temperature/national-indicator:
     get:
@@ -219,7 +259,7 @@ paths:
           required: true
           schema:
             type: string
-            enum: [ year, month, day ]
+            enum: [year, month, day]
           description: >
             Granularité de la série temporelle.
             - year : un point par année
@@ -232,7 +272,7 @@ paths:
           required: false
           schema:
             type: string
-            enum: [ full, month_of_year, day_of_month ]
+            enum: [full, month_of_year, day_of_month]
             default: full
           description: >
             Filtre intra-période appliqué à chaque période (selon `granularity`).
@@ -292,14 +332,14 @@ paths:
         - Photos
       parameters: []
       responses:
-        '200':
+        "200":
           description: Succès
           content:
             application/json:
               schema:
                 type: object
-        '400':
-          $ref: '#/components/responses/BadRequest'
+        "400":
+          $ref: "#/components/responses/BadRequest"
 
   /stations:
     get:
@@ -348,12 +388,12 @@ paths:
             type: string
             example: '{"start":"2024-01-01","end":"2024-12-31"}'
       responses:
-        '200':
+        "200":
           description: Succès
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/StationsResponse'
+                $ref: "#/components/schemas/StationsResponse"
               examples:
                 paris_area:
                   summary: Stations région parisienne
@@ -372,9 +412,8 @@ paths:
                           start_date: "1948-01-01"
                           end_date: "2024-12-31"
                           completeness: 0.98
-        '400':
-          $ref: '#/components/responses/BadRequest'
-
+        "400":
+          $ref: "#/components/responses/BadRequest"
 
 components:
   schemas:
@@ -523,7 +562,7 @@ components:
               creation_year:
                 type: integer
               coordinates:
-                $ref: '#/components/schemas/Coordinates'
+                $ref: "#/components/schemas/Coordinates"
               altitude:
                 type: number
                 format: float
@@ -662,13 +701,56 @@ components:
               type: object
               additionalProperties: true
 
+    TemperatureRecordsResponse:
+      type: object
+      required:
+        - stationsrecord
+      properties:
+        stations:
+          type: array
+          items:
+            type: object
+            required:
+              - id
+              - name
+              - TNN
+              - TXX
+              - TNN_date
+              - TXX_date
+            properties:
+              id:
+                type: string
+                description: Identifiant unique de la station (ex "07149")
+              name:
+                type: string
+              TNN:
+                type: number
+                format: float
+                minimum: -70
+                maximum: 100
+                description: valeur minimale de température enregistrée sur la station pour la période
+              TXX:
+                type: number
+                format: float
+                minimum: -70
+                maximum: 100
+                description: valeur maximale de température enregistrée sur la station pour la période
+              TNN_date:
+                type: string
+                format: date
+                description: horodate (UTC) d'enregistrement de la valeur maximale de température pour la station pour la période
+              TXX_date:
+                type: string
+                format: date
+                description: horodate (UTC) d'enregistrement de la valeur maximale de température pour la station pour la période
+
   responses:
     BadRequest:
       description: Paramètres de requête invalides
       content:
         application/json:
           schema:
-            $ref: '#/components/schemas/Error'
+            $ref: "#/components/schemas/Error"
           examples:
             invalid_parameter:
               summary: Paramètre invalide
