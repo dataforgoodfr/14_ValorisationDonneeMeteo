@@ -22,11 +22,16 @@ def insert_quotidienne(day: dt.date, code: str, tntxm: float) -> None:
             INSERT INTO public."Quotidienne"
               ("NUM_POSTE","NOM_USUEL","LAT","LON","ALTI","AAAAMMJJ","TNTXM")
             VALUES
-              (%s, %s, 0.0, 0.0, 0.0, %s, %s)
+              (%(code)s, %(name)s, 0.0, 0.0, 0.0, %(day)s, %(tntxm)s)
             ON CONFLICT ("NUM_POSTE","AAAAMMJJ")
             DO UPDATE SET "TNTXM" = EXCLUDED."TNTXM"
             """,
-            [code, f"ST {code}", day, tntxm],
+            {
+                "code": code,
+                "name": f"ST {code}",
+                "day": day,
+                "tntxm": tntxm,
+            },
         )
 
 
