@@ -1,0 +1,5 @@
+Erreurs:
+
+- API backend et swagger tournent sur le même port (8000)
+-  impossible de lancer la stack docker dev (problème de version de uv)
+- Backend non fonctionnel quand lancé avec docker-compose.dev.yml
