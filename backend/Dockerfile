@@ -1,15 +1,16 @@
 FROM python:3.12-slim-bookworm
 
 WORKDIR /app
+RUN pip install uv
 
 ENV PYTHONDONTWRITEBYTECODE=1 \
-    PYTHONUNBUFFERED=1 \
-    UV_NO_DEV=1
+    PYTHONUNBUFFERED=1
+    # UV_NO_DEV=1
 
-COPY --from=ghcr.io/astral-sh/uv:0.10.0 /uv /uvx /bin/
+# COPY --from=ghcr.io/astral-sh/uv:0.10.0 /uv /uvx /bin/
 
 COPY . .
-RUN uv sync --locked
+RUN uv sync
 
 
 
