@@ -6,7 +6,7 @@
 
 <script setup lang="ts">
 import { GetChartData, TimeAxisType } from "~~/public/ChartDataProvider";
-import { formatFileName } from "~~/public/utils";
+import { formatFileName } from "~/composables/useFormatFilename";
 
 const source = GetChartData(TimeAxisType.Day);
 

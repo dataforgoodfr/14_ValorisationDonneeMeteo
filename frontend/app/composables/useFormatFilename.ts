@@ -1,4 +1,4 @@
-export function formatDateManually(date: Date) {
+function formatDateManually(date: Date) {
     // Helper function to pad numbers with a leading zero
     const pad = (num: number) => num.toString().padStart(2, "0");
 
@@ -13,8 +13,12 @@ export function formatDateManually(date: Date) {
     return `${year}${month}${day}_${hours}${minutes}${seconds}`;
 }
 
-export function formatFileName(xUnit: string, dt: string) {
+export function useFormatFileName(
+    granularity: string,
+    interval: string,
+    chartName: string,
+) {
     // Helper function to format exported file name
     const now = new Date(Date.now());
-    return `${formatDateManually(now)}_IndicateurThermiqueNational_${xUnit}_${dt}`;
+    return `${formatDateManually(now)}_${chartName}_${granularity}_${interval}`;
 }

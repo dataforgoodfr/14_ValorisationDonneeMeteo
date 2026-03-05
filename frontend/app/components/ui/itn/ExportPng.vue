@@ -6,7 +6,7 @@
 
 <script setup lang="ts">
 import * as echarts from "echarts";
-import { formatFileName } from "~~/public/utils";
+import { formatFileName } from "~/composables/useFormatFilename";
 
 async function exportPngFnc() {
     const img = new Image();

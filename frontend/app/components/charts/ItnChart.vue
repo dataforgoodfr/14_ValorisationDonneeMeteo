@@ -27,9 +27,10 @@ echarts.use([
 ]);
 
 const itnStore = useItnStore();
+const { itnChartRef } = storeToRefs(itnStore);
 
 // provide init-options
-const renderer = ref<"svg" | "canvas">("svg");
+const renderer = ref<"svg" | "canvas">("canvas");
 const initOptions = computed(() => ({
     height: 600,
     locale: "FR",
@@ -240,11 +241,17 @@ const option = computed<ECOption>(() => {
         ],
     };
 });
+
+console.log(itnChartRef.value);
 </script>
 
 <template>
     <VChart
+<<<<<<< HEAD
         :key="itnStore.granularity"
+=======
+        ref="itnChartRef"
+>>>>>>> 0b42690 (feat : refactor csv export)
         :option="option"
         :init-options="initOptions"
         :loading="itnStore.pending"
