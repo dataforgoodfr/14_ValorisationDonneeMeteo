@@ -6,7 +6,6 @@ class Station(models.Model):
     name = models.TextField()
 
     departement = models.IntegerField(null=True, blank=True)
-    frequency = models.CharField(max_length=20, null=True, blank=True)
 
     is_open = models.BooleanField(null=True, blank=True)
     station_type = models.IntegerField(null=True, blank=True)

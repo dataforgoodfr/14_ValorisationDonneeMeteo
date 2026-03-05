@@ -15,7 +15,6 @@ class StationFilter(django_filters.FilterSet):
     departement = django_filters.NumberFilter(field_name="departement")
 
     # Compat API: mêmes noms qu'avant
-    frequence = django_filters.CharFilter(field_name="frequency")
     poste_ouvert = django_filters.BooleanFilter(field_name="is_open")
     poste_public = django_filters.BooleanFilter(field_name="is_public")
 
@@ -30,7 +29,6 @@ class StationFilter(django_filters.FilterSet):
         fields = [
             "code",
             "departement",
-            "frequence",
             "poste_ouvert",
             "poste_public",
         ]
