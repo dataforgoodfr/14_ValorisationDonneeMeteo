@@ -102,12 +102,12 @@ class TimescaleNationalIndicatorDailyDataSource(NationalIndicatorDailyDataSource
 
         for day, station_code, tntxm in rows:
             code = str(station_code)
-            day_map = by_day[day]
-            if code in day_map:
+            station_code_to_temp_map = by_day[day]
+            if code in station_code_to_temp_map:
                 raise ValueError(
                     f"Duplicate station/day in v_quotidienne_itn: station_code={code}, date={day}"
                 )
-            day_map[code] = float(tntxm)
+            station_code_to_temp_map[code] = float(tntxm)
 
         out: list[DailyPoint] = []
         b = self._baseline
