@@ -1,45 +1,19 @@
-## Type de PR
-- [ ] Bugfix
-- [ ] Feature
-- [ ] Refactor
-- [ ] Chore / Tech debt
-- [ ] Documentation
-- [ ] Autre (à préciser)
+## Description
+Explain the changes made in this pull request.
 
-## Objectif
-<!-- Problème résolu ou fonctionnalité apportée. Une phrase claire. -->
+## Related Issues
+Closes #issue_number
 
-## Contexte
-<!-- Contexte fonctionnel ou technique nécessaire à la revue. -->
-<!-- Lien(s) vers issue(s), discussion(s), doc(s). -->
+## Testing Done
+Describe the tests you performed to verify the changes.
 
-## Changements
--
+Example:
+- [ ] Unit tests
+- [ ] Manual testing
+- [ ] Integration tests
 
-## Décisions techniques
-<!-- Choix structurants, arbitrages, compromis. -->
-<!-- Ce qui aurait pu être fait autrement. -->
-
-## Impacts
-- [ ] API / contrat
-- [ ] Modèle de données / DB
-- [ ] Calculs métier
-- [ ] Performance
-- [ ] Sécurité
-- [ ] Infra / déploiement
-- [ ] Aucun impact transverse identifié
-
-## Tests
-<!-- Décris ce qui a été fait dans cette PR pour vérifier le comportement introduit ou modifié. -->
-- [ ] Tests unitaires
-- [ ] Tests d’intégration
-- [ ] Tests manuels
-- [ ] Non applicable (à justifier)
-
-## Points d’attention pour la review
-<!-- Parties sensibles du code, dette technique introduite, risques. -->
-
-## Suivi
-- [ ] Migration à prévoir
-- [ ] Documentation à mettre à jour
-- [ ] Tâche(s) de suivi à créer
+## Checklist
+- [ ] My code follows the project style guidelines
+- [ ] I have tested my changes
+- [ ] I have added necessary documentation
+- [ ] I have checked that my changes do not break existing features
