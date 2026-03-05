@@ -4,9 +4,10 @@ import { storeToRefs } from "pinia";
 import MonthPicker from "./monthPicker.vue";
 import YearPicker from "./yearPicker.vue";
 import DayPicker from "./dayPicker.vue";
-import ExportCsv from "./ExportCsv.vue";
-import ExportPng from "./ExportPng.vue";
-import ExportHtml from "./ExportHtml.vue";
+// import ExportCsv from "./ExportCsv.vue";
+// import ExportPng from "./ExportPng.vue";
+// import ExportHtml from "./ExportHtml.vue";
+import ExportMenu from "../commons/exportMenu.vue";
 
 const { granularity, slice_type } = storeToRefs(useItnStore());
 
@@ -28,7 +29,7 @@ const sliceTypeValues = reactive([
 </script>
 
 <template>
-    <div class="flex gap-6 px-3 py-2">
+    <div class="flex items-center justify-between flex-wrap gap-6 px-3 py-2">
         <div id="main-filter" class="flex gap-6">
             <UFormField label="Granularité" name="granularity">
                 <USelect
@@ -69,9 +70,10 @@ const sliceTypeValues = reactive([
                     :items="sliceTypeValues"
                 />
             </UFormField>
-            <ExportPng />
+            <!-- <ExportPng />
             <ExportHtml />
-            <ExportCsv />
+            <ExportCsv /> -->
         </div>
+        <ExportMenu />
     </div>
 </template>
