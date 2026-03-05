@@ -58,12 +58,6 @@ Ce script :
 ## Lancer le serveur
 
 ```bash
-# Appliquer les migrations Django (cree les tables + hypertables TimescaleDB)
-uv run python manage.py migrate
-
-# Peupler la base avec des donnees de test
-uv run python manage.py populate_weather_data
-
 # Demarrer le serveur de developpement
 uv run python manage.py runserver
 ```
@@ -128,14 +122,50 @@ La documentation est alors disponible sur `http://localhost:8000`
 
 ```bash
 #Liste des stations :
-
-curl http://localhost:8000/api/v1/stations/
+curl -L http://localhost:8000/api/v1/stations/
+curl -L http://localhost:8000/api/v1/stations?departement=13
 
 #Indicateur thermique national :
-
 curl "http://localhost:8000/api/v1/temperature/national-indicator?date_start=2025-01-01&date_end=2025-01-31&granularity=month"
 ```
 
+## Structure du projet
+
+```
+.
+├── config
+├── db_data                      # data files to seed the de db - not commited
+├── Dockerfile
+├── manage.py
+├── notebooks                   # some explorations
+├── openapi
+│   └── target-specs
+│       └── openapi.yaml         # API target specs
+├── pyproject.toml
+├── README.md
+├── scripts                      # non run time scripts (seed dev db, ...)
+│   ├── apply_views.sh
+│   └── seed_dev.sh
+├── sql
+├── timescaledb-env             # dev db env
+├── tox.ini
+├── uv.lock
+└── weather
+    ├── apps.py
+    ├── bootstrap_itn.py
+    ├── data_generators
+    ├── filters.py
+    ├── __init__.py
+    ├── management
+    ├── migrations               # empty
+    ├── models.py
+    ├── serializers.py
+    ├── services
+    ├── tests
+    ├── urls.py
+    ├── utils
+    └── views.py
+```
 ## Developpement
 
 ### Pre-commit hooks
@@ -156,22 +186,6 @@ uv run pre-commit run --all-files --config=.pre-commit-config.yaml
 uv run pytest
 ```
 
-### Factories (Factory Boy)
-
-Des factories sont disponibles pour creer des donnees de test :
-
-```python
-from weather.factories import StationFactory, HoraireTempsReelFactory, QuotidienneFactory
-
-# Creer une station
-station = StationFactory()
-
-# Creer une mesure horaire pour une station
-mesure = HoraireTempsReelFactory(station=station)
-
-# Creer une mesure quotidienne
-quotidienne = QuotidienneFactory(station=station)
-```
 
 ### Linting
 
