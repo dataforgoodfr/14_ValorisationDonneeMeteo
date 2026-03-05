@@ -108,27 +108,31 @@ Données journalières agrégées (~450 enregistrements) - **Hypertable Timescal
 - `fxy`, `dxy` : Rafale maximale et direction
 - `q*` : Flags de qualité (1 = valide)
 
-## Commande Django de peuplement
+## Peuplement de la base de données
+
+### Données de développement (mock)
+
+Pour générer des données de test réalistes, utilisez la commande Django `populate_weather_data` documentée dans le [README principal](../README.md#populate_weather_data).
+
+### Peuplement avec les données réelles 2025
+
+Le script `populate_from_parquet.py` permet de peupler la base de données avec les données réelles du fichier `real_data_2025.parquet` :
 
 ```bash
-# Générer toutes les données (30 jours par défaut)
-python manage.py populate_weather_data
+# 1. Se placer dans le dossier timescaledb-env
+cd backend/timescaledb-env
 
-# Générer seulement 7 jours de données
-python manage.py populate_weather_data --days 7
-
-# Vider les données avant de régénérer
-python manage.py populate_weather_data --clear
-
-# Générer uniquement les stations
-python manage.py populate_weather_data --stations-only
-
-# Ne pas générer les agrégations quotidiennes
-python manage.py populate_weather_data --skip-daily
-
-# Utiliser un seed différent
-python manage.py populate_weather_data --seed 123
+# 2. Exécuter le script de peuplement
+uv run python populate_from_parquet.py
 ```
+
+Ce script :
+- Crée ou met à jour les 4 stations météorologiques principales
+- Insère 35 242 observations horaires pour l'année 2025
+- Génère 1 472 enregistrements quotidiens agrégés
+- Respecte le schéma de données existant sans le modifier
+
+**Note** : Le script utilise les modèles Django et nécessite que la base de données soit accessible et que les migrations aient été appliquées.
 
 ## Exemples de requêtes
 
@@ -211,13 +215,13 @@ SELECT * FROM timescaledb_information.chunks;
 
 ```bash
 # Voir les logs
-docker-compose logs -f
+docker compose logs -f
 
 # Arrêter l'environnement
-docker-compose down
+docker compose down
 
 # Arrêter ET supprimer les données
-docker-compose down -v
+docker compose down -v
 
 # Se connecter en psql
 docker exec -it infoclimat-timescaledb psql -U infoclimat -d meteodb
@@ -260,6 +264,7 @@ docker-compose up -d
 ```bash
 cd backend
 uv run python manage.py migrate
+# Utilisez la commande de peuplement documentée dans le README principal
 uv run python manage.py populate_weather_data
 ```
 
