@@ -91,8 +91,10 @@ class TimescaleNationalIndicatorDailyDataSource(NationalIndicatorDailyDataSource
         if query.target_dates is not None:
             qs = qs.filter(date__in=query.target_dates)
 
-        rows = qs.values_list("date", "station_code", "tntxm").iterator(
-            chunk_size=10_000
+        rows = (
+            qs.order_by("date", "station_code")
+            .values_list("date", "station_code", "tntxm")
+            .iterator(chunk_size=10_000)
         )
 
         # day -> {station_code -> tntxm}
