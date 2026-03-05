@@ -42,7 +42,7 @@ class StationViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = Station.objects.all()
     serializer_class = StationSerializer
     filterset_class = StationFilter
-    search_fields = ["name", "station_code"]
+    search_fields = ["name", "departement", "station_code"]
     ordering_fields = ["name", "departement", "alt"]
     ordering = ["name"]
 
