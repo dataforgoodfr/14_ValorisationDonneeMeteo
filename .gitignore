@@ -25,3 +25,7 @@ Thumbs.db
 .claude
 # Precommit hooks: ruff cache
 .ruff_cache
+
+
+#FrontEnd MockedUp data
+frontend/public/MockedUpData.json
