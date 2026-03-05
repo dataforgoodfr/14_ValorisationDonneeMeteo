@@ -6,7 +6,7 @@
 
 <script setup lang="ts">
 import type { ButtonProps } from "@nuxt/ui";
-
+console.log("testst");
 const heroLinks = ref<ButtonProps[]>([
     {
         label: "Détails de l'ITN",

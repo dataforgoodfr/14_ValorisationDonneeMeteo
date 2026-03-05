@@ -98,7 +98,7 @@ La documentation est alors disponible sur `http://localhost:8000`
 Ce document est mis à jour au cours de la vie du projet
 
 | Endpoint                  | Description                   |
-|---------------------------|-------------------------------|
+| ------------------------- | ----------------------------- |
 | `/api/v1/stations/`       | Liste des stations meteo      |
 | `/api/v1/horaire/`        | Mesures horaires temps reel   |
 | `/api/v1/horaire/latest/` | Derniere mesure par station   |
@@ -127,7 +127,7 @@ curl http://localhost:8000/api/v1/horaire/latest/
 
 ### Pre-commit hooks
 
-*L'installation des hooks est décrite dans le [README.md](../README.md) à la racine*
+_L'installation des hooks est décrite dans le [README.md](../README.md) à la racine_
 
 Pour exécuter les hooks backend uniquement :
 
@@ -203,7 +203,7 @@ backend/
 Les variables d'environnement sont definies dans `.env` :
 
 | Variable               | Description        | Defaut                  |
-|------------------------|--------------------|-------------------------|
+| ---------------------- | ------------------ | ----------------------- |
 | `DEBUG`                | Mode debug         | `true`                  |
 | `SECRET_KEY`           | Cle secrete Django | -                       |
 | `DB_HOST`              | Hote PostgreSQL    | `localhost`             |
