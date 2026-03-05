@@ -269,6 +269,167 @@ Le projet a de bonnes bases (linting, ORM sécurisé, factories, CI pre-commit) 
 
 ---
 
+## Top 5 — Analyse détaillée et recommandations
+
+### 🥇 #1 — Monitoring inexistant (Monitoring / Sécurité)
+
+**Constat** : Aucun logging Django configuré, aucun error tracking, aucun endpoint `/health`, aucune métrique. En cas de panne ou d'erreur 500, personne n'est alerté et le diagnostic est impossible.
+
+**Correctif court terme** :
+
+- Ajouter une configuration `LOGGING` dans `settings.py` (console + fichier, niveaux WARNING/ERROR)
+- Créer un endpoint `/health/` qui vérifie la connexion DB et retourne un status JSON
+- Activer les logs slow queries PostgreSQL dans `docker-compose`
+
+**Solution long terme** :
+
+- Intégrer **Sentry** (error tracking + performance monitoring)
+- Déployer **Prometheus** + **Grafana** pour les métriques (latence, taux erreur, requêtes/s)
+- Mettre en place un système d'**alerting** (Sentry alerts ou Grafana alerts → Slack/email)
+- Configurer du **logging structuré** (JSON) avec `python-json-logger` pour faciliter l'agrégation
+
+**Outils / Technologies** :
+| Outil | Rôle | Coût |
+|-------|------|------|
+| `django-health-check` | Endpoint /health avec checks DB, cache, storage | Gratuit |
+| `sentry-sdk[django]` | Error tracking + performance | Gratuit (plan développeur) |
+| `python-json-logger` | Logging structuré JSON | Gratuit |
+| Prometheus + Grafana | Dashboards métriques | Gratuit (self-hosted) |
+| `django-prometheus` | Métriques Django → Prometheus | Gratuit |
+
+---
+
+### 🥈 #2 — Tests non exécutés en CI (Testing / Déploiement)
+
+**Constat** : pytest existe localement mais aucun workflow GitHub Actions n'exécute les tests. Du code cassé peut être mergé et déployé en staging sans détection. Le pipeline staging build les images Docker directement sans étape de validation.
+
+**Correctif court terme** :
+
+- Créer un workflow `.github/workflows/tests.yml` qui exécute `uv run pytest` sur chaque PR et push vers main
+- Ajouter une étape de test dans le workflow staging (avant le build Docker)
+- Configurer `pytest-cov` avec un seuil minimum (ex: 60%) dans `pyproject.toml`
+
+**Solution long terme** :
+
+- Ajouter un job vitest dans le même workflow CI pour le frontend
+- Rendre le merge conditionné par les tests (branch protection rules GitHub)
+- Publier les rapports de coverage sur chaque PR (via `coverage-comment` ou Codecov)
+- Implémenter une matrice de tests (Python 3.12/3.13, PostgreSQL versions)
+
+**Outils / Technologies** :
+| Outil | Rôle | Coût |
+|-------|------|------|
+| GitHub Actions | CI/CD (déjà en place) | Gratuit (2000 min/mois) |
+| `pytest-cov` | Mesure de couverture (déjà installé) | Gratuit |
+| `codecov` ou `coveralls` | Rapports de coverage sur PR | Gratuit (open source) |
+| Branch protection rules | Gate obligatoire avant merge | Gratuit |
+| `act` | Tester les workflows CI localement | Gratuit |
+
+---
+
+### 🥉 #3 — Sécurité production non configurée (Sécurité / Déploiement)
+
+**Constat** : `ALLOWED_HOSTS=*` dans `.env.example` racine, aucun setting `SECURE_*` configuré (SSL redirect, HSTS, cookies sécurisés), nginx en HTTP uniquement sans headers de sécurité, containers Docker tournant en root. Le mot de passe par défaut `infoclimat2026` apparaît dans 5+ fichiers.
+
+**Correctif court terme** :
+
+- Remplacer `ALLOWED_HOSTS=*` par les domaines réels dans `.env.example`
+- Ajouter les settings Django conditionnels en production :
+  ```python
+  if not DEBUG:
+      SECURE_SSL_REDIRECT = True
+      SESSION_COOKIE_SECURE = True
+      CSRF_COOKIE_SECURE = True
+      SECURE_HSTS_SECONDS = 31536000
+  ```
+- Ajouter un utilisateur non-root dans les Dockerfiles (`USER appuser`)
+- Ajouter les headers sécurité dans `nginx.conf` (X-Frame-Options, X-Content-Type-Options, Referrer-Policy)
+
+**Solution long terme** :
+
+- Configurer HTTPS/TLS complet dans nginx avec Let's Encrypt (certbot)
+- Mettre en place un **WAF** (Web Application Firewall) ou Cloudflare
+- Externaliser les secrets dans un vault (HashiCorp Vault, AWS Secrets Manager, ou GitHub Environments)
+- Implémenter un scan de sécurité automatisé dans la CI (Bandit + pip-audit + Trivy pour les images Docker)
+
+**Outils / Technologies** :
+| Outil | Rôle | Coût |
+|-------|------|------|
+| Let's Encrypt + certbot | Certificats TLS gratuits | Gratuit |
+| `django-secure` / settings natifs | Headers sécurité Django | Gratuit |
+| `bandit` | Scanner sécurité code Python | Gratuit |
+| `pip-audit` | Audit vulnérabilités dépendances | Gratuit |
+| `trivy` | Scan vulnérabilités images Docker | Gratuit |
+| Cloudflare | WAF + CDN + DDoS protection | Gratuit (plan basique) |
+
+---
+
+### 4️⃣ #4 — Pas de rate limiting (Sécurité)
+
+**Constat** : Aucune protection contre les abus, ni au niveau Django REST Framework (throttling), ni au niveau nginx (limit_req). L'API publique sans authentification est une cible facile pour du scraping massif ou du déni de service.
+
+**Correctif court terme** :
+
+- Configurer le throttling DRF dans `settings.py` :
+  ```python
+  REST_FRAMEWORK = {
+      "DEFAULT_THROTTLE_CLASSES": [
+          "rest_framework.throttling.AnonRateThrottle",
+      ],
+      "DEFAULT_THROTTLE_RATES": {
+          "anon": "100/minute",
+      },
+  }
+  ```
+- Ajouter `limit_req_zone` et `limit_req` dans `nginx.conf`
+
+**Solution long terme** :
+
+- Implémenter un système d'**API keys** pour les consommateurs réguliers (quotas personnalisés)
+- Ajouter un rate limiting distribué avec **Redis** (pour les déploiements multi-instances)
+- Mettre en place du **request caching** nginx ou Django pour les endpoints fréquents
+- Intégrer un CDN (Cloudflare) pour absorber le trafic en amont
+
+**Outils / Technologies** :
+| Outil | Rôle | Coût |
+|-------|------|------|
+| DRF Throttling | Rate limiting applicatif (natif) | Gratuit |
+| nginx `limit_req` | Rate limiting réseau (natif) | Gratuit |
+| Redis + `django-redis` | Rate limiting distribué + cache | Gratuit (self-hosted) |
+| `djangorestframework-api-key` | Gestion d'API keys | Gratuit |
+| Cloudflare | Protection DDoS en amont | Gratuit (plan basique) |
+
+---
+
+### 5️⃣ #5 — Zéro test frontend (Testing)
+
+**Constat** : Malgré Vitest, @nuxt/test-utils, @vue/test-utils et @testing-library/vue déjà installés, aucun fichier de test n'existe. Les composables (useApiClient, useTemperature, useNationalIndicator…), le store Pinia (itnStore), et les composants sont totalement non testés. Toute régression frontend est silencieuse.
+
+**Correctif court terme** :
+
+- Écrire des tests unitaires pour les **composables** (`useApiClient`, `useCustomDate`, `useNationalIndicator`) — ce sont les plus critiques car ils contiennent la logique métier
+- Écrire des tests pour le **store Pinia** (`itnStore`) — source de vérité de l'application
+- Configurer le script `test:unit` dans la CI (workflow tests.yml)
+
+**Solution long terme** :
+
+- Couvrir les **composants UI** avec des tests de rendering (@testing-library/vue)
+- Configurer **Playwright** pour des tests E2E (parcours utilisateur complets)
+- Mettre en place du **visual regression testing** (Percy, Chromatic)
+- Atteindre un seuil de coverage frontend minimum (60-70%)
+
+**Outils / Technologies** :
+| Outil | Rôle | Coût |
+|-------|------|------|
+| Vitest | Test runner (déjà installé) | Gratuit |
+| @testing-library/vue | Tests composants (déjà installé) | Gratuit |
+| @nuxt/test-utils | Helpers Nuxt pour tests (déjà installé) | Gratuit |
+| Playwright | Tests E2E (déjà dans devDeps) | Gratuit |
+| `@vitest/coverage-v8` | Coverage frontend | Gratuit |
+| Percy / Chromatic | Visual regression testing | Payant |
+
+---
+
 ## Matrice de Priorités
 
 ### 🔴 Critique — À traiter immédiatement
