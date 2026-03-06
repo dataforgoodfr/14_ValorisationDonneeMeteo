@@ -86,8 +86,22 @@ function exportAsCSV() {
 
     window.URL.revokeObjectURL(url);
 }
-function exportAsHTML() {
+async function exportAsHTML() {
     console.log("exportAsHTML");
+    if (!import.meta.client) return;
+    const dataURL = itnChartRef.value.getDataURL({
+        type: "png",
+        pixelRatio: 2,
+        backgroundColor: "#fff",
+        excludeComponents: ["dataZoom"],
+    });
+    const response = await fetch(dataURL);
+
+    const blobImage = await response.blob();
+
+    const fileURL = URL.createObjectURL(blobImage);
+    window.open(fileURL, "_blank");
+    URL.revokeObjectURL(fileURL);
 }
 </script>
 
