@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import type { DropdownMenuItem } from "@nuxt/ui";
 import { useItnStore } from "#imports";
+import { GetChartData, TimeAxisType } from "~~/public/ChartDataProvider";
 
 const itnStore = useItnStore();
 const { itnChartRef, granularity, picked_date_start, picked_date_end } =
@@ -56,6 +57,34 @@ function exportAsPng() {
 
 function exportAsCSV() {
     console.log("exportAsCSV");
+    const source = GetChartData(TimeAxisType.Day);
+    console.log(`data = ${JSON.stringify(source)}`);
+    const headers = [
+        "Date",
+        "ITN - Température (°C)",
+        "Delta - Température (°C)",
+        "StdDev - Température (°C)",
+        "Min - Température (°C)",
+        "Max - Température (°C)",
+    ];
+    const rows = source.map((row) => Object.values(row).join(",")).join("\n");
+
+    const csv = `${headers}\n${rows}`;
+    const blob = new Blob([csv], { type: "text/csv" });
+    const url = window.URL.createObjectURL(blob);
+
+    const anchorElement = document.createElement("a");
+    anchorElement.href = url;
+    anchorElement.download = useFormatFileName(
+        "itn",
+        granularity.value,
+        picked_date_start.value,
+        picked_date_end.value,
+        "csv",
+    );;
+    anchorElement.click();
+
+    window.URL.revokeObjectURL(url);
 }
 function exportAsHTML() {
     console.log("exportAsHTML");
