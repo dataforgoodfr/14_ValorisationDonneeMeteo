@@ -1,24 +1,28 @@
-function formatDateManually(date: Date) {
+function nowDateFormatted() {
     // Helper function to pad numbers with a leading zero
+    const nowDate = new Date();
     const pad = (num: number) => num.toString().padStart(2, "0");
 
-    const year = date.getFullYear();
-    const month = pad(date.getMonth() + 1); // getMonth() is zero-based (0-11)
-    const day = pad(date.getDate());
+    const year = nowDate.getFullYear();
+    const month = pad(nowDate.getMonth() + 1); // getMonth() is zero-based (0-11)
+    const day = pad(nowDate.getDate());
 
-    const hours = pad(date.getHours());
-    const minutes = pad(date.getMinutes());
-    const seconds = pad(date.getSeconds());
+    const hours = pad(nowDate.getHours());
+    const minutes = pad(nowDate.getMinutes());
+    const seconds = pad(nowDate.getSeconds());
 
     return `${year}${month}${day}_${hours}${minutes}${seconds}`;
 }
 
+const toISODate = (date: Date) => date.toISOString().substring(0, 10);
+
 export function useFormatFileName(
-    granularity: string,
-    interval: string,
     chartName: string,
+    granularity: string,
+    dateStart: Date,
+    dateEnd: Date,
+    fileFormat: string,
 ) {
-    // Helper function to format exported file name
-    const now = new Date(Date.now());
-    return `${formatDateManually(now)}_${chartName}_${granularity}_${interval}`;
+    const fileName = `${nowDateFormatted()}_${chartName}_${granularity}_${toISODate(dateStart)}_to_${toISODate(dateEnd)}.${fileFormat}`;
+    return fileName;
 }
