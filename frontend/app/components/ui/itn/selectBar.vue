@@ -4,9 +4,6 @@ import { storeToRefs } from "pinia";
 import MonthPicker from "./monthPicker.vue";
 import YearPicker from "./yearPicker.vue";
 import DayPicker from "./dayPicker.vue";
-// import ExportCsv from "./ExportCsv.vue";
-// import ExportPng from "./ExportPng.vue";
-// import ExportHtml from "./ExportHtml.vue";
 import ExportMenu from "../commons/exportMenu.vue";
 
 const { granularity, slice_type } = storeToRefs(useItnStore());
@@ -69,9 +66,6 @@ const sliceTypeValues = reactive([
                     :items="sliceTypeValues"
                 />
             </UFormField>
-            <!-- <ExportPng />
-            <ExportHtml />
-            <ExportCsv /> -->
         </div>
         <ExportMenu />
     </div>
