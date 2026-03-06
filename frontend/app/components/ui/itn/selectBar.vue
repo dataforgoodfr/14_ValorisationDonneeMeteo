@@ -5,9 +5,6 @@ import MonthPicker from "./monthPicker.vue";
 import YearPicker from "./yearPicker.vue";
 import DayPicker from "./dayPicker.vue";
 import SliceType from "./sliceType.vue";
-// import ExportCsv from "./ExportCsv.vue";
-// import ExportPng from "./ExportPng.vue";
-// import ExportHtml from "./ExportHtml.vue";
 import ExportMenu from "../commons/exportMenu.vue";
 
 const itnStore = useItnStore();
@@ -74,9 +71,7 @@ const granularityValues = reactive([
                 </UTooltip>
 
                 <SliceType v-if="sliceTypeSwitchEnabled" />
-            <!-- <ExportPng />
-            <ExportHtml />
-            <ExportCsv /> -->
+            </div>
         </div>
         <ExportMenu />
     </div>
