@@ -56,9 +56,7 @@ function exportAsPng() {
 }
 
 function exportAsCSV() {
-    console.log("exportAsCSV");
     const source = GetChartData(TimeAxisType.Day);
-    console.log(`data = ${JSON.stringify(source)}`);
     const headers = [
         "Date",
         "ITN - Température (°C)",
@@ -87,7 +85,6 @@ function exportAsCSV() {
     window.URL.revokeObjectURL(url);
 }
 async function exportAsHTML() {
-    console.log("exportAsHTML");
     if (!import.meta.client) return;
     const dataURL = itnChartRef.value.getDataURL({
         type: "png",
