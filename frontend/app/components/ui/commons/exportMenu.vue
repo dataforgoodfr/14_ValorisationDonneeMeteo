@@ -18,10 +18,18 @@ const exportMenuItems = ref<DropdownMenuItem[]>([
     {
         label: "Format CSV",
         icon: "i-lucide-file-spreadsheet",
+        onSelect(e: Event) {
+            e.preventDefault();
+            exportAsCSV();
+        },
     },
     {
         label: "Format HTML",
         icon: "i-lucide-file-code",
+        onSelect(e: Event) {
+            e.preventDefault();
+            exportAsHTML();
+        },
     },
 ]);
 
@@ -36,8 +44,21 @@ function exportAsPng() {
 
     const a = document.createElement("a");
     a.href = dataURL;
-    a.download = `${useFormatFileName(`${granularity.value}`, `${picked_date_start.value.toISOString().substring(0, 10)} to ${picked_date_end.value.toISOString().substring(0, 10)}`, "itn")}.png`;
+    a.download = useFormatFileName(
+        "itn",
+        granularity.value,
+        picked_date_start.value,
+        picked_date_end.value,
+        "png",
+    );
     a.click();
+}
+
+function exportAsCSV() {
+    console.log("exportAsCSV");
+}
+function exportAsHTML() {
+    console.log("exportAsHTML");
 }
 </script>
 

@@ -49,7 +49,6 @@ const sliceTypeValues = reactive([
             />
             <USwitch
                 v-model="isMeanType"
-                disabled
                 unchecked-icon="i-lucide-x"
                 checked-icon="i-lucide-check"
                 label="Type de moyenne"

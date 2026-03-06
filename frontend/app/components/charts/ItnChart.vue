@@ -26,7 +26,6 @@ echarts.use([
 
 const itnStore = useItnStore();
 const { itnChartRef } = storeToRefs(itnStore);
-
 // provide init-options
 const renderer = ref<"svg" | "canvas">("canvas");
 const initOptions = computed(() => ({
@@ -235,8 +234,6 @@ const option = computed<ECOption>(() => {
         ],
     };
 });
-
-console.log(itnChartRef.value);
 </script>
 
 <template>
