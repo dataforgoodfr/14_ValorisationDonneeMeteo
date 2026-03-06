@@ -25,9 +25,9 @@ echarts.use([
 ]);
 
 const itnStore = useItnStore();
-
+const { itnChartRef } = storeToRefs(itnStore);
 // provide init-options
-const renderer = ref<"svg" | "canvas">("svg");
+const renderer = ref<"svg" | "canvas">("canvas");
 const initOptions = computed(() => ({
     height: 600,
     renderer: renderer.value,
@@ -238,6 +238,7 @@ const option = computed<ECOption>(() => {
 
 <template>
     <VChart
+        ref="itnChartRef"
         :option="option"
         :init-options="initOptions"
         :loading="itnStore.pending"
