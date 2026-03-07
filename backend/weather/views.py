@@ -221,7 +221,6 @@ class RecordsAPIView(APIView):
             "records": data,
         }
         out = RecordsResponseSerializer(data=full_payload)
-        print(["la",out])
         out.is_valid(raise_exception=True)
 
         return Response(out.data, status=status.HTTP_200_OK)
