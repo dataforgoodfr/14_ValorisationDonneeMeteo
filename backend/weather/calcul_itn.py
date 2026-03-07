@@ -45,6 +45,7 @@ DEFAULT_ITN_STATIONS_LIST = (
 
 REIMS_PRUNAY_ID = "51449002"
 REIMS_COURCY_ID = "51183001"
+COLUMN_NAME_INDEX = 0
 
 
 # --------------------------------------------------------------------
@@ -69,7 +70,10 @@ def sql2pandas(sql_request: str) -> pd.DataFrame:
 
     columns = cursor.description
     result = [
-        {columns[index][0]: column for index, column in enumerate(value)}
+        {
+            columns[index][COLUMN_NAME_INDEX]: column
+            for index, column in enumerate(value)
+        }
         for value in cursor.fetchall()
     ]
 
@@ -83,13 +87,18 @@ def read_temperatures(
     end_date: str | pd.Timestamp | datetime.datetime | None = None,
 ) -> tuple[pd.DataFrame, pd.DataFrame]:
     """
-    Read the csv file containing the data into a pandas DataFrame. The times
-    are converted into datetime object.
+    Define the SQL request to extract the data from the database, consult the database and
+    return the results as pandas DataFrames. The times are converted into datetime object.
 
     Parameters
     ----------
-    list or tuple
-          list of the stations to be considered to calculate the ITN.
+    stations_itn: Iterable
+          list of the unique ID of the meteorological stations to be
+          considered to calculate the ITN.
+    start_date: str or pd.Timestamp or datetime.datetime
+          beginning of the time period to consider
+    end_date: str or pd.Timestamp or datetime.datetime
+          end of the time period to consider
 
     Returns
     -------
@@ -240,9 +249,13 @@ def compute_itn(
 
     Parameters
     ----------
-    list or tuple
-        the unique ID of the meteorological stations that are used to
-        calculate the ITN
+    stations_itn: Iterable
+          list of the unique ID of the meteorological stations to be
+          considered to calculate the ITN.
+    start_date: str or pd.Timestamp or datetime.datetime
+          beginning of the time period to consider
+    end_date: str or pd.Timestamp or datetime.datetime
+          end of the time period to consider
 
     Returns
     -------
@@ -288,8 +301,13 @@ def itn(
 
     Parameters
     ----------
-    list or tuple
-          list of the stations to be considered to calculate the ITN.
+    stations_itn: Iterable
+          list of the unique ID of the meteorological stations to be
+          considered to calculate the ITN.
+    start_date: str or pd.Timestamp or datetime.datetime
+          beginning of the time period to consider
+    end_date: str or pd.Timestamp or datetime.datetime
+          end of the time period to consider
 
     Returns
     -------
