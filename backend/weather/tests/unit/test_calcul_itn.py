@@ -7,7 +7,7 @@ from weather.calcul_itn import (
     # REIMS_COURCY_ID,
     # REIMS_PRUNAY_ID,
     # calculate_return_itn,
-    # itn_calculation,
+    itn_calculation,
     separate_by_station,
 )
 
@@ -115,3 +115,42 @@ def test_correct_temperatures_Reims():
 
     correct_temperatures_Reims(input_df)
     pd.testing.assert_frame_equal(input_df, original)
+
+
+# == itn_calculation =================================================
+
+
+def test_itn_calculation():
+    dates = pd.date_range("2024-01-01", periods=4, freq="D")
+
+    df = _make_pivoted(
+        dates,
+        {
+            ("tntxm", "A"): [10.0, 12.0, 14.0, 16.0],
+            ("tntxm", "B"): [20.0, 22.0, 24.0, 26.0],
+        },
+    )
+    result = itn_calculation(df)
+    expected = pd.Series([15.0, 17.0, 19.0, 21.0], index=dates)
+    pd.testing.assert_series_equal(result, expected, check_names=False)
+
+    df = _make_pivoted(
+        dates,
+        {
+            ("tntxm", "A"): [10.0, NAN, 14.0, 16.0],
+            ("tntxm", "B"): [20.0, 22.0, 24.0, NAN],
+        },
+    )
+    result = itn_calculation(df)
+    expected = pd.Series([15.0, 22.0, 19.0, 16.0], index=dates)
+    pd.testing.assert_series_equal(result, expected, check_names=False)
+
+    df = _make_pivoted(
+        dates,
+        {
+            ("tntxm", "A"): [10.0, 12.0, 14.0, 16.0],
+        },
+    )
+    result = itn_calculation(df)
+    expected = pd.Series([10.0, 12.0, 14.0, 16.0], index=dates)
+    pd.testing.assert_series_equal(result, expected, check_names=False)
