@@ -202,7 +202,6 @@ class RecordsAPIView(APIView):
                 ),
                 status=status.HTTP_400_BAD_REQUEST,
             )
-
         params = q.validated_data
         ds = RecordsDependencyProvider.get_dep()
         data = get_records(data_source=ds, **params)
@@ -219,9 +218,10 @@ class RecordsAPIView(APIView):
 
         full_payload = {
             "metadata": metadata,
-            "time_series": data,
+            "records": data,
         }
         out = RecordsResponseSerializer(data=full_payload)
+        print(["la",out])
         out.is_valid(raise_exception=True)
 
         return Response(out.data, status=status.HTTP_200_OK)

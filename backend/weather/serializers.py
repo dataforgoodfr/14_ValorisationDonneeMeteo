@@ -267,4 +267,4 @@ class RecordsPointSerializer(serializers.Serializer):
     
 class RecordsResponseSerializer(serializers.Serializer):
     metadata = RecordsMetadataSerializer()
-    records = RecordsPointSerializer(many=True)
+    records = RecordsPointSerializer(many=True, allow_null=True)

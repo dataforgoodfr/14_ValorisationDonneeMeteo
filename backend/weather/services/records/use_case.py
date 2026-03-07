@@ -13,5 +13,5 @@ def get_records(*,
     date_end: dt.date,
     station_name_filter : str|None=None,
     departement_filter : str |None=None
-) -> dict:
-    return [None]
+) -> dict|None:
+    return None
