@@ -2,8 +2,16 @@ import pandas as pd
 import pytest
 
 from weather.calcul_itn import (
+    correct_temperatures_Reims,
+    # DEFAULT_ITN_STATIONS_LIST,
+    # REIMS_COURCY_ID,
+    # REIMS_PRUNAY_ID,
+    # calculate_return_itn,
+    # itn_calculation,
     separate_by_station,
 )
+
+NAN = float("nan")
 
 
 def _make_pivoted(index, columns_data):
@@ -58,7 +66,6 @@ def test_separate_by_station():
     result = separate_by_station(
         df, index="date", columns="nom", values=["tn", "tntxm"], freq="D"
     )
-
     expected = _make_pivoted(
         dates,
         {
@@ -78,3 +85,33 @@ def test_separate_by_station():
 
     with pytest.raises(AssertionError, match="Cannot pivot, missing arguments"):
         separate_by_station(df, index="a", columns="a", values="")
+
+
+# == correct_temperatures_Reims ======================================
+
+
+def test_correct_temperatures_Reims():
+    dates = pd.date_range("2012-05-06", "2012-05-09", freq="D")
+    input_df = _make_pivoted(
+        dates,
+        {
+            ("tntxm", "Reims-Courcy"): [8.0, 9.0, 10.0, 11.0],
+            ("tntxm", "Reims-Prunay"): [18.0, 19.0, 20.0, 21.0],
+            ("tntxm", "Paris"): [11.0, 12.0, 13.0, 14.0],
+        },
+    )
+    original = input_df.copy()
+
+    result = correct_temperatures_Reims(input_df)
+    expected = _make_pivoted(
+        dates,
+        {
+            ("tntxm", "Reims-Courcy"): [8.0, 9.0, NAN, NAN],
+            ("tntxm", "Reims-Prunay"): [NAN, NAN, 20.0, 21.0],
+            ("tntxm", "Paris"): [11.0, 12.0, 13.0, 14.0],
+        },
+    )
+    pd.testing.assert_frame_equal(result, expected)
+
+    correct_temperatures_Reims(input_df)
+    pd.testing.assert_frame_equal(input_df, original)
