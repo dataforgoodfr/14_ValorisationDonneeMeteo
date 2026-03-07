@@ -23,6 +23,7 @@ from weather.services.national_indicator.stations import (
     expected_station_codes,
 )
 from weather.services.national_indicator.types import DailyPoint, DailySeriesQuery
+from weather.services.records.protocols import RecordsDataSource
 from weather.services.temperature_deviation.protocols import (
     TemperatureDeviationDailyDataSource,
 )
@@ -216,3 +217,8 @@ class TimescaleTemperatureDeviationDailyDataSource(TemperatureDeviationDailyData
         raise NotImplementedError(
             "National deviation is not implemented yet: waiting for ITN baseline."
         )
+
+
+class TimescaleRecordsDataSource(RecordsDataSource):
+    def __init__(self) -> None:
+        pass

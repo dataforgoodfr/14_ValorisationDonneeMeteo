@@ -203,6 +203,11 @@ class TemperatureDeviationQuerySerializer(serializers.Serializer):
     station_ids = CommaSeparatedStationIdsField(required=False)
     include_national = serializers.BooleanField(required=False, default=True)
 
+
+class RecordsSerializer(serializers.Serializer):
+    date_start = serializers.DateField(required=True)
+    date_end = serializers.DateField(required=True)
+
     def validate(self, attrs):
         ds = attrs["date_start"]
         de = attrs["date_end"]
@@ -251,3 +256,24 @@ class TemperatureDeviationResponseSerializer(serializers.Serializer):
     metadata = TemperatureDeviationMetadataSerializer()
     national = TemperatureDeviationNationalSerializer(required=False)
     stations = TemperatureDeviationStationSerializer(many=True)
+
+
+class RecordsMetadataSerializer:
+    date_start = serializers.DateField()
+    date_end = serializers.DateField()
+    station_name_filter = serializers.StringRelatedField()
+    departement_filter = serializers.StringRelatedField
+
+
+class RecordsPointSerializer(serializers.Serializer):
+    id = serializers.StringRelatedField()
+    name = serializers.StringRelatedField()
+    TNN = serializers.FloatField()
+    TXX = serializers.FloatField()
+    TNN_date = serializers.DateField()
+    TXX_date = serializers.DateField()
+
+
+class RecordsResponseSerializer(serializers.Serializer):
+    metadata = RecordsMetadataSerializer()
+    records = RecordsPointSerializer(many=True)
