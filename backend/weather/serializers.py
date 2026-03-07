@@ -237,3 +237,34 @@ class NationalIndicatorMetadataSerializer(serializers.Serializer):
 class NationalIndicatorResponseSerializer(serializers.Serializer):
     metadata = NationalIndicatorMetadataSerializer()
     time_series = NationalIndicatorTimePointSerializer(many=True)
+
+class RecordsSerializer(serializers.Serializer):
+    date_start = serializers.DateField(required=True)
+    date_end = serializers.DateField(required=True)
+
+    def validate(self, attrs):
+        ds = attrs["date_start"]
+        de = attrs["date_end"]
+        if ds > de:
+            raise serializers.ValidationError(
+                {"date_end": "date_end doit être >= date_start."}
+            )
+        return attrs
+
+class RecordsMetadataSerializer():
+    date_start = serializers.DateField()
+    date_end = serializers.DateField()
+    station_name_filter = serializers.StringRelatedField()
+    departement_filter = serializers.StringRelatedField
+
+class RecordsPointSerializer(serializers.Serializer):
+    id = serializers.StringRelatedField()
+    name = serializers.StringRelatedField()
+    TNN = serializers.FloatField()
+    TXX = serializers.FloatField()
+    TNN_date = serializers.DateField()
+    TXX_date = serializers.DateField()
+    
+class RecordsResponseSerializer(serializers.Serializer):
+    metadata = RecordsMetadataSerializer()
+    records = RecordsPointSerializer(many=True)

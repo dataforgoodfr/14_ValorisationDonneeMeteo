@@ -9,7 +9,10 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from weather.bootstrap_itn import ITNDependencyProvider
+from weather.bootstrap_records import RecordsDependencyProvider
+
 from weather.services.national_indicator.use_case import get_national_indicator
+from weather.services.records.use_case import get_records
 
 from .filters import HoraireTempsReelFilter, QuotidienneFilter, StationFilter
 from .models import HoraireTempsReel, Quotidienne, Station
@@ -21,6 +24,8 @@ from .serializers import (
     NationalIndicatorResponseSerializer,
     QuotidienneDetailSerializer,
     QuotidienneSerializer,
+    RecordsResponseSerializer,
+    RecordsSerializer,
     StationDetailSerializer,
     StationSerializer,
 )
@@ -173,6 +178,50 @@ class NationalIndicatorAPIView(APIView):
             "time_series": data["time_series"],
         }
         out = NationalIndicatorResponseSerializer(data=full_payload)
+        out.is_valid(raise_exception=True)
+
+        return Response(out.data, status=status.HTTP_200_OK)
+
+class RecordsAPIView(APIView):
+    """
+    GET /api/v1/temperature/records
+
+    implémentation données mockées
+    """
+    authentication_classes = []
+    permission_classes = []
+
+    def get(self, request):
+        q = RecordsSerializer(data=request.query_params)
+        if not q.is_valid():
+            return Response(
+                ErrorSerializer.build(
+                    code="INVALID_PARAMETER",
+                    message="Paramètre invalide ou manquant",
+                    details=q.errors,
+                ),
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        params = q.validated_data
+        ds = RecordsDependencyProvider.get_dep()
+        data = get_records(data_source=ds, **params)
+        metadata = {
+            "date_start": params["date_start"],
+            "date_end": params["date_end"],            
+        }
+
+        if "station_name_filter" in params:
+            metadata["station_name_filter"] = params["station_name_filter"]
+
+        if "departement_filter" in params:
+            metadata["departement_filter"] = params["departement_filter"]
+
+        full_payload = {
+            "metadata": metadata,
+            "time_series": data,
+        }
+        out = RecordsResponseSerializer(data=full_payload)
         out.is_valid(raise_exception=True)
 
         return Response(out.data, status=status.HTTP_200_OK)

@@ -10,6 +10,7 @@ from .views import (
     NationalIndicatorAPIView,
     QuotidienneViewSet,
     StationViewSet,
+    RecordsAPIView,
 )
 
 router = DefaultRouter()
@@ -23,5 +24,10 @@ urlpatterns = [
         "temperature/national-indicator",
         NationalIndicatorAPIView.as_view(),
         name="temperature-national-indicator",
+    ),
+    path(
+        "temperature/records",
+        RecordsAPIView.as_view(),
+        name="records",
     ),
 ]

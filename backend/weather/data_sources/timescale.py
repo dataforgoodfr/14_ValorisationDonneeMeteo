@@ -17,6 +17,8 @@ from weather.services.national_indicator.stations import (
 )
 from weather.services.national_indicator.types import DailyPoint, DailySeriesQuery
 
+from weather.services.records.protocols import RecordsDataSource
+
 
 def _normalize_reims(
     day: dt.date, station_code_to_temp_map: dict[str, float]
@@ -122,3 +124,7 @@ class TimescaleNationalIndicatorDailyDataSource(NationalIndicatorDailyDataSource
             )
 
         return out
+
+class TimescaleRecordsDataSource(RecordsDataSource):
+    def __init__(self) -> None:
+        pass
