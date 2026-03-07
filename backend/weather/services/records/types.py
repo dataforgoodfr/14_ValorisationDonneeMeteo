@@ -7,8 +7,8 @@ class RecordPoint:
     name: str
     TNN: float
     TXX: float
-    TNN_date: dt.date
-    TXX_date: dt.date
+    TNN_date: dt.date|None = None
+    TXX_date: dt.date|None = None
     
 
 @dataclass(frozen=True)

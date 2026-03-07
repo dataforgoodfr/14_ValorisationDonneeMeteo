@@ -4,7 +4,9 @@ import datetime as dt
 from dataclasses import dataclass
 from itertools import groupby
 
-from weather.models import Quotidienne
+from django.db.models import (Q, Max, Min)
+
+from weather.models import HoraireTempsReel, Quotidienne
 from weather.services.national_indicator.protocols import (
     NationalIndicatorDailyDataSource,
 )
@@ -18,6 +20,7 @@ from weather.services.national_indicator.stations import (
 from weather.services.national_indicator.types import DailyPoint, DailySeriesQuery
 
 from weather.services.records.protocols import RecordsDataSource
+from weather.services.records.types import RecordPoint, RecordsQuery
 
 
 def _normalize_reims(
@@ -128,3 +131,46 @@ class TimescaleNationalIndicatorDailyDataSource(NationalIndicatorDailyDataSource
 class TimescaleRecordsDataSource(RecordsDataSource):
     def __init__(self) -> None:
         pass
+
+    def fetch_records (
+            self,
+            query:RecordsQuery)->list[RecordPoint]|None:
+        qs = HoraireTempsReel.objects.filter(
+            reference_time__gte=query.date_start,
+            reference_time__lte=query.date_end,            
+        )
+        
+        #1st get records values from timespan
+        MinMaxes = qs.values('station__nom','station__id').annotate(
+            TXX=Max('t'),
+            TNN=Min('t'),             
+        )
+
+        #2nd loop to get dates
+        retdata = []
+        for recpoint in MinMaxes:
+            rqs = qs.filter(
+                Q(t=recpoint['TXX'])|
+                Q(t=recpoint['TNN'])
+            ).values('station','t').annotate(RefT = Min('reference_time'))
+            TNNDate = None
+            TXXDate = None
+            for PointDate in rqs:
+                if PointDate['t']==recpoint['TNN']:
+                    TNNDate=PointDate['RefT']
+                if PointDate['t']==recpoint['TXX']:
+                    TXXDate=PointDate['RefT']
+            
+            RetPoint=RecordPoint(
+                id=recpoint['station__nom'],
+                name=recpoint['station__id'],
+                TXX=recpoint['TXX'],
+                TNN=recpoint['TNN'],
+                TNN_date=TNNDate,
+                TXX_date=TXXDate
+                )
+            retdata.append(RetPoint)
+            
+        # shape API (time_series uniquement)
+        return  retdata
+            
