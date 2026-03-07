@@ -258,8 +258,8 @@ class RecordsMetadataSerializer():
     departement_filter = serializers.StringRelatedField
 
 class RecordPointSerializer(serializers.Serializer):
-    id = serializers.StringRelatedField()
-    name = serializers.StringRelatedField()
+    id = serializers.CharField()
+    name = serializers.CharField()
     TNN = serializers.FloatField()
     TXX = serializers.FloatField()
     TNN_date = serializers.DateField()
