@@ -9,6 +9,7 @@ from .views import (
     NationalIndicatorAPIView,
     RecordsAPIView,
     StationViewSet,
+    RecordsAPIView,
 )
 
 router = DefaultRouter()
