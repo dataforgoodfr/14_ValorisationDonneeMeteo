@@ -265,7 +265,7 @@ class RecordsMetadataSerializer:
     departement_filter = serializers.StringRelatedField
 
 
-class RecordsPointSerializer(serializers.Serializer):
+class RecordPointSerializer(serializers.Serializer):
     id = serializers.StringRelatedField()
     name = serializers.StringRelatedField()
     TNN = serializers.FloatField()
@@ -276,4 +276,4 @@ class RecordsPointSerializer(serializers.Serializer):
 
 class RecordsResponseSerializer(serializers.Serializer):
     metadata = RecordsMetadataSerializer()
-    records = RecordsPointSerializer(many=True, allow_null=True)
+    records = RecordPointSerializer(many=True, allow_null=True)

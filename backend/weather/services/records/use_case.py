@@ -3,6 +3,7 @@ import datetime as dt
 from weather.services.records.protocols import (
     RecordsDataSource,
 )
+from weather.services.records.types import RecordPoint, RecordsQuery
 
 
 def get_records(
@@ -12,5 +13,11 @@ def get_records(
     date_end: dt.date,
     station_name_filter: str | None = None,
     departement_filter: str | None = None,
-) -> dict | None:
-    return None
+) -> list[RecordPoint] | None:
+    query = RecordsQuery(
+        date_start=date_start,
+        date_end=date_end,
+        station_name_filter=station_name_filter,
+        departement_filter=departement_filter,
+    )
+    return data_source.fetch_records(query)
