@@ -1,12 +1,11 @@
+import numpy as np
 import pandas as pd
 import pytest
 
 from weather.calcul_itn import (
-    # DEFAULT_ITN_STATIONS_LIST,
-    # REIMS_COURCY_ID,
-    # REIMS_PRUNAY_ID,
     compute_itn,
     correct_temperatures_Reims,
+    itn,
     itn_calculation,
     separate_by_station,
 )
@@ -186,3 +185,20 @@ def test_compute_itn():
     ).asfreq("D")
     pd.testing.assert_frame_equal(results[0], expected_records_by_station)
     pd.testing.assert_series_equal(results[1], expected_itn)
+
+
+# == itn =============================================================
+
+
+def test_itn():
+    result = itn(read_protocol=ReadTemperaturesTests)
+    expected = np.array(
+        [
+            ["2012-05-06", 26.0 / 3.0],
+            ["2012-05-07", 29.0 / 3.0],
+            ["2012-05-08", 33.0 / 3.0],
+            ["2012-05-09", 36.0 / 3.0],
+        ]
+    )
+    np.testing.assert_array_equal(result[:, 0], expected[:, 0])
+    np.testing.assert_allclose(result[:, 1].astype(float), expected[:, 1].astype(float))
