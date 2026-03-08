@@ -8,6 +8,7 @@ from django.db import connection
 
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "config.settings")
 
+from weather.itn.gateway import ReadTemperaturesGateway
 
 DEFAULT_ITN_STATIONS_LIST = (
     "06088001",  # Nice - Côte d'Azur
@@ -178,7 +179,9 @@ def separate_by_station(
         (index != "") and (columns != "") and (values != "")
     ), "Cannot pivot, missing arguments"
 
-    data_temp = pd.pivot_table(df, index=index, columns=columns, values=values)
+    data_temp = pd.pivot_table(
+        df, index=index, columns=columns, values=values, sort=False
+    )
 
     return data_temp.asfreq(freq).astype(float)
 
@@ -239,6 +242,7 @@ def itn_calculation(df: pd.DataFrame) -> pd.DataFrame:
 
 # --------------------------------------------------------------------
 def compute_itn(
+    read_protocol: ReadTemperaturesGateway,
     stations_itn: Iterable | None = None,
     start_date: str | pd.Timestamp | datetime.datetime | None = None,
     end_date: str | pd.Timestamp | datetime.datetime | None = None,
@@ -265,7 +269,9 @@ def compute_itn(
           daily ITN
     """
 
-    stations, temp_daily = read_temperatures(stations_itn, start_date, end_date)
+    stations, temp_daily = read_protocol.read_temperatures(
+        stations_itn, start_date, end_date
+    )
 
     daily_records_by_station = separate_by_station(
         temp_daily,
@@ -292,6 +298,8 @@ def compute_itn(
 
 # --------------------------------------------------------------------
 def itn(
+    *,
+    read_protocol: ReadTemperaturesGateway,
     stations_itn: Iterable | None = None,
     start_date: str | pd.Timestamp | datetime.datetime | None = None,
     end_date: str | pd.Timestamp | datetime.datetime | None = None,
@@ -319,7 +327,7 @@ def itn(
     if stations_itn is None:
         stations_itn = DEFAULT_ITN_STATIONS_LIST
 
-    itn = compute_itn(stations_itn, start_date, end_date)[1]
+    itn = compute_itn(read_protocol, stations_itn, start_date, end_date)[1]
 
     dates = itn.index.strftime("%Y-%m-%d").to_numpy()
     values = itn.values

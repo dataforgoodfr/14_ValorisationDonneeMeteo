@@ -2,14 +2,15 @@ import pandas as pd
 import pytest
 
 from weather.calcul_itn import (
-    correct_temperatures_Reims,
     # DEFAULT_ITN_STATIONS_LIST,
     # REIMS_COURCY_ID,
     # REIMS_PRUNAY_ID,
-    # calculate_return_itn,
+    compute_itn,
+    correct_temperatures_Reims,
     itn_calculation,
     separate_by_station,
 )
+from weather.itn.gateway_tests import ReadTemperaturesTests
 
 NAN = float("nan")
 
@@ -154,3 +155,34 @@ def test_itn_calculation():
     result = itn_calculation(df)
     expected = pd.Series([10.0, 12.0, 14.0, 16.0], index=dates)
     pd.testing.assert_series_equal(result, expected, check_names=False)
+
+
+# == compute_itn =====================================================
+
+
+def test_compute_itn():
+    dates = pd.to_datetime(["2012-05-06", "2012-05-07", "2012-05-08", "2012-05-09"])
+    results = compute_itn(ReadTemperaturesTests)
+    # Courcy tntxm=8,9,NaN,NaN  Prunay=NaN,NaN,11,12  Paris=3,4,5,6  Marseille=15,16,17,18
+    expected_records_by_station = _make_pivoted(
+        dates,
+        {
+            ("temp_min", "Reims-Courcy"): [3.0, 4.0, NAN, NAN],
+            ("temp_min", "Reims-Prunay"): [NAN, NAN, 6.0, 7.0],
+            ("temp_min", "Paris - Montsouris"): [-2.0, -1.0, 0.0, 1.0],
+            ("temp_min", "Marseille - Marignane"): [10.0, 11.0, 12.0, 13.0],
+            ("temp_max", "Reims-Courcy"): [13.0, 14.0, NAN, NAN],
+            ("temp_max", "Reims-Prunay"): [NAN, NAN, 16.0, 17.0],
+            ("temp_max", "Paris - Montsouris"): [8.0, 9.0, 10.0, 11.0],
+            ("temp_max", "Marseille - Marignane"): [20.0, 21.0, 22.0, 23.0],
+            ("tntxm", "Reims-Courcy"): [8.0, 9.0, NAN, NAN],
+            ("tntxm", "Reims-Prunay"): [NAN, NAN, 11.0, 12.0],
+            ("tntxm", "Paris - Montsouris"): [3.0, 4.0, 5.0, 6.0],
+            ("tntxm", "Marseille - Marignane"): [15.0, 16.0, 17.0, 18.0],
+        },
+    ).asfreq("D")
+    expected_itn = pd.Series(
+        [26.0 / 3.0, 29.0 / 3.0, 33.0 / 3.0, 36.0 / 3.0], index=dates
+    ).asfreq("D")
+    pd.testing.assert_frame_equal(results[0], expected_records_by_station)
+    pd.testing.assert_series_equal(results[1], expected_itn)
