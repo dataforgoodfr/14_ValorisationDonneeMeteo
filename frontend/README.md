@@ -4,13 +4,24 @@
 
 ### Installation
 
+#### Installation des dépendances
+
 ```bash
+cd frontend
 npm install
+```
+
+#### Mise en place de l'environnement
+
+```bash
+cd frontend
+cp .env.example .env
 ```
 
 ### Développement
 
 ```bash
+cd frontend
 npm run dev
 ```
 
@@ -48,6 +59,7 @@ Cela installera toutes les dépendances nécessaires dans `node_modules`.
 ### Production
 
 ```bash
+cd frontend
 npm run build
 npm run preview  # Prévisualisation locale du build
 ```
