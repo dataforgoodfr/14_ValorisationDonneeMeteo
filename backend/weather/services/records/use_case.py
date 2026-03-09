@@ -3,6 +3,7 @@ import datetime as dt
 from weather.services.records.protocols import (
     RecordsDataSource,
 )
+from weather.services.records.service import ComputeRecords
 from weather.services.records.types import RecordPoint, RecordsQuery
 
 
@@ -20,4 +21,9 @@ def get_records(
         station_name_filter=station_name_filter,
         departement_filter=departement_filter,
     )
-    return data_source.fetch_records(query)
+
+    # // Faire fonction fausses données
+    # // Test unitaire - getrecord
+    # // Test intégration -
+
+    return ComputeRecords(data_source, query)
