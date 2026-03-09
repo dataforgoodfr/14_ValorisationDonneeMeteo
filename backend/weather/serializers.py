@@ -238,6 +238,7 @@ class NationalIndicatorResponseSerializer(serializers.Serializer):
     metadata = NationalIndicatorMetadataSerializer()
     time_series = NationalIndicatorTimePointSerializer(many=True)
 
+
 class RecordsSerializer(serializers.Serializer):
     date_start = serializers.DateField(required=True)
     date_end = serializers.DateField(required=True)
@@ -251,11 +252,13 @@ class RecordsSerializer(serializers.Serializer):
             )
         return attrs
 
-class RecordsMetadataSerializer():
+
+class RecordsMetadataSerializer:
     date_start = serializers.DateField()
     date_end = serializers.DateField()
     station_name_filter = serializers.StringRelatedField()
     departement_filter = serializers.StringRelatedField
+
 
 class RecordPointSerializer(serializers.Serializer):
     id = serializers.CharField()
@@ -264,7 +267,8 @@ class RecordPointSerializer(serializers.Serializer):
     TXX = serializers.FloatField()
     TNN_date = serializers.DateField()
     TXX_date = serializers.DateField()
-    
+
+
 class RecordsResponseSerializer(serializers.Serializer):
     metadata = RecordsMetadataSerializer()
     records = RecordPointSerializer(many=True, allow_null=True)

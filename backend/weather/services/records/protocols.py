@@ -4,6 +4,7 @@ from typing import Protocol
 
 from .types import RecordPoint, RecordsQuery
 
+
 class RecordsDataSource(Protocol):
     """
     Interface "Records" pour le services Records de température.

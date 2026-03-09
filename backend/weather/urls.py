@@ -9,8 +9,8 @@ from .views import (
     HoraireTempsReelViewSet,
     NationalIndicatorAPIView,
     QuotidienneViewSet,
-    StationViewSet,
     RecordsAPIView,
+    StationViewSet,
 )
 
 router = DefaultRouter()

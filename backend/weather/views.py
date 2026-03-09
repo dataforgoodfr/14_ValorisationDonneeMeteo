@@ -10,7 +10,6 @@ from rest_framework.views import APIView
 
 from weather.bootstrap_itn import ITNDependencyProvider
 from weather.bootstrap_records import RecordsDependencyProvider
-
 from weather.services.national_indicator.use_case import get_national_indicator
 from weather.services.records.use_case import get_records
 
@@ -182,12 +181,14 @@ class NationalIndicatorAPIView(APIView):
 
         return Response(out.data, status=status.HTTP_200_OK)
 
+
 class RecordsAPIView(APIView):
     """
     GET /api/v1/temperature/records
 
     implémentation données mockées
     """
+
     authentication_classes = []
     permission_classes = []
 
@@ -207,7 +208,7 @@ class RecordsAPIView(APIView):
         data = get_records(data_source=ds, **params)
         metadata = {
             "date_start": params["date_start"],
-            "date_end": params["date_end"],            
+            "date_end": params["date_end"],
         }
 
         if "station_name_filter" in params:
@@ -215,7 +216,7 @@ class RecordsAPIView(APIView):
 
         if "departement_filter" in params:
             metadata["departement_filter"] = params["departement_filter"]
-            
+
         full_payload = {
             "metadata": metadata,
             "records": data,
