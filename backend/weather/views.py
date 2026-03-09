@@ -138,7 +138,7 @@ class RecordsAPIView(APIView):
 
         if "departement_filter" in params:
             metadata["departement_filter"] = params["departement_filter"]
-            
+
         full_payload = {
             "metadata": metadata,
             "records": data,
