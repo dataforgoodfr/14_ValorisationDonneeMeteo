@@ -1,6 +1,5 @@
 CREATE OR REPLACE VIEW public.v_quotidienne_itn AS
 SELECT
-  (q."NUM_POSTE"::text || '_' || to_char(q."AAAAMMJJ", 'YYYYMMDD')) AS id,
   q."NUM_POSTE"::text AS station_code,
   q."AAAAMMJJ"::date  AS date,
   q."TNTXM"           AS tntxm

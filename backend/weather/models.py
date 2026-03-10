@@ -28,7 +28,8 @@ class Station(models.Model):
 
 
 class QuotidienneITN(models.Model):
-    id = models.CharField(primary_key=True, max_length=32)
+    pk = models.CompositePrimaryKey("station_code", "date")
+
     station_code = models.CharField(max_length=8)
     date = models.DateField()
     tntxm = models.FloatField()
