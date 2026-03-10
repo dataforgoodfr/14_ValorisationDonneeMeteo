@@ -238,6 +238,10 @@ const option = computed<ECOption>(() => {
                 minSpan: 20,
             },
         ],
+        emphasis: {
+            focus: "none",
+            disabled: true, // disables all emphasis state changes on hover
+        },
     };
 });
 </script>
