@@ -4,7 +4,7 @@ import { useItnStore } from "#imports";
 import { GetChartData, TimeAxisType } from "~~/public/ChartDataProvider";
 
 const itnStore = useItnStore();
-const { itnChartRef, granularity, picked_date_start, picked_date_end } =
+const { itnChartRef, granularity, picked_date_start, picked_date_end, itnData } =
     storeToRefs(itnStore);
 
 const exportMenuItems = ref<DropdownMenuItem[]>([
@@ -56,14 +56,16 @@ function exportAsPng() {
 }
 
 function exportAsCSV() {
-    const source = GetChartData(TimeAxisType.Day);
+    const source = itnData.value?.time_series;
+    console.log(source)
     const headers = [
         "Date",
-        "ITN - Température (°C)",
-        "Delta - Température (°C)",
-        "StdDev - Température (°C)",
-        "Min - Température (°C)",
-        "Max - Température (°C)",
+        "Température observée en °C (moyenne/valeur selon slice_type)",
+        "Température moyenne de référence 1991-2020 pour cette période en °C",
+        "Écart-type supérieur en °C (moyenne + 1°C écart-type)",
+        "Écart-type inférieur en °C (moyenne - 1°C écart-type)",
+        "Température maximale observée sur la période 1991-2020 en °C ",
+        "Température minimale observée sur la période 1991-2020 en °C "
     ];
     const rows = source.map((row) => Object.values(row).join(",")).join("\n");
 
