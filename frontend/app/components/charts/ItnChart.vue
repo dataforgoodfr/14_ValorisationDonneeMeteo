@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import * as echarts from "echarts/core";
+import langFR from "~/i18n/langFR.js";
 
 import {
     TitleComponent,
@@ -12,6 +13,7 @@ import {
 import { LineChart } from "echarts/charts";
 import { UniversalTransition } from "echarts/features";
 import { CanvasRenderer } from "echarts/renderers";
+echarts.registerLocale("FR", langFR);
 echarts.use([
     TitleComponent,
     ToolboxComponent,
@@ -30,6 +32,7 @@ const itnStore = useItnStore();
 const renderer = ref<"svg" | "canvas">("svg");
 const initOptions = computed(() => ({
     height: 600,
+    locale: "FR",
     renderer: renderer.value,
 }));
 provide(INIT_OPTIONS_KEY, initOptions);
@@ -82,7 +85,7 @@ const option = computed<ECOption>(() => {
                         point.temperature,
                         point.baseline_mean,
                     ),
-                    isInterpolated: point.isInterpolated,
+                    isInterpolated: point.isInterpolated ? 1 : 0,
                 })) ?? [],
         },
         grid: {
@@ -241,6 +244,7 @@ const option = computed<ECOption>(() => {
 
 <template>
     <VChart
+        :key="itnStore.granularity"
         :option="option"
         :init-options="initOptions"
         :loading="itnStore.pending"
