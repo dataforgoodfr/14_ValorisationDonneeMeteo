@@ -244,11 +244,8 @@ const option = computed<ECOption>(() => {
 
 <template>
     <VChart
-<<<<<<< HEAD
-        :key="itnStore.granularity"
-=======
         ref="itnChartRef"
->>>>>>> 0b42690 (feat : refactor csv export)
+        :key="itnStore.granularity"
         :option="option"
         :init-options="initOptions"
         :loading="itnStore.pending"

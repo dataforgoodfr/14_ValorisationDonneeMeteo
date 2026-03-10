@@ -19,7 +19,7 @@ const granularityValues = reactive([
 </script>
 
 <template>
-    <div class="flex gap-6 px-3 py-2">
+    <div class="flex gap-6 px-3 py-2 justify-between">
         <div id="main-filter" class="flex flex-wrap gap-6">
             <div id="granularity-form" class="flex gap-6">
                 <UFormField label="Granularité" name="granularity">
@@ -73,6 +73,6 @@ const granularityValues = reactive([
                 <SliceType v-if="sliceTypeSwitchEnabled" />
             </div>
         </div>
-        <ExportMenu />
+        <ExportMenu class="self-center" />
     </div>
 </template>
