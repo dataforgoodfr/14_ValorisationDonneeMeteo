@@ -51,6 +51,7 @@ const granularityValues = reactive([
                         root: 'flex-col justify-between text-center items-center',
                         container: 'my-auto',
                     }"
+                    @update:model-value="itnStore.turnOffSliceType"
                 />
                 <SliceType v-if="sliceTypeSwitchEnabled" />
             </div>
