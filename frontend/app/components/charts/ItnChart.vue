@@ -57,6 +57,7 @@ const option = computed<ECOption>(() => {
                 "hot_red_band",
                 "cold_blue_band",
                 "hot_cold_invisible_band",
+                "isInterpolated",
             ],
             source:
                 timeSeries.map((point) => ({
@@ -81,6 +82,7 @@ const option = computed<ECOption>(() => {
                         point.temperature,
                         point.baseline_mean,
                     ),
+                    isInterpolated: point.isInterpolated,
                 })) ?? [],
         },
         grid: {
@@ -198,6 +200,7 @@ const option = computed<ECOption>(() => {
                 if (!first) return "";
 
                 const d = first.value as Record<string, number | string>;
+                if (d.isInterpolated) return "";
                 const fmt = (v: number) => `${v.toFixed(2)}°C`;
                 const find = (name: string) =>
                     params.find((p) => p.seriesName === name);
