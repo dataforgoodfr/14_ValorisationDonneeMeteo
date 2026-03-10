@@ -42,7 +42,6 @@ DEFAULT_ITN_STATIONS_LIST = (
 
 REIMS_PRUNAY_ID = "51449002"
 REIMS_COURCY_ID = "51183001"
-COLUMN_NAME_INDEX = 0
 
 
 # --------------------------------------------------------------------
