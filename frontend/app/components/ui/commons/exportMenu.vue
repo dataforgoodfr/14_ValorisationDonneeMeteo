@@ -3,8 +3,13 @@ import type { DropdownMenuItem } from "@nuxt/ui";
 import { useItnStore } from "#imports";
 
 const itnStore = useItnStore();
-const { itnChartRef, granularity, picked_date_start, picked_date_end, itnData } =
-    storeToRefs(itnStore);
+const {
+    itnChartRef,
+    granularity,
+    picked_date_start,
+    picked_date_end,
+    itnData,
+} = storeToRefs(itnStore);
 
 const exportMenuItems = ref<DropdownMenuItem[]>([
     {
@@ -63,7 +68,7 @@ function exportAsCSV() {
         "Écart-type supérieur en °C (moyenne + 1°C écart-type)",
         "Écart-type inférieur en °C (moyenne - 1°C écart-type)",
         "Température maximale observée sur la période 1991-2020 en °C ",
-        "Température minimale observée sur la période 1991-2020 en °C "
+        "Température minimale observée sur la période 1991-2020 en °C ",
     ];
     const rows = source.map((row) => Object.values(row).join(",")).join("\n");
 
@@ -79,7 +84,7 @@ function exportAsCSV() {
         picked_date_start.value,
         picked_date_end.value,
         "csv",
-    );;
+    );
     anchorElement.click();
 
     window.URL.revokeObjectURL(url);
