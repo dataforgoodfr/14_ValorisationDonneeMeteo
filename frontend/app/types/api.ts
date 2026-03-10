@@ -138,6 +138,7 @@ export interface NationalIndicatorDataPoint {
     baseline_std_dev_lower: number;
     baseline_max: number;
     baseline_min: number;
+    isInterpolated?: boolean;
 }
 
 export interface NationalIndicatorResponse {

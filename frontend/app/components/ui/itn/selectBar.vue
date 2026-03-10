@@ -40,19 +40,35 @@ const granularityValues = reactive([
                 />
             </div>
             <div id="slice-type-form" class="flex gap-6">
-                <USwitch
-                    v-model="sliceTypeSwitchEnabled"
-                    color="neutral"
-                    :disabled="granularity === 'day'"
-                    unchecked-icon="i-lucide-x"
-                    checked-icon="i-lucide-check"
-                    label="Type de moyenne"
-                    :ui="{
-                        root: 'flex-col justify-between text-center items-center',
-                        container: 'my-auto',
+                <UTooltip
+                    :disabled="granularity !== 'day'"
+                    :disable-closing-trigger="true"
+                    arrow
+                    :delay-duration="0"
+                    text="Changez la Granularité pour activer cette option."
+                    :content="{
+                        align: 'center',
+                        side: 'top',
+                        sideOffset: 8,
                     }"
-                    @update:model-value="itnStore.turnOffSliceType"
-                />
+                >
+                    <span>
+                        <USwitch
+                            v-model="sliceTypeSwitchEnabled"
+                            color="neutral"
+                            :disabled="granularity === 'day'"
+                            unchecked-icon="i-lucide-x"
+                            checked-icon="i-lucide-check"
+                            label="Type de moyenne"
+                            :ui="{
+                                root: 'flex-col justify-between text-center items-center',
+                                container: 'my-auto',
+                            }"
+                            @update:model-value="itnStore.turnOffSliceType"
+                        />
+                    </span>
+                </UTooltip>
+
                 <SliceType v-if="sliceTypeSwitchEnabled" />
             </div>
         </div>
