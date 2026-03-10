@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import type { DropdownMenuItem } from "@nuxt/ui";
 import { useItnStore } from "#imports";
-import { GetChartData, TimeAxisType } from "~~/public/ChartDataProvider";
 
 const itnStore = useItnStore();
 const { itnChartRef, granularity, picked_date_start, picked_date_end, itnData } =
@@ -57,7 +56,6 @@ function exportAsPng() {
 
 function exportAsCSV() {
     const source = itnData.value?.time_series;
-    console.log(source)
     const headers = [
         "Date",
         "Température observée en °C (moyenne/valeur selon slice_type)",
