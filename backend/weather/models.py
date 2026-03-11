@@ -1,4 +1,30 @@
+import datetime as dt
+
 from django.db import models
+
+
+class TimestampAsDateField(models.DateField):
+    """DateField that maps a SQL timestamp column to a Python date.
+
+    - from_db_value: datetime → date (reading)
+    - get_prep_value: date → datetime (writing/filtering)
+    """
+
+    def from_db_value(
+        self,
+        value,
+        expression,
+        connection,
+    ) -> dt.date | None:
+        if isinstance(value, dt.datetime):
+            return value.date()
+        return value
+
+    def get_prep_value(self, value) -> dt.datetime | None:
+        value = super().get_prep_value(value)
+        if isinstance(value, dt.date) and not isinstance(value, dt.datetime):
+            return dt.datetime.combine(value, dt.time.min)
+        return value
 
 
 class Station(models.Model):
@@ -31,7 +57,7 @@ class QuotidienneITN(models.Model):
     pk = models.CompositePrimaryKey("station_code", "date")
 
     station_code = models.CharField(max_length=8)
-    date = models.DateField()
+    date = TimestampAsDateField()
     tntxm = models.FloatField()
 
     class Meta:
