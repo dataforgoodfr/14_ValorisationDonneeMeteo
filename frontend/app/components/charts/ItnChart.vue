@@ -89,12 +89,18 @@ const option = computed<ECOption>(() => {
                 })) ?? [],
         },
         grid: {
-            left: 10,
+            left: 30,
             right: 10,
             containLabel: true,
         },
         xAxis: { type: "time" },
-        yAxis: {},
+        yAxis: {
+            type: "value",
+            name: "Température (°C)",
+            nameRotate: 90,
+            nameLocation: "middle",
+            nameGap: 40,
+        },
         series: [
             // extreme - Invisible base — pushes the band up to start at lower bound
             {
