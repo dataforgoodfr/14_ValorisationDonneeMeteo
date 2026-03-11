@@ -1,10 +1,10 @@
 from __future__ import annotations
 
 import datetime as dt
+from collections import defaultdict
 from dataclasses import dataclass
-from itertools import groupby
 
-from weather.models import Quotidienne
+from weather.models import QuotidienneITN
 from weather.services.national_indicator.protocols import (
     NationalIndicatorDailyDataSource,
 )
@@ -54,15 +54,21 @@ def compute_itn_for_day(
     day: dt.date, station_code_to_temp_map: dict[str, float]
 ) -> float | None:
     expected_stations_for_day = expected_station_codes(day)
-
+    if len(expected_stations_for_day) != 30:
+        raise ValueError(
+            f"Expected 30 stations, got {len(expected_stations_for_day)} for {day}"
+        )
     # Normalisation : ignorer l'autre Reims si elle existe
     station_code_to_temp_map = _normalize_reims(day, station_code_to_temp_map)
     # Égalité stricte sur les 30 slots
     computed_stations_codes = set(station_code_to_temp_map.keys())
+
     if computed_stations_codes != expected_stations_for_day:
         return None
 
-    return sum(station_code_to_temp_map[c] for c in expected_stations_for_day) / 30.0
+    return sum(station_code_to_temp_map[c] for c in expected_stations_for_day) / float(
+        len(expected_stations_for_day)
+    )
 
 
 class TimescaleNationalIndicatorDailyDataSource(NationalIndicatorDailyDataSource):
@@ -75,40 +81,42 @@ class TimescaleNationalIndicatorDailyDataSource(NationalIndicatorDailyDataSource
     def __init__(self, *, baseline: BaselineStub | None = None) -> None:
         self._baseline = baseline or BaselineStub()
 
-    def fetch_daily_series(
-        self,
-        query: DailySeriesQuery,
-    ) -> list[DailyPoint]:
-        qs = Quotidienne.objects.filter(
+    def fetch_daily_series(self, query: DailySeriesQuery) -> list[DailyPoint]:
+        qs = QuotidienneITN.objects.filter(
             date__gte=query.date_start,
             date__lte=query.date_end,
-            station__code__in=ITN_STATION_CODES_FOR_QUERY,
-            tntxm__isnull=False,
+            station_code__in=ITN_STATION_CODES_FOR_QUERY,
         )
 
-        # Réduction volumétrie: si on a une liste exacte de dates à prélever
         if query.target_dates is not None:
             qs = qs.filter(date__in=query.target_dates)
 
-        rows = qs.values_list("date", "station__code", "tntxm").order_by(
-            "date", "station__code"
+        rows = (
+            qs.order_by("date", "station_code")
+            .values_list("date", "station_code", "tntxm")
+            .iterator(chunk_size=10_000)
         )
 
+        # day -> {station_code -> tntxm}
+        by_day: dict[dt.date, dict[str, float]] = defaultdict(dict)
+
+        for day, station_code, tntxm in rows:
+            code = str(station_code)
+            station_code_to_temp_map = by_day[day]
+            if code in station_code_to_temp_map:
+                raise ValueError(
+                    f"Duplicate station/day in v_quotidienne_itn: station_code={code}, date={day}"
+                )
+            station_code_to_temp_map[code] = float(tntxm)
+
         out: list[DailyPoint] = []
+        b = self._baseline
 
-        # rows: Iterable[tuple[date, str, float]]
-        for day, day_rows in groupby(rows, key=lambda r: r[0]):
-            station_code_to_temp_map: dict[str, float] = {}
-            for _, station_code, tntxm in day_rows:
-                # en cas de doublon station/jour, on écrase (ne devrait pas arriver)
-                station_code_to_temp_map[str(station_code)] = float(tntxm)
-
-            itn = compute_itn_for_day(day, station_code_to_temp_map)
-            print(f"itn : {itn}")
+        for day in sorted(by_day.keys()):
+            itn = compute_itn_for_day(day, by_day[day])
             if itn is None:
-                continue  # drop le point
+                continue
 
-            b = self._baseline
             out.append(
                 DailyPoint(
                     date=day,
