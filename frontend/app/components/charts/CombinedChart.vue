@@ -1,14 +1,15 @@
 <template>
-    <VChart :option="option" autoresize />
+    <VChart id="itnCombinedChart" :option="option" autoresize />
 </template>
 
 <script setup lang="ts">
 import { INIT_OPTIONS_KEY } from "vue-echarts";
 import type { TopLevelFormatterParams } from "echarts/types/dist/shared.js";
 import { GetChartData, TimeAxisType } from "~~/public/ChartDataProvider";
+import "echarts/lib/component/toolbox";
 
 // provide init-options
-const renderer = ref<"svg" | "canvas">("svg");
+const renderer = ref<"svg" | "canvas">("canvas");
 const initOptions = computed(() => ({
     height: 600,
     renderer: renderer.value,
@@ -29,6 +30,7 @@ function ShortDate(date: Date) {
         date.getFullYear(),
     ].join("/");
 }
+
 const option = ref<ECOption>({
     dataset: {
         dimensions: ["date", "ITN", "StdDev"],
