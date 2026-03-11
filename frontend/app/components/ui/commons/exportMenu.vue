@@ -60,7 +60,9 @@ function exportAsPng() {
 }
 
 function exportAsCSV() {
+    if (!import.meta.client) return;
     const source = itnData.value?.time_series;
+    if (!source) return;
     const headers = [
         "Date",
         "Température observée en °C (moyenne/valeur selon slice_type)",
@@ -73,44 +75,43 @@ function exportAsCSV() {
     const rows = source.map((row) => Object.values(row).join(",")).join("\n");
 
     const csv = `${headers}\n${rows}`;
-    const blob = new Blob([csv], { type: "text/csv" });
-    const url = window.URL.createObjectURL(blob);
 
-    const anchorElement = document.createElement("a");
-    anchorElement.href = url;
-    anchorElement.download = useFormatFileName(
+    const a = document.createElement("a");
+    a.href = `data:text/csv;charset=utf-8,${encodeURIComponent(csv)}`;
+    a.download = useFormatFileName(
         "itn",
         granularity.value,
         picked_date_start.value,
         picked_date_end.value,
         "csv",
     );
-    anchorElement.click();
-
-    window.URL.revokeObjectURL(url);
+    a.click();
 }
-async function exportAsHTML() {
-    if (!import.meta.client) return;
-    const dataURL = itnChartRef.value.getDataURL({
-        type: "png",
-        pixelRatio: 2,
-        backgroundColor: "#fff",
-        excludeComponents: ["dataZoom"],
-    });
-    const html = `
-        <!DOCTYPE html>
-        <html>
-        <head><meta charset="utf-8"><title>ITN</title></head>
-        <body>
-        <img src="${dataURL}" alt="Graphique ITN">
-        </body>
-        </html>
-        `;
 
-    const blob = new Blob([html], { type: "text/html" });
-    const url = window.URL.createObjectURL(blob);
+function exportAsHTML() {
+    if (!import.meta.client) return;
+    const options = itnChartRef.value.getOption();
+    const scriptTag = "script";
+    const html = `<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>ITN</title>
+    <${scriptTag} src="https://cdn.jsdelivr.net/npm/echarts/dist/echarts.min.js"></${scriptTag}>
+    <style>html { margin: 0; padding: 0; width: 100%; height: 100vh; }, body { display: flex; align-items: center; margin: 0; padding: 0; width: 100%; height: 100vh; } #chart { margin: 20px; width: auto; height: calc(100vh - 40px); }</style>
+</head>
+<body>
+    <div id="chart"></div>
+    <${scriptTag}>
+        const chart = echarts.init(document.getElementById('chart'));
+        chart.setOption(${JSON.stringify(options)});
+        window.addEventListener('resize', () => chart.resize());
+    </${scriptTag}>
+</body>
+</html>`;
+
     const a = document.createElement("a");
-    a.href = url;
+    a.href = `data:text/html;charset=utf-8,${encodeURIComponent(html)}`;
     a.download = useFormatFileName(
         "itn",
         granularity.value,
@@ -119,7 +120,6 @@ async function exportAsHTML() {
         "html",
     );
     a.click();
-    window.URL.revokeObjectURL(url);
 }
 </script>
 
