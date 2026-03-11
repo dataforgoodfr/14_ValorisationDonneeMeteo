@@ -146,6 +146,42 @@ export interface NationalIndicatorResponse {
     time_series: NationalIndicatorDataPoint[];
 }
 
+// ===== Ecart à la normale (Temperature Deviation) types =====
+
+export interface DeviationParams {
+    date_start: string;
+    date_end: string;
+    granularity: "year" | "month" | "day";
+    station_ids?: string[];
+    include_national: boolean;
+}
+
+export interface DeviationMetadata {
+    date_start: string;
+    date_end: string;
+    baseline: string;
+    granularity: "year" | "month" | "day";
+}
+
+export interface DeviationDataPoint {
+    date: string;
+    deviation: number;
+    temperature: number;
+    baseline_mean: number;
+}
+
+export interface DeviationSerie {
+    is_national: boolean;
+    station_id?: string;
+    station_name?: string;
+    data: DeviationDataPoint[];
+}
+
+export interface DeviationResponse {
+    metadata: DeviationMetadata;
+    series: DeviationSerie[];
+}
+
 // ===== API Error type =====
 
 export interface ApiError {
