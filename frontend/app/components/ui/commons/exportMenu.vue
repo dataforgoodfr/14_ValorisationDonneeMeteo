@@ -100,9 +100,9 @@ async function exportAsHTML() {
     const html = `
         <!DOCTYPE html>
         <html>
-        <head><meta charset="utf-8"><title>Mon graphique</title></head>
+        <head><meta charset="utf-8"><title>ITN</title></head>
         <body>
-        <img src="${dataURL}" alt="Graphique">
+        <img src="${dataURL}" alt="Graphique ITN">
         </body>
         </html>
         `;
