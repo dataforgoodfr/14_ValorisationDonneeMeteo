@@ -16,8 +16,6 @@ cd backend
 # Installer les dependances, ainsi que les dépendances optionnelles de dev
 uv sync --extra dev
 
-
-
 # Copier la configuration
 cp .env.example .env
 ```
@@ -29,56 +27,76 @@ cd timescaledb-env
 docker compose up -d
 cd ..
 ```
+## Initialiser la base de développement
+
+Contrairement aux premières versions du projet, la base de développement n'est pas générée par Django.
+
+Elle est alimentée par :
+
+- un schéma SQL
+
+- un dump des stations
+
+- un export CSV des données quotidiennes
+
+- des vues SQL utilisées par Django
+
+Initialisation :
+```
+cd backend/scripts
+bash seed_dev.sh
+```
+Ce script :
+
+- recrée le schéma public
+- crée les tables sources (Station, Quotidienne)
+- importe les données :
+  - stations
+  - données quotidiennes
+  - applique les vues SQL utilisées par l'API
 
 ## Lancer le serveur
 
 ```bash
-# Appliquer les migrations Django (cree les tables + hypertables TimescaleDB)
-uv run python manage.py migrate
-
-# Peupler la base avec des donnees de test
-uv run python manage.py populate_weather_data
-
 # Demarrer le serveur de developpement
 uv run python manage.py runserver
 ```
 
 L'API est disponible sur http://localhost:8000
 
-## Commandes de gestion
+## Architecture des données
 
-### populate_weather_data
+Le backend ne manipule pas directement les tables sources via l'ORM Django.
 
-Genere des donnees meteo realistes pour le developpement et les tests.
-
-> **Note** : Cette commande necessite `DEBUG=True` dans les settings. Elle refuse de s'executer en production pour eviter toute suppression accidentelle de donnees.
-
-```bash
-# Generer 30 jours de donnees (defaut)
-uv run python manage.py populate_weather_data
-
-# Generer 7 jours de donnees
-uv run python manage.py populate_weather_data --days 7
-
-# Vider les donnees existantes avant de regenerer
-uv run python manage.py populate_weather_data --clear
-
-# Generer uniquement les stations (sans donnees meteo)
-uv run python manage.py populate_weather_data --stations-only
-
-# Ne pas generer les agregations quotidiennes
-uv run python manage.py populate_weather_data --skip-daily
-
-# Utiliser un seed specifique pour la reproductibilite
-uv run python manage.py populate_weather_data --seed 123
+Les modèles Django sont basés sur des views SQL.
 ```
+Station (table source)
+Quotidienne (table source)
 
-Les donnees generees incluent 15 stations francaises avec des mesures realistes :
+      ↓
+v_station
+v_quotidienne_itn
 
-- Cycles de temperature diurnes (min a 6h, max a 14h)
-- Humidite inversement correlee a la temperature
-- Variations de pression atmospherique coherentes
-- Rafales de vent avec direction aleatoire
+      ↓
+
+models Django
+
+      ↓
+
+Data sources (Python)
+
+      ↓
+
+Services métier
+
+      ↓
+
+API REST
+```
+Cela permet :
+
+- de stabiliser l'API
+- d'éviter les dépendances directes au schéma source
 
 ## API
 
@@ -88,41 +106,66 @@ Les spécifications de l'API (la cible a atteindre) sont disponibles dans `opena
 
 ```
 cd backend
-```
 
-```
 npx swagger-ui-watcher openapi/target-specs/openapi.yaml
 ```
 
 La documentation est alors disponible sur `http://localhost:8000`
-Ce document est mis à jour au cours de la vie du projet
 
 | Endpoint                  | Description                   |
 |---------------------------|-------------------------------|
 | `/api/v1/stations/`       | Liste des stations meteo      |
-| `/api/v1/horaire/`        | Mesures horaires temps reel   |
-| `/api/v1/horaire/latest/` | Derniere mesure par station   |
-| `/api/v1/quotidien/`      | Donnees journalieres agregees |
-| `/api/docs/`              | Documentation Swagger UI      |
-| `/api/redoc/`             | Documentation ReDoc           |
-| `/api/schema/`            | Schema OpenAPI                |
+| `/api/v1/temperature/national-indicator`    | Indicateur thermique national
+
 
 ## Exemples de requetes
 
 ```bash
-# Liste des stations
-curl http://localhost:8000/api/v1/stations/
+#Liste des stations :
+curl -L http://localhost:8000/api/v1/stations/
+curl -L http://localhost:8000/api/v1/stations?departement=13
 
-# Filtrer par departement
-curl "http://localhost:8000/api/v1/stations/?departement=75"
-
-# Mesures horaires avec filtre de date
-curl "http://localhost:8000/api/v1/horaire/?validity_time_after=2026-01-15"
-
-# Derniere mesure de chaque station
-curl http://localhost:8000/api/v1/horaire/latest/
+#Indicateur thermique national :
+curl "http://localhost:8000/api/v1/temperature/national-indicator?date_start=2025-01-01&date_end=2025-01-31&granularity=month"
 ```
 
+## Structure du projet
+
+```
+.
+├── config
+├── db_data                      # data files to seed the de db - not commited
+├── Dockerfile
+├── manage.py
+├── notebooks                   # some explorations
+├── openapi
+│   └── target-specs
+│       └── openapi.yaml         # API target specs
+├── pyproject.toml
+├── README.md
+├── scripts                      # non run time scripts (seed dev db, ...)
+│   ├── apply_views.sh
+│   └── seed_dev.sh
+├── sql
+├── timescaledb-env             # dev db env
+├── tox.ini
+├── uv.lock
+└── weather
+    ├── apps.py
+    ├── bootstrap_itn.py
+    ├── data_generators
+    ├── filters.py
+    ├── __init__.py
+    ├── management
+    ├── migrations               # empty
+    ├── models.py
+    ├── serializers.py
+    ├── services
+    ├── tests
+    ├── urls.py
+    ├── utils
+    └── views.py
+```
 ## Developpement
 
 ### Pre-commit hooks
@@ -143,22 +186,6 @@ uv run pre-commit run --all-files --config=.pre-commit-config.yaml
 uv run pytest
 ```
 
-### Factories (Factory Boy)
-
-Des factories sont disponibles pour creer des donnees de test :
-
-```python
-from weather.factories import StationFactory, HoraireTempsReelFactory, QuotidienneFactory
-
-# Creer une station
-station = StationFactory()
-
-# Creer une mesure horaire pour une station
-mesure = HoraireTempsReelFactory(station=station)
-
-# Creer une mesure quotidienne
-quotidienne = QuotidienneFactory(station=station)
-```
 
 ### Linting
 
@@ -167,36 +194,6 @@ uv run ruff check .
 uv run ruff format .
 ```
 
-## Structure du projet
-
-```
-backend/
-├── config/                     # Configuration Django
-│   ├── settings.py             # Settings (django-environ)
-│   ├── urls.py                 # Routes principales
-│   └── wsgi.py
-├── weather/                    # App principale
-│   ├── models.py               # Models (Station, HoraireTempsReel, Quotidienne)
-│   ├── serializers.py          # Serializers DRF
-│   ├── views.py                # ViewSets
-│   ├── filters.py              # Filtres API
-│   ├── urls.py                 # Routes API v1
-│   ├── admin.py                # Interface admin Django
-│   ├── migrations/             # Migrations Django + TimescaleDB hypertables
-│   ├── management/
-│   │   └── commands/
-│   │       └── populate_weather_data.py  # Commande de peuplement
-│   ├── data_generators/        # Generateurs de donnees realistes
-│   │   ├── constants.py        # Stations et parametres
-│   │   └── weather_physics.py  # Algorithmes de generation meteo
-│   ├── factories/              # Factories Factory Boy (pour les tests)
-│   │   └── weather.py
-│   └── tests/
-├── timescaledb-env/            # Environnement Docker TimescaleDB
-├── manage.py
-├── pyproject.toml
-└── .env.example
-```
 
 ## Configuration
 
@@ -213,28 +210,8 @@ Les variables d'environnement sont definies dans `.env` :
 | `DB_PASSWORD`          | Mot de passe       | `infoclimat2026`        |
 | `CORS_ALLOWED_ORIGINS` | Origins CORS       | `http://localhost:5173` |
 
-## TimescaleDB
 
-Le backend utilise TimescaleDB pour optimiser les requetes sur les donnees temporelles.
-
-### Hypertables
-
-Les tables `weather_horairetempsreel` et `weather_quotidienne` sont configurees comme **hypertables** :
-
-- Partitionnement automatique par intervalles de temps
-- Requetes temporelles optimisees
-- Compression possible des anciennes donnees
-
-### Migrations Django
-
-Le schema est entierement gere par Django :
-
-1. `0001_initial.py` : Creation des tables via l'ORM Django
-2. `0002_timescaledb_hypertables.py` : Conversion en hypertables via `RunSQL`
-
-**Note** : Les hypertables TimescaleDB necessitent que les colonnes de partitionnement (`validity_time`, `date`) soient incluses dans les cles primaires. Les migrations gerent cela automatiquement.
-
-### Connexion directe a la base
+### Connexion directe a la base de dev
 
 ```bash
 docker exec -it infoclimat-timescaledb psql -U infoclimat -d meteodb
