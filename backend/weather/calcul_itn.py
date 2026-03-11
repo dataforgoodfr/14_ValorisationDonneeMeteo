@@ -1,3 +1,4 @@
+import datetime
 import os
 from collections.abc import Iterable
 
@@ -117,9 +118,9 @@ def separate_by_station(
           temperature records, with one column per station
     """
 
-    assert (index != "") & (columns != "") & (values != ""), (
-        "Cannot pivot, missing arguments"
-    )
+    assert (
+        (index != "") & (columns != "") & (values != "")
+    ), "Cannot pivot, missing arguments"
 
     data_temp = pd.pivot_table(df, index=index, columns=columns, values=values)
 
@@ -217,19 +218,19 @@ def compute_itn(stations_itn: tuple[str]) -> tuple[pd.DataFrame, pd.DataFrame]:
         )
         itn = itn_calculation(daily_records_by_station_corr)
 
-        return daily_records_by_station_corr,itn
+        return daily_records_by_station_corr, itn
     else:
         itn = itn_calculation(daily_records_by_station)
 
-        return daily_records_by_station,itn
+        return daily_records_by_station, itn
 
 
 # --------------------------------------------------------------------
 def average_itn_calculation_option1(
     stations_itn: tuple[str],
-    start: Union[str, pd.Timestamp, datetime.datetime],
-    end: Union[str, pd.Timestamp, datetime.datetime],
-    freq: str = "monthly"
+    start: str | pd.Timestamp | datetime.datetime,
+    end: str | pd.Timestamp | datetime.datetime,
+    freq: str = "monthly",
 ) -> pd.DataFrame:
     """
     Calculate the monthly or yearly ITN by taking the average of
@@ -255,13 +256,13 @@ def average_itn_calculation_option1(
 
     itn = compute_itn(stations_itn)[1]
 
-    daterange = pd.date_range(start=start,end=end)
-    if(freq == 'monthly'):
-        index = np.unique(daterange.strftime('%Y-%m'))
-    elif(freq == 'yearly'):
-        index = np.unique(daterange.strftime('%Y'))
+    daterange = pd.date_range(start=start, end=end)
+    if freq == "monthly":
+        index = np.unique(daterange.strftime("%Y-%m"))
+    elif freq == "yearly":
+        index = np.unique(daterange.strftime("%Y"))
 
-    avg_itn = pd.DataFrame(columns=['avg_itn'], index=index)
+    avg_itn = pd.DataFrame(columns=["avg_itn"], index=index)
 
     for id in index:
         avg_itn.loc[id] = itn[id].mean()
@@ -272,9 +273,9 @@ def average_itn_calculation_option1(
 # --------------------------------------------------------------------
 def average_itn_calculation_option2(
     stations_itn: tuple[str],
-    start: Union[str, pd.Timestamp, datetime.datetime],
-    end: Union[str, pd.Timestamp, datetime.datetime],
-    freq: str = "monthly"
+    start: str | pd.Timestamp | datetime.datetime,
+    end: str | pd.Timestamp | datetime.datetime,
+    freq: str = "monthly",
 ) -> pd.DataFrame:
     """
     Calculate the monthly or yearly ITN with the formula of the daily ITN
@@ -300,18 +301,18 @@ def average_itn_calculation_option2(
 
     daily_records_by_station = compute_itn(stations_itn)[0]
 
-    daterange = pd.date_range(start=start,end=end)
-    if(freq == 'monthly'):
-        index = np.unique(daterange.strftime('%Y-%m'))
-    elif(freq == 'yearly'):
-        index = np.unique(daterange.strftime('%Y'))
+    daterange = pd.date_range(start=start, end=end)
+    if freq == "monthly":
+        index = np.unique(daterange.strftime("%Y-%m"))
+    elif freq == "yearly":
+        index = np.unique(daterange.strftime("%Y"))
 
-    avg_itn = pd.DataFrame(columns=['avg_itn'], index=index)
+    avg_itn = pd.DataFrame(columns=["avg_itn"], index=index)
 
     for id in index:
-        temp_min  = daily_records_by_station['temp_min'].loc[id]
-        temp_max  = daily_records_by_station['temp_max'].loc[id]
-        avg_itn_by_station = (tmin.mean()+tmax.mean())/2
+        temp_min = daily_records_by_station["temp_min"].loc[id]
+        temp_max = daily_records_by_station["temp_max"].loc[id]
+        avg_itn_by_station = (temp_min.mean() + temp_max.mean()) / 2
         avg_itn.loc[id] = avg_itn_by_station.mean()
 
     return avg_itn
@@ -320,9 +321,9 @@ def average_itn_calculation_option2(
 # --------------------------------------------------------------------
 def average_itn_calculation_option3(
     stations_itn: tuple[str],
-    start: Union[str, pd.Timestamp, datetime.datetime],
-    end: Union[str, pd.Timestamp, datetime.datetime],
-    freq: str = "monthly"
+    start: str | pd.Timestamp | datetime.datetime,
+    end: str | pd.Timestamp | datetime.datetime,
+    freq: str = "monthly",
 ) -> pd.DataFrame:
     """
     Calculate the monthly or yearly ITN with the formula of the daily ITN
@@ -348,18 +349,18 @@ def average_itn_calculation_option3(
 
     daily_records_by_station = compute_itn(stations_itn)[0]
 
-    daterange = pd.date_range(start=start,end=end)
-    if(freq == 'monthly'):
-        index = np.unique(daterange.strftime('%Y-%m'))
-    elif(freq == 'yearly'):
-        index = np.unique(daterange.strftime('%Y'))
+    daterange = pd.date_range(start=start, end=end)
+    if freq == "monthly":
+        index = np.unique(daterange.strftime("%Y-%m"))
+    elif freq == "yearly":
+        index = np.unique(daterange.strftime("%Y"))
 
-    avg_itn = pd.DataFrame(columns=['avg_itn'], index=index)
+    avg_itn = pd.DataFrame(columns=["avg_itn"], index=index)
 
     for id in index:
-        temp_min  = daily_records_by_station['temp_min'].loc[id]
-        temp_max  = daily_records_by_station['temp_max'].loc[id]
-        avg_itn_by_station = (tmin.min()+tmax.max())/2
+        temp_min = daily_records_by_station["temp_min"].loc[id]
+        temp_max = daily_records_by_station["temp_max"].loc[id]
+        avg_itn_by_station = (temp_min.min() + temp_max.max()) / 2
         avg_itn.loc[id] = avg_itn_by_station.mean()
 
     return avg_itn
@@ -443,44 +444,45 @@ def monthly_itn(stations_itn: tuple[str] = ()) -> np.array:
     """
 
     # by default, calculate ITN for France
-    if(len(stations_itn) == 0):
-       stations_itn = (
-           "6088001",   # Nice - Côte d'Azur
-           # "06088001" ?
-           "13054001",  # Marseille - Marignane
-           "14137001",  # Caen - Carpiquet
-           "16089001",  # Cognac - Châteaubernard
-           "20148001",  # Bastia - Poretta
-           "21473001",  # Dijon - Longvic
-           "25056001",  # Besançon - Thise
-           "26198001",  # Montélimar - Ancone
-           "29075001",  # Brest - Guipavas
-           "30189001",  # Nîmes - Courbessac
-           "31069001",  # Toulouse - Blagnac
-           "33281001",  # Bordeaux - Mérignac
-           "35281001",  # Rennes - St Jacques
-           "36063001",  # Châteauroux - Déols
-           "44020001",  # Nantes - Atlantique
-           "45055001",  # Orléans - Bricy
-           "47091001",  # Agen - La Garenne
-           "51183001",  # Reims - Courcy
-           "51449002",  # Reims - Prunay
-           "54526001",  # Nancy - Essey
-           "58160001",  # Nevers - Marzy
-           "59343001",  # Lille - Lesquin
-           "63113001",  # Clermont-Ferrand - Aulnat
-           "64549001",  # Pau - Uzein
-           "66136001",  # Perpignan - Rivesaltes
-           "67124001",  # Strasbourg - Entzheim
-           "69029001",  # Lyon - Bron
-           "72181001",  # Le Mans - Arnage
-           "73054001",  # Bourg - St-Maurice
-           "75114001",  # Paris - Montsouris
-           "86027001",  # Poitiers - Biard
-       )
+    if len(stations_itn) == 0:
+        stations_itn = (
+            "6088001",  # Nice - Côte d'Azur
+            # "06088001" ?
+            "13054001",  # Marseille - Marignane
+            "14137001",  # Caen - Carpiquet
+            "16089001",  # Cognac - Châteaubernard
+            "20148001",  # Bastia - Poretta
+            "21473001",  # Dijon - Longvic
+            "25056001",  # Besançon - Thise
+            "26198001",  # Montélimar - Ancone
+            "29075001",  # Brest - Guipavas
+            "30189001",  # Nîmes - Courbessac
+            "31069001",  # Toulouse - Blagnac
+            "33281001",  # Bordeaux - Mérignac
+            "35281001",  # Rennes - St Jacques
+            "36063001",  # Châteauroux - Déols
+            "44020001",  # Nantes - Atlantique
+            "45055001",  # Orléans - Bricy
+            "47091001",  # Agen - La Garenne
+            "51183001",  # Reims - Courcy
+            "51449002",  # Reims - Prunay
+            "54526001",  # Nancy - Essey
+            "58160001",  # Nevers - Marzy
+            "59343001",  # Lille - Lesquin
+            "63113001",  # Clermont-Ferrand - Aulnat
+            "64549001",  # Pau - Uzein
+            "66136001",  # Perpignan - Rivesaltes
+            "67124001",  # Strasbourg - Entzheim
+            "69029001",  # Lyon - Bron
+            "72181001",  # Le Mans - Arnage
+            "73054001",  # Bourg - St-Maurice
+            "75114001",  # Paris - Montsouris
+            "86027001",  # Poitiers - Biard
+        )
 
-    itn = average_itn_calculation_option1(stations_itn,
-                        '2016-04-01','2026-01-31',"monthly")[1]
+    itn = average_itn_calculation_option1(
+        stations_itn, "2026-01-01", "2026-01-31", "monthly"
+    )[1]
 
     dates = itn.index.strftime("%Y-%m-%d").to_numpy()
     values = itn.values
