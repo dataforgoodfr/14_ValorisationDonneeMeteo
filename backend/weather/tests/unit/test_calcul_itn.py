@@ -12,6 +12,8 @@ from weather.calcul_itn import (
 from weather.itn.gateway_tests import ReadTemperaturesTests
 
 NAN = float("nan")
+REIMS_PRUNAY_ID = "51449002"
+REIMS_COURCY_ID = "51183001"
 
 
 def _make_pivoted(index, columns_data):
@@ -32,7 +34,7 @@ def _make_pivoted(index, columns_data):
     """
     df = pd.DataFrame(columns_data, index=index)
     df.index.name = "date"
-    df.columns = pd.MultiIndex.from_tuples(df.columns, names=[None, "nom"])
+    df.columns = pd.MultiIndex.from_tuples(df.columns, names=[None, "station_id"])
     return df
 
 
@@ -44,6 +46,7 @@ def test_separate_by_station():
     df = pd.DataFrame(
         {
             "date": [dates[0], dates[1], dates[0], dates[1]],
+            "station_id": ["75114001", "75114001", "13054001", "13054001"],
             "nom": ["A", "A", "B", "B"],
             "tn": [4.0, 5.0, 14.0, 15.0],
             "tx": [6.0, 9.0, 16.0, 19.0],
@@ -52,27 +55,27 @@ def test_separate_by_station():
     )
 
     result = separate_by_station(
-        df, index="date", columns="nom", values=["tntxm"], freq="D"
+        df, index="date", columns="station_id", values=["tntxm"], freq="D"
     )
     expected = _make_pivoted(
         dates,
         {
-            ("tntxm", "A"): [5.0, 7.0],
-            ("tntxm", "B"): [15.0, 17.0],
+            ("tntxm", "75114001"): [5.0, 7.0],
+            ("tntxm", "13054001"): [15.0, 17.0],
         },
     )
     pd.testing.assert_frame_equal(result, expected)
 
     result = separate_by_station(
-        df, index="date", columns="nom", values=["tn", "tntxm"], freq="D"
+        df, index="date", columns="station_id", values=["tn", "tntxm"], freq="D"
     )
     expected = _make_pivoted(
         dates,
         {
-            ("tn", "A"): [4.0, 5.0],
-            ("tn", "B"): [14.0, 15.0],
-            ("tntxm", "A"): [5.0, 7.0],
-            ("tntxm", "B"): [15.0, 17.0],
+            ("tn", "75114001"): [4.0, 5.0],
+            ("tn", "13054001"): [14.0, 15.0],
+            ("tntxm", "75114001"): [5.0, 7.0],
+            ("tntxm", "13054001"): [15.0, 17.0],
         },
     )
     pd.testing.assert_frame_equal(result, expected)
@@ -95,9 +98,9 @@ def test_correct_temperatures_Reims():
     input_df = _make_pivoted(
         dates,
         {
-            ("tntxm", "Reims-Courcy"): [8.0, 9.0, 10.0, 11.0],
-            ("tntxm", "Reims-Prunay"): [18.0, 19.0, 20.0, 21.0],
-            ("tntxm", "Paris"): [11.0, 12.0, 13.0, 14.0],
+            ("tntxm", REIMS_COURCY_ID): [8.0, 9.0, 10.0, 11.0],
+            ("tntxm", REIMS_PRUNAY_ID): [18.0, 19.0, 20.0, 21.0],
+            ("tntxm", "75114001"): [11.0, 12.0, 13.0, 14.0],
         },
     )
     original = input_df.copy()
@@ -106,9 +109,9 @@ def test_correct_temperatures_Reims():
     expected = _make_pivoted(
         dates,
         {
-            ("tntxm", "Reims-Courcy"): [8.0, 9.0, NAN, NAN],
-            ("tntxm", "Reims-Prunay"): [NAN, NAN, 20.0, 21.0],
-            ("tntxm", "Paris"): [11.0, 12.0, 13.0, 14.0],
+            ("tntxm", REIMS_COURCY_ID): [8.0, 9.0, NAN, NAN],
+            ("tntxm", REIMS_PRUNAY_ID): [NAN, NAN, 20.0, 21.0],
+            ("tntxm", "75114001"): [11.0, 12.0, 13.0, 14.0],
         },
     )
     pd.testing.assert_frame_equal(result, expected)
@@ -126,8 +129,8 @@ def test_itn_calculation():
     df = _make_pivoted(
         dates,
         {
-            ("tntxm", "A"): [10.0, 12.0, 14.0, 16.0],
-            ("tntxm", "B"): [20.0, 22.0, 24.0, 26.0],
+            ("tntxm", "75114001"): [10.0, 12.0, 14.0, 16.0],
+            ("tntxm", "13054001"): [20.0, 22.0, 24.0, 26.0],
         },
     )
     result = itn_calculation(df)
@@ -137,8 +140,8 @@ def test_itn_calculation():
     df = _make_pivoted(
         dates,
         {
-            ("tntxm", "A"): [10.0, NAN, 14.0, 16.0],
-            ("tntxm", "B"): [20.0, 22.0, 24.0, NAN],
+            ("tntxm", "75114001"): [10.0, NAN, 14.0, 16.0],
+            ("tntxm", "13054001"): [20.0, 22.0, 24.0, NAN],
         },
     )
     result = itn_calculation(df)
@@ -148,7 +151,7 @@ def test_itn_calculation():
     df = _make_pivoted(
         dates,
         {
-            ("tntxm", "A"): [10.0, 12.0, 14.0, 16.0],
+            ("tntxm", "75114001"): [10.0, 12.0, 14.0, 16.0],
         },
     )
     result = itn_calculation(df)
@@ -166,18 +169,18 @@ def test_compute_itn():
     expected_records_by_station = _make_pivoted(
         dates,
         {
-            ("temp_min", "Reims-Courcy"): [3.0, 4.0, NAN, NAN],
-            ("temp_min", "Reims-Prunay"): [NAN, NAN, 6.0, 7.0],
-            ("temp_min", "Paris - Montsouris"): [-2.0, -1.0, 0.0, 1.0],
-            ("temp_min", "Marseille - Marignane"): [10.0, 11.0, 12.0, 13.0],
-            ("temp_max", "Reims-Courcy"): [13.0, 14.0, NAN, NAN],
-            ("temp_max", "Reims-Prunay"): [NAN, NAN, 16.0, 17.0],
-            ("temp_max", "Paris - Montsouris"): [8.0, 9.0, 10.0, 11.0],
-            ("temp_max", "Marseille - Marignane"): [20.0, 21.0, 22.0, 23.0],
-            ("tntxm", "Reims-Courcy"): [8.0, 9.0, NAN, NAN],
-            ("tntxm", "Reims-Prunay"): [NAN, NAN, 11.0, 12.0],
-            ("tntxm", "Paris - Montsouris"): [3.0, 4.0, 5.0, 6.0],
-            ("tntxm", "Marseille - Marignane"): [15.0, 16.0, 17.0, 18.0],
+            ("temp_min", REIMS_COURCY_ID): [3.0, 4.0, NAN, NAN],
+            ("temp_min", REIMS_PRUNAY_ID): [NAN, NAN, 6.0, 7.0],
+            ("temp_min", "75114001"): [-2.0, -1.0, 0.0, 1.0],
+            ("temp_min", "13054001"): [10.0, 11.0, 12.0, 13.0],
+            ("temp_max", REIMS_COURCY_ID): [13.0, 14.0, NAN, NAN],
+            ("temp_max", REIMS_PRUNAY_ID): [NAN, NAN, 16.0, 17.0],
+            ("temp_max", "75114001"): [8.0, 9.0, 10.0, 11.0],
+            ("temp_max", "13054001"): [20.0, 21.0, 22.0, 23.0],
+            ("tntxm", REIMS_COURCY_ID): [8.0, 9.0, NAN, NAN],
+            ("tntxm", REIMS_PRUNAY_ID): [NAN, NAN, 11.0, 12.0],
+            ("tntxm", "75114001"): [3.0, 4.0, 5.0, 6.0],
+            ("tntxm", "13054001"): [15.0, 16.0, 17.0, 18.0],
         },
     ).asfreq("D")
     expected_itn = pd.Series(

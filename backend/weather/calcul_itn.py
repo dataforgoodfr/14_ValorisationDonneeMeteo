@@ -110,9 +110,9 @@ def correct_temperatures_Reims(df: pd.DataFrame) -> pd.DataFrame:
     corrected_df = df.copy()
     indexes = corrected_df.columns
     for index in indexes:
-        if "Reims-Courcy" in index:
+        if REIMS_COURCY_ID in index:
             corrected_df.loc["2012-05-08":, index] = float("nan")
-        elif "Reims-Prunay" in index:
+        elif REIMS_PRUNAY_ID in index:
             corrected_df.loc[:"2012-05-07", index] = float("nan")
 
     return corrected_df
@@ -175,7 +175,7 @@ def compute_itn(
     daily_records_by_station = separate_by_station(
         temp_daily,
         index="date",
-        columns="nom",
+        columns="station_id",
         values=["temp_min", "temp_max", "tntxm"],
         freq="D",
     )

@@ -68,35 +68,37 @@ class ReadTemperaturesDatabase:
         temp_daily: pandas.core.frame.DataFrame
               daily record of the min, max and 'mean' temperature
         """
-
-        sql_request = """SELECT id, \
-                                code, \
+        sql_request = """SELECT id,
+                                id as code,
                                 nom
-                         FROM weather_station \
+                         FROM \"Station\"
                       """
         if stations_itn is not None:
             sql_request += f"""WHERE
-                                code in {stations_itn}"""
+                                id in {stations_itn} and
+                                frequence like \'quotidienne\' """
         stations = self.sql2pandas(sql_request)
 
         sql_request = f"""SELECT
-                            station_id,
-                            nom_usuel as nom,
-                            date,
-                            tx as temp_max,
-                            tn as temp_min,
-                            tntxm as tntxm
+                            \"NUM_POSTE\" as station_id,
+                            \"NOM_USUEL\" as nom,
+                            \"AAAAMMJJ\" as date,
+                            \"TX\" as temp_max,
+                            \"TN\" as temp_min,
+                            \"TNTXM\" as tntxm
                          FROM
-                            weather_quotidienne
+                            \"Quotidienne\"
                          WHERE
-                            station_id in {tuple(stations["id"])}
+                            \"NUM_POSTE\" in {tuple(stations["id"])}
                      """
         if (start_date is not None) and (end_date is not None):
-            sql_request += f"""and '{start_date}' <= date and date <= '{end_date}' """
+            sql_request += (
+                f"and \"AAAAMMJJ\" >= '{start_date}' and \"AAAAMMJJ\" <= '{end_date}' "
+            )
         elif start_date is not None:
-            sql_request += f"""and date >= '{start_date}' """
+            sql_request += f"and \"AAAAMMJJ\" >= '{start_date}' "
         elif end_date is not None:
-            sql_request += f"""and date <= '{end_date}' """
+            sql_request += f"and \"AAAAMMJJ\" <= '{end_date}' "
         temp_daily = self.sql2pandas(sql_request)
         temp_daily["date"] = pd.to_datetime(temp_daily["date"])
 
