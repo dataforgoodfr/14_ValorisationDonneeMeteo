@@ -136,6 +136,8 @@ class TimescaleNationalIndicatorDailyDataSource(NationalIndicatorDailyDataSource
         return out
 
 
+# Prototype de classe record à partir de la DB, en attendant d'avoir
+# la spec de sélection des données pour lister les records
 class TimescaleRecordsDataSource(RecordsDataSource):
     def __init__(self) -> None:
         pass

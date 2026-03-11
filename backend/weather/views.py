@@ -8,7 +8,7 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from weather.bootstrap_itn import ITNDependencyProvider
-from weather.bootstrap_records import RecordsDependencyProvider
+from weather.data_sources.records_fake import FakeRecordsDataSource
 from weather.services.national_indicator.use_case import get_national_indicator
 from weather.services.records.use_case import get_records
 
@@ -126,7 +126,9 @@ class RecordsAPIView(APIView):
                 status=status.HTTP_400_BAD_REQUEST,
             )
         params = q.validated_data
-        ds = RecordsDependencyProvider.get_dep()
+        # On utilise les fakedata en attendant la mise en place de la base
+        ds = FakeRecordsDataSource()
+        # RecordsDependencyProvider.get_dep()
         data = get_records(data_source=ds, **params)
         metadata = {
             "date_start": params["date_start"],

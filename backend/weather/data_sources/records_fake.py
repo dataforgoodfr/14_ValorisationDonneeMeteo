@@ -23,7 +23,7 @@ class FakeRecordsDataSource:
     def __init__(self, *, seed: int = 42) -> None:
         self._seed = seed
 
-    def generate_fake_records(self, query: RecordsQuery) -> list[RecordPoint]:
+    def fetch_records(self, query: RecordsQuery) -> list[RecordPoint]:
         Stations = [
             FakeStationInfo("01", "Station01"),
             FakeStationInfo("02", "Station02"),
