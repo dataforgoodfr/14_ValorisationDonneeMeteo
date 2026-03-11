@@ -1,3 +1,7 @@
+import fs from "fs";
+
+export const MockedUpDataFileName = "./public/MockedUpData.json";
+
 export function GetMockupData(): ChartDataSerie {
     const RetArray: ChartDataSerie = [];
     let CurTemp = 5;
@@ -25,7 +29,24 @@ export function GetMockupData(): ChartDataSerie {
         });
         CurDate = new Date(CurDate.getTime() + 24 * 3600 * 1000);
     }
+
     return RetArray;
+}
+
+export function InitMockupData(): void {
+    let MockUpFileExists = false;
+    try {
+        fs.statSync(MockedUpDataFileName);
+        MockUpFileExists = true;
+    } catch {}
+    if (import.meta.server && !MockUpFileExists) {
+        console.log("Mocking up data");
+        const RetArray = GetMockupData();
+
+        // Only once on the server
+        //await writeFile();
+        fs.writeFileSync(MockedUpDataFileName, JSON.stringify(RetArray));
+    }
 }
 
 export enum TimeAxisType {
@@ -43,8 +64,9 @@ export interface ChartDataPoint {
     Max: number;
 }
 
-type ChartDataSerie = ChartDataPoint[];
+export type ChartDataSerie = ChartDataPoint[];
 
-export function GetChartData(_type: TimeAxisType): ChartDataSerie {
-    return GetMockupData();
+export async function GetData(): Promise<ChartDataSerie> {
+    const resp = await fetch("MockedUpData.json");
+    return (await resp.json()) as ChartDataSerie;
 }
