@@ -107,11 +107,17 @@ async function exportAsHTML() {
         </html>
         `;
 
-    const blob = new Blob([html], { type: 'text/html' });
+    const blob = new Blob([html], { type: "text/html" });
     const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
+    const a = document.createElement("a");
     a.href = url;
-    a.download = 'graphique.html';
+    a.download = useFormatFileName(
+        "itn",
+        granularity.value,
+        picked_date_start.value,
+        picked_date_end.value,
+        "html",
+    );
     a.click();
     URL.revokeObjectURL(url);
 }
