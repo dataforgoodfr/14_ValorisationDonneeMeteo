@@ -27,9 +27,9 @@ echarts.use([
 ]);
 
 const itnStore = useItnStore();
-
+const { itnChartRef } = storeToRefs(itnStore);
 // provide init-options
-const renderer = ref<"svg" | "canvas">("svg");
+const renderer = ref<"svg" | "canvas">("canvas");
 const initOptions = computed(() => ({
     height: 600,
     locale: "FR",
@@ -89,12 +89,19 @@ const option = computed<ECOption>(() => {
                 })) ?? [],
         },
         grid: {
-            left: 10,
+            left: 30,
             right: 10,
+            bottom: 150,
             containLabel: true,
         },
         xAxis: { type: "time" },
-        yAxis: {},
+        yAxis: {
+            type: "value",
+            name: "Température (°C)",
+            nameRotate: 90,
+            nameLocation: "middle",
+            nameGap: 40,
+        },
         series: [
             // extreme - Invisible base — pushes the band up to start at lower bound
             {
@@ -191,9 +198,13 @@ const option = computed<ECOption>(() => {
                 tooltip: { show: false },
             },
         ],
+        title: {
+            text: "Indicateur thermique national",
+            left: "center",
+        },
         legend: {
             data: ["Température", "Indicateur MF", "Écart-type", "Extrêmes"],
-            top: 0,
+            bottom: 85,
         },
         tooltip: {
             trigger: "axis",
@@ -238,12 +249,17 @@ const option = computed<ECOption>(() => {
                 minSpan: 20,
             },
         ],
+        emphasis: {
+            focus: "none",
+            disabled: true, // disables all emphasis state changes on hover
+        },
     };
 });
 </script>
 
 <template>
     <VChart
+        ref="itnChartRef"
         :key="itnStore.granularity"
         :option="option"
         :init-options="initOptions"
