@@ -91,6 +91,7 @@ const option = computed<ECOption>(() => {
         grid: {
             left: 30,
             right: 10,
+            bottom: 150,
             containLabel: true,
         },
         xAxis: { type: "time" },
@@ -197,9 +198,13 @@ const option = computed<ECOption>(() => {
                 tooltip: { show: false },
             },
         ],
+        title: {
+            text: "Indicateur thermique national",
+            left: "center",
+        },
         legend: {
             data: ["Température", "Indicateur MF", "Écart-type", "Extrêmes"],
-            top: 0,
+            bottom: 85,
         },
         tooltip: {
             trigger: "axis",
