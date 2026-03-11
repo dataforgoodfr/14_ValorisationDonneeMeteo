@@ -108,7 +108,7 @@ async function exportAsHTML() {
         `;
 
     const blob = new Blob([html], { type: "text/html" });
-    const url = URL.createObjectURL(blob);
+    const url = window.URL.createObjectURL(blob);
     const a = document.createElement("a");
     a.href = url;
     a.download = useFormatFileName(
@@ -119,7 +119,7 @@ async function exportAsHTML() {
         "html",
     );
     a.click();
-    URL.revokeObjectURL(url);
+    window.URL.revokeObjectURL(url);
 }
 </script>
 
