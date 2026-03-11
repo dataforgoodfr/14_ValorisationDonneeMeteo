@@ -6,7 +6,7 @@ from dataclasses import dataclass
 
 from django.db.models import Max, Min, Q
 
-from weather.models import HoraireTempsReel
+from weather.models import HoraireTempsReel, QuotidienneITN
 from weather.services.national_indicator.protocols import (
     NationalIndicatorDailyDataSource,
 )

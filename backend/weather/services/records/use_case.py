@@ -3,6 +3,7 @@ import datetime as dt
 from weather.services.records.protocols import (
     RecordsDataSource,
 )
+from weather.services.records.service import compute_records
 from weather.services.records.types import RecordPoint, RecordsQuery
 
 

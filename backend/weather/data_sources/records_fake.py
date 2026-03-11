@@ -45,14 +45,14 @@ class FakeRecordsDataSource:
         DateMin = None
         DateMax = None
         for point in datapoints:
-            if Min is None or Min > point[2]:
-                Min = point[2]
-                DateMin = point[1]
-            if Max is None or Max < point[2]:
-                Max = point[2]
-                DateMax = point[1]
+            if Min is None or Min > point.t:
+                Min = point.t
+                DateMin = point.d
+            if Max is None or Max < point.t:
+                Max = point.t
+                DateMax = point.d
 
-        return RecordPoint(station.code, station.nom, Min, Max, DateMin, DateMax)
+        return RecordPoint(station.id, station.nom, Min, Max, DateMin, DateMax)
 
     ## Random sequence of temperatures from day_start to enddate
     def generate_station_fake_record(self, query) -> list[FakeTemperaturePoint]:
