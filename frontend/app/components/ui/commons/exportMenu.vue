@@ -97,13 +97,23 @@ async function exportAsHTML() {
         backgroundColor: "#fff",
         excludeComponents: ["dataZoom"],
     });
-    const response = await fetch(dataURL);
+    const html = `
+        <!DOCTYPE html>
+        <html>
+        <head><meta charset="utf-8"><title>Mon graphique</title></head>
+        <body>
+        <img src="${dataURL}" alt="Graphique">
+        </body>
+        </html>
+        `;
 
-    const blobImage = await response.blob();
-
-    const fileURL = URL.createObjectURL(blobImage);
-    window.open(fileURL, "_blank");
-    URL.revokeObjectURL(fileURL);
+    const blob = new Blob([html], { type: 'text/html' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'graphique.html';
+    a.click();
+    URL.revokeObjectURL(url);
 }
 </script>
 
