@@ -4,6 +4,8 @@ import datetime as dt
 import hashlib
 import math
 import random
+from collections.abc import Iterable
+from datetime import date
 
 from weather.services.temperature_deviation.protocols import (
     TemperatureDeviationDailyDataSource,
@@ -67,6 +69,27 @@ def _generate_station_daily_point(
     )
 
 
+def _generate_station_series(
+    *,
+    station_id: str,
+    days: Iterable[date],
+    global_seed: int,
+) -> list[DailyDeviationPoint]:
+    station_hash = _stable_int_from_str(station_id)
+    station_seed = (global_seed * 1_000_003) ^ station_hash
+    rng = random.Random(station_seed)
+    bias = ((station_hash % 100) - 50) / 200.0
+
+    return [
+        _generate_station_daily_point(
+            day=d,
+            rng=rng,
+            bias=bias,
+        )
+        for d in days
+    ]
+
+
 class FakeTemperatureDeviationDailyDataSource(TemperatureDeviationDailyDataSource):
     def __init__(self) -> None:
         self._seed = 123
@@ -87,14 +110,11 @@ class FakeTemperatureDeviationDailyDataSource(TemperatureDeviationDailyDataSourc
         out: list[StationDailySeries] = []
 
         for station_id in query.station_ids:
-            station_hash = _stable_int_from_str(station_id)
-            station_seed = (self._seed * 1_000_003) ^ station_hash
-            rng = random.Random(station_seed)
-            bias = ((station_hash % 100) - 50) / 200.0
-
-            points = [
-                _generate_station_daily_point(day=d, rng=rng, bias=bias) for d in days
-            ]
+            points = _generate_station_series(
+                station_id=station_id,
+                days=days,
+                global_seed=self._seed,
+            )
 
             out.append(
                 StationDailySeries(
