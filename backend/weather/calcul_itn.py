@@ -176,7 +176,7 @@ def compute_itn(
         temp_daily,
         index="date",
         columns="station_id",
-        values=["temp_min", "temp_max", "tntxm"],
+        values=["tntxm"],
         freq="D",
     )
 
