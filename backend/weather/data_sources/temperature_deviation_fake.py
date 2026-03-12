@@ -77,9 +77,7 @@ class FakeTemperatureDeviationDailyDataSource(TemperatureDeviationDailyDataSourc
         rng = random.Random(self._seed)
         days = tuple(iter_days_intersecting(query.date_start, query.date_end))
 
-        out: list[DailyDeviationPoint] = []
-        for d in days:
-            out.append(_generate_national_daily_point(day=d, rng=rng))
+        out = [_generate_national_daily_point(day=d, rng=rng) for d in days]
         return out
 
     def fetch_station_daily_series(
@@ -94,15 +92,9 @@ class FakeTemperatureDeviationDailyDataSource(TemperatureDeviationDailyDataSourc
             rng = random.Random(station_seed)
             bias = ((station_hash % 100) - 50) / 200.0
 
-            points: list[DailyDeviationPoint] = []
-            for d in days:
-                points.append(
-                    _generate_station_daily_point(
-                        day=d,
-                        rng=rng,
-                        bias=bias,
-                    )
-                )
+            points = [
+                _generate_station_daily_point(day=d, rng=rng, bias=bias) for d in days
+            ]
 
             out.append(
                 StationDailySeries(
