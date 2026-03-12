@@ -116,6 +116,8 @@ La documentation est alors disponible sur `http://localhost:8000`
 |---------------------------|-------------------------------|
 | `/api/v1/stations/`       | Liste des stations meteo      |
 | `/api/v1/temperature/national-indicator`    | Indicateur thermique national
+| `/api/v1/temperature/deviation`       | Ecart à la normale      |
+
 
 
 ## Exemples de requetes
@@ -127,8 +129,10 @@ curl -L http://localhost:8000/api/v1/stations?departement=13
 
 #Indicateur thermique national :
 curl "http://localhost:8000/api/v1/temperature/national-indicator?date_start=2025-01-01&date_end=2025-01-31&granularity=month"
-```
 
+#Ecart à la normale
+curl "http://localhost:8000/api/v1/temperature/deviation?date_start=2024-01-01&date_end=2024-01-31&granularity=day&station_ids=07149,07222"
+```
 ## Structure du projet
 
 ```

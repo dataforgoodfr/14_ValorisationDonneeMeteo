@@ -172,3 +172,98 @@ class NationalIndicatorMetadataSerializer(serializers.Serializer):
 class NationalIndicatorResponseSerializer(serializers.Serializer):
     metadata = NationalIndicatorMetadataSerializer()
     time_series = NationalIndicatorTimePointSerializer(many=True)
+
+
+class CommaSeparatedStationIdsField(serializers.Field):
+    def to_internal_value(self, data):
+        if data is None:
+            return ()
+        if isinstance(data, list | tuple):
+            items = [str(x).strip() for x in data if str(x).strip()]
+            return tuple(items)
+
+        if isinstance(data, str):
+            s = data.strip()
+            if not s:
+                return ()
+            items = [x.strip() for x in s.split(",") if x.strip()]
+            return tuple(items)
+
+        raise serializers.ValidationError("Format station_ids invalide.")
+
+
+class TemperatureDeviationQuerySerializer(serializers.Serializer):
+    date_start = serializers.DateField(required=True)
+    date_end = serializers.DateField(required=True)
+    granularity = serializers.ChoiceField(
+        choices=["year", "month", "day"], required=True
+    )
+    station_ids = CommaSeparatedStationIdsField(required=False)
+    include_national = serializers.BooleanField(required=False, default=True)
+
+    def validate(self, attrs):
+        ds = attrs["date_start"]
+        de = attrs["date_end"]
+        if ds > de:
+            raise serializers.ValidationError(
+                {"date_end": "date_end doit être >= date_start."}
+            )
+
+        station_ids = attrs.get("station_ids", ())
+        include_national = attrs.get("include_national", True)
+
+        if not include_national and len(station_ids) == 0:
+            raise serializers.ValidationError(
+                {"station_ids": "Requis si include_national=false."}
+            )
+
+        attrs["station_ids"] = station_ids
+        return attrs
+
+
+class TemperatureDeviationPointSerializer(serializers.Serializer):
+    date = serializers.DateField()
+    deviation = serializers.FloatField()
+    temperature = serializers.FloatField()
+    baseline_mean = serializers.FloatField()
+
+
+class TemperatureDeviationNationalSeriesSerializer(serializers.Serializer):
+    is_national = serializers.BooleanField()
+    data = TemperatureDeviationPointSerializer(many=True)
+
+
+class TemperatureDeviationStationSeriesSerializer(serializers.Serializer):
+    is_national = serializers.BooleanField()
+    station_id = serializers.CharField()
+    station_name = serializers.CharField()
+    data = TemperatureDeviationPointSerializer(many=True)
+
+
+class TemperatureDeviationMetadataSerializer(serializers.Serializer):
+    date_start = serializers.DateField()
+    date_end = serializers.DateField()
+    baseline = serializers.CharField()
+    granularity = serializers.ChoiceField(choices=["year", "month", "day"])
+
+
+class TemperatureDeviationResponseSerializer(serializers.Serializer):
+    metadata = TemperatureDeviationMetadataSerializer()
+    series = serializers.ListField()
+
+    def validate_series(self, v):
+        if not isinstance(v, list):
+            raise serializers.ValidationError("series doit être une liste.")
+
+        for item in v:
+            if not isinstance(item, dict) or "is_national" not in item:
+                raise serializers.ValidationError("Série invalide.")
+
+            if item["is_national"] is True:
+                s = TemperatureDeviationNationalSeriesSerializer(data=item)
+            else:
+                s = TemperatureDeviationStationSeriesSerializer(data=item)
+
+            s.is_valid(raise_exception=True)
+
+        return v
