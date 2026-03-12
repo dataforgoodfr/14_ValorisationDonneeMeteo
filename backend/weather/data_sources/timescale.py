@@ -149,34 +149,34 @@ class TimescaleRecordsDataSource(RecordsDataSource):
         )
 
         # 1st get records values from timespan
-        MinMaxes = qs.values("station__nom", "station__id").annotate(
-            TXX=Max("t"),
-            TNN=Min("t"),
+        min_maxes = qs.values("station__nom", "station__id").annotate(
+            txx=Max("t"),
+            tnn=Min("t"),
         )
 
         # 2nd loop to get dates
         retdata = []
-        for recpoint in MinMaxes:
+        for record_point in min_maxes:
             rqs = (
-                qs.filter(Q(t=recpoint["TXX"]) | Q(t=recpoint["TNN"]))
+                qs.filter(Q(t=record_point["txx"]) | Q(t=record_point["tnn"]))
                 .values("station", "t")
                 .annotate(RefT=Min("reference_time"))
             )
             tnn_date = None
             txx_date = None
-            for PointDate in rqs:
-                if PointDate["t"] == recpoint["TNN"]:
-                    tnn_date = PointDate["RefT"]
-                if PointDate["t"] == recpoint["TXX"]:
-                    txx_date = PointDate["RefT"]
+            for point_date in rqs:
+                if point_date["t"] == record_point["tnn"]:
+                    tnn_date = point_date["RefT"]
+                if point_date["t"] == record_point["txx"]:
+                    txx_date = point_date["RefT"]
 
             point = RecordPoint(
-                id=recpoint["station__nom"],
-                name=recpoint["station__id"],
-                TXX=recpoint["TXX"],
-                TNN=recpoint["TNN"],
-                TNN_date=tnn_date,
-                TXX_date=txx_date,
+                id=record_point["station__nom"],
+                name=record_point["station__id"],
+                txx=record_point["txx"],
+                tnn=record_point["tnn"],
+                tnn_date=tnn_date,
+                txx_date=txx_date,
             )
             retdata.append(point)
 
