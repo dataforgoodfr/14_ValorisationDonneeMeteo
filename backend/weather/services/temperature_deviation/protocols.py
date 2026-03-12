@@ -12,6 +12,6 @@ class TemperatureDeviationDailyDataSource(Protocol):
         DailyDeviationPoint
     ]: ...  # on verra si y a vraiment un ecart à la normale aggrégé France, j'ai un doute même si les écrans le prévoient
 
-    def fetch_station_daily_series(
+    def fetch_stations_daily_series(
         self, query: DailyDeviationSeriesQuery
     ) -> list[StationDailySeries]: ...

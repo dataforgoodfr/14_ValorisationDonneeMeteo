@@ -80,7 +80,7 @@ class FakeTemperatureDeviationDailyDataSource(TemperatureDeviationDailyDataSourc
         out = [_generate_national_daily_point(day=d, rng=rng) for d in days]
         return out
 
-    def fetch_station_daily_series(
+    def fetch_stations_daily_series(
         self, query: DailyDeviationSeriesQuery
     ) -> list[StationDailySeries]:
         days = tuple(iter_days_intersecting(query.date_start, query.date_end))

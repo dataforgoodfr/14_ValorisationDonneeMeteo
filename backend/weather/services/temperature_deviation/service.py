@@ -91,7 +91,7 @@ def compute_temperature_deviation(
             }
         )
 
-    station_daily_series = data_source.fetch_station_daily_series(query)
+    station_daily_series = data_source.fetch_stations_daily_series(query)
     for station_series in station_daily_series:
         pts = _aggregate(
             station_series.points,
