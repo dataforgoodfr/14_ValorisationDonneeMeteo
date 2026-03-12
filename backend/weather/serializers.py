@@ -262,16 +262,16 @@ class RecordsMetadataSerializer:
     date_start = serializers.DateField()
     date_end = serializers.DateField()
     station_name_filter = serializers.StringRelatedField()
-    departement_filter = serializers.StringRelatedField
+    departement_filter = serializers.StringRelatedField()
 
 
 class RecordPointSerializer(serializers.Serializer):
     id = serializers.CharField()
     name = serializers.CharField()
-    TNN = serializers.FloatField()
-    TXX = serializers.FloatField()
-    TNN_date = serializers.DateField()
-    TXX_date = serializers.DateField()
+    tnn = serializers.FloatField()
+    txx = serializers.FloatField()
+    tnn_date = serializers.DateField()
+    txx_date = serializers.DateField()
 
 
 class RecordsResponseSerializer(serializers.Serializer):

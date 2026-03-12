@@ -1,6 +1,8 @@
 from weather.services.records.protocols import RecordsDataSource
-from weather.services.records.types import RecordPoint
+from weather.services.records.types import RecordPoint, RecordsQuery
 
 
-def ComputeRecords(data_source: RecordsDataSource, query) -> list[RecordPoint]:
+def compute_records(
+    data_source: RecordsDataSource, query: RecordsQuery
+) -> list[RecordPoint]:
     return data_source.fetch_records(query)

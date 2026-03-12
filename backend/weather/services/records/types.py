@@ -6,10 +6,10 @@ from dataclasses import dataclass
 class RecordPoint:
     id: str
     name: str
-    TNN: float
-    TXX: float
-    TNN_date: dt.date | None = None
-    TXX_date: dt.date | None = None
+    tnn: float
+    txx: float
+    tnn_date: dt.date | None = None
+    txx_date: dt.date | None = None
 
 
 @dataclass(frozen=True)
