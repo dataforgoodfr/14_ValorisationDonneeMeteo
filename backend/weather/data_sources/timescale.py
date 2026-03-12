@@ -245,23 +245,23 @@ class TimescaleRecordsDataSource(RecordsDataSource):
                 .values("station", "t")
                 .annotate(RefT=Min("reference_time"))
             )
-            TNNDate = None
-            TXXDate = None
+            tnn_date = None
+            txx_date = None
             for PointDate in rqs:
                 if PointDate["t"] == recpoint["TNN"]:
-                    TNNDate = PointDate["RefT"]
+                    tnn_date = PointDate["RefT"]
                 if PointDate["t"] == recpoint["TXX"]:
-                    TXXDate = PointDate["RefT"]
+                    txx_date = PointDate["RefT"]
 
-            RetPoint = RecordPoint(
+            point = RecordPoint(
                 id=recpoint["station__nom"],
                 name=recpoint["station__id"],
                 TXX=recpoint["TXX"],
                 TNN=recpoint["TNN"],
-                TNN_date=TNNDate,
-                TXX_date=TXXDate,
+                TNN_date=tnn_date,
+                TXX_date=txx_date,
             )
-            retdata.append(RetPoint)
+            retdata.append(point)
 
         # shape API (time_series uniquement)
         return retdata

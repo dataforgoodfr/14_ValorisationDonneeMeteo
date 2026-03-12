@@ -33,11 +33,11 @@ class FakeRecordsDataSource:
         RetList = []
         for p in Stations:
             datapoints = self.generate_station_fake_record(query)
-            RetList.append(self.ExtractFakeRecords(p, datapoints))
+            RetList.append(self.extract_fake_records(p, datapoints))
 
         return RetList
 
-    def ExtractFakeRecords(
+    def extract_fake_records(
         self, station: FakeStationInfo, datapoints: list[FakeTemperaturePoint]
     ) -> RecordPoint:
         Min = None
