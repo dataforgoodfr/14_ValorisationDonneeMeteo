@@ -4,7 +4,9 @@ import datetime as dt
 from collections import defaultdict
 from dataclasses import dataclass
 
-from weather.models import QuotidienneITN
+from django.db.models import Max, Min, Q
+
+from weather.models import HoraireTempsReel, QuotidienneITN
 from weather.services.national_indicator.protocols import (
     NationalIndicatorDailyDataSource,
 )
@@ -16,6 +18,8 @@ from weather.services.national_indicator.stations import (
     expected_station_codes,
 )
 from weather.services.national_indicator.types import DailyPoint, DailySeriesQuery
+from weather.services.records.protocols import RecordsDataSource
+from weather.services.records.types import RecordPoint, RecordsQuery
 
 
 def _normalize_reims(
@@ -130,3 +134,51 @@ class TimescaleNationalIndicatorDailyDataSource(NationalIndicatorDailyDataSource
             )
 
         return out
+
+
+# Prototype de classe record à partir de la DB, en attendant d'avoir
+# la spec de sélection des données pour lister les records
+class TimescaleRecordsDataSource(RecordsDataSource):
+    def __init__(self) -> None:
+        pass
+
+    def fetch_records(self, query: RecordsQuery) -> list[RecordPoint] | None:
+        qs = HoraireTempsReel.objects.filter(
+            reference_time__gte=query.date_start,
+            reference_time__lte=query.date_end,
+        )
+
+        # 1st get records values from timespan
+        min_maxes = qs.values("station__nom", "station__id").annotate(
+            txx=Max("t"),
+            tnn=Min("t"),
+        )
+
+        # 2nd loop to get dates
+        retdata = []
+        for record_point in min_maxes:
+            rqs = (
+                qs.filter(Q(t=record_point["txx"]) | Q(t=record_point["tnn"]))
+                .values("station", "t")
+                .annotate(RefT=Min("reference_time"))
+            )
+            tnn_date = None
+            txx_date = None
+            for point_date in rqs:
+                if point_date["t"] == record_point["tnn"]:
+                    tnn_date = point_date["RefT"]
+                if point_date["t"] == record_point["txx"]:
+                    txx_date = point_date["RefT"]
+
+            point = RecordPoint(
+                id=record_point["station__nom"],
+                name=record_point["station__id"],
+                txx=record_point["txx"],
+                tnn=record_point["tnn"],
+                tnn_date=tnn_date,
+                txx_date=txx_date,
+            )
+            retdata.append(point)
+
+        # shape API (time_series uniquement)
+        return retdata
