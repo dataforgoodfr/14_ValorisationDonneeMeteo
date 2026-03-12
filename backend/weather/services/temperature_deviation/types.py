@@ -1,0 +1,37 @@
+from __future__ import annotations
+
+import datetime as dt
+from dataclasses import dataclass
+
+
+@dataclass(frozen=True)
+class DailyDeviationSeriesQuery:
+    date_start: dt.date
+    date_end: dt.date
+    station_ids: tuple[str, ...]
+    include_national: bool = True
+
+
+@dataclass(frozen=True)
+class DailyDeviationPoint:
+    date: dt.date
+    temperature: float
+    baseline_mean: float
+
+
+@dataclass(frozen=True)
+class StationDailySeries:
+    station_id: str
+    station_name: str
+    points: list[DailyDeviationPoint]
+
+
+@dataclass(frozen=True)
+class AggregatedDeviationPoint:
+    date: dt.date
+    temperature: float
+    baseline_mean: float
+
+    @property
+    def deviation(self) -> float:
+        return self.temperature - self.baseline_mean
