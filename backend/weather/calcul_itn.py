@@ -62,26 +62,29 @@ def read_temperatures(
     """
 
     sql_request = """SELECT
-                       *
-                    FROM
-                       weather_station
-                 """
-    if len(stations_itn) > 0:
+                         station_code as id,
+                         station_code as code,
+                         name         as nom
+                     FROM
+                         v_station \
+                  """
+    if stations_itn is not None:
         sql_request += f"""WHERE
-                            code in {stations_itn}"""
+                                station_code in {stations_itn}"""
     stations = sql2pandas(sql_request)
 
     sql_request = f"""SELECT
-                        w.station_id,
-                        w.nom_usuel as nom,
-                        w.date, w.tx as temp_max,
-                        w.tn as temp_min,
-                        w.tntxm as tntxm
-                     FROM
-                        weather_quotidienne as w
-                     WHERE
-                        w.station_id in {tuple(stations["id"])}
-                 """
+                          \"NUM_POSTE\" as station_id,
+                          \"NOM_USUEL\" as nom,
+                          \"AAAAMMJJ\" as date,
+                          \"TX\" as temp_max,
+                          \"TN\" as temp_min,
+                          \"TNTXM\" as tntxm
+                      FROM
+                          \"Quotidienne\"
+                      WHERE
+                          \"NUM_POSTE\" in {tuple(stations["id"])}
+                   """
     temp_daily = sql2pandas(sql_request)
     temp_daily["date"] = pd.to_datetime(temp_daily["date"])
 
