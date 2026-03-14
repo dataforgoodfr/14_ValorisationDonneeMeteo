@@ -1,96 +1,147 @@
 <script setup lang="ts">
 import type { TableColumn } from "@nuxt/ui";
-import type { PaginatedResponse, Station } from "~/types/api";
-import { refDebounced } from "@vueuse/core";
+import { h } from "vue";
+import type { TemperatureRecord } from "~/types/api";
+import { UBadge, UInput } from "#components";
+import { storeToRefs } from "pinia";
+import { useRecordsStore } from "~/stores/recordsStore";
 
-const { useApiFetch } = useApiClient();
+// TODO: Use actual colors instead of a status that can translate to any arbitrary color.
+const RECORD_TYPE_TO_BADGE_STATUS = {
+    Chaud: "error" as const,
+    Froid: "info" as const,
+};
+const RECORD_TYPE_TO_TEMPERATURE_FIELD = {
+    Chaud: "TXX" as const,
+    Froid: "TNN" as const,
+};
+const RECORD_TYPE_TO_DATE_FIELD = {
+    Chaud: "TXX_date" as const,
+    Froid: "TNN_date" as const,
+};
 
-// Search query for filtering
-const searchQuery = ref("");
-const selectedStation = ref<Station | null>(null);
-
-// Fetch stations from API with search parameter
+const store = useRecordsStore();
 const {
-    data: stations,
-    pending: loading,
+    recordType,
+    startDate,
+    endDate,
+    page,
+    pageSize,
+    columnFilters,
+    recordsData,
+    pending,
     error,
-    refresh,
-} = await useApiFetch<PaginatedResponse<Station>>("/stations", {
-    query: {
-        search: searchQuery,
-    },
-    // Watch the search query and refetch when it changes
-    watch: [searchQuery],
-});
+} = storeToRefs(store);
 
-// Define table columns
-const columns: TableColumn<Station>[] = [
+const temperatureBadgeColor = computed(
+    () => RECORD_TYPE_TO_BADGE_STATUS[recordType.value],
+);
+const temperatureFieldName = computed(
+    () => RECORD_TYPE_TO_TEMPERATURE_FIELD[recordType.value],
+);
+const temperatureDateFieldName = computed(
+    () => RECORD_TYPE_TO_DATE_FIELD[recordType.value],
+);
+
+// Column filter helpers — read/write store's columnFilters
+function getFilter(id: string): string {
+    return (
+        (columnFilters.value.find((f) => f.id === id)?.value as string) ?? ""
+    );
+}
+
+function setFilter(id: string, value: string) {
+    columnFilters.value = [
+        ...columnFilters.value.filter((f) => f.id !== id),
+        ...(value ? [{ id, value }] : []),
+    ];
+}
+
+function filterInput(id: string) {
+    return h(UInput, {
+        modelValue: getFilter(id),
+        "onUpdate:modelValue": (v: string) => setFilter(id, v),
+        placeholder: "Filtrer...",
+        size: "xs",
+    });
+}
+
+// Column definitions — only depends on recordType, not on columnFilters (avoids focus loss)
+const columns = computed<TableColumn<TemperatureRecord>[]>(() => [
     {
-        accessorKey: "code",
-        header: "Code Station",
-    },
-    {
-        accessorKey: "nom",
-        header: "Nom de Station",
+        accessorKey: "name",
+        header: () =>
+            h("div", { class: "flex flex-col gap-1" }, [
+                h("span", "Station"),
+                filterInput("name"),
+            ]),
     },
     {
         accessorKey: "departement",
-        header: "Département",
+        header: () =>
+            h("div", { class: "flex flex-col gap-1" }, [
+                h("span", "Département"),
+                filterInput("departement"),
+            ]),
     },
     {
-        accessorKey: "frequence",
-        header: "Fréquence",
+        accessorKey: temperatureFieldName.value,
+        header: () =>
+            h("div", { class: "flex flex-col gap-1" }, [
+                h("span", "Record"),
+                filterInput(temperatureFieldName.value),
+            ]),
+        cell: ({ row }) =>
+            h(
+                UBadge,
+                {
+                    class: "capitalize",
+                    variant: "subtle",
+                    color: temperatureBadgeColor.value,
+                },
+                () => row.getValue(temperatureFieldName.value),
+            ),
     },
     {
-        accessorKey: "poste_ouvert",
-        header: "Poste ouvert",
-        cell: ({ row }) => (row.getValue("poste_ouvert") ? "Ouvert" : "Fermé"),
+        accessorKey: temperatureDateFieldName.value,
+        header: () =>
+            h("div", { class: "flex flex-col gap-1" }, [
+                h("span", "Date du record"),
+                filterInput(temperatureDateFieldName.value),
+            ]),
     },
-    {
-        id: "coordinates",
-        header: "Coordonnées DD",
-        cell: ({ row }) => `LON: ${row.original.lon} LAT: ${row.original.lat}`,
-    },
-    {
-        accessorKey: "type_poste",
-        header: "Type de poste",
-    },
-    {
-        accessorKey: "poste_public",
-        header: "Poste public",
-        cell: ({ row }) => (row.getValue("poste_public") ? "Public" : "Non"),
-    },
-];
-
-// Get table reference to access the API
-const table = useTemplateRef("table");
-
-// Handle row selection to update graph
-function onSelectStation(_event: Event, _row: unknown) {
-    // selectedStation.value = row.original;
-    // Update your graph here with selectedStation.value
-    console.log("Selected station:", selectedStation.value);
-}
-
-// Debounce the search query to avoid too many API calls
-const debouncedSearch = refDebounced(searchQuery, 300);
-
-// Watch debounced search and trigger refresh
-watch(debouncedSearch, () => {
-    refresh();
-});
+]);
 </script>
 
 <template>
     <div class="flex flex-col gap-4">
-        <!-- Search Input -->
-        <div class="px-4 py-3.5 border-b border-accented">
-            <UInput
-                v-model="searchQuery"
-                icon="i-lucide-search"
-                placeholder="Search stations..."
-                class="max-w-sm"
-            />
+        <!-- Filters -->
+        <div class="flex justify-between px-4 py-3.5 border-b border-accented">
+            <div class="flex gap-4">
+                <UFormField label="Date de début">
+                    <UInput v-model="startDate" type="date" />
+                </UFormField>
+                <UFormField label="Date de fin">
+                    <UInput v-model="endDate" type="date" />
+                </UFormField>
+            </div>
+
+            <UFieldGroup>
+                <UButton
+                    class="cursor-pointer"
+                    color="neutral"
+                    :variant="recordType == 'Chaud' ? 'subtle' : 'outline'"
+                    label="Chaud"
+                    @click="recordType = 'Chaud'"
+                />
+                <UButton
+                    class="cursor-pointer"
+                    color="neutral"
+                    :variant="recordType == 'Froid' ? 'subtle' : 'outline'"
+                    label="Froid"
+                    @click="recordType = 'Froid'"
+                />
+            </UFieldGroup>
         </div>
 
         <!-- Error message -->
@@ -98,23 +149,21 @@ watch(debouncedSearch, () => {
             Error loading stations: {{ error.message }}
         </div>
 
-        <!-- Table with clickable rows -->
+        <!-- Table -->
         <UTable
-            ref="table"
-            :data="stations?.results || []"
+            :data="recordsData?.stations || []"
             :columns="columns"
-            :loading="loading"
+            :loading="pending"
             class="flex-1"
-            @select="onSelectStation"
         />
 
-        <!-- Graph component -->
-        <div v-if="selectedStation" class="p-4 border border-accented rounded">
-            <h3 class="font-semibold mb-2">
-                Graph for {{ selectedStation.name }}
-            </h3>
-            <!-- Your graph component here -->
-            <!-- <YourGraphComponent :station="selectedStation" /> -->
+        <!-- Pagination -->
+        <div class="flex justify-center border-t border-accented pt-4">
+            <UPagination
+                v-model:page="page"
+                :total="recordsData?.count ?? 0"
+                :items-per-page="pageSize"
+            />
         </div>
     </div>
 </template>

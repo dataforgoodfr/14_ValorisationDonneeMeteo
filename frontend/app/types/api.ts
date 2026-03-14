@@ -116,6 +116,23 @@ export interface DeviationResponse {
     series: DeviationSerie[];
 }
 
+// ===== Temperature Records types =====
+
+export interface TemperatureRecord {
+    id: string;
+    name: string;
+    departement: string;
+    TNN: number;
+    TXX: number;
+    TNN_date: string;
+    TXX_date: string;
+}
+
+export interface TemperatureRecordsResponse {
+    count: number;
+    stations: TemperatureRecord[];
+}
+
 // ===== API Error type =====
 
 export interface ApiError {
