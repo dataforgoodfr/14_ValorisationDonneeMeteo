@@ -19,6 +19,15 @@ uv sync --extra dev
 # Copier la configuration
 cp .env.example .env
 ```
+## Données Simulées
+Il est possible de lancer le projet sans utiliser de base de données.
+Les données servies par l'API sont alors des données simulées.
+Pour ce faire, mettre dans .env :
+```
+MOCKED_DATA=true
+```
+
+Si au contraire on souhaite utiliser une vraie base de données, voir la section sur TimescaleDB ci-dessous.
 
 ## Demarrer TimescaleDB
 
