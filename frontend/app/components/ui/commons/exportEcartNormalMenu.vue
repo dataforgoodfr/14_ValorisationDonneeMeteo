@@ -64,7 +64,37 @@ function exportAsCSV() {
 }
 
 function exportAsHTML() {
+if (!import.meta.client) return;
+    const options = deviationChartRef.value.getOption();
+    const scriptTag = "script";
+    const html = `<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>ITN</title>
+    <${scriptTag} src="https://cdn.jsdelivr.net/npm/echarts/dist/echarts.min.js"></${scriptTag}>
+    <style>html { margin: 0; padding: 0; width: 100%; height: 100vh; }, body { display: flex; align-items: center; margin: 0; padding: 0; width: 100%; height: 100vh; } #chart { margin: 20px; width: auto; height: calc(100vh - 40px); }</style>
+</head>
+<body>
+    <div id="chart"></div>
+    <${scriptTag}>
+        const chart = echarts.init(document.getElementById('chart'));
+        chart.setOption(${JSON.stringify(options)});
+        window.addEventListener('resize', () => chart.resize());
+    </${scriptTag}>
+</body>
+</html>`;
 
+    const a = document.createElement("a");
+    a.href = `data:text/html;charset=utf-8,${encodeURIComponent(html)}`;
+    a.download = useFormatFileName(
+        "ecart_normale",
+        granularity.value,
+        picked_date_start.value,
+        picked_date_end.value,
+        "html",
+    );
+    a.click();
 }
 </script>
 
