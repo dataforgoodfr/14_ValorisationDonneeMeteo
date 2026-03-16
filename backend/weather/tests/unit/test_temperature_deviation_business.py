@@ -18,16 +18,14 @@ def test_temperature_deviation_business_day_happy_path():
         include_national=True,
     )
 
-    assert "series" in out
-    assert len(out["series"]) == 2
+    assert "national" in out
+    assert "stations" in out
 
-    national = out["series"][0]
-    station = out["series"][1]
+    national = out["national"]
+    station = out["stations"][0]
 
-    assert national["is_national"] is True
     assert len(national["data"]) == 3
 
-    assert station["is_national"] is False
     assert station["station_id"] == "07149"
     assert station["station_name"] == "Station 07149"
     assert len(station["data"]) == 3
@@ -45,8 +43,8 @@ def test_temperature_deviation_business_month_aggregates_to_one_point_per_month(
         include_national=True,
     )
 
-    national = out["series"][0]
-    station = out["series"][1]
+    national = out["national"]
+    station = out["stations"][0]
 
     assert [p["date"] for p in national["data"]] == [
         dt.date(2024, 1, 1),
@@ -58,7 +56,7 @@ def test_temperature_deviation_business_month_aggregates_to_one_point_per_month(
     ]
 
 
-def test_temperature_deviation_business_without_national_returns_only_station_series():
+def test_temperature_deviation_business_without_national_returns_only_stations():
     ds = FakeTemperatureDeviationDailyDataSource()
 
     out = get_temperature_deviation(
@@ -70,8 +68,9 @@ def test_temperature_deviation_business_without_national_returns_only_station_se
         include_national=False,
     )
 
-    assert len(out["series"]) == 2
-    assert all(s["is_national"] is False for s in out["series"])
+    assert "national" not in out
+    assert len(out["stations"]) == 2
+    assert [s["station_id"] for s in out["stations"]] == ["07149", "07222"]
 
 
 def test_temperature_deviation_business_deviation_equals_temperature_minus_baseline_mean():
@@ -86,7 +85,11 @@ def test_temperature_deviation_business_deviation_equals_temperature_minus_basel
         include_national=True,
     )
 
-    for series in out["series"]:
-        point = series["data"][0]
+    point = out["national"]["data"][0]
+    expected = round(point["temperature"] - point["baseline_mean"], 2)
+    assert point["deviation"] == expected
+
+    for station in out["stations"]:
+        point = station["data"][0]
         expected = round(point["temperature"] - point["baseline_mean"], 2)
         assert point["deviation"] == expected

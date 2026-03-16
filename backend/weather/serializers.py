@@ -228,13 +228,11 @@ class TemperatureDeviationPointSerializer(serializers.Serializer):
     baseline_mean = serializers.FloatField()
 
 
-class TemperatureDeviationNationalSeriesSerializer(serializers.Serializer):
-    is_national = serializers.BooleanField()
+class TemperatureDeviationNationalSerializer(serializers.Serializer):
     data = TemperatureDeviationPointSerializer(many=True)
 
 
-class TemperatureDeviationStationSeriesSerializer(serializers.Serializer):
-    is_national = serializers.BooleanField()
+class TemperatureDeviationStationSerializer(serializers.Serializer):
     station_id = serializers.CharField()
     station_name = serializers.CharField()
     data = TemperatureDeviationPointSerializer(many=True)
@@ -249,21 +247,5 @@ class TemperatureDeviationMetadataSerializer(serializers.Serializer):
 
 class TemperatureDeviationResponseSerializer(serializers.Serializer):
     metadata = TemperatureDeviationMetadataSerializer()
-    series = serializers.ListField()
-
-    def validate_series(self, v):
-        if not isinstance(v, list):
-            raise serializers.ValidationError("series doit être une liste.")
-
-        for item in v:
-            if not isinstance(item, dict) or "is_national" not in item:
-                raise serializers.ValidationError("Série invalide.")
-
-            if item["is_national"] is True:
-                s = TemperatureDeviationNationalSeriesSerializer(data=item)
-            else:
-                s = TemperatureDeviationStationSeriesSerializer(data=item)
-
-            s.is_valid(raise_exception=True)
-
-        return v
+    national = TemperatureDeviationNationalSerializer(required=False)
+    stations = TemperatureDeviationStationSerializer(many=True)

@@ -139,7 +139,7 @@ class TemperatureDeviationAPIView(APIView):
                 "baseline": "1991-2020",
                 "granularity": params["granularity"],
             },
-            "series": data["series"],
+            **data,
         }
 
         out = TemperatureDeviationResponseSerializer(data=full_payload)

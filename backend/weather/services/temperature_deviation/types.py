@@ -35,3 +35,21 @@ class AggregatedDeviationPoint:
     @property
     def deviation(self) -> float:
         return self.temperature - self.baseline_mean
+
+
+@dataclass(frozen=True)
+class NationalDeviationSeries:
+    data: list[AggregatedDeviationPoint]
+
+
+@dataclass(frozen=True)
+class StationDeviationSeries:
+    station_id: str
+    station_name: str
+    data: list[AggregatedDeviationPoint]
+
+
+@dataclass(frozen=True)
+class TemperatureDeviationResult:
+    national: NationalDeviationSeries | None
+    stations: list[StationDeviationSeries]

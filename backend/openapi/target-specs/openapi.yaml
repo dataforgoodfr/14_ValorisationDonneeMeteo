@@ -94,16 +94,63 @@ paths:
             type: boolean
             default: true
           description: >
-            Permet d'afficher ou masquer les données moyennées sur toute la France.
+            Indique si la série nationale doit être incluse dans la réponse.
+            Si ce paramètre vaut 'true', la propriété `national` est présente dans la réponse.
             Si ce paramètre est défini à 'false', et que 'station_ids' est absent ou vide, l'API retourne une erreur 400.
 
       responses:
         "200":
-          description: Séries temporelles de l'écart à la normale (France et/ou stations).
+          description: Séries temporelles de l'écart à la normale pour la moyenne nationale (optionnelle) et les stations demandées.
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/TemperatureDeviationResponse"
+              examples:
+                national_and_stations:
+                  summary: Moyenne nationale et deux stations
+                  value:
+                    metadata:
+                      date_start: "2025-02-01"
+                      date_end: "2025-02-28"
+                      baseline: "1991-2020"
+                      granularity: "day"
+                    national:
+                      data:
+                        - date: "2025-02-01"
+                          deviation: 1.2
+                          temperature: 8.4
+                          baseline_mean: 7.2
+                    stations:
+                      - station_id: "07149"
+                        station_name: "Orly"
+                        data:
+                          - date: "2025-02-01"
+                            deviation: 0.8
+                            temperature: 7.9
+                            baseline_mean: 7.1
+                      - station_id: "07255"
+                        station_name: "Marseille-Marignane"
+                        data:
+                          - date: "2025-02-01"
+                            deviation: 1.5
+                            temperature: 10.3
+                            baseline_mean: 8.8
+                stations_only:
+                  summary: Stations uniquement
+                  value:
+                    metadata:
+                      date_start: "2025-02-01"
+                      date_end: "2025-02-28"
+                      baseline: "1991-2020"
+                      granularity: "day"
+                    stations:
+                      - station_id: "07149"
+                        station_name: "Orly"
+                        data:
+                          - date: "2025-02-01"
+                            deviation: 0.8
+                            temperature: 7.9
+                            baseline_mean: 7.1
         "400":
           $ref: '#/components/responses/BadRequest'
 
@@ -568,73 +615,71 @@ components:
           format: float
           description: "Température moyenne de référence 1991-2020 pour cette période"
 
-    TemperatureDeviationResponse:
+    NationalTemperatureDeviationSeries:
       type: object
       required:
-        - metadata
-        - series
+        - data
       properties:
-        metadata:
-          type: object
-          required:
-            - date_start
-            - date_end
-            - baseline
-            - granularity
-          properties:
-            date_start:
-              type: string
-              format: date
-            date_end:
-              type: string
-              format: date
-            baseline:
-              type: string
-              description: "Période de référence fixe imposée par les règles métier."
-              example: "1991-2020"
-            granularity:
-              type: string
-              enum: [year, month, day]
-              description: "Granularité de la série (axe X)."
-        series:
+        data:
           type: array
-          description: "Liste des séries de données (moyenne nationale et/ou stations demandées pour superposition)"
+          description: "Série agrégée au niveau national"
           items:
-            oneOf:
-              - type: object
-                required:
-                  - is_national
-                  - data
-                properties:
-                  is_national:
-                    type: boolean
-                    enum: [true]
-                    description: "Série correspondant à la moyenne nationale"
-                  data:
-                    type: array
-                    items:
-                      $ref: "#/components/schemas/TemperatureDeviationPoint"
-              - type: object
-                required:
-                  - is_national
-                  - station_id
-                  - station_name
-                  - data
-                properties:
-                  is_national:
-                    type: boolean
-                    enum: [false]
-                    description: "Série correspondant à une station spécifique"
-                  station_id:
-                    type: string
-                    description: "Identifiant de la station"
-                  station_name:
-                    type: string
-                    description: "Nom de la station (utile pour la légende du graphe)"
-                  data:
-                    type: array
-                    items:
-                      $ref: "#/components/schemas/TemperatureDeviationPoint"
+            $ref: "#/components/schemas/TemperatureDeviationPoint"
+
+      StationTemperatureDeviationSeries:
+        type: object
+        required:
+          - station_id
+          - station_name
+          - data
+        properties:
+          station_id:
+            type: string
+            description: "Identifiant de la station"
+          station_name:
+            type: string
+            description: "Nom de la station (utile pour la légende du graphe)"
+          data:
+            type: array
+            description: "Série agrégée pour cette station"
+            items:
+              $ref: "#/components/schemas/TemperatureDeviationPoint"
+
+      TemperatureDeviationResponse:
+        type: object
+        required:
+          - metadata
+          - stations
+        properties:
+          metadata:
+            type: object
+            required:
+              - date_start
+              - date_end
+              - baseline
+              - granularity
+            properties:
+              date_start:
+                type: string
+                format: date
+              date_end:
+                type: string
+                format: date
+              baseline:
+                type: string
+                description: "Période de référence fixe imposée par les règles métier."
+                example: "1991-2020"
+              granularity:
+                type: string
+                enum: [ year, month, day ]
+                description: "Granularité de la série (axe X)."
+          national:
+            $ref: "#/components/schemas/NationalTemperatureDeviationSeries"
+          stations:
+            type: array
+            description: "Liste des séries correspondant aux stations demandées"
+            items:
+              $ref: "#/components/schemas/StationTemperatureDeviationSeries"
     Error:
       type: object
       required:

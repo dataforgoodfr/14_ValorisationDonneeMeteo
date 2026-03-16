@@ -10,6 +10,9 @@ from .types import (
     AggregatedDeviationPoint,
     DailyDeviationPoint,
     DailyDeviationSeriesQuery,
+    NationalDeviationSeries,
+    StationDeviationSeries,
+    TemperatureDeviationResult,
 )
 
 
@@ -58,6 +61,76 @@ def _point_to_payload(p: AggregatedDeviationPoint) -> dict:
     }
 
 
+def serialize_temperature_deviation_result(
+    result: TemperatureDeviationResult,
+) -> dict:
+    payload = {
+        "stations": [
+            {
+                "station_id": station.station_id,
+                "station_name": station.station_name,
+                "data": [_point_to_payload(p) for p in station.data],
+            }
+            for station in result.stations
+        ]
+    }
+
+    if result.national is not None:
+        payload["national"] = {
+            "data": [_point_to_payload(p) for p in result.national.data],
+        }
+
+    return payload
+
+
+def compute_temperature_deviation_series(
+    *,
+    data_source: TemperatureDeviationDailyDataSource,
+    date_start: dt.date,
+    date_end: dt.date,
+    granularity: str,
+    station_ids: tuple[str, ...] = (),
+    include_national: bool = True,
+) -> TemperatureDeviationResult:
+    query = DailyDeviationSeriesQuery(
+        date_start=date_start,
+        date_end=date_end,
+        station_ids=station_ids,
+        include_national=include_national,
+    )
+
+    national = None
+    if include_national:
+        national_daily = data_source.fetch_national_daily_series(query)
+        nat_points = _aggregate(
+            national_daily,
+            date_start=date_start,
+            date_end=date_end,
+            granularity=granularity,
+        )
+        national = NationalDeviationSeries(data=nat_points)
+
+    station_daily_series = data_source.fetch_stations_daily_series(query)
+    stations = [
+        StationDeviationSeries(
+            station_id=station_series.station_id,
+            station_name=station_series.station_name,
+            data=_aggregate(
+                station_series.points,
+                date_start=date_start,
+                date_end=date_end,
+                granularity=granularity,
+            ),
+        )
+        for station_series in station_daily_series
+    ]
+
+    return TemperatureDeviationResult(
+        stations=stations,
+        national=national,
+    )
+
+
 def compute_temperature_deviation(
     *,
     data_source: TemperatureDeviationDailyDataSource,
@@ -67,45 +140,12 @@ def compute_temperature_deviation(
     station_ids: tuple[str, ...] = (),
     include_national: bool = True,
 ) -> dict:
-    query = DailyDeviationSeriesQuery(
+    result = compute_temperature_deviation_series(
+        data_source=data_source,
         date_start=date_start,
         date_end=date_end,
+        granularity=granularity,
         station_ids=station_ids,
         include_national=include_national,
     )
-
-    series: list[dict] = []
-
-    if include_national:
-        national_daily = data_source.fetch_national_daily_series(query)
-        nat_points = _aggregate(
-            national_daily,
-            date_start=date_start,
-            date_end=date_end,
-            granularity=granularity,
-        )
-        series.append(
-            {
-                "is_national": True,
-                "data": [_point_to_payload(p) for p in nat_points],
-            }
-        )
-
-    station_daily_series = data_source.fetch_stations_daily_series(query)
-    for station_series in station_daily_series:
-        pts = _aggregate(
-            station_series.points,
-            date_start=date_start,
-            date_end=date_end,
-            granularity=granularity,
-        )
-        series.append(
-            {
-                "is_national": False,
-                "station_id": station_series.station_id,
-                "station_name": station_series.station_name,
-                "data": [_point_to_payload(p) for p in pts],
-            }
-        )
-
-    return {"series": series}
+    return serialize_temperature_deviation_result(result)
