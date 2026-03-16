@@ -1,4 +1,7 @@
-def test_get_temperature_deviation_day_happy_path(client):
+from rest_framework.test import APIClient
+
+
+def test_get_temperature_deviation_day_happy_path(client: APIClient):
     resp = client.get(
         "/api/v1/temperature/deviation",
         {
@@ -38,7 +41,7 @@ def test_get_temperature_deviation_day_happy_path(client):
     assert len(s2["data"]) == 3
 
 
-def test_get_temperature_deviation_without_national(client):
+def test_get_temperature_deviation_without_national(client: APIClient):
     resp = client.get(
         "/api/v1/temperature/deviation",
         {
@@ -59,7 +62,7 @@ def test_get_temperature_deviation_without_national(client):
 
 
 def test_get_temperature_deviation_returns_400_if_include_national_false_and_no_station_ids(
-    client,
+    client: APIClient,
 ):
     resp = client.get(
         "/api/v1/temperature/deviation",
@@ -78,7 +81,9 @@ def test_get_temperature_deviation_returns_400_if_include_national_false_and_no_
     assert "station_ids" in body["error"]["details"]
 
 
-def test_get_temperature_deviation_returns_400_if_date_start_gt_date_end(client):
+def test_get_temperature_deviation_returns_400_if_date_start_gt_date_end(
+    client: APIClient,
+):
     resp = client.get(
         "/api/v1/temperature/deviation",
         {
