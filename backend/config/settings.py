@@ -15,6 +15,7 @@ env = environ.Env(
     DEBUG=(bool, False),
     ALLOWED_HOSTS=(list, ["localhost", "127.0.0.1"]),
     CORS_ALLOWED_ORIGINS=(list, ["http://localhost:5173", "http://localhost:3000"]),
+    MOCKED_DATA=(bool, False),
 )
 
 # Read .env file if it exists
@@ -24,6 +25,9 @@ environ.Env.read_env(BASE_DIR / ".env")
 SECRET_KEY = env("SECRET_KEY", default="django-insecure-change-me-in-production")
 DEBUG = env("DEBUG")
 ALLOWED_HOSTS = env("ALLOWED_HOSTS")
+
+# Data Source
+MOCKED_DATA = env("MOCKED_DATA", False)
 
 # Application definition
 INSTALLED_APPS = [
