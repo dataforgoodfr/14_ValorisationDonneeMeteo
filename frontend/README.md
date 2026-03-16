@@ -84,20 +84,21 @@ Le projet tire parti de l'écosystème Nuxt via ses modules officiels :
 | [@nuxt/fonts](https://fonts.nuxt.com/)                            | Gestion optimisée des polices (chargement performant)                |
 | [@nuxt/eslint](https://eslint.nuxt.com/)                          | Configuration ESLint intégrée                                        |
 | [@nuxt/test-utils](https://nuxt.com/docs/getting-started/testing) | Utilitaires de test                                                  |
+| [@nuxt/echarts](https://nuxt.com/docs/getting-started/testing)    | Nuxt Module for Apache ECharts                                       |
 
 ## Visualisation des données
 
 Pour les graphiques, le projet utilise :
 
-| Librairie                            | Usage recommandé                                                      |
-| ------------------------------------ | --------------------------------------------------------------------- |
-| [Chart.js](https://www.chartjs.org/) | Graphiques standards (courbes, barres, camemberts) - Simple et rapide |
-| [D3.js](https://d3js.org/)           | Visualisations complexes et personnalisées (cartes, animations)       |
+| Librairie                                        | Usage recommandé                                                      |
+| ------------------------------------------------ | --------------------------------------------------------------------- |
+| [Nuxt Echarts](https://nuxt.com/modules/echarts) | An Open Source JavaScript Visualization Library                       |
+| [Chart.js](https://www.chartjs.org/)             | Graphiques standards (courbes, barres, camemberts) - Simple et rapide |
+| [D3.js](https://d3js.org/)                       | Visualisations complexes et personnalisées (cartes, animations)       |
 
 ### Quand utiliser quoi ?
 
-- **Chart.js** : Pour des graphiques classiques avec peu de personnalisation (températures sur le temps, comparaisons)
-- **D3.js** : Pour des visualisations sur mesure (cartes météo interactives, animations de données)
+Utiliser Echarts par défaut. Les autres librairies serviront si des cas très spécifiques se présentent.
 
 ## Architecture du projet
 
@@ -124,73 +125,49 @@ frontend/
 - **Composables** : camelCase avec préfixe `use` (`useMeteoData.ts`)
 - **Pages** : kebab-case (`indicateurs-thermique.vue`)
 
-## Récupération des données (Data Fetching)
+## Lancer le Backend
 
-Nuxt propose plusieurs méthodes pour récupérer des données depuis le backend. **Privilégier les composables Nuxt** plutôt que `fetch` natif.
+### Prerequis
 
-### `useFetch` - Cas standard
+- Python >= 3.12
+- [uv](https://docs.astral.sh/uv/) pour la gestion des dependances
+- Docker (pour TimescaleDB)
 
-Le composable principal pour récupérer des données. Gère automatiquement :
+### Installation
 
-- Le SSR (pas de double requête serveur/client)
-- Les états de chargement et d'erreur
-- La réactivité
+```bash
+cd backend
 
-```vue
-<script setup lang="ts">
-// Récupération simple
-const { data, status, error } = await useFetch("/api/meteo/temperatures");
+# Installer les dependances, ainsi que les dépendances optionnelles de dev
+uv sync --extra dev
 
-// Avec paramètres réactifs
-const ville = ref("paris");
-const { data: meteo } = await useFetch(() => `/api/meteo/${ville.value}`);
-</script>
-
-<template>
-  <div v-if="status === 'pending'">Chargement...</div>
-  <div v-else-if="error">Erreur : {{ error.message }}</div>
-  <div v-else>{{ data }}</div>
-</template>
+# Copier la configuration
+cp .env.example .env
 ```
 
-### `useAsyncData` - Contrôle avancé
+### Données Simulées
 
-Pour plus de contrôle sur la logique de récupération :
+Il est possible de lancer le projet sans utiliser de base de données.
+Les données servies par l'API sont alors des données simulées.
+Pour ce faire, mettre dans le fichier `.env` du repertoire `/backend`:
 
-```vue
-<script setup lang="ts">
-const { data } = await useAsyncData("temperatures", async () => {
-  const [temps, humidite] = await Promise.all([
-    $fetch("/api/temperatures"),
-    $fetch("/api/humidite"),
-  ]);
-  return { temps, humidite };
-});
-</script>
+```
+MOCKED_DATA=true
 ```
 
-### `$fetch` - Actions utilisateur
+Si au contraire on souhaite utiliser une vraie base de données, voir la section correspondante sur le `README.md` du repertoire `/backend`.
 
-Pour les requêtes déclenchées par l'utilisateur (soumission de formulaire, bouton) :
+## Demarrer TimescaleDB
 
-```vue
-<script setup lang="ts">
-async function exporterDonnees() {
-  const result = await $fetch("/api/export", {
-    method: "POST",
-    body: { format: "csv" },
-  });
-}
-</script>
+```bash
+cd timescaledb-env
+docker compose up -d
+cd ..
 ```
 
-### Bonnes pratiques
+## Lancer le serveur
 
-- **Ne jamais utiliser `fetch` natif** dans les composants Vue → utiliser `useFetch` ou `$fetch`
-- **`useFetch`** pour les données affichées au chargement de la page
-- **`$fetch`** pour les actions utilisateur (POST, PUT, DELETE)
-- **Typer les réponses** pour bénéficier de l'autocomplétion
-
-## Points d'attention à arbitrer
-
-- **Performance** : La mise en place d'une pagination ou d'un lazy loading pourrait s'avérer nécessaire.
+```bash
+# Demarrer le serveur de developpement
+uv run python manage.py runserver
+```
