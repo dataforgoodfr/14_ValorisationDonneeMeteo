@@ -19,15 +19,6 @@ uv sync --extra dev
 # Copier la configuration
 cp .env.example .env
 ```
-## Données Simulées
-Il est possible de lancer le projet sans utiliser de base de données.
-Les données servies par l'API sont alors des données simulées.
-Pour ce faire, mettre dans .env :
-```
-MOCKED_DATA=true
-```
-
-Si au contraire on souhaite utiliser une vraie base de données, voir la section sur TimescaleDB ci-dessous.
 
 ## Demarrer TimescaleDB
 
@@ -36,6 +27,18 @@ cd timescaledb-env
 docker compose up -d
 cd ..
 ```
+
+## Données Simulées
+Il est possible de lancer le projet sans utiliser de base de données.
+Les données servies par l'API sont alors des données simulées.
+Pour ce faire, mettre dans .env :
+```
+MOCKED_DATA=true
+```
+Si au contraire on souhaite utiliser une vraie base de données, voir la section Initialiser la base de développement ci-dessous.
+
+*Note* : Même si l'on souhaite utiliser des données simulées, il convient de lancer timescaledb comme indiqué au paragraphe précédent.
+
 ## Initialiser la base de développement
 
 Contrairement aux premières versions du projet, la base de développement n'est pas générée par Django.

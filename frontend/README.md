@@ -145,6 +145,15 @@ uv sync --extra dev
 cp .env.example .env
 ```
 
+
+## Demarrer TimescaleDB
+
+```bash
+cd timescaledb-env
+docker compose up -d
+cd ..
+```
+
 ### Données Simulées
 
 Il est possible de lancer le projet sans utiliser de base de données.
@@ -155,15 +164,7 @@ Pour ce faire, mettre dans le fichier `.env` du repertoire `/backend`:
 MOCKED_DATA=true
 ```
 
-Si au contraire on souhaite utiliser une vraie base de données, voir la section correspondante sur le `README.md` du repertoire `/backend`.
-
-## Demarrer TimescaleDB
-
-```bash
-cd timescaledb-env
-docker compose up -d
-cd ..
-```
+Si au contraire on souhaite utiliser une vraie base de données, voir la section **Initialiser la base de développement** sur le `README.md` du repertoire `/backend`.
 
 ## Lancer le serveur
 
