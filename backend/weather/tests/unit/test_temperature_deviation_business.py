@@ -100,7 +100,7 @@ def test_temperature_deviation_business_deviation_equals_temperature_minus_basel
 
 
 def test_temperature_deviation_business_returns_expected_payload_on_simple_input():
-    class DummyDS:
+    class DeterministicTemperatureDeviationDataSource:
         def fetch_national_daily_series(self, query):
             return [
                 DailyDeviationPoint(
@@ -136,7 +136,7 @@ def test_temperature_deviation_business_returns_expected_payload_on_simple_input
             ]
 
     result = get_temperature_deviation(
-        data_source=DummyDS(),
+        data_source=DeterministicTemperatureDeviationDataSource(),
         date_start=dt.date(2024, 1, 1),
         date_end=dt.date(2024, 1, 2),
         granularity="day",
