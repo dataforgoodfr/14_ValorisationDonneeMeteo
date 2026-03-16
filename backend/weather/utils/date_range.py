@@ -76,3 +76,13 @@ def yearly_points_in_range(
         if date_start <= candidate <= date_end:
             out.append(candidate)
     return tuple(out)
+
+
+def period_start(d: dt.date, granularity: str) -> dt.date:
+    if granularity == "day":
+        return d
+    if granularity == "month":
+        return dt.date(d.year, d.month, 1)
+    if granularity == "year":
+        return dt.date(d.year, 1, 1)
+    raise ValueError(f"Unknown granularity: {granularity}")

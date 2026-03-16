@@ -8,7 +8,11 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from weather.bootstrap_itn import ITNDependencyProvider
+from weather.data_sources.temperature_deviation_fake import (
+    FakeTemperatureDeviationDailyDataSource,
+)
 from weather.services.national_indicator.use_case import get_national_indicator
+from weather.services.temperature_deviation.use_case import get_temperature_deviation
 
 from .filters import StationFilter
 from .models import Station
@@ -18,6 +22,8 @@ from .serializers import (
     NationalIndicatorResponseSerializer,
     StationDetailSerializer,
     StationSerializer,
+    TemperatureDeviationQuerySerializer,
+    TemperatureDeviationResponseSerializer,
 )
 
 
@@ -95,6 +101,48 @@ class NationalIndicatorAPIView(APIView):
             "time_series": data["time_series"],
         }
         out = NationalIndicatorResponseSerializer(data=full_payload)
+        out.is_valid(raise_exception=True)
+
+        return Response(out.data, status=status.HTTP_200_OK)
+
+
+class TemperatureDeviationAPIView(APIView):
+    """
+    GET /api/v1/temperature/deviation
+    Implémentation mock, alignée sur le pattern ITN.
+    """
+
+    authentication_classes = []
+    permission_classes = []
+
+    def get(self, request):
+        q = TemperatureDeviationQuerySerializer(data=request.query_params)
+        if not q.is_valid():
+            return Response(
+                ErrorSerializer.build(
+                    code="INVALID_PARAMETER",
+                    message="Paramètre invalide ou manquant",
+                    details=q.errors,
+                ),
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        params = q.validated_data
+        ds = FakeTemperatureDeviationDailyDataSource()
+
+        data = get_temperature_deviation(data_source=ds, **params)
+
+        full_payload = {
+            "metadata": {
+                "date_start": params["date_start"],
+                "date_end": params["date_end"],
+                "baseline": "1991-2020",
+                "granularity": params["granularity"],
+            },
+            **data,
+        }
+
+        out = TemperatureDeviationResponseSerializer(data=full_payload)
         out.is_valid(raise_exception=True)
 
         return Response(out.data, status=status.HTTP_200_OK)
