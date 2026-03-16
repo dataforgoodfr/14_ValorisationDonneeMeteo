@@ -1,4 +1,5 @@
 import { refDebounced } from "@vueuse/core";
+// TODO: Replace with the real API call when the endpoint is implemented.
 import { useTemperatureRecords } from "~/composables/useTemperature.fake";
 
 const DEBOUNCE_DURATION = 300;

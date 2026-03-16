@@ -1,10 +1,6 @@
 /**
  * Fake implementations of temperature composables for frontend development.
  * These return static data filtered client-side, without hitting the backend.
- *
- * To switch to the real API, replace the import in the consuming component:
- *   import { useTemperatureRecords } from "~/composables/useTemperature.fake"
- *   →  import { useTemperatureRecords } from "~/composables/useTemperature"
  */
 
 const FAKE_RECORDS = [
