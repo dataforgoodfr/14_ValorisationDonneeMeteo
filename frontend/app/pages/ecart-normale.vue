@@ -4,6 +4,7 @@ import Barchart from "~/components/charts/Barchart.vue";
 import LineChart from "~/components/charts/LineChart.vue";
 // import StationTable from "~/components/ui/ecartNormale/stationTable.vue";
 import MapEcartNormaleClient from "~/components/charts/MapEcartNormale.vue";
+import ExportEcartNormalMenu from "~/components/ui/commons/exportEcartNormalMenu.vue";
 
 const heroData = {
     title: "Ecart à la normale",
@@ -27,6 +28,7 @@ const value = ref("Bar Chart");
             :description="heroData.description"
         />
         <USelect v-model="value" :items="items" />
+        <ExportEcartNormalMenu/>
         <Barchart v-if="value === `Bar Chart`" />
         <LineChart v-if="value === `Line Chart`" />
         <MapEcartNormaleClient />
