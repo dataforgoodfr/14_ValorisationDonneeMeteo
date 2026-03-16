@@ -122,10 +122,8 @@ export interface TemperatureRecord {
     id: string;
     name: string;
     departement: string;
-    TNN: number;
-    TXX: number;
-    TNN_date: string;
-    TXX_date: string;
+    record: number;
+    record_date: string;
 }
 
 export interface TemperatureRecordsResponse {

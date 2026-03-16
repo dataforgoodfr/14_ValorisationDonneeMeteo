@@ -297,13 +297,19 @@ export function useTemperatureRecords(
             (p.departement_filter as string) ?? ""
         ).toLowerCase();
 
+        const record_type = (p.record_type as string) ?? "Chaud";
+        const isChaud = record_type === "Chaud";
+        const tempField = isChaud ? "TXX" : "TNN";
+        const dateField = isChaud ? "TXX_date" : "TNN_date";
+
+        const temp_filter = (p.record as string) ?? "";
+        const date_col_filter = (p.record_date as string) ?? "";
+
         let stations = FAKE_RECORDS;
 
         if (date_start && date_end) {
             stations = stations.filter(
-                (s) =>
-                    (date_start <= s.TNN_date && s.TNN_date <= date_end) ||
-                    (date_start <= s.TXX_date && s.TXX_date <= date_end),
+                (s) => date_start <= s[dateField] && s[dateField] <= date_end,
             );
         }
         if (name_filter) {
@@ -316,9 +322,28 @@ export function useTemperatureRecords(
                 s.departement.toLowerCase().includes(dept_filter),
             );
         }
+        if (temp_filter) {
+            stations = stations.filter((s) =>
+                String(s[tempField]).includes(temp_filter),
+            );
+        }
+        if (date_col_filter) {
+            stations = stations.filter((s) =>
+                s[dateField].includes(date_col_filter),
+            );
+        }
 
         const count = stations.length;
-        return { count, stations: stations.slice(offset, offset + limit) };
+        return {
+            count,
+            stations: stations.slice(offset, offset + limit).map((s) => ({
+                id: s.id,
+                name: s.name,
+                departement: s.departement,
+                record: s[tempField],
+                record_date: s[dateField],
+            })),
+        };
     });
 
     return { data, pending: ref(false), error: ref(null) };

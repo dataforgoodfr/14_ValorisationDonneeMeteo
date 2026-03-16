@@ -6,18 +6,9 @@ import { UBadge, UInput } from "#components";
 import { storeToRefs } from "pinia";
 import { useRecordsStore } from "~/stores/recordsStore";
 
-// TODO: Use actual colors instead of a status that can translate to any arbitrary color.
-const RECORD_TYPE_TO_BADGE_STATUS = {
+const RECORD_TYPE_TO_BADGE_COLOR = {
     Chaud: "error" as const,
     Froid: "info" as const,
-};
-const RECORD_TYPE_TO_TEMPERATURE_FIELD = {
-    Chaud: "TXX" as const,
-    Froid: "TNN" as const,
-};
-const RECORD_TYPE_TO_DATE_FIELD = {
-    Chaud: "TXX_date" as const,
-    Froid: "TNN_date" as const,
 };
 
 const store = useRecordsStore();
@@ -34,13 +25,7 @@ const {
 } = storeToRefs(store);
 
 const temperatureBadgeColor = computed(
-    () => RECORD_TYPE_TO_BADGE_STATUS[recordType.value],
-);
-const temperatureFieldName = computed(
-    () => RECORD_TYPE_TO_TEMPERATURE_FIELD[recordType.value],
-);
-const temperatureDateFieldName = computed(
-    () => RECORD_TYPE_TO_DATE_FIELD[recordType.value],
+    () => RECORD_TYPE_TO_BADGE_COLOR[recordType.value],
 );
 
 // Column filter helpers — read/write store's columnFilters
@@ -85,11 +70,11 @@ const columns = computed<TableColumn<TemperatureRecord>[]>(() => [
             ]),
     },
     {
-        accessorKey: temperatureFieldName.value,
+        accessorKey: "record",
         header: () =>
             h("div", { class: "flex flex-col gap-1" }, [
                 h("span", "Record"),
-                filterInput(temperatureFieldName.value),
+                filterInput("record"),
             ]),
         cell: ({ row }) =>
             h(
@@ -99,15 +84,15 @@ const columns = computed<TableColumn<TemperatureRecord>[]>(() => [
                     variant: "subtle",
                     color: temperatureBadgeColor.value,
                 },
-                () => row.getValue(temperatureFieldName.value),
+                () => row.getValue("record"),
             ),
     },
     {
-        accessorKey: temperatureDateFieldName.value,
+        accessorKey: "record_date",
         header: () =>
             h("div", { class: "flex flex-col gap-1" }, [
                 h("span", "Date du record"),
-                filterInput(temperatureDateFieldName.value),
+                filterInput("record_date"),
             ]),
     },
 ]);
