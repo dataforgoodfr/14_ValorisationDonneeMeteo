@@ -189,7 +189,9 @@ class CommaSeparatedStationIdsField(serializers.Field):
             items = [x.strip() for x in s.split(",") if x.strip()]
             return tuple(items)
 
-        raise serializers.ValidationError("Format station_ids invalide.")
+        raise serializers.ValidationError(
+            "Format station_ids invalide. Attendu : liste séparée par des virgules (ex: '07149,07255')."
+        )
 
 
 class TemperatureDeviationQuerySerializer(serializers.Serializer):
