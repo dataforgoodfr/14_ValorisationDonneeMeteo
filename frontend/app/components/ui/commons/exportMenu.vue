@@ -1,38 +1,36 @@
 <script setup lang="ts">
 import type { DropdownMenuItem } from "@nuxt/ui";
 import type { ShallowRef } from "vue";
-import type {
-    NationalIndicatorResponse,
-    DeviationResponse
-} from "~/types/api";
+import type { NationalIndicatorResponse, DeviationResponse } from "~/types/api";
 import type { ChartDataPoint } from "~~/public/ChartDataProvider";
 
 const props = defineProps({
-  chart: {
-    type: String,
-    required: true
-  }
-})
+    chart: {
+        type: String,
+        required: true,
+    },
+});
 const chartName = props.chart;
 
 const itnStore = useItnStore();
 const deviationStore = useDeviationStore();
 
 let chartRef: ShallowRef<unknown, unknown>;
-let granularity: globalThis.Ref<"month" | "year" | "day", "month" | "year" | "day">;
+let granularity: globalThis.Ref<
+    "month" | "year" | "day",
+    "month" | "year" | "day"
+>;
 let picked_date_start: Ref<Date, Date>;
 let picked_date_end: Ref<Date, Date>;
-let data: Ref<NationalIndicatorResponse | undefined> | Ref<DeviationResponse | undefined> | Ref<ChartDataPoint[]>;
+let data:
+    | Ref<NationalIndicatorResponse | undefined>
+    | Ref<DeviationResponse | undefined>
+    | Ref<ChartDataPoint[]>;
 let headers: string[];
 
-if (chartName == 'itn') {
-    ({
-        chartRef,
-        granularity,
-        picked_date_start,
-        picked_date_end,
-        data,
-    } = storeToRefs(itnStore));
+if (chartName == "itn") {
+    ({ chartRef, granularity, picked_date_start, picked_date_end, data } =
+        storeToRefs(itnStore));
     headers = [
         "Date",
         "Température observée en °C (moyenne/valeur selon slice_type)",
@@ -42,19 +40,12 @@ if (chartName == 'itn') {
         "Température maximale observée sur la période 1991-2020 en °C ",
         "Température minimale observée sur la période 1991-2020 en °C ",
     ];
-
-} else { // chartName == 'ecart_normale'
-    ({
-        chartRef,
-        granularity,
-        picked_date_start,
-        picked_date_end,
-        data,
-    } = storeToRefs(deviationStore));
-    headers = ['date', 'écart à la normale'];
+} else {
+    // chartName == 'ecart_normale'
+    ({ chartRef, granularity, picked_date_start, picked_date_end, data } =
+        storeToRefs(deviationStore));
+    headers = ["date", "écart à la normale"];
 }
-
-
 
 const exportMenuItems = ref<DropdownMenuItem[]>([
     {

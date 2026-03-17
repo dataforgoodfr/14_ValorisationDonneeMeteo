@@ -16,7 +16,7 @@ const granularityValues = reactive([
     { label: "Mois", value: "month" },
     { label: "Année", value: "year" },
 ]);
-const chartName = 'itn';
+const chartName = "itn";
 </script>
 
 <template>

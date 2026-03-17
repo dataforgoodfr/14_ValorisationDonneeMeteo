@@ -14,7 +14,7 @@ const heroData = {
 
 const items = ref(["Bar Chart", "Line Chart"]);
 const value = ref("Bar Chart");
-const chartName = 'ecart_normale';
+const chartName = "ecart_normale";
 </script>
 
 <!--
@@ -29,7 +29,7 @@ const chartName = 'ecart_normale';
             :description="heroData.description"
         />
         <USelect v-model="value" :items="items" />
-        <ExportMenu :chart="chartName" class="ml-auto"/>
+        <ExportMenu :chart="chartName" class="ml-auto" />
         <Barchart v-if="value === `Bar Chart`" />
         <LineChart v-if="value === `Line Chart`" />
         <MapEcartNormaleClient />

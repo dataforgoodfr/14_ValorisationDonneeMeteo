@@ -41,9 +41,7 @@ const colorEcartType = "rgba(175, 175, 175, 1)";
 const colorExtremes = "rgba(100, 100, 100, 0.2)";
 
 const option = computed<ECOption>(() => {
-    const timeSeries = insertCrossingPoints(
-        itnStore.data?.time_series ?? [],
-    );
+    const timeSeries = insertCrossingPoints(itnStore.data?.time_series ?? []);
 
     return {
         dataset: {
