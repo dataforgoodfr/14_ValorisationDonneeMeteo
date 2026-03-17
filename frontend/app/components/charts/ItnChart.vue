@@ -27,7 +27,7 @@ echarts.use([
 ]);
 
 const itnStore = useItnStore();
-const { itnChartRef } = storeToRefs(itnStore);
+const { chartRef } = storeToRefs(itnStore);
 // provide init-options
 const renderer = ref<"svg" | "canvas">("canvas");
 const initOptions = computed(() => ({
@@ -42,7 +42,7 @@ const colorExtremes = "rgba(100, 100, 100, 0.2)";
 
 const option = computed<ECOption>(() => {
     const timeSeries = insertCrossingPoints(
-        itnStore.itnData?.time_series ?? [],
+        itnStore.data?.time_series ?? [],
     );
 
     return {
@@ -259,7 +259,7 @@ const option = computed<ECOption>(() => {
 
 <template>
     <VChart
-        ref="itnChartRef"
+        ref="chartRef"
         :key="itnStore.granularity"
         :option="option"
         :init-options="initOptions"

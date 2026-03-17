@@ -16,6 +16,7 @@ const granularityValues = reactive([
     { label: "Mois", value: "month" },
     { label: "Année", value: "year" },
 ]);
+const chartName = 'itn';
 </script>
 
 <template>
@@ -78,7 +79,7 @@ const granularityValues = reactive([
             </UTooltip>
 
             <SliceType v-if="sliceTypeSwitchEnabled" />
-            <ExportMenu class="ml-auto" />
+            <ExportMenu :chart="chartName" class="ml-auto" />
         </div>
     </div>
 </template>

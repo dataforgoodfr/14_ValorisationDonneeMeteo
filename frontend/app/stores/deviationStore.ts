@@ -5,7 +5,7 @@ import { GetChartData, TimeAxisType } from "~~/public/ChartDataProvider"; // pro
 const dates = useCustomDate();
 
 export const useDeviationStore = defineStore("DeviationStore", () => {
-    const deviationChartRef = shallowRef();
+    const chartRef = shallowRef();
     const picked_date_start = ref(dates.lastYear.value);
     const picked_date_end = ref(dates.twoDaysAgo.value);
     const granularity = ref("month" as "year" | "month" | "day");
@@ -20,7 +20,7 @@ export const useDeviationStore = defineStore("DeviationStore", () => {
     }));
 
     // ---------------- /!\ à remplacer quand l'APi sera opé /!\ ----------------
-    const deviationData = GetChartData(TimeAxisType.Day);
+    const data = GetChartData(TimeAxisType.Day);
 
     // const {
     //     data: deviationData,
@@ -30,12 +30,12 @@ export const useDeviationStore = defineStore("DeviationStore", () => {
 
 
     return {
-        deviationChartRef,
+        chartRef,
         picked_date_start,
         picked_date_end,
         granularity,
         station_ids,
         include_national,
-        deviationData,
+        data,
     };
 });

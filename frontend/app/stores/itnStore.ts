@@ -4,7 +4,7 @@ import { useCustomDate } from "#imports";
 const dates = useCustomDate();
 
 export const useItnStore = defineStore("itnStore", () => {
-    const itnChartRef = shallowRef();
+    const chartRef = shallowRef();
 
     // Date de début et date de fin
     const picked_date_start = ref(dates.lastYear.value);
@@ -51,10 +51,10 @@ export const useItnStore = defineStore("itnStore", () => {
         day_of_month: day_of_month.value,
     }));
 
-    const { data: itnData, pending, error } = useNationalIndicator(params);
+    const { data: data, pending, error } = useNationalIndicator(params);
 
     return {
-        itnChartRef,
+        chartRef,
         picked_date_start,
         picked_date_end,
         granularity,
@@ -65,7 +65,7 @@ export const useItnStore = defineStore("itnStore", () => {
         day_of_month,
         setGranularity,
         turnOffSliceType,
-        itnData,
+        data,
         pending,
         error,
     };

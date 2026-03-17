@@ -1,15 +1,48 @@
 <script setup lang="ts">
 import type { DropdownMenuItem } from "@nuxt/ui";
-import { useItnStore } from "#imports";
+import type {
+    NationalIndicatorResponse,
+    DeviationResponse
+} from "~/types/api";
+
+const props = defineProps(['chart'])
+const chartName = props.chart;
 
 const itnStore = useItnStore();
-const {
-    itnChartRef,
+const DeviationStore = useDeviationStore();
+let store;
+
+let chartRef: ShallowRef<any, any>;
+let granularity: globalThis.Ref<"month" | "year" | "day", "month" | "year" | "day">;
+let picked_date_start: Ref<Date, Date>;
+let picked_date_end: Ref<Date, Date>;
+let data: Ref<NationalIndicatorResponse | undefined> | Ref<DeviationResponse | undefined>;
+let headers: string[];
+
+if (chartName == 'itn') {
+    store = itnStore;
+    headers = [
+        "Date",
+        "Température observée en °C (moyenne/valeur selon slice_type)",
+        "Température moyenne de référence 1991-2020 pour cette période en °C",
+        "Écart-type supérieur en °C (moyenne + 1°C écart-type)",
+        "Écart-type inférieur en °C (moyenne - 1°C écart-type)",
+        "Température maximale observée sur la période 1991-2020 en °C ",
+        "Température minimale observée sur la période 1991-2020 en °C ",
+    ];
+
+} else { // chartName == 'ecart_normale'
+    store = DeviationStore;
+    headers = ['date', 'écart à la normale'];
+}
+
+({
+    chartRef,
     granularity,
     picked_date_start,
     picked_date_end,
-    itnData,
-} = storeToRefs(itnStore);
+    data,
+} = storeToRefs(store));
 
 const exportMenuItems = ref<DropdownMenuItem[]>([
     {
@@ -40,7 +73,7 @@ const exportMenuItems = ref<DropdownMenuItem[]>([
 
 function exportAsPng() {
     if (!import.meta.client) return;
-    const dataURL = itnChartRef.value.getDataURL({
+    const dataURL = chartRef.value.getDataURL({
         type: "png",
         pixelRatio: 2,
         backgroundColor: "#fff",
@@ -50,7 +83,7 @@ function exportAsPng() {
     const a = document.createElement("a");
     a.href = dataURL;
     a.download = useFormatFileName(
-        "itn",
+        chartName, //'itn'
         granularity.value,
         picked_date_start.value,
         picked_date_end.value,
@@ -61,17 +94,9 @@ function exportAsPng() {
 
 function exportAsCSV() {
     if (!import.meta.client) return;
-    const source = itnData.value?.time_series;
+    const source = data.value?.time_series;
     if (!source) return;
-    const headers = [
-        "Date",
-        "Température observée en °C (moyenne/valeur selon slice_type)",
-        "Température moyenne de référence 1991-2020 pour cette période en °C",
-        "Écart-type supérieur en °C (moyenne + 1°C écart-type)",
-        "Écart-type inférieur en °C (moyenne - 1°C écart-type)",
-        "Température maximale observée sur la période 1991-2020 en °C ",
-        "Température minimale observée sur la période 1991-2020 en °C ",
-    ];
+    // const headers =
     const rows = source.map((row) => Object.values(row).join(",")).join("\n");
 
     const csv = `${headers}\n${rows}`;
@@ -79,7 +104,7 @@ function exportAsCSV() {
     const a = document.createElement("a");
     a.href = `data:text/csv;charset=utf-8,${encodeURIComponent(csv)}`;
     a.download = useFormatFileName(
-        "itn",
+        chartName,
         granularity.value,
         picked_date_start.value,
         picked_date_end.value,
@@ -90,7 +115,7 @@ function exportAsCSV() {
 
 function exportAsHTML() {
     if (!import.meta.client) return;
-    const options = itnChartRef.value.getOption();
+    const options = chartRef.value.getOption();
     const scriptTag = "script";
     const html = `<!DOCTYPE html>
 <html>
@@ -113,7 +138,7 @@ function exportAsHTML() {
     const a = document.createElement("a");
     a.href = `data:text/html;charset=utf-8,${encodeURIComponent(html)}`;
     a.download = useFormatFileName(
-        "itn",
+        chartName,
         granularity.value,
         picked_date_start.value,
         picked_date_end.value,
