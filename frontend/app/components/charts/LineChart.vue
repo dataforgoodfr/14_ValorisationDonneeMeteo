@@ -1,11 +1,9 @@
-<template>
-    <VChart :option="option" autoresize />
-</template>
-
 <script setup lang="ts">
 import { INIT_OPTIONS_KEY } from "vue-echarts";
 import { provide } from "vue";
-import { GetChartData, TimeAxisType } from "~~/public/ChartDataProvider";
+
+const deviationStore = useDeviationStore();
+const { chartRef } = storeToRefs(deviationStore);
 
 // provide init-options
 const renderer = ref<"svg" | "canvas">("svg");
@@ -15,12 +13,12 @@ const initOptions = computed(() => ({
 }));
 provide(INIT_OPTIONS_KEY, initOptions);
 
-const Data = GetChartData(TimeAxisType.Day);
+const deviationData = deviationStore.data;
 
 const option = ref<ECOption>({
     dataset: {
         dimensions: ["date", "Delta"],
-        source: Data,
+        source: deviationData,
     },
     xAxis: {
         type: "time",
@@ -29,3 +27,7 @@ const option = ref<ECOption>({
     series: [{ type: "line", showSymbol: false }],
 });
 </script>
+
+<template>
+    <VChart ref="chartRef" :option="option" autoresize />
+</template>
