@@ -47,7 +47,7 @@ STRUCTURE DE LA REQUÊTE
 -----------------------
 1. base :
     - extraction des données sur la période de référence
-    - filtrage des stations (station_type < 5)
+    - filtrage des stations (station_type < 4)
     - dérivation year / month / day
 
 2. normal_days :
@@ -86,7 +86,7 @@ WITH allowed_stations AS (
     SELECT s.station_code
     FROM public.v_station s
     WHERE s.station_type IS NOT NULL
-      AND s.station_type < 5
+      AND s.station_type < 4
 ),
 
 base AS (
@@ -176,18 +176,24 @@ normalized_daily AS (
     WHERE daily_value IS NOT NULL
 )
 
-SELECT
-    nd.station_code,
-    nd.month,
-    nd.day,
-    COUNT(nd.daily_value) AS sample_count,
-    AVG(nd.daily_value) AS baseline_mean_tntxm
-FROM normalized_daily nd
-GROUP BY
-    nd.station_code,
-    nd.month,
-    nd.day
+aggregated AS (
+    SELECT
+        nd.station_code,
+        nd.month,
+        nd.day,
+        COUNT(nd.daily_value) AS sample_count,
+        AVG(nd.daily_value)   AS baseline_mean_tntxm
+    FROM normalized_daily nd
+    GROUP BY
+        nd.station_code,
+        nd.month,
+        nd.day
+)
+
+SELECT *
+FROM aggregated
+WHERE sample_count >= 24
 ORDER BY
-    nd.station_code,
-    nd.month,
-    nd.day;
+    station_code,
+    month,
+    day;
