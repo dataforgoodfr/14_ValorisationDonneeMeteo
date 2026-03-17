@@ -276,7 +276,7 @@ const fakeRecords = [
     },
 ];
 
-export function useTemperatureRecords(
+export function useTemperatureRecordsFake(
     params?: MaybeRef<Record<string, unknown>>,
 ) {
     const data = computed(() => {

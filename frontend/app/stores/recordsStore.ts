@@ -1,6 +1,6 @@
 import { refDebounced } from "@vueuse/core";
 // TODO: Replace with the real API call when the endpoint is implemented.
-import { useTemperatureRecords } from "~/composables/useTemperature.fake";
+import { useTemperatureRecordsFake } from "~/composables/useTemperature.fake";
 
 const debounceDuration = 300;
 
@@ -69,7 +69,11 @@ export const useRecordsStore = defineStore("recordsStore", () => {
         ),
     }));
 
-    const { data: recordsData, pending, error } = useTemperatureRecords(params);
+    const {
+        data: recordsData,
+        pending,
+        error,
+    } = useTemperatureRecordsFake(params);
 
     return {
         recordType,
