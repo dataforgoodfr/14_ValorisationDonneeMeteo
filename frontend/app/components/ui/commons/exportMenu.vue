@@ -99,7 +99,6 @@ function exportAsCSV() {
     if (!import.meta.client) return;
     const source = data.value?.time_series;
     if (!source) return;
-    // const headers =
     const rows = source.map((row) => Object.values(row).join(",")).join("\n");
 
     const csv = `${headers}\n${rows}`;
