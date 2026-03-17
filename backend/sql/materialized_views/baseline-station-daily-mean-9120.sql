@@ -81,6 +81,9 @@ POINTS DE VIGILANCE
 ===============================================================================
 */
 
+DROP MATERIALIZED VIEW IF EXISTS public.baseline_station_daily_mean_1991_2020;
+
+CREATE MATERIALIZED VIEW public.baseline_station_daily_mean_1991_2020 AS
 
 WITH allowed_stations AS (
     SELECT s.station_code
@@ -101,8 +104,7 @@ base AS (
     WHERE v.date >= DATE '1991-01-01'
       AND v.date <  DATE '2021-01-01'
       AND v.station_code IN (
-          SELECT a.station_code
-          FROM allowed_stations a
+          SELECT station_code FROM allowed_stations
       )
 ),
 
@@ -140,31 +142,21 @@ non_leap_feb29 AS (
             ELSE NULL
         END AS daily_value
     FROM (
-        SELECT
-            b.station_code,
-            b.year,
-            b.tntxm
-        FROM base b
-        WHERE b.month = 2
-          AND b.day = 28
+        SELECT station_code, year, tntxm
+        FROM base
+        WHERE month = 2 AND day = 28
 
         UNION ALL
 
-        SELECT
-            b.station_code,
-            b.year,
-            b.tntxm
-        FROM base b
-        WHERE b.month = 3
-          AND b.day = 1
+        SELECT station_code, year, tntxm
+        FROM base
+        WHERE month = 3 AND day = 1
     ) x
     WHERE NOT (
         (x.year % 4 = 0 AND x.year % 100 <> 0)
         OR x.year % 400 = 0
     )
-    GROUP BY
-        x.station_code,
-        x.year
+    GROUP BY x.station_code, x.year
 ),
 
 normalized_daily AS (
@@ -174,26 +166,24 @@ normalized_daily AS (
     UNION ALL
     SELECT * FROM non_leap_feb29
     WHERE daily_value IS NOT NULL
-),
-
-aggregated AS (
-    SELECT
-        nd.station_code,
-        nd.month,
-        nd.day,
-        COUNT(nd.daily_value) AS sample_count,
-        AVG(nd.daily_value)   AS baseline_mean_tntxm
-    FROM normalized_daily nd
-    GROUP BY
-        nd.station_code,
-        nd.month,
-        nd.day
 )
 
-SELECT *
-FROM aggregated
-WHERE sample_count >= 24
-ORDER BY
-    station_code,
-    month,
-    day;
+SELECT
+    nd.station_code,
+    nd.month,
+    nd.day,
+    COUNT(nd.daily_value) AS sample_count,
+    ROUND(AVG(nd.daily_value)::numeric, 2) AS baseline_mean_tntxm
+FROM normalized_daily nd
+GROUP BY
+    nd.station_code,
+    nd.month,
+    nd.day
+HAVING COUNT(nd.daily_value) >= 24;
+
+-- ============================================================================
+-- INDEX
+-- ============================================================================
+
+CREATE INDEX idx_baseline_station_daily_mean
+ON public.baseline_station_daily_mean_1991_2020 (station_code, month, day);

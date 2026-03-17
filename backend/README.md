@@ -66,6 +66,7 @@ Ce script :
   - stations
   - données quotidiennes
   - applique les vues SQL utilisées par l'API
+  - applique les materialized views utilisées par l'API
 
 ## Lancer le serveur
 
