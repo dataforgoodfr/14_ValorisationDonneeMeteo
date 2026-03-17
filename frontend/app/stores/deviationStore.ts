@@ -19,11 +19,11 @@ export const useDeviationStore = defineStore("deviationStore", () => {
         include_national: include_national.value,
     }));
 
-    // ---------------- /!\ à remplacer quand l'APi sera opé /!\ ----------------
+    // ---------------- /!\ à remplacer quand l'API de récupération des  -----------
+    //  --------------- données d'écart à la normale sera opérationnelle /!\ -------
     const data = GetChartData(TimeAxisType.Day);
-
     // const {
-    //     data: deviationData,
+    //     data: data,
     //     pending,
     //     error,
     // } = useTemperatureDeviation(params);
