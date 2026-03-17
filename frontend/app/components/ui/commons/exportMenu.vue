@@ -5,7 +5,12 @@ import type {
     DeviationResponse
 } from "~/types/api";
 
-const props = defineProps(['chart'])
+const props = defineProps({
+  chart: {
+    type: String,
+    required: true
+  }
+})
 const chartName = props.chart;
 
 const itnStore = useItnStore();
