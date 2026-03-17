@@ -3,7 +3,7 @@ import { INIT_OPTIONS_KEY } from "vue-echarts";
 import { provide } from "vue";
 
 const deviationStore = useDeviationStore();
-const { deviationChartRef } = storeToRefs(deviationStore);
+const { chartRef } = storeToRefs(deviationStore);
 
 // provide init-options
 const renderer = ref<"svg" | "canvas">("svg");
@@ -13,16 +13,16 @@ const initOptions = computed(() => ({
 }));
 provide(INIT_OPTIONS_KEY, initOptions);
 
-const Data = deviationStore.deviationData;
+const deviationData = deviationStore.data;
 
-const PosDelta = Data.map((item) => {
+const PosDelta = deviationData.map((item) => {
     if (item.Delta >= 0) {
         return item.Delta;
     } else {
         return "-";
     }
 });
-const NegDelta = Data.map((item) => {
+const NegDelta = deviationData.map((item) => {
     if (item.Delta < 0) {
         return item.Delta;
     } else {
@@ -33,7 +33,7 @@ const NegDelta = Data.map((item) => {
 const option = ref<ECOption>({
     xAxis: [
         {
-            data: Data.map((item) => {
+            data: deviationData.map((item) => {
                 return `${item.date.getDate()}/${item.date.getMonth() + 1}`;
             }),
             silent: false,
@@ -78,5 +78,5 @@ const option = ref<ECOption>({
 </script>
 
 <template>
-    <VChart ref="deviationChartRef" :option="option" autoresize />
+    <VChart ref="chartRef" :option="option" autoresize />
 </template>

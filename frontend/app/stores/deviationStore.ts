@@ -4,7 +4,7 @@ import { GetChartData, TimeAxisType } from "~~/public/ChartDataProvider"; // pro
 
 const dates = useCustomDate();
 
-export const useDeviationStore = defineStore("DeviationStore", () => {
+export const useDeviationStore = defineStore("deviationStore", () => {
     const chartRef = shallowRef();
     const picked_date_start = ref(dates.lastYear.value);
     const picked_date_end = ref(dates.twoDaysAgo.value);

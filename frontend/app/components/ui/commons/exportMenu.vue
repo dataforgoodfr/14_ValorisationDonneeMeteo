@@ -9,7 +9,7 @@ const props = defineProps(['chart'])
 const chartName = props.chart;
 
 const itnStore = useItnStore();
-const DeviationStore = useDeviationStore();
+const deviationStore = useDeviationStore();
 let store;
 
 let chartRef: ShallowRef<any, any>;
@@ -32,7 +32,7 @@ if (chartName == 'itn') {
     ];
 
 } else { // chartName == 'ecart_normale'
-    store = DeviationStore;
+    store = deviationStore;
     headers = ['date', 'écart à la normale'];
 }
 

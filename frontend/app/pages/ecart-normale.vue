@@ -4,7 +4,7 @@ import Barchart from "~/components/charts/Barchart.vue";
 import LineChart from "~/components/charts/LineChart.vue";
 // import StationTable from "~/components/ui/ecartNormale/stationTable.vue";
 import MapEcartNormaleClient from "~/components/charts/MapEcartNormale.vue";
-import ExportEcartNormalMenu from "~/components/ui/commons/exportEcartNormalMenu.vue";
+import ExportMenu from "~/components/ui/commons/exportMenu.vue";
 
 const heroData = {
     title: "Ecart à la normale",
@@ -14,6 +14,7 @@ const heroData = {
 
 const items = ref(["Bar Chart", "Line Chart"]);
 const value = ref("Bar Chart");
+const chartName = 'ecart_normale';
 </script>
 
 <!--
@@ -28,7 +29,7 @@ const value = ref("Bar Chart");
             :description="heroData.description"
         />
         <USelect v-model="value" :items="items" />
-        <ExportEcartNormalMenu/>
+        <ExportMenu :chart="chartName" class="ml-auto"/>
         <Barchart v-if="value === `Bar Chart`" />
         <LineChart v-if="value === `Line Chart`" />
         <MapEcartNormaleClient />
