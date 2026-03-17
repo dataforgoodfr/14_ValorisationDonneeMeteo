@@ -1,13 +1,13 @@
 <script setup lang="ts">
 import DatePicker from "primevue/datepicker";
-import { useItnStore } from "~/stores/itnStore";
-import { storeToRefs } from "pinia";
-import { useCustomDate } from "#imports";
 
-const itnStore = useItnStore();
-const { picked_date_start, picked_date_end } = storeToRefs(itnStore);
+const localStartDate = defineModel<Date>("startDate", { required: true });
+const localEndDate = defineModel<Date>("endDate", { required: true });
 
-const dates = useCustomDate();
+const props = defineProps<{
+    minDate?: Date;
+    maxDate?: Date;
+}>();
 
 const pt = {
     root: { class: "relative w-36" },
@@ -102,9 +102,9 @@ const pt = {
         <div class="flex flex-col text-center gap-1">
             <p class="text-sm text-default">Jour de début</p>
             <DatePicker
-                v-model="picked_date_start"
-                :min-date="dates.absoluteMinDataDate.value"
-                :max-date="picked_date_end"
+                v-model="localStartDate"
+                :min-date="props.minDate"
+                :max-date="localEndDate"
                 date-format="dd/mm/yy"
                 :pt="pt"
                 unstyled
@@ -119,9 +119,9 @@ const pt = {
         <div class="flex flex-col text-center gap-1">
             <p class="text-sm text-default">Jour de fin</p>
             <DatePicker
-                v-model="picked_date_end"
-                :min-date="picked_date_start"
-                :max-date="dates.twoDaysAgo.value"
+                v-model="localEndDate"
+                :min-date="localStartDate"
+                :max-date="props.maxDate"
                 date-format="dd/mm/yy"
                 :pt="pt"
                 unstyled

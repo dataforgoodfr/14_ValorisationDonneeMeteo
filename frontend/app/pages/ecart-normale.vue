@@ -2,7 +2,6 @@
 import PagesHero from "~/components/layout/PagesHero.vue";
 import Barchart from "~/components/charts/Barchart.vue";
 import LineChart from "~/components/charts/LineChart.vue";
-// import StationTable from "~/components/ui/ecartNormale/stationTable.vue";
 import MapEcartNormaleClient from "~/components/charts/MapEcartNormale.vue";
 
 const heroData = {
