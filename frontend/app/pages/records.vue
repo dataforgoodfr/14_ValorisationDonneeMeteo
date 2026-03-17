@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import PagesHero from "~/components/layout/PagesHero.vue";
-import StationTable from "~/components/ui/ecartNormale/stationTable.vue";
+import RecordsTable from "~/components/ui/records/recordsTable.vue";
 
 const heroData = {
     title: "Records",
@@ -15,6 +15,6 @@ const heroData = {
             :title="heroData.title"
             :description="heroData.description"
         />
-        <StationTable />
+        <RecordsTable />
     </UContainer>
 </template>

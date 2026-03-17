@@ -3,7 +3,7 @@
  * These return static data filtered client-side, without hitting the backend.
  */
 
-const FAKE_RECORDS = [
+const fakeRecords = [
     {
         id: "07149",
         name: "Orly",
@@ -301,7 +301,7 @@ export function useTemperatureRecords(
         const temp_filter = (p.record as string) ?? "";
         const date_col_filter = (p.record_date as string) ?? "";
 
-        let stations = FAKE_RECORDS;
+        let stations = fakeRecords;
 
         if (date_start && date_end) {
             stations = stations.filter(

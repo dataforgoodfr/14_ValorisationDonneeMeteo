@@ -5,11 +5,7 @@ import type { TemperatureRecord } from "~/types/api";
 import { UBadge, UInput } from "#components";
 import { storeToRefs } from "pinia";
 import { useRecordsStore } from "~/stores/recordsStore";
-
-const RECORD_TYPE_TO_BADGE_COLOR = {
-    Chaud: "error" as const,
-    Froid: "info" as const,
-};
+import DayPicker from "~/components/ui/itn/dayPicker.vue";
 
 const store = useRecordsStore();
 const {
@@ -18,29 +14,17 @@ const {
     endDate,
     page,
     pageSize,
-    columnFilters,
     recordsData,
     pending,
     error,
 } = storeToRefs(store);
+const { getFilter, setFilter } = store;
 
-const temperatureBadgeColor = computed(
-    () => RECORD_TYPE_TO_BADGE_COLOR[recordType.value],
+const today = new Date();
+
+const temperatureBadgeColor = computed(() =>
+    recordType.value === "Chaud" ? "error" : "info",
 );
-
-// Column filter helpers — read/write store's columnFilters
-function getFilter(id: string): string {
-    return (
-        (columnFilters.value.find((f) => f.id === id)?.value as string) ?? ""
-    );
-}
-
-function setFilter(id: string, value: string) {
-    columnFilters.value = [
-        ...columnFilters.value.filter((f) => f.id !== id),
-        ...(value ? [{ id, value }] : []),
-    ];
-}
 
 function filterInput(id: string) {
     return h(UInput, {
@@ -51,7 +35,7 @@ function filterInput(id: string) {
     });
 }
 
-// Column definitions — only depends on recordType, not on columnFilters (avoids focus loss)
+// Column definitions
 const columns = computed<TableColumn<TemperatureRecord>[]>(() => [
     {
         accessorKey: "name",
@@ -102,14 +86,11 @@ const columns = computed<TableColumn<TemperatureRecord>[]>(() => [
     <div class="flex flex-col gap-4">
         <!-- Filters -->
         <div class="flex justify-between px-4 py-3.5 border-b border-accented">
-            <div class="flex gap-4">
-                <UFormField label="Date de début">
-                    <UInput v-model="startDate" type="date" />
-                </UFormField>
-                <UFormField label="Date de fin">
-                    <UInput v-model="endDate" type="date" />
-                </UFormField>
-            </div>
+            <DayPicker
+                v-model:start-date="startDate"
+                v-model:end-date="endDate"
+                :max-date="today"
+            />
 
             <UFieldGroup>
                 <UButton

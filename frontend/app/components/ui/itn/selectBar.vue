@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { useItnStore } from "#imports";
+import { useItnStore, useCustomDate } from "#imports";
 import { storeToRefs } from "pinia";
 import MonthPicker from "./monthPicker.vue";
 import YearPicker from "./yearPicker.vue";
@@ -8,7 +8,14 @@ import SliceType from "./sliceType.vue";
 import ExportMenu from "../commons/exportMenu.vue";
 
 const itnStore = useItnStore();
-const { granularity, sliceTypeSwitchEnabled } = storeToRefs(useItnStore());
+const {
+    granularity,
+    sliceTypeSwitchEnabled,
+    picked_date_start,
+    picked_date_end,
+} = storeToRefs(itnStore);
+
+const dates = useCustomDate();
 
 // Granularity Selection values
 const granularityValues = reactive([
@@ -36,7 +43,13 @@ const granularityValues = reactive([
                 />
             </UFormField>
 
-            <DayPicker v-if="granularity === 'day'" />
+            <DayPicker
+                v-if="granularity === 'day'"
+                v-model:start-date="picked_date_start"
+                v-model:end-date="picked_date_end"
+                :min-date="dates.absoluteMinDataDate.value"
+                :max-date="dates.twoDaysAgo.value"
+            />
             <MonthPicker v-if="granularity === 'month'" />
             <YearPicker v-if="granularity === 'year'" />
 
