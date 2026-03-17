@@ -188,7 +188,7 @@ aggregated AS (
         nd.station_code,
         nd.month,
         nd.day
-)
+),
 
 SELECT *
 FROM aggregated
