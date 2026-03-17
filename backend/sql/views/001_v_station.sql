@@ -1,6 +1,6 @@
 CREATE OR REPLACE VIEW public.v_station AS
 SELECT DISTINCT ON (s."id")
-  s."id"::text AS station_code,
+  s."id" AS station_code,
   s."nom" AS name,
   s."departement" AS departement,
   s."posteOuvert" AS is_open,
