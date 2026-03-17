@@ -16,7 +16,7 @@ jobs:
     runs-on: ubuntu-24.04
     permissions:
       contents: read
-      packages: write
+      packages: read
 
     steps:
 
@@ -30,6 +30,11 @@ jobs:
           registry: ${{ env.REGISTRY }}
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Verify tag image exists
+        run: |
+          docker manifest inspect ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-backend:${{ github.event.inputs.tag }} > /dev/null
+          docker manifest inspect ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-frontend:${{ github.event.inputs.tag }} > /dev/null
 
 
 
