@@ -5,6 +5,7 @@ import type {
     NationalIndicatorResponse,
     DeviationResponse
 } from "~/types/api";
+import type { ChartDataPoint } from "~~/public/ChartDataProvider";
 
 const props = defineProps({
   chart: {
@@ -16,17 +17,22 @@ const chartName = props.chart;
 
 const itnStore = useItnStore();
 const deviationStore = useDeviationStore();
-let store;
 
 let chartRef: ShallowRef<unknown, unknown>;
 let granularity: globalThis.Ref<"month" | "year" | "day", "month" | "year" | "day">;
 let picked_date_start: Ref<Date, Date>;
 let picked_date_end: Ref<Date, Date>;
-let data: Ref<NationalIndicatorResponse | undefined> | Ref<DeviationResponse | undefined>;
+let data: Ref<NationalIndicatorResponse | undefined> | Ref<DeviationResponse | undefined> | Ref<ChartDataPoint[]>;
 let headers: string[];
 
 if (chartName == 'itn') {
-    store = itnStore;
+    ({
+        chartRef,
+        granularity,
+        picked_date_start,
+        picked_date_end,
+        data,
+    } = storeToRefs(itnStore));
     headers = [
         "Date",
         "Température observée en °C (moyenne/valeur selon slice_type)",
@@ -38,17 +44,17 @@ if (chartName == 'itn') {
     ];
 
 } else { // chartName == 'ecart_normale'
-    store = deviationStore;
+    ({
+        chartRef,
+        granularity,
+        picked_date_start,
+        picked_date_end,
+        data,
+    } = storeToRefs(deviationStore));
     headers = ['date', 'écart à la normale'];
 }
 
-({
-    chartRef,
-    granularity,
-    picked_date_start,
-    picked_date_end,
-    data,
-} = storeToRefs(store));
+
 
 const exportMenuItems = ref<DropdownMenuItem[]>([
     {
