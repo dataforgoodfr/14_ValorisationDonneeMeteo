@@ -1,13 +1,109 @@
-WITH base AS (
+/*
+===============================================================================
+BASELINE CLIMATOLOGIQUE PAR STATION (1991–2020)
+===============================================================================
+
+OBJECTIF
+--------
+Calculer la température moyenne journalière (TNTXM) par station et par jour
+de l’année (month, day), sur la période de référence 1991–2020.
+
+Le résultat est une baseline climatologique utilisée pour comparer les
+températures observées (ex: anomalies, déviations).
+
+SORTIE
+------
+Pour chaque (station_code, month, day) :
+- sample_count : nombre de valeurs utilisées dans la moyenne
+- baseline_mean_tntxm : moyenne de TNTXM sur la période
+
+RÈGLES MÉTIER
+-------------
+- La baseline couvre tous les jours de l’année, y compris le 29 février.
+- Pour les années bissextiles :
+    → le 29 février réel est utilisé.
+- Pour les années non bissextiles :
+    → un 29 février synthétique est créé :
+        valeur = moyenne de (28 février, 1er mars)
+    → uniquement si les deux valeurs existent
+    → sinon, pas de contribution pour cette année
+
+PÉRIMÈTRE
+---------
+- Période : [1991-01-01, 2021-01-01)
+- Stations : uniquement celles avec station_type < 5 (via v_station)
+
+SOURCES
+-------
+- v_quotidienne_itn :
+    - station_code
+    - date
+    - tntxm (température max journalière)
+- v_station :
+    - station_code
+    - station_type
+
+STRUCTURE DE LA REQUÊTE
+-----------------------
+1. base :
+    - extraction des données sur la période de référence
+    - filtrage des stations (station_type < 5)
+    - dérivation year / month / day
+
+2. normal_days :
+    - tous les jours sauf 29 février
+
+3. leap_feb29 :
+    - 29 février réels (années bissextiles)
+
+4. non_leap_feb29 :
+    - 29 février synthétiques pour années non bissextiles
+    - moyenne (28/02, 01/03)
+
+5. normalized_daily :
+    - union de toutes les contributions
+
+6. agrégation finale :
+    - moyenne par station et jour de l’année
+
+PERFORMANCE
+-----------
+- Requête prévue pour être exécutée offline (pré-calcul baseline)
+- Temps d’exécution typique : quelques secondes sur dataset complet
+- Ne pas utiliser dans un endpoint temps réel
+
+POINTS DE VIGILANCE
+-------------------
+- Cohérence des station_code entre v_quotidienne_itn et v_station
+- Complétude des données autour du 28/02 et 01/03
+- Hypothèse implicite : TNTXM disponible et fiable sur toute la période
+
+===============================================================================
+*/
+
+
+WITH allowed_stations AS (
+    SELECT s.station_code
+    FROM public.v_station s
+    WHERE s.station_type IS NOT NULL
+      AND s.station_type < 5
+),
+
+base AS (
     SELECT
         v.station_code,
         v.date,
         v.tntxm,
-        EXTRACT(YEAR  FROM v.date) AS year,
-        EXTRACT(MONTH FROM v.date) AS month,
-        EXTRACT(DAY   FROM v.date) AS day
+        EXTRACT(YEAR  FROM v.date)::int AS year,
+        EXTRACT(MONTH FROM v.date)::int AS month,
+        EXTRACT(DAY   FROM v.date)::int AS day
     FROM public.v_quotidienne_itn v
-    WHERE v.date BETWEEN DATE '1991-01-01' AND DATE '2020-12-31'
+    WHERE v.date >= DATE '1991-01-01'
+      AND v.date <  DATE '2021-01-01'
+      AND v.station_code IN (
+          SELECT a.station_code
+          FROM allowed_stations a
+      )
 ),
 
 normal_days AS (
@@ -63,8 +159,8 @@ non_leap_feb29 AS (
           AND b.day = 1
     ) x
     WHERE NOT (
-        (MOD(x.year, 4) = 0 AND MOD(x.year, 100) <> 0)
-        OR MOD(x.year, 400) = 0
+        (x.year % 4 = 0 AND x.year % 100 <> 0)
+        OR x.year % 400 = 0
     )
     GROUP BY
         x.station_code,
@@ -76,7 +172,8 @@ normalized_daily AS (
     UNION ALL
     SELECT * FROM leap_feb29
     UNION ALL
-    SELECT * FROM non_leap_feb29 WHERE daily_value IS NOT NULL
+    SELECT * FROM non_leap_feb29
+    WHERE daily_value IS NOT NULL
 )
 
 SELECT
@@ -84,7 +181,7 @@ SELECT
     nd.month,
     nd.day,
     COUNT(nd.daily_value) AS sample_count,
-    AVG(nd.daily_value)   AS baseline_mean_tntxm
+    AVG(nd.daily_value) AS baseline_mean_tntxm
 FROM normalized_daily nd
 GROUP BY
     nd.station_code,
@@ -93,4 +190,4 @@ GROUP BY
 ORDER BY
     nd.station_code,
     nd.month,
-    nd.day
+    nd.day;
