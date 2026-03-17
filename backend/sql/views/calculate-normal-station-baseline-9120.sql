@@ -174,7 +174,7 @@ normalized_daily AS (
     UNION ALL
     SELECT * FROM non_leap_feb29
     WHERE daily_value IS NOT NULL
-)
+),
 
 aggregated AS (
     SELECT
@@ -188,7 +188,7 @@ aggregated AS (
         nd.station_code,
         nd.month,
         nd.day
-),
+)
 
 SELECT *
 FROM aggregated
