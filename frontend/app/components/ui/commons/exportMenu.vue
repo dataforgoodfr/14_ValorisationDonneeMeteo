@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import type { DropdownMenuItem } from "@nuxt/ui";
+import type { ShallowRef } from "vue";
 import type {
     NationalIndicatorResponse,
     DeviationResponse
@@ -17,7 +18,7 @@ const itnStore = useItnStore();
 const deviationStore = useDeviationStore();
 let store;
 
-let chartRef: ShallowRef<any, any>;
+let chartRef: ShallowRef<unknown, unknown>;
 let granularity: globalThis.Ref<"month" | "year" | "day", "month" | "year" | "day">;
 let picked_date_start: Ref<Date, Date>;
 let picked_date_end: Ref<Date, Date>;
