@@ -3,13 +3,8 @@ import type { DropdownMenuItem } from "@nuxt/ui";
 import { useItnStore } from "#imports";
 
 const itnStore = useItnStore();
-const {
-    itnChartRef,
-    granularity,
-    picked_date_start,
-    picked_date_end,
-    itnData,
-} = storeToRefs(itnStore);
+const { itnChartRef, granularity, pickedDateStart, pickedDateEnd, itnData } =
+    storeToRefs(itnStore);
 
 const exportMenuItems = ref<DropdownMenuItem[]>([
     {
@@ -52,8 +47,8 @@ function exportAsPng() {
     a.download = useFormatFileName(
         "itn",
         granularity.value,
-        picked_date_start.value,
-        picked_date_end.value,
+        pickedDateStart.value,
+        pickedDateEnd.value,
         "png",
     );
     a.click();
@@ -81,8 +76,8 @@ function exportAsCSV() {
     a.download = useFormatFileName(
         "itn",
         granularity.value,
-        picked_date_start.value,
-        picked_date_end.value,
+        pickedDateStart.value,
+        pickedDateEnd.value,
         "csv",
     );
     a.click();
@@ -115,8 +110,8 @@ function exportAsHTML() {
     a.download = useFormatFileName(
         "itn",
         granularity.value,
-        picked_date_start.value,
-        picked_date_end.value,
+        pickedDateStart.value,
+        pickedDateEnd.value,
         "html",
     );
     a.click();

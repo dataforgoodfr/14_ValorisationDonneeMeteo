@@ -1,18 +1,32 @@
 import type { DeviationParams } from "~/types/api";
 import { useCustomDate } from "#imports";
+import type {
+    GranularityType,
+    SliceType,
+    ChartType,
+} from "~/components/ui/commons/selectBar/types";
 
 const dates = useCustomDate();
 
 export const useDeviationStore = defineStore("DeviationStore", () => {
-    const picked_date_start = ref(dates.lastYear.value);
-    const picked_date_end = ref(dates.twoDaysAgo.value);
-    const granularity = ref("month" as "year" | "month" | "day");
+    const pickedDateStart = ref(dates.lastYear.value);
+    const pickedDateEnd = ref(dates.twoDaysAgo.value);
+
+    const granularity: Ref<GranularityType> = ref<GranularityType>("month");
+    const sliceTypeSwitchEnabled = ref(false);
+    const sliceType: Ref<SliceType> = ref<SliceType>("full");
+
+    const sliceDatepickerDate = ref(new Date(2006, 0, 1));
+
+    const chartTypeSwitchEnabled = ref(false);
+    const chartType: Ref<ChartType> = ref<ChartType>(`bar`);
+
     const station_ids = ref<undefined | string[]>(undefined);
     const include_national = ref<boolean>(true);
 
     const params = computed<DeviationParams>(() => ({
-        date_start: picked_date_start.value.toISOString().substring(0, 10),
-        date_end: picked_date_end.value.toISOString().substring(0, 10),
+        date_start: pickedDateStart.value.toISOString().substring(0, 10),
+        date_end: pickedDateEnd.value.toISOString().substring(0, 10),
         granularity: granularity.value,
         station_ids: station_ids.value,
         include_national: include_national.value,
@@ -24,10 +38,29 @@ export const useDeviationStore = defineStore("DeviationStore", () => {
         error,
     } = useTemperatureDeviation(params);
 
+    const setGranularity = (value: GranularityType) => {
+        sliceType.value = "full";
+        granularity.value = value;
+        if (value === "day") {
+            sliceTypeSwitchEnabled.value = false;
+        }
+    };
+
+    const setChartType = (value: ChartType) => {
+        chartType.value = value;
+    };
+
     return {
-        picked_date_start,
-        picked_date_end,
+        pickedDateStart,
+        pickedDateEnd,
         granularity,
+        sliceTypeSwitchEnabled,
+        sliceType,
+        sliceDatepickerDate,
+        chartTypeSwitchEnabled,
+        chartType,
+        setGranularity,
+        setChartType,
         station_ids,
         include_national,
         deviationData,

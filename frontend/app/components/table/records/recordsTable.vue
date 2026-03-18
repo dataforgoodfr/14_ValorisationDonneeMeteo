@@ -5,7 +5,7 @@ import type { TemperatureRecord } from "~/types/api";
 import { UBadge, UInput } from "#components";
 import { storeToRefs } from "pinia";
 import { useRecordsStore } from "~/stores/recordsStore";
-import dayPicker from "../commons/dayPicker.vue";
+import DayPicker from "../../ui/commons/selectBar/dayPicker.vue";
 
 const store = useRecordsStore();
 const {
@@ -86,7 +86,7 @@ const columns = computed<TableColumn<TemperatureRecord>[]>(() => [
     <div class="flex flex-col gap-4">
         <!-- Filters -->
         <div class="flex justify-between px-4 py-3.5 border-b border-accented">
-            <dayPicker
+            <DayPicker
                 v-model:start-date="startDate"
                 v-model:end-date="endDate"
                 :max-date="today"

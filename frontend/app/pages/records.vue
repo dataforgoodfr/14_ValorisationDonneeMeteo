@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import PagesHero from "~/components/layout/PagesHero.vue";
-import RecordsTable from "~/components/ui/records/recordsTable.vue";
+import RecordsTable from "~/components/table/records/recordsTable.vue";
 
 const heroData = {
     title: "Records",

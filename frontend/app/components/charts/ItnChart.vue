@@ -1,6 +1,8 @@
 <script setup lang="ts">
 import * as echarts from "echarts/core";
 import langFR from "~/i18n/langFR.js";
+import type { SelectBarAdapter } from "~/components/ui/commons/selectBar/types";
+import type { NationalIndicatorResponse } from "~/types/api";
 
 import {
     TitleComponent,
@@ -26,8 +28,12 @@ echarts.use([
     DataZoomComponent,
 ]);
 
-const itnStore = useItnStore();
-const { itnChartRef } = storeToRefs(itnStore);
+interface Props {
+    adapter: SelectBarAdapter<NationalIndicatorResponse>;
+}
+
+const props = defineProps<Props>();
+
 // provide init-options
 const renderer = ref<"svg" | "canvas">("canvas");
 const initOptions = computed(() => ({
@@ -41,9 +47,8 @@ const colorEcartType = "rgba(175, 175, 175, 1)";
 const colorExtremes = "rgba(100, 100, 100, 0.2)";
 
 const option = computed<ECOption>(() => {
-    const timeSeries = insertCrossingPoints(
-        itnStore.itnData?.time_series ?? [],
-    );
+    const data = props.adapter.data.value;
+    const timeSeries = insertCrossingPoints(data?.time_series ?? []);
 
     return {
         dataset: {
@@ -220,9 +225,9 @@ const option = computed<ECOption>(() => {
                     params.find((p) => p.seriesName === name);
 
                 const dateOptions: Intl.DateTimeFormatOptions =
-                    itnStore.granularity === "month"
+                    props.adapter.granularity.value === "month"
                         ? { year: "numeric", month: "long" }
-                        : itnStore.granularity === "year"
+                        : props.adapter.granularity.value === "year"
                           ? { year: "numeric" }
                           : {
                                 weekday: "short",
@@ -259,11 +264,11 @@ const option = computed<ECOption>(() => {
 
 <template>
     <VChart
-        ref="itnChartRef"
-        :key="itnStore.granularity"
+        :ref="adapter.chartRef"
+        :key="adapter.granularity.value"
         :option="option"
         :init-options="initOptions"
-        :loading="itnStore.pending"
+        :loading="adapter.pending.value"
         :loading-options="{ text: 'Chargement…', color: '#3b82f6' }"
         autoresize
     />

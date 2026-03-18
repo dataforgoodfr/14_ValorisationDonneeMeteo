@@ -7,7 +7,10 @@
 // import CombinedChart from "~/components/charts/CombinedChart.vue";
 import ItnChart from "~/components/charts/ItnChart.vue";
 import PagesHero from "~/components/layout/PagesHero.vue";
-import SelectBar from "~/components/ui/itn/selectBar.vue";
+import SelectBar from "~/components/ui/commons/selectBar/selectBar.vue";
+import { useItnSelectBarAdapter } from "~/adapters/itnSelectBarAdapter";
+
+const selectBarAdapter = useItnSelectBarAdapter();
 
 const heroData = {
     title: "ITN",
@@ -25,8 +28,8 @@ const heroData = {
         <div
             class="inline-flex flex-col divide-y divide-gray-200 border border-gray-200 rounded-lg overflow-hidden"
         >
-            <SelectBar />
-            <ItnChart class="px-3 py-2" />
+            <SelectBar :adapter="selectBarAdapter" />
+            <ItnChart :adapter="selectBarAdapter" class="px-3 py-2" />
         </div>
     </UContainer>
 </template>
