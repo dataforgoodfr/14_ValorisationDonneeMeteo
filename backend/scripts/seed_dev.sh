@@ -4,7 +4,9 @@ set -euo pipefail
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 
 if [[ -f "$ROOT_DIR/.env" ]]; then
-  export $(grep -v '^[[:space:]]*#' "$ROOT_DIR/.env" | xargs)
+  set -a
+  source "$ROOT_DIR/.env"
+  set +a
 fi
 
 : "${DB_HOST:=localhost}"
@@ -45,11 +47,16 @@ echo "== Import Quotidienne (CSV) =="
 echo "== Apply views =="
 bash "$ROOT_DIR/scripts/apply_views.sh"
 
+echo "== Apply materialized views =="
+bash "$ROOT_DIR/scripts/apply_materialized_views.sh"
+
 echo "== Sanity checks =="
 "${psql_base[@]}" -c 'SELECT COUNT(*) AS station_count FROM public."Station";'
 "${psql_base[@]}" -c 'SELECT COUNT(*) AS quotidienne_count FROM public."Quotidienne";'
 "${psql_base[@]}" -c 'SELECT COUNT(*) AS v_station_count FROM public.v_station;'
 "${psql_base[@]}" -c 'SELECT COUNT(*) AS v_quotidienne_itn_count FROM public.v_quotidienne_itn;'
 "${psql_base[@]}" -c 'SELECT MIN(date), MAX(date) FROM public.v_quotidienne_itn;'
+"${psql_base[@]}" -c 'SELECT COUNT(*) AS baseline_station_daily_mean_1991_2020_count FROM public.baseline_station_daily_mean_1991_2020;'
+"${psql_base[@]}" -c 'SELECT * FROM public.baseline_station_daily_mean_1991_2020 ORDER BY station_code, month, day LIMIT 5;'
 
 echo "Seed done."
