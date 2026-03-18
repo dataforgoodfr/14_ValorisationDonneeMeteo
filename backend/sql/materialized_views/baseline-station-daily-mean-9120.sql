@@ -31,7 +31,7 @@ RÈGLES MÉTIER
 PÉRIMÈTRE
 ---------
 - Période : [1991-01-01, 2021-01-01)
-- Stations : uniquement celles avec station_type < 5 (via v_station)
+- Stations : uniquement celles avec station_type < 4 (via v_station)
 
 SOURCES
 -------
