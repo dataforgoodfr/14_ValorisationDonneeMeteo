@@ -1,4 +1,4 @@
-import type { DeviationParams } from "~/types/api";
+import type { DeviationParams, Station } from "~/types/api";
 import { useCustomDate } from "#imports";
 import type {
     GranularityType,
@@ -20,6 +20,7 @@ export const useDeviationStore = defineStore("deviationStore", () => {
     const sliceDatepickerDate = ref(new Date(2006, 0, 1));
 
     const station_ids = ref<undefined | string[]>(undefined);
+    const selected_stations = ref<Station[]>([]);
     const include_national = ref<boolean>(true);
 
     const params = computed<DeviationParams>(() => ({
@@ -52,6 +53,11 @@ export const useDeviationStore = defineStore("deviationStore", () => {
         station_ids.value = ids;
     };
 
+    const setStations = (stations: Station[] | undefined) => {
+        station_ids.value = stations?.map((station) => station.code);
+        selected_stations.value = stations || [];
+    };
+
     return {
         deviationChartRef,
         pickedDateStart,
@@ -63,7 +69,9 @@ export const useDeviationStore = defineStore("deviationStore", () => {
         setGranularity,
         setChartType,
         setStationIds,
+        setStations,
         station_ids,
+        selected_stations,
         include_national,
         deviationData,
         pending,
