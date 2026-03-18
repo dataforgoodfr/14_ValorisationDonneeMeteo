@@ -83,7 +83,7 @@ class ReadTemperaturesDatabase:
                             date,
                             tntxm
                          FROM
-                            v_quotidienne_itn\"AAAAMMJJ\"
+                            v_quotidienne_itn
                          WHERE
                             station_code in {tuple(stations["id"])}
                      """
