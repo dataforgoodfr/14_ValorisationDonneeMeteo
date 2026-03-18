@@ -27,6 +27,7 @@ const heroData = {
             </template>
             <template #sidebar>
                 <ChartSidebar />
+                <SearchStation />
             </template>
             <template #chart>
                 <DeviationChart :adapter="selectBarAdapter" class="px-3 py-2" />
