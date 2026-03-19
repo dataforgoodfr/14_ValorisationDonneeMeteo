@@ -21,7 +21,7 @@ def fake_temperature_deviation_dep():
 
 
 def test_get_temperature_deviation_day_happy_path(
-    client: APIClient, fake_temperature_deviation_dep
+    client: APIClient, fake_temperature_deviation_dep: None
 ):
     resp = client.get(
         "/api/v1/temperature/deviation",
@@ -63,7 +63,7 @@ def test_get_temperature_deviation_day_happy_path(
 
 
 def test_get_temperature_deviation_without_national(
-    client: APIClient, fake_temperature_deviation_dep
+    client: APIClient, fake_temperature_deviation_dep: None
 ):
     resp = client.get(
         "/api/v1/temperature/deviation",
@@ -123,25 +123,21 @@ def test_get_temperature_deviation_returns_400_if_date_start_gt_date_end(
     assert "date_end" in body["error"]["details"]
 
 
-def test_get_temperature_deviation_endpoint_uses_dependency_provider(client: APIClient):
-    TemperatureDeviationDependencyProvider.set_builder(
-        lambda: FakeTemperatureDeviationDailyDataSource()
+def test_get_temperature_deviation_endpoint_uses_dependency_provider(
+    client: APIClient, fake_temperature_deviation_dep: None
+):
+    resp = client.get(
+        "/api/v1/temperature/deviation",
+        {
+            "date_start": "2024-01-01",
+            "date_end": "2024-01-03",
+            "granularity": "day",
+            "station_ids": "07149",
+            "include_national": "false",
+        },
     )
-    try:
-        resp = client.get(
-            "/api/v1/temperature/deviation",
-            {
-                "date_start": "2024-01-01",
-                "date_end": "2024-01-03",
-                "granularity": "day",
-                "station_ids": "07149",
-                "include_national": "false",
-            },
-        )
 
-        assert resp.status_code == 200
-        body = resp.json()
-        assert body["stations"][0]["station_id"] == "07149"
-        assert "national" not in body
-    finally:
-        TemperatureDeviationDependencyProvider.reset()
+    assert resp.status_code == 200
+    body = resp.json()
+    assert body["stations"][0]["station_id"] == "07149"
+    assert "national" not in body
