@@ -8,8 +8,8 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from weather.bootstrap_itn import ITNDependencyProvider
-from weather.data_sources.temperature_deviation_fake import (
-    FakeTemperatureDeviationDailyDataSource,
+from weather.bootstrap_temperature_deviation import (
+    TemperatureDeviationDependencyProvider,
 )
 from weather.services.national_indicator.use_case import get_national_indicator
 from weather.services.temperature_deviation.use_case import get_temperature_deviation
@@ -128,10 +128,17 @@ class TemperatureDeviationAPIView(APIView):
             )
 
         params = q.validated_data
-        ds = FakeTemperatureDeviationDailyDataSource()
-
-        data = get_temperature_deviation(data_source=ds, **params)
-
+        ds = TemperatureDeviationDependencyProvider.get_dep()
+        try:
+            data = get_temperature_deviation(data_source=ds, **params)
+        except NotImplementedError as exc:
+            return Response(
+                ErrorSerializer.build(
+                    code="NOT_IMPLEMENTED",
+                    message=str(exc),
+                ),
+                status=status.HTTP_501_NOT_IMPLEMENTED,
+            )
         full_payload = {
             "metadata": {
                 "date_start": params["date_start"],

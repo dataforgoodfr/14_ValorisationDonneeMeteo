@@ -67,3 +67,21 @@ class QuotidienneITN(models.Model):
 
     def __str__(self) -> str:
         return f"{self.station_code} {self.date}"
+
+
+class BaselineStationDailyMean19912020(models.Model):
+    pk = models.CompositePrimaryKey("station_code", "month", "day")
+
+    station_code = models.CharField(max_length=8)
+    month = models.IntegerField()
+    day = models.IntegerField()
+    sample_count = models.IntegerField()
+    baseline_mean_tntxm = models.FloatField()
+
+    class Meta:
+        managed = False
+        db_table = "baseline_station_daily_mean_1991_2020"
+        ordering = ["station_code", "month", "day"]
+
+    def __str__(self) -> str:
+        return f"{self.station_code} {self.month:02d}-{self.day:02d}"

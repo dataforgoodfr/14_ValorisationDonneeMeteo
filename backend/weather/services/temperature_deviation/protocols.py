@@ -8,9 +8,12 @@ from .types import DailyDeviationPoint, DailyDeviationSeriesQuery, StationDailyS
 class TemperatureDeviationDailyDataSource(Protocol):
     def fetch_national_daily_series(
         self, query: DailyDeviationSeriesQuery
-    ) -> list[
-        DailyDeviationPoint
-    ]: ...  # on verra si y a vraiment un ecart à la normale aggrégé France, j'ai un doute même si les écrans le prévoient
+    ) -> list[DailyDeviationPoint]:
+        """
+        National deviation is defined from:
+        - observed national temperature = ITN
+        - national baseline = mean ITN over baseline period
+        """
 
     def fetch_stations_daily_series(
         self, query: DailyDeviationSeriesQuery
