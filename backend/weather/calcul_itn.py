@@ -152,6 +152,8 @@ def compute_itn(
 
     Parameters
     ----------
+    read_protocol: ReadTemperaturesGateway
+          protocol used to read the data
     stations_itn: Iterable
           list of the unique ID of the meteorological stations to be
           considered to calculate the ITN.
@@ -197,9 +199,10 @@ def compute_itn(
 
 # --------------------------------------------------------------------
 def average_itn_calculation(
+    read_protocol: ReadTemperaturesGateway,
     stations_itn: tuple[str],
-    start: str | pd.Timestamp | datetime.datetime,
-    end: str | pd.Timestamp | datetime.datetime,
+    start_date: str | pd.Timestamp | datetime.datetime,
+    end_date: str | pd.Timestamp | datetime.datetime,
     freq: str = "monthly",
 ) -> pd.DataFrame:
     """
@@ -208,13 +211,15 @@ def average_itn_calculation(
 
     Parameters
     ----------
+    read_protocol: ReadTemperaturesGateway
+          protocol used to read the data
     stations_itn: tuple of str
         the unique ID of the meteorological stations that are used to
         calculate the ITN
-    start: str or pd.Timestamp or datetime.datetime
-        initial day of the period of interest
-    end: str or pd.Timestamp or datetime.datetime
-        final day of the period of interest
+    start_date: str or pd.Timestamp or datetime.datetime
+          beginning of the time period to consider
+    end_date: str or pd.Timestamp or datetime.datetime
+          end of the time period to consider
     freq: str
         specify whether to calculate the monthly or yearly ITN
 
@@ -223,10 +228,9 @@ def average_itn_calculation(
     pandas.core.frame.DataFrame
           computed monthly or yealry ITN
     """
+    itn = compute_itn(read_protocol, stations_itn, start_date, end_date)[1]
 
-    itn = compute_itn(stations_itn)[1]
-
-    daterange = pd.date_range(start=start, end=end)
+    daterange = pd.date_range(start=start_date, end=end_date)
     if freq == "monthly":
         index = np.unique(daterange.strftime("%Y-%m"))
     elif freq == "yearly":
@@ -253,6 +257,8 @@ def itn(
 
     Parameters
     ----------
+    read_protocol: ReadTemperaturesGateway
+          protocol used to read the data
     stations_itn: Iterable
           list of the unique ID of the meteorological stations to be
           considered to calculate the ITN.
@@ -280,14 +286,27 @@ def itn(
 
 
 # --------------------------------------------------------------------
-def monthly_itn(stations_itn: tuple[str] = None) -> np.array:
+def monthly_itn(
+    *,
+    read_protocol: ReadTemperaturesGateway,
+    stations_itn: Iterable | None = None,
+    start_date: str | pd.Timestamp | datetime.datetime | None = None,
+    end_date: str | pd.Timestamp | datetime.datetime | None = None,
+) -> np.array:
     """
     Export the monthly ITN in an array.
 
     Parameters
     ----------
-    list or tuple
-          list of the stations to be considered to calculate the ITN.
+    read_protocol: ReadTemperaturesGateway
+          protocol used to read the data
+    stations_itn: Iterable
+          list of the unique ID of the meteorological stations to be
+          considered to calculate the ITN.
+    start_date: str or pd.Timestamp or datetime.datetime
+          beginning of the time period to consider
+    end_date: str or pd.Timestamp or datetime.datetime
+          end of the time period to consider
 
     Returns
     -------
@@ -299,12 +318,12 @@ def monthly_itn(stations_itn: tuple[str] = None) -> np.array:
     if stations_itn is None:
         stations_itn = DEFAULT_ITN_STATIONS_LIST
 
-    itn = average_itn_calculation(stations_itn, "2026-01-01", "2026-01-31", "monthly")[
-        1
-    ]
+    itn = average_itn_calculation(
+        read_protocol, stations_itn, start_date, end_date, freq="monthly"
+    )
 
-    dates = itn.index.strftime("%Y-%m-%d").to_numpy()
-    values = itn.values
+    dates = itn.index.to_numpy()
+    values = itn["avg_itn"].values
 
     return np.array(list(zip(dates, values, strict=True)))
 
