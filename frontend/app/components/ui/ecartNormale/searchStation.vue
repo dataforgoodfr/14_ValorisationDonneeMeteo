@@ -17,20 +17,21 @@ const { data: stationsData, refresh } = await useApiFetch<
     query: {
         search: searchQuery,
     },
-    watch: [searchQuery],
+    immediate: true,
 });
 
-watch(stationsData, (newData) => {
+function processStations(newData: PaginatedResponse<Station> | undefined) {
     if (!newData) return;
-
     if (page.value === 1) {
         allStations.value = newData.results;
     } else {
         allStations.value = [...allStations.value, ...newData.results];
     }
-
     hasMore.value = !!newData.next;
-});
+}
+
+watch(stationsData, processStations);
+processStations(stationsData.value);
 
 function onSelectStation(_event: Event, station: Station) {
     if (station_ids.value && station_ids.value.length > 0) {
@@ -50,13 +51,6 @@ function onUnselectStation(_event: Event, station: Station) {
     );
 }
 
-const debouncedSearch = refDebounced(searchQuery, 300);
-
-watch(debouncedSearch, () => {
-    page.value = 1;
-    refresh();
-});
-
 const filteredStations = computed(() =>
     allStations.value?.filter((station) =>
         deviationStore.selected_stations.length > 0
@@ -66,7 +60,15 @@ const filteredStations = computed(() =>
             : true,
     ),
 );
-const sentinel = ref<HTMLElement | null>(null); // élément sentinelle en bas de liste
+
+const debouncedSearch = refDebounced(searchQuery, 300);
+
+watch(debouncedSearch, () => {
+    page.value = 1;
+    refresh();
+});
+
+const sentinel = ref<HTMLElement | undefined>(undefined);
 
 function loadMore() {
     if (!hasMore.value) return;
@@ -102,7 +104,7 @@ useIntersectionObserver(sentinel, ([entry]) => {
     </ul>
     <USeparator v-if="selected_stations.length > 0" />
 
-    <div v-if="searchQuery" class="max-h-64 overflow-y-auto">
+    <div class="max-h-64 overflow-y-auto">
         <ul>
             <li
                 v-for="(station, index) in filteredStations"
@@ -115,6 +117,9 @@ useIntersectionObserver(sentinel, ([entry]) => {
                     >{{ station.nom }} ({{ station.departement }})</span
                 >
                 <UIcon name="i-lucide-plus" class="shrink-0" />
+            </li>
+            <li ref="sentinel" class="py-1 text-center text-xs text-gray-400">
+                <span v-if="hasMore">Chargement...</span>
             </li>
         </ul>
     </div>
