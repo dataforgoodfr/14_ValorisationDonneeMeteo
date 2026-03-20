@@ -8,6 +8,7 @@
 import ItnChart from "~/components/charts/ItnChart.vue";
 import PagesHero from "~/components/layout/PagesHero.vue";
 import SelectBar from "~/components/ui/itn/selectBar.vue";
+import ChartLayout from "~/components/layout/ChartLayout.vue";
 
 const heroData = {
     title: "ITN",
@@ -22,11 +23,13 @@ const heroData = {
             :title="heroData.title"
             :description="heroData.description"
         />
-        <div
-            class="inline-flex flex-col divide-y divide-gray-200 border border-gray-200 rounded-lg overflow-hidden"
-        >
-            <SelectBar />
-            <ItnChart class="px-3 py-2" />
-        </div>
+        <ChartLayout>
+            <template #select-bar>
+                <SelectBar />
+            </template>
+            <template #chart>
+                <ItnChart class="px-3 py-2" />
+            </template>
+        </ChartLayout>
     </UContainer>
 </template>

@@ -3,6 +3,8 @@ import PagesHero from "~/components/layout/PagesHero.vue";
 import Barchart from "~/components/charts/Barchart.vue";
 import LineChart from "~/components/charts/LineChart.vue";
 import MapEcartNormaleClient from "~/components/charts/MapEcartNormale.vue";
+import ChartLayout from "~/components/layout/ChartLayout.vue";
+import FakeSidebar from "~/components/ui/commons/FakeSidebar.vue";
 
 const heroData = {
     title: "Ecart à la normale",
@@ -20,14 +22,25 @@ const value = ref("Bar Chart");
 -->
 
 <template>
-    <UContainer>
+    <UContainer class="flex flex-col gap-y-16">
         <PagesHero
             :title="heroData.title"
             :description="heroData.description"
         />
-        <USelect v-model="value" :items="items" />
-        <Barchart v-if="value === `Bar Chart`" />
-        <LineChart v-if="value === `Line Chart`" />
+        <ChartLayout :has-sidebar="true">
+            <template #select-bar>
+                <div class="grid grid-cols-8 gap-4 p-4">
+                    <USelect v-model="value" :items="items" />
+                </div>
+            </template>
+            <template #sidebar>
+                <FakeSidebar />
+            </template>
+            <template #chart>
+                <Barchart v-if="value === `Bar Chart`" />
+                <LineChart v-if="value === `Line Chart`" />
+            </template>
+        </ChartLayout>
         <MapEcartNormaleClient />
         <!-- <StationTable /> -->
     </UContainer>
