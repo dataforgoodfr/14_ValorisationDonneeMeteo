@@ -20,8 +20,9 @@ def fake_temperature_deviation_dep():
         TemperatureDeviationDependencyProvider.reset()
 
 
+@pytest.mark.usefixtures("fake_temperature_deviation_dep")
 def test_get_temperature_deviation_day_happy_path(
-    client: APIClient, fake_temperature_deviation_dep: None
+    client: APIClient,
 ):
     resp = client.get(
         "/api/v1/temperature/deviation",
@@ -62,9 +63,8 @@ def test_get_temperature_deviation_day_happy_path(
     assert len(s2["data"]) == 3
 
 
-def test_get_temperature_deviation_without_national(
-    client: APIClient, fake_temperature_deviation_dep: None
-):
+@pytest.mark.usefixtures("fake_temperature_deviation_dep")
+def test_get_temperature_deviation_without_national(client: APIClient):
     resp = client.get(
         "/api/v1/temperature/deviation",
         {
@@ -123,8 +123,9 @@ def test_get_temperature_deviation_returns_400_if_date_start_gt_date_end(
     assert "date_end" in body["error"]["details"]
 
 
+@pytest.mark.usefixtures("fake_temperature_deviation_dep")
 def test_get_temperature_deviation_endpoint_uses_dependency_provider(
-    client: APIClient, fake_temperature_deviation_dep: None
+    client: APIClient,
 ):
     resp = client.get(
         "/api/v1/temperature/deviation",
