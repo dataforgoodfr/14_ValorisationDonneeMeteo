@@ -4,7 +4,7 @@ import Barchart from "~/components/charts/Barchart.vue";
 import LineChart from "~/components/charts/LineChart.vue";
 import MapEcartNormaleClient from "~/components/charts/MapEcartNormale.vue";
 import ChartLayout from "~/components/layout/ChartLayout.vue";
-import FakeSidebar from "~/components/ui/commons/FakeSidebar.vue";
+import ChartSidebar from "~/components/ui/commons/ChartSidebar.vue";
 
 const heroData = {
     title: "Ecart à la normale",
@@ -34,7 +34,7 @@ const value = ref("Bar Chart");
                 </div>
             </template>
             <template #sidebar>
-                <FakeSidebar />
+                <ChartSidebar />
             </template>
             <template #chart>
                 <Barchart v-if="value === `Bar Chart`" />
