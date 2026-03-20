@@ -2,8 +2,13 @@
 import { refDebounced, useIntersectionObserver } from "@vueuse/core";
 import type { PaginatedResponse, Station } from "~/types/api";
 
-const deviationStore = useDeviationStore();
-const { station_ids, selected_stations } = storeToRefs(deviationStore);
+interface Props {
+    selectedStations: Station[];
+    onSelect: (station: Station) => void;
+    onUnselect: (station: Station) => void;
+}
+const props = defineProps<Props>();
+
 const { useApiFetch } = useApiClient();
 
 const searchQuery = ref("");
@@ -34,29 +39,17 @@ watch(stationsData, processStations);
 processStations(stationsData.value);
 
 function onSelectStation(_event: Event, station: Station) {
-    if (station_ids.value && station_ids.value.length > 0) {
-        deviationStore.setStations([
-            ...deviationStore.selected_stations,
-            station,
-        ]);
-    } else {
-        deviationStore.setStations([station]);
-    }
+    props.onSelect(station);
 }
 
 function onUnselectStation(_event: Event, station: Station) {
-    if (!deviationStore.setStations) return;
-    deviationStore.setStations(
-        deviationStore.selected_stations.filter((s) => s.code !== station.code),
-    );
+    props.onUnselect(station);
 }
 
 const filteredStations = computed(() =>
     allStations.value?.filter((station) =>
-        deviationStore.selected_stations.length > 0
-            ? !deviationStore.selected_stations.some(
-                  (s) => s.code === station.code,
-              )
+        props.selectedStations.length > 0
+            ? !props.selectedStations.some((s) => s.code === station.code)
             : true,
     ),
 );
@@ -86,12 +79,12 @@ useIntersectionObserver(sentinel, ([entry]) => {
         trailing-icon="i-lucide-search"
         size="md"
         variant="outline"
-        placeholder="Entrez le nom d'une station ou dept"
+        placeholder="Entrez le nom d'une station"
     />
 
     <ul>
         <li
-            v-for="(station, index) in selected_stations"
+            v-for="(station, index) in props.selectedStations"
             :key="index"
             class="cursor-pointer pr-2 font-bold py-1 text-sm flex items-center justify-between"
             @click="onUnselectStation($event, station)"
@@ -102,7 +95,7 @@ useIntersectionObserver(sentinel, ([entry]) => {
             <UIcon name="i-lucide-x" class="shrink-0" />
         </li>
     </ul>
-    <USeparator v-if="selected_stations.length > 0" />
+    <USeparator v-if="props.selectedStations.length > 0" />
 
     <div class="max-h-64 overflow-y-auto">
         <ul>
