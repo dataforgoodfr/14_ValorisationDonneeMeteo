@@ -61,19 +61,23 @@ describe("useDeviationSelectBarAdapter", () => {
     it("should return adapter with all required properties", () => {
         const adapter = useDeviationSelectBarAdapter();
 
-        expect(adapter).toHaveProperty("granularity");
-        expect(adapter).toHaveProperty("pickedDateStart");
-        expect(adapter).toHaveProperty("pickedDateEnd");
-        expect(adapter).toHaveProperty("sliceTypeSwitchEnabled");
-        expect(adapter).toHaveProperty("sliceType");
-        expect(adapter).toHaveProperty("sliceDatepickerDate");
-        expect(adapter).toHaveProperty("chartTypeSwitchEnabled");
-        expect(adapter).toHaveProperty("chartType");
-        expect(adapter).toHaveProperty("data");
-        expect(adapter).toHaveProperty("pending");
-        expect(adapter).toHaveProperty("setGranularity");
-        expect(adapter).toHaveProperty("setChartType");
-        expect(adapter).toHaveProperty("features");
+        expect(adapter).toEqual(
+            expect.objectContaining({
+                granularity: expect.anything(),
+                pickedDateStart: expect.anything(),
+                pickedDateEnd: expect.anything(),
+                sliceTypeSwitchEnabled: expect.anything(),
+                sliceType: expect.anything(),
+                sliceDatepickerDate: expect.anything(),
+                chartTypeSwitchEnabled: expect.anything(),
+                chartType: expect.anything(),
+                data: expect.anything(),
+                pending: expect.anything(),
+                setGranularity: expect.anything(),
+                setChartType: expect.anything(),
+                features: expect.anything(),
+            }),
+        );
     });
 
     it("should expose correct feature flags", () => {

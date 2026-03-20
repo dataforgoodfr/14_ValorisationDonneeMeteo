@@ -5,7 +5,7 @@ import type { TemperatureRecord } from "~/types/api";
 import { UBadge, UInput } from "#components";
 import { storeToRefs } from "pinia";
 import { useRecordsStore } from "~/stores/recordsStore";
-import DayPicker from "../../ui/commons/selectBar/dayPicker.vue";
+import DayPicker from "~/components/ui/commons/selectBar/dayPicker.vue";
 
 const store = useRecordsStore();
 const {

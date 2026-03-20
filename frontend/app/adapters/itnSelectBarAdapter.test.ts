@@ -56,18 +56,22 @@ describe("useItnSelectBarAdapter", () => {
     it("should return adapter with all required properties", () => {
         const adapter = useItnSelectBarAdapter();
 
-        expect(adapter).toHaveProperty("granularity");
-        expect(adapter).toHaveProperty("pickedDateStart");
-        expect(adapter).toHaveProperty("pickedDateEnd");
-        expect(adapter).toHaveProperty("sliceTypeSwitchEnabled");
-        expect(adapter).toHaveProperty("sliceType");
-        expect(adapter).toHaveProperty("sliceDatepickerDate");
-        expect(adapter).toHaveProperty("chartRef");
-        expect(adapter).toHaveProperty("data");
-        expect(adapter).toHaveProperty("pending");
-        expect(adapter).toHaveProperty("setGranularity");
-        expect(adapter).toHaveProperty("turnOffSliceType");
-        expect(adapter).toHaveProperty("features");
+        expect(adapter).toEqual(
+            expect.objectContaining({
+                granularity: expect.anything(),
+                pickedDateStart: expect.anything(),
+                pickedDateEnd: expect.anything(),
+                sliceTypeSwitchEnabled: expect.anything(),
+                sliceType: expect.anything(),
+                sliceDatepickerDate: expect.anything(),
+                chartRef: expect.anything(),
+                data: expect.anything(),
+                pending: expect.anything(),
+                setGranularity: expect.anything(),
+                turnOffSliceType: expect.anything(),
+                features: expect.anything(),
+            }),
+        );
     });
 
     it("should expose correct feature flags", () => {
