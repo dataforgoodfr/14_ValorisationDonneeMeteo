@@ -56,28 +56,32 @@ describe("useItnSelectBarAdapter", () => {
     it("should return adapter with all required properties", () => {
         const adapter = useItnSelectBarAdapter();
 
-        expect(adapter).toEqual(
-            expect.objectContaining({
-                granularity: expect.anything(),
-                pickedDateStart: expect.anything(),
-                pickedDateEnd: expect.anything(),
-                sliceTypeSwitchEnabled: expect.anything(),
-                sliceType: expect.anything(),
-                sliceDatepickerDate: expect.anything(),
-                chartRef: expect.anything(),
-                data: expect.anything(),
-                pending: expect.anything(),
-                setGranularity: expect.anything(),
-                turnOffSliceType: expect.anything(),
-                features: expect.anything(),
+        expect(adapter).toMatchObject({
+            granularity: expect.objectContaining({ value: expect.any(String) }),
+            pickedDateStart: expect.objectContaining({
+                value: expect.any(Date),
             }),
-        );
+            pickedDateEnd: expect.objectContaining({ value: expect.any(Date) }),
+            sliceTypeSwitchEnabled: expect.objectContaining({
+                value: expect.any(Boolean),
+            }),
+            sliceType: expect.objectContaining({ value: expect.any(String) }),
+            sliceDatepickerDate: expect.objectContaining({
+                value: expect.any(Date),
+            }),
+            chartRef: expect.objectContaining({ value: undefined }),
+            data: expect.objectContaining({ value: undefined }),
+            pending: expect.objectContaining({ value: expect.any(Boolean) }),
+            setGranularity: expect.any(Function),
+            turnOffSliceType: expect.any(Function),
+            features: expect.any(Object),
+        });
     });
 
     it("should expose correct feature flags", () => {
         const adapter = useItnSelectBarAdapter();
 
-        expect(adapter.features).toEqual({
+        expect(adapter.features).toMatchObject({
             hasSliceType: true,
             hasChartTypeSelector: false,
             hasExport: true,

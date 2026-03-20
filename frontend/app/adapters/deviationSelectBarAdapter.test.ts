@@ -61,23 +61,29 @@ describe("useDeviationSelectBarAdapter", () => {
     it("should return adapter with all required properties", () => {
         const adapter = useDeviationSelectBarAdapter();
 
-        expect(adapter).toEqual(
-            expect.objectContaining({
-                granularity: expect.anything(),
-                pickedDateStart: expect.anything(),
-                pickedDateEnd: expect.anything(),
-                sliceTypeSwitchEnabled: expect.anything(),
-                sliceType: expect.anything(),
-                sliceDatepickerDate: expect.anything(),
-                chartTypeSwitchEnabled: expect.anything(),
-                chartType: expect.anything(),
-                data: expect.anything(),
-                pending: expect.anything(),
-                setGranularity: expect.anything(),
-                setChartType: expect.anything(),
-                features: expect.anything(),
+        expect(adapter).toMatchObject({
+            granularity: expect.objectContaining({ value: expect.any(String) }),
+            pickedDateStart: expect.objectContaining({
+                value: expect.any(Date),
             }),
-        );
+            pickedDateEnd: expect.objectContaining({ value: expect.any(Date) }),
+            sliceTypeSwitchEnabled: expect.objectContaining({
+                value: expect.any(Boolean),
+            }),
+            sliceType: expect.objectContaining({ value: expect.any(String) }),
+            sliceDatepickerDate: expect.objectContaining({
+                value: expect.any(Date),
+            }),
+            chartTypeSwitchEnabled: expect.objectContaining({
+                value: expect.any(Boolean),
+            }),
+            chartType: expect.objectContaining({ value: expect.any(String) }),
+            data: expect.objectContaining({ value: undefined }),
+            pending: expect.objectContaining({ value: expect.any(Boolean) }),
+            setGranularity: expect.any(Function),
+            setChartType: expect.any(Function),
+            features: expect.any(Object),
+        });
     });
 
     it("should expose correct feature flags", () => {
