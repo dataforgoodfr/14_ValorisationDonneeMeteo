@@ -4,7 +4,14 @@ import datetime as dt
 from collections import defaultdict
 from dataclasses import dataclass
 
-from weather.models import QuotidienneITN
+from django.db.models import OuterRef, Subquery
+from django.db.models.functions import ExtractDay, ExtractMonth
+
+from weather.models import (
+    BaselineStationDailyMean19912020,
+    QuotidienneITN,
+    Station,
+)
 from weather.services.national_indicator.protocols import (
     NationalIndicatorDailyDataSource,
 )
@@ -16,6 +23,14 @@ from weather.services.national_indicator.stations import (
     expected_station_codes,
 )
 from weather.services.national_indicator.types import DailyPoint, DailySeriesQuery
+from weather.services.temperature_deviation.protocols import (
+    TemperatureDeviationDailyDataSource,
+)
+from weather.services.temperature_deviation.types import (
+    DailyDeviationPoint,
+    DailyDeviationSeriesQuery,
+    StationDailySeries,
+)
 
 
 def _normalize_reims(
@@ -130,3 +145,74 @@ class TimescaleNationalIndicatorDailyDataSource(NationalIndicatorDailyDataSource
             )
 
         return out
+
+
+class TimescaleTemperatureDeviationDailyDataSource(TemperatureDeviationDailyDataSource):
+    def _baseline_subquery(self):
+        return BaselineStationDailyMean19912020.objects.filter(
+            station_code=OuterRef("station_code"),
+            month=OuterRef("month"),
+            day=OuterRef("day"),
+        ).values("baseline_mean_tntxm")[:1]
+
+    def fetch_stations_daily_series(
+        self, query: DailyDeviationSeriesQuery
+    ) -> list[StationDailySeries]:
+        if not query.station_ids:
+            return []
+
+        baseline_sq = self._baseline_subquery()
+
+        rows = (
+            QuotidienneITN.objects.filter(
+                date__gte=query.date_start,
+                date__lte=query.date_end,
+                station_code__in=query.station_ids,
+            )
+            .annotate(
+                month=ExtractMonth("date"),
+                day=ExtractDay("date"),
+            )
+            .annotate(
+                baseline_mean=Subquery(baseline_sq),
+            )
+            .filter(baseline_mean__isnull=False)
+            .order_by("station_code", "date")
+            .values("station_code", "date", "tntxm", "baseline_mean")
+        )
+
+        # lookup station names (1 requête, pas de join lourd)
+        station_names = {
+            s.station_code: s.name
+            for s in Station.objects.filter(station_code__in=query.station_ids).only(
+                "station_code", "name"
+            )
+        }
+
+        grouped: dict[str, list[DailyDeviationPoint]] = defaultdict(list)
+
+        for row in rows:
+            grouped[row["station_code"]].append(
+                DailyDeviationPoint(
+                    date=row["date"],
+                    temperature=float(row["tntxm"]),
+                    baseline_mean=float(row["baseline_mean"]),
+                )
+            )
+
+        return [
+            StationDailySeries(
+                station_id=station_id,
+                station_name=station_names.get(station_id, station_id),
+                points=grouped[station_id],
+            )
+            for station_id in query.station_ids
+            if station_id in grouped
+        ]
+
+    def fetch_national_daily_series(
+        self, query: DailyDeviationSeriesQuery
+    ) -> list[DailyDeviationPoint]:
+        raise NotImplementedError(
+            "National deviation is not implemented yet: waiting for ITN baseline."
+        )

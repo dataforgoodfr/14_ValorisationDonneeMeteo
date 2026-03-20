@@ -1,7 +1,29 @@
+import pytest
 from rest_framework.test import APIClient
 
+from weather.bootstrap_temperature_deviation import (
+    TemperatureDeviationDependencyProvider,
+)
+from weather.data_sources.temperature_deviation_fake import (
+    FakeTemperatureDeviationDailyDataSource,
+)
 
-def test_get_temperature_deviation_day_happy_path(client: APIClient):
+
+@pytest.fixture
+def fake_temperature_deviation_dep():
+    TemperatureDeviationDependencyProvider.set_builder(
+        lambda: FakeTemperatureDeviationDailyDataSource()
+    )
+    try:
+        yield
+    finally:
+        TemperatureDeviationDependencyProvider.reset()
+
+
+@pytest.mark.usefixtures("fake_temperature_deviation_dep")
+def test_get_temperature_deviation_day_happy_path(
+    client: APIClient,
+):
     resp = client.get(
         "/api/v1/temperature/deviation",
         {
@@ -41,6 +63,7 @@ def test_get_temperature_deviation_day_happy_path(client: APIClient):
     assert len(s2["data"]) == 3
 
 
+@pytest.mark.usefixtures("fake_temperature_deviation_dep")
 def test_get_temperature_deviation_without_national(client: APIClient):
     resp = client.get(
         "/api/v1/temperature/deviation",
@@ -98,3 +121,24 @@ def test_get_temperature_deviation_returns_400_if_date_start_gt_date_end(
 
     assert body["error"]["code"] == "INVALID_PARAMETER"
     assert "date_end" in body["error"]["details"]
+
+
+@pytest.mark.usefixtures("fake_temperature_deviation_dep")
+def test_get_temperature_deviation_endpoint_uses_dependency_provider(
+    client: APIClient,
+):
+    resp = client.get(
+        "/api/v1/temperature/deviation",
+        {
+            "date_start": "2024-01-01",
+            "date_end": "2024-01-03",
+            "granularity": "day",
+            "station_ids": "07149",
+            "include_national": "false",
+        },
+    )
+
+    assert resp.status_code == 200
+    body = resp.json()
+    assert body["stations"][0]["station_id"] == "07149"
+    assert "national" not in body
