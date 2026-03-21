@@ -65,7 +65,7 @@ paths:
           required: true
           schema:
             type: string
-            enum: [ year, month, day ]
+            enum: [year, month, day]
           description: >
             Unité de l'axe des abscisses.
             - year : agrégation par année
@@ -152,7 +152,7 @@ paths:
                             temperature: 7.9
                             baseline_mean: 7.1
         "400":
-          $ref: '#/components/responses/BadRequest'
+          $ref: "#/components/responses/BadRequest"
 
   /temperature/extremes:
     get:
@@ -166,14 +166,14 @@ paths:
         - Temperature
       parameters: []
       responses:
-        '200':
+        "200":
           description: Succès
           content:
             application/json:
               schema:
                 type: object
-        '400':
-          $ref: '#/components/responses/BadRequest'
+        "400":
+          $ref: "#/components/responses/BadRequest"
 
   /temperature/records:
     get:
@@ -204,23 +204,40 @@ paths:
         - name: station_name_filter
           in: query
           description: filtre sur le nom de la station
+          required: false
           schema:
             type: string
             example: "par"
         - name: departement_filter
           in: query
           description: filtre sur le département de la station
+          required: false
           schema:
             type: string
             example: "31"
+        - name: region_filter
+          in: query
+          description: filtre sur la région de la station
+          required:
+          schema:
+            type: string
+            example: "occitanie"
 
+        - name: type_records
+          in: query
+          required: false
+          schema:
+            type: string
+            enum: [chaud, froid, tous]
+            default: tous
+          description: filtre sur le type records à renvoyer
       responses:
-        '200':
+        "200":
           description: Succès
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/TemperatureRecordsResponse'
+                $ref: "#/components/schemas/TemperatureRecordsResponse"
               examples:
                 paris_area:
                   summary: Records de température
@@ -233,9 +250,8 @@ paths:
                         TNN_date: "1954-02-01"
                         TXX_date: "2025-07-25"
 
-              
-        '400':
-          $ref: '#/components/responses/BadRequest'
+        "400":
+          $ref: "#/components/responses/BadRequest"
 
   /temperature/records/cumulative:
     get:
@@ -247,18 +263,16 @@ paths:
       operationId: getCumulativeRecords
       tags:
         - Temperature
-      parameters: [
-      
-      ]
+      parameters: []
       responses:
-        '200':
+        "200":
           description: Succès
           content:
             application/json:
               schema:
                 type: object
-        '400':
-          $ref: '#/components/responses/BadRequest'
+        "400":
+          $ref: "#/components/responses/BadRequest"
 
   /temperature/national-indicator:
     get:
@@ -309,7 +323,7 @@ paths:
           required: true
           schema:
             type: string
-            enum: [ year, month, day ]
+            enum: [year, month, day]
           description: >
             Granularité de la série temporelle.
             - year : un point par année
@@ -322,7 +336,7 @@ paths:
           required: false
           schema:
             type: string
-            enum: [ full, month_of_year, day_of_month ]
+            enum: [full, month_of_year, day_of_month]
             default: full
           description: >
             Filtre intra-période appliqué à chaque période (selon `granularity`).
@@ -382,14 +396,14 @@ paths:
         - Photos
       parameters: []
       responses:
-        '200':
+        "200":
           description: Succès
           content:
             application/json:
               schema:
                 type: object
-        '400':
-          $ref: '#/components/responses/BadRequest'
+        "400":
+          $ref: "#/components/responses/BadRequest"
 
   /stations:
     get:
@@ -438,12 +452,12 @@ paths:
             type: string
             example: '{"start":"2024-01-01","end":"2024-12-31"}'
       responses:
-        '200':
+        "200":
           description: Succès
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/StationsResponse'
+                $ref: "#/components/schemas/StationsResponse"
               examples:
                 paris_area:
                   summary: Stations région parisienne
@@ -462,9 +476,8 @@ paths:
                           start_date: "1948-01-01"
                           end_date: "2024-12-31"
                           completeness: 0.98
-        '400':
-          $ref: '#/components/responses/BadRequest'
-
+        "400":
+          $ref: "#/components/responses/BadRequest"
 
 components:
   schemas:
@@ -613,7 +626,7 @@ components:
               creation_year:
                 type: integer
               coordinates:
-                $ref: '#/components/schemas/Coordinates'
+                $ref: "#/components/schemas/Coordinates"
               altitude:
                 type: number
                 format: float
@@ -714,7 +727,7 @@ components:
                 example: "1991-2020"
               granularity:
                 type: string
-                enum: [ year, month, day ]
+                enum: [year, month, day]
                 description: "Granularité de la série (axe X)."
           national:
             $ref: "#/components/schemas/NationalTemperatureDeviationSeries"
@@ -762,36 +775,28 @@ components:
             required:
               - id
               - name
-              - TNN
-              - TXX
-              - TNN_date
-              - TXX_date
+              - records_chaud
+              - records_froid
             properties:
               id:
                 type: string
                 description: Identifiant unique de la station (ex "07149")
               name:
                 type: string
-              TNN:
-                type: number
-                format: float
-                minimum: -70
-                maximum: 100
-                description: valeur minimale de température enregistrée sur la station pour la période
-              TXX:
-                type: number
-                format: float
-                minimum: -70
-                maximum: 100
-                description: valeur maximale de température enregistrée sur la station pour la période
-              TNN_date:
-                type: string
-                format: date
-                description: horodate (UTC) d'enregistrement de la valeur maximale de température pour la station pour la période
-              TXX_date:
-                type: string
-                format: date
-                description: horodate (UTC) d'enregistrement de la valeur maximale de température pour la station pour la période
+              records_chaud:
+                type: array
+                items:
+                  $ref: "#/components/schemas/TemperatureRecord"
+
+    TemperatureRecord:
+      properties:
+        valeur:
+          type: number
+          description: valeur de la température pour ce record
+        date:
+          type: string
+          format: date
+          description: date à laquelle le record a été enregistré
 
   responses:
     BadRequest:
@@ -799,7 +804,7 @@ components:
       content:
         application/json:
           schema:
-            $ref: '#/components/schemas/Error'
+            $ref: "#/components/schemas/Error"
           examples:
             invalid_parameter:
               summary: Paramètre invalide
