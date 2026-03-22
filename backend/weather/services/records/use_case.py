@@ -4,7 +4,7 @@ from weather.services.records.protocols import (
     RecordsDataSource,
 )
 from weather.services.records.service import compute_records
-from weather.services.records.types import RecordPoint, RecordsQuery
+from weather.services.records.types import RecordPointSet, RecordsQuery
 
 
 def get_records(
@@ -14,7 +14,7 @@ def get_records(
     date_end: dt.date,
     station_name_filter: str | None = None,
     departement_filter: str | None = None,
-) -> list[RecordPoint] | None:
+) -> list[RecordPointSet] | None:
     query = RecordsQuery(
         date_start=date_start,
         date_end=date_end,

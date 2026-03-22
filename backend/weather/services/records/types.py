@@ -2,14 +2,18 @@ import datetime as dt
 from dataclasses import dataclass
 
 
+@dataclass
+class RecordValue:
+    valeur: float
+    date: dt.date
+
+
 @dataclass(frozen=True)
-class RecordPoint:
+class RecordPointSet:
     id: str
     name: str
-    tnn: float
-    txx: float
-    tnn_date: dt.date | None = None
-    txx_date: dt.date | None = None
+    records_chaud: list[RecordValue] | None = None
+    records_froid: list[RecordValue] | None = None
 
 
 @dataclass(frozen=True)

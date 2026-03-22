@@ -24,7 +24,7 @@ from weather.services.national_indicator.stations import (
 )
 from weather.services.national_indicator.types import DailyPoint, DailySeriesQuery
 from weather.services.records.protocols import RecordsDataSource
-from weather.services.records.types import RecordPoint, RecordsQuery
+from weather.services.records.types import RecordPointSet, RecordsQuery
 from weather.services.temperature_deviation.protocols import (
     TemperatureDeviationDailyDataSource,
 )
@@ -224,6 +224,6 @@ class TimescaleRecordsDataSource(RecordsDataSource):
     def __init__(self) -> None:
         pass
 
-    def fetch_records(self, query: RecordsQuery) -> list[RecordPoint] | None:
+    def fetch_records(self, query: RecordsQuery) -> list[RecordPointSet] | None:
         # a coder une fois le modèle de données défini
         return None
