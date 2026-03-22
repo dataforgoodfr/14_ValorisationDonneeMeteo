@@ -216,15 +216,6 @@ class RecordsSerializer(serializers.Serializer):
                 {"date_end": "date_end doit être >= date_start."}
             )
 
-        station_ids = attrs.get("station_ids", ())
-        include_national = attrs.get("include_national", True)
-
-        if not include_national and len(station_ids) == 0:
-            raise serializers.ValidationError(
-                {"station_ids": "Requis si include_national=false."}
-            )
-
-        attrs["station_ids"] = station_ids
         return attrs
 
 

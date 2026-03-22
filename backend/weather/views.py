@@ -181,6 +181,7 @@ class RecordsAPIView(APIView):
                 status=status.HTTP_400_BAD_REQUEST,
             )
         params = q.validated_data
+
         ds = RecordsDependencyProvider.get_dep()
         data = get_records(data_source=ds, **params)
         metadata = {

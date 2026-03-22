@@ -4,12 +4,11 @@ import datetime as dt
 from collections import defaultdict
 from dataclasses import dataclass
 
-from django.db.models import Max, Min, OuterRef, Q, Subquery
+from django.db.models import OuterRef, Subquery
 from django.db.models.functions import ExtractDay, ExtractMonth
 
 from weather.models import (
     BaselineStationDailyMean19912020,
-    HoraireTempsReel,
     QuotidienneITN,
     Station,
 )
@@ -226,42 +225,5 @@ class TimescaleRecordsDataSource(RecordsDataSource):
         pass
 
     def fetch_records(self, query: RecordsQuery) -> list[RecordPoint] | None:
-        qs = HoraireTempsReel.objects.filter(
-            reference_time__gte=query.date_start,
-            reference_time__lte=query.date_end,
-        )
-
-        # 1st get records values from timespan
-        min_maxes = qs.values("station__nom", "station__id").annotate(
-            txx=Max("t"),
-            tnn=Min("t"),
-        )
-
-        # 2nd loop to get dates
-        retdata = []
-        for record_point in min_maxes:
-            rqs = (
-                qs.filter(Q(t=record_point["txx"]) | Q(t=record_point["tnn"]))
-                .values("station", "t")
-                .annotate(RefT=Min("reference_time"))
-            )
-            tnn_date = None
-            txx_date = None
-            for point_date in rqs:
-                if point_date["t"] == record_point["tnn"]:
-                    tnn_date = point_date["RefT"]
-                if point_date["t"] == record_point["txx"]:
-                    txx_date = point_date["RefT"]
-
-            point = RecordPoint(
-                id=record_point["station__nom"],
-                name=record_point["station__id"],
-                txx=record_point["txx"],
-                tnn=record_point["tnn"],
-                tnn_date=tnn_date,
-                txx_date=txx_date,
-            )
-            retdata.append(point)
-
-        # shape API (time_series uniquement)
-        return retdata
+        # a coder une fois le modèle de données défini
+        return None

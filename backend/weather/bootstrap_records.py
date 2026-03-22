@@ -1,10 +1,15 @@
 from collections.abc import Callable
 
+from config import settings
+from weather.data_sources.records_fake import FakeRecordsDataSource
 from weather.services.records.protocols import RecordsDataSource
 
 
 def _default_builder() -> RecordsDataSource:
     from weather.data_sources.timescale import TimescaleRecordsDataSource
+
+    if settings.MOCKED_DATA:
+        return FakeRecordsDataSource()
 
     return TimescaleRecordsDataSource()
 
