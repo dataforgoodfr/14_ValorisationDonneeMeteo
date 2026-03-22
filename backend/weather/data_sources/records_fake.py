@@ -28,19 +28,19 @@ class FakeRecordsDataSource:
         self._seed = seed
 
     def fetch_records(self, query: RecordsQuery) -> list[RecordPointSet]:
-        Stations = [
+        stations = [
             _FakeStationInfo("01", "Station01"),
             _FakeStationInfo("02", "Station02"),
             _FakeStationInfo("03", "Station03"),
         ]
 
-        RetList = []
-        for p in Stations:
+        records = []
+        for p in stations:
             stationrecords = self.generate_station_fake_record(query)
 
-            RetList.append(self.extract_fake_records(p, stationrecords, query))
+            records.append(self.extract_fake_records(p, stationrecords, query))
 
-        return RetList
+        return records
 
     def extract_fake_records(
         self,
