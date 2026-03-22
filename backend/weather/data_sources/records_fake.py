@@ -53,20 +53,16 @@ class FakeRecordsDataSource:
         records_froid = []
         records_chaud = []
 
-        print("datapoints", len(datapoints))
         for point in datapoints:
             if current_min is None or current_min > point.t:
                 current_min = point.t
-                print(station, current_min, "-", point.d)
                 if point.d >= query.date_start and point.d <= query.date_end:
                     records_froid.append(RecordValue(current_min, point.d))
             if current_max is None or current_max < point.t:
                 current_max = point.t
-                print(station, "_", current_max, point.d)
                 if point.d >= query.date_start and point.d <= query.date_end:
                     records_chaud.append(RecordValue(current_max, point.d))
 
-        print(station.id, records_chaud, records_froid)
         return RecordPointSet(station.id, station.nom, records_chaud, records_froid)
 
     ## Random sequence of temperatures from day_start to enddate
