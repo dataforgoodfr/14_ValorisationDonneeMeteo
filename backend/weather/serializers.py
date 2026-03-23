@@ -203,11 +203,6 @@ class TemperatureDeviationQuerySerializer(serializers.Serializer):
     station_ids = CommaSeparatedStationIdsField(required=False)
     include_national = serializers.BooleanField(required=False, default=True)
 
-
-class RecordsSerializer(serializers.Serializer):
-    date_start = serializers.DateField(required=True)
-    date_end = serializers.DateField(required=True)
-
     def validate(self, attrs):
         ds = attrs["date_start"]
         de = attrs["date_end"]
@@ -216,6 +211,15 @@ class RecordsSerializer(serializers.Serializer):
                 {"date_end": "date_end doit être >= date_start."}
             )
 
+        station_ids = attrs.get("station_ids", ())
+        include_national = attrs.get("include_national", True)
+
+        if not include_national and len(station_ids) == 0:
+            raise serializers.ValidationError(
+                {"station_ids": "Requis si include_national=false."}
+            )
+
+        attrs["station_ids"] = station_ids
         return attrs
 
 
