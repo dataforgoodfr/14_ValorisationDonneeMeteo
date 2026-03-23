@@ -1,8 +1,26 @@
-from weather.services.records.protocols import RecordsDataSource
-from weather.services.records.types import RecordPointSet, RecordsQuery
+import datetime as dt
+
+from .protocols import RecordsDataSource
+from .types import RecordsQuery, StationRecords
 
 
 def compute_records(
-    data_source: RecordsDataSource, query: RecordsQuery
-) -> list[RecordPointSet]:
+    *,
+    data_source: RecordsDataSource,
+    date_start: dt.date,
+    date_end: dt.date,
+    station_ids: list[str] | tuple[str, ...] | None = None,
+    record_kind: str = "absolute",
+    record_scope: str = "all_time",
+    type_records: str = "all",
+) -> tuple[StationRecords, ...]:
+    query = RecordsQuery(
+        date_start=date_start,
+        date_end=date_end,
+        station_ids=tuple(station_ids or ()),
+        record_kind=record_kind,
+        record_scope=record_scope,
+        type_records=type_records,
+    )
+
     return data_source.fetch_records(query)

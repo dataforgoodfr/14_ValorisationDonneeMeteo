@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from typing import Protocol
 
-from .types import RecordPointSet, RecordsQuery
+from .types import RecordsQuery, StationRecords
 
 
 class RecordsDataSource(Protocol):
@@ -16,4 +16,4 @@ class RecordsDataSource(Protocol):
     def fetch_records(
         self,
         query: RecordsQuery,
-    ) -> list[RecordPointSet]: ...
+    ) -> tuple[StationRecords, ...]: ...

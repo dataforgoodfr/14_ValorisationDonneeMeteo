@@ -249,22 +249,60 @@ class TemperatureDeviationResponseSerializer(serializers.Serializer):
     stations = TemperatureDeviationStationSerializer(many=True)
 
 
-class RecordsMetadataSerializer:
+class TemperatureRecordsQuerySerializer(serializers.Serializer):
     date_start = serializers.DateField()
     date_end = serializers.DateField()
-    station_name_filter = serializers.StringRelatedField()
-    departement_filter = serializers.StringRelatedField()
+
+    station_ids = CommaSeparatedStationIdsField(required=False)
+
+    record_kind = serializers.ChoiceField(
+        choices=["historical", "absolute"],
+        required=False,
+        default="absolute",
+    )
+
+    record_scope = serializers.ChoiceField(
+        choices=["monthly", "seasonal", "all_time"],
+        required=False,
+        default="all_time",
+    )
+
+    type_records = serializers.ChoiceField(
+        choices=["hot", "cold", "all"],
+        required=False,
+        default="all",
+    )
+
+    def validate(self, attrs):
+        ds = attrs["date_start"]
+        de = attrs["date_end"]
+        if ds > de:
+            raise serializers.ValidationError(
+                {"date_end": "date_end doit être >= date_start."}
+            )
+        return attrs
 
 
-class RecordPointSerializer(serializers.Serializer):
+class TemperatureRecordSerializer(serializers.Serializer):
+    value = serializers.FloatField()
+    date = serializers.DateField()
+
+
+class TemperatureRecordsStationSerializer(serializers.Serializer):
     id = serializers.CharField()
     name = serializers.CharField()
-    tnn = serializers.FloatField()
-    txx = serializers.FloatField()
-    tnn_date = serializers.DateField()
-    txx_date = serializers.DateField()
+    hot_records = TemperatureRecordSerializer(many=True)
+    cold_records = TemperatureRecordSerializer(many=True)
 
 
-class RecordsResponseSerializer(serializers.Serializer):
-    metadata = RecordsMetadataSerializer()
-    records = RecordPointSerializer(many=True, allow_null=True)
+class TemperatureRecordsMetadataSerializer(serializers.Serializer):
+    date_start = serializers.DateField()
+    date_end = serializers.DateField()
+    record_kind = serializers.ChoiceField(choices=["historical", "absolute"])
+    record_scope = serializers.ChoiceField(choices=["monthly", "seasonal", "all_time"])
+    type_records = serializers.ChoiceField(choices=["hot", "cold", "all"])
+
+
+class TemperatureRecordsResponseSerializer(serializers.Serializer):
+    metadata = TemperatureRecordsMetadataSerializer()
+    stations = TemperatureRecordsStationSerializer(many=True)

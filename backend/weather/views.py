@@ -8,10 +8,10 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from weather.bootstrap_itn import ITNDependencyProvider
-from weather.bootstrap_records import RecordsDependencyProvider
 from weather.bootstrap_temperature_deviation import (
     TemperatureDeviationDependencyProvider,
 )
+from weather.data_sources.records_fake import FakeRecordsDataSource
 from weather.services.national_indicator.use_case import get_national_indicator
 from weather.services.records.use_case import get_records
 from weather.services.temperature_deviation.use_case import get_temperature_deviation
@@ -22,12 +22,12 @@ from .serializers import (
     ErrorSerializer,
     NationalIndicatorQuerySerializer,
     NationalIndicatorResponseSerializer,
-    RecordsResponseSerializer,
-    RecordsSerializer,
     StationDetailSerializer,
     StationSerializer,
     TemperatureDeviationQuerySerializer,
     TemperatureDeviationResponseSerializer,
+    TemperatureRecordsQuerySerializer,
+    TemperatureRecordsResponseSerializer,
 )
 
 
@@ -170,7 +170,7 @@ class RecordsAPIView(APIView):
     permission_classes = []
 
     def get(self, request):
-        q = RecordsSerializer(data=request.query_params)
+        q = TemperatureRecordsQuerySerializer(data=request.query_params)
         if not q.is_valid():
             return Response(
                 ErrorSerializer.build(
@@ -182,33 +182,17 @@ class RecordsAPIView(APIView):
             )
         params = q.validated_data
 
-        ds = RecordsDependencyProvider.get_dep()
-        data = get_records(data_source=ds, **params)
-        metadata = {
-            "date_start": params["date_start"],
-            "date_end": params["date_end"],
-        }
-
-        if "station_name_filter" in params:
-            metadata["station_name_filter"] = params["station_name_filter"]
-
-        if "departement_filter" in params:
-            metadata["departement_filter"] = params["departement_filter"]
-
+        ds = FakeRecordsDataSource()
+        stations = get_records(data_source=ds, **params)
         full_payload = {
-            "metadata": metadata,
-            "records": data,
+            "metadata": {
+                "date_start": params["date_start"],
+                "date_end": params["date_end"],
+                "record_kind": params["record_kind"],
+                "record_scope": params["record_scope"],
+                "type_records": params["type_records"],
+            },
+            "stations": stations,
         }
-        out = RecordsResponseSerializer(data=full_payload)
-        out.is_valid(raise_exception=True)
-
+        out = TemperatureRecordsResponseSerializer(full_payload)
         return Response(out.data, status=status.HTTP_200_OK)
-
-    """
-    GET /api/v1/temperature/records
-
-    implémentation données mockées
-    """
-
-    authentication_classes = []
-    permission_classes = []

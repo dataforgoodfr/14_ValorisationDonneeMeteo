@@ -2,24 +2,25 @@ import datetime as dt
 from dataclasses import dataclass
 
 
-@dataclass
-class RecordValue:
-    valeur: float
+@dataclass(frozen=True)
+class TemperatureRecord:
+    value: float
     date: dt.date
 
 
 @dataclass(frozen=True)
-class RecordPointSet:
+class StationRecords:
     id: str
     name: str
-    records_chaud: list[RecordValue] | None = None
-    records_froid: list[RecordValue] | None = None
+    hot_records: tuple[TemperatureRecord, ...]
+    cold_records: tuple[TemperatureRecord, ...]
 
 
 @dataclass(frozen=True)
 class RecordsQuery:
     date_start: dt.date
     date_end: dt.date
-
-    station_name_filter: str | None
-    departement_filter: str | None
+    station_ids: tuple[str, ...]
+    record_kind: str  # "historical" | "absolute"
+    record_scope: str  # "monthly" | "seasonal" | "all_time"
+    type_records: str  # "hot" | "cold" | "all"
