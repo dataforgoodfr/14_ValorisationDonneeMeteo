@@ -218,7 +218,7 @@ paths:
         - name: region_filter
           in: query
           description: filtre sur la région de la station
-          required:
+          required: false
           schema:
             type: string
             example: "occitanie"
