@@ -1,9 +1,3 @@
-<!--
- Objectifs V0 :
- - Page d'accueil sans contenu
- - Dois simplement être wrappé par les Header + Footer (app.vue)
--->
-
 <script setup lang="ts">
 import type { ButtonProps } from "@nuxt/ui";
 
