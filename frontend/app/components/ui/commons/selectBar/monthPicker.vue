@@ -1,12 +1,9 @@
 <script setup lang="ts">
 import DatePicker from "primevue/datepicker";
-import { useItnStore } from "~/stores/itnStore";
-import { storeToRefs } from "pinia";
 import { useCustomDate } from "#imports";
+import type { SelectBarAdapter } from "~/components/ui/commons/selectBar/types";
 
-const itnStore = useItnStore();
-const { picked_date_start, picked_date_end } = storeToRefs(itnStore);
-
+const adapter = inject<SelectBarAdapter>("selectBarAdapter")!;
 const dates = useCustomDate();
 
 const pt = {
@@ -78,9 +75,9 @@ const pt = {
         <div class="flex flex-col text-center gap-1">
             <p class="text-sm text-default">Mois de début</p>
             <DatePicker
-                v-model="picked_date_start"
+                v-model="adapter.pickedDateStart.value"
                 :min-date="dates.absoluteMinDataDate.value"
-                :max-date="picked_date_end"
+                :max-date="adapter.pickedDateEnd.value"
                 view="month"
                 date-format="mm/yy"
                 :pt="pt"
@@ -96,8 +93,8 @@ const pt = {
         <div class="flex flex-col text-center gap-1">
             <p class="text-sm text-default">Mois de fin</p>
             <DatePicker
-                v-model="picked_date_end"
-                :min-date="picked_date_start"
+                v-model="adapter.pickedDateEnd.value"
+                :min-date="adapter.pickedDateStart.value"
                 :max-date="dates.twoDaysAgo.value"
                 view="month"
                 date-format="mm/yy"
