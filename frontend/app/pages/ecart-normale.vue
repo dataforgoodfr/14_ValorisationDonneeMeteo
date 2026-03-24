@@ -2,9 +2,12 @@
 import PagesHero from "~/components/layout/PagesHero.vue";
 import Barchart from "~/components/charts/Barchart.vue";
 import LineChart from "~/components/charts/LineChart.vue";
-import MapEcartNormaleClient from "~/components/charts/MapEcartNormale.vue";
 import ChartLayout from "~/components/layout/ChartLayout.vue";
 import ChartSidebar from "~/components/ui/commons/ChartSidebar.vue";
+import { useDeviationSelectBarAdapter } from "~/adapters/deviationSelectBarAdapter";
+import SelectBar from "~/components/ui/commons/selectBar/selectBar.vue";
+
+const selectBarAdapter = useDeviationSelectBarAdapter();
 
 const heroData = {
     title: "Ecart à la normale",
@@ -12,11 +15,6 @@ const heroData = {
         'L\'écart à la normale est la différence entre la moyenne des températures sur une période, et les températures normales. Les " normales " sont calculées sur 30 ans et mises à jour toutes les décennies.',
 };
 </script>
-
-<!--
- Objectifs V0 :
- - A Réaliser : https://github.com/dataforgoodfr/14_ValorisationDonneeMeteo/issues/7
--->
 
 <template>
     <UContainer class="flex flex-col gap-y-16">
@@ -26,19 +24,17 @@ const heroData = {
         />
         <ChartLayout :has-sidebar="true">
             <template #select-bar>
-                <div class="grid grid-cols-8 gap-4 p-4">
-                    <USelect v-model="value" :items="items" />
-                </div>
+                <SelectBar :adapter="selectBarAdapter" />
             </template>
             <template #sidebar>
                 <ChartSidebar />
             </template>
             <template #chart>
-                <Barchart v-if="value === `Bar Chart`" />
-                <LineChart v-if="value === `Line Chart`" />
+                <Barchart v-if="selectBarAdapter.chartType?.value === `bar`" />
+                <LineChart
+                    v-if="selectBarAdapter.chartType?.value === `line`"
+                />
             </template>
         </ChartLayout>
-        <MapEcartNormaleClient />
-        <!-- <StationTable /> -->
     </UContainer>
 </template>
