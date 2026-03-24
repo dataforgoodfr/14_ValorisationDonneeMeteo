@@ -31,7 +31,6 @@ const stationHasMore = ref(false);
 const stationFilter = computed<StationFilters>(() => ({
     search: debouncedQuery.value,
     limit: 20,
-    offset: stationPage.value * 20,
 }));
 
 const {
@@ -132,10 +131,6 @@ const filterOptions = computed(() => {
         :filter-options="filterOptions"
         :filters="filters"
         :async-pending="{ name: stationPending }"
-        :async-has-more="{ name: stationHasMore }"
-        @update:filter="onUpdateFilter"
-        @clear="clearFilter"
-        @search="onSearch"
         @load-more="onLoadMore"
     >
         <template #actions>
