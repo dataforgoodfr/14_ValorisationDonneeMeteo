@@ -119,9 +119,9 @@ const pt = {
         <div class="flex flex-col text-center gap-1">
             <p class="text-sm text-default">Jour de fin</p>
             <DatePicker
-                v-model="localStartDate"
-                :min-date="props.minDate"
-                :max-date="localEndDate"
+                v-model="localEndDate"
+                :min-date="localStartDate"
+                :max-date="props.maxDate"
                 date-format="dd/mm/yy"
                 :pt="pt"
                 unstyled
