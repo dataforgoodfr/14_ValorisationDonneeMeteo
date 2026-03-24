@@ -7,7 +7,7 @@
 // import CombinedChart from "~/components/charts/CombinedChart.vue";
 import ItnChart from "~/components/charts/ItnChart.vue";
 import PagesHero from "~/components/layout/PagesHero.vue";
-import SelectBar from "~/components/ui/itn/selectBar.vue";
+import SelectBar from "~/components/ui/commons/selectBar/selectBar.vue";
 import ChartLayout from "~/components/layout/ChartLayout.vue";
 
 const heroData = {
