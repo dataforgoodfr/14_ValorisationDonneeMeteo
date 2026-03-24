@@ -13,7 +13,6 @@ export const useDeviationSelectBarAdapter =
             sliceType,
             sliceDatepickerDate,
             chartTypeSwitchEnabled,
-            chartType,
             deviationData,
             pending,
         } = storeToRefs(store);
@@ -26,7 +25,6 @@ export const useDeviationSelectBarAdapter =
             sliceType,
             sliceDatepickerDate,
             chartTypeSwitchEnabled,
-            chartType,
             data: deviationData,
             pending,
             setGranularity: store.setGranularity,
