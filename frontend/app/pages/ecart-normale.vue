@@ -3,10 +3,8 @@ import PagesHero from "~/components/layout/PagesHero.vue";
 import Barchart from "~/components/charts/Barchart.vue";
 import LineChart from "~/components/charts/LineChart.vue";
 import MapEcartNormaleClient from "~/components/charts/MapEcartNormale.vue";
-import SelectBar from "~/components/ui/commons/selectBar/selectBar.vue";
-import { useDeviationSelectBarAdapter } from "~/adapters/deviationSelectBarAdapter";
-
-const selectBarAdapter = useDeviationSelectBarAdapter();
+import ChartLayout from "~/components/layout/ChartLayout.vue";
+import ChartSidebar from "~/components/ui/commons/ChartSidebar.vue";
 
 const heroData = {
     title: "Ecart à la normale",
@@ -21,20 +19,25 @@ const heroData = {
 -->
 
 <template>
-    <UContainer>
+    <UContainer class="flex flex-col gap-y-16">
         <PagesHero
             :title="heroData.title"
             :description="heroData.description"
         />
-        <SelectBar :adapter="selectBarAdapter" />
-        <Barchart
-            v-if="selectBarAdapter.chartType!.value === `bar`"
-            :adapter="selectBarAdapter"
-        />
-        <LineChart
-            v-if="selectBarAdapter.chartType!.value === `line`"
-            :adapter="selectBarAdapter"
-        />
+        <ChartLayout :has-sidebar="true">
+            <template #select-bar>
+                <div class="grid grid-cols-8 gap-4 p-4">
+                    <USelect v-model="value" :items="items" />
+                </div>
+            </template>
+            <template #sidebar>
+                <ChartSidebar />
+            </template>
+            <template #chart>
+                <Barchart v-if="value === `Bar Chart`" />
+                <LineChart v-if="value === `Line Chart`" />
+            </template>
+        </ChartLayout>
         <MapEcartNormaleClient />
         <!-- <StationTable /> -->
     </UContainer>
