@@ -1,26 +1,14 @@
 <script setup lang="ts">
-const itnStore = useItnStore();
-const { granularity, slice_type } = storeToRefs(itnStore);
+import DatePicker from "primevue/datepicker";
 
-// Slice Type Selection values
-const allSliceTypeValues = [
-    { label: "Période complète", value: "full" },
-    { label: "Jour spécifique", value: "day_of_month" },
-    { label: "Mois spécifique", value: "month_of_year" },
-];
-// Conditional Slice Type values display
-const displayedSlicedTypeValues = computed(() => {
-    if (granularity.value === "year") {
-        return allSliceTypeValues;
-    }
-    if (granularity.value === "month") {
-        return allSliceTypeValues.filter(
-            (value) => value.value !== "month_of_year",
-        );
-    }
-    return allSliceTypeValues.filter((value) => value.value === "full");
-});
-// Date picker styling
+const localStartDate = defineModel<Date>("startDate", { required: true });
+const localEndDate = defineModel<Date>("endDate", { required: true });
+
+const props = defineProps<{
+    minDate?: Date;
+    maxDate?: Date;
+}>();
+
 const pt = {
     root: { class: "relative w-36" },
     pcInputText: {
@@ -31,7 +19,7 @@ const pt = {
     panel: {
         class: "relative w-64 bg-default rounded-lg shadow-lg ring ring-inset ring-accented p-3 mt-1 z-50",
     },
-    header: { class: "hidden flex items-center justify-between mb-2" },
+    header: { class: "flex items-center justify-between mb-2" },
     pcPrevButton: {
         root: {
             class: "rounded-md p-1 hover:bg-elevated text-muted hover:text-highlighted transition-colors",
@@ -53,9 +41,9 @@ const pt = {
     selectYear: {
         class: "hover:bg-elevated rounded px-1 py-0.5 cursor-pointer text-highlighted text-sm transition-colors",
     },
+    // Day view — rendered as <table>, needs table-aware keys
     dayView: { class: "w-full border-collapse" },
-    tableHeaderCell: { class: "hidden" },
-    tableHeader: { class: "text-center pb-2" },
+    tableHeaderCell: { class: "text-center pb-2" },
     weekDay: { class: "text-xs font-medium text-muted" },
     dayCell: { class: "text-center p-0" },
     day: ({
@@ -73,6 +61,7 @@ const pt = {
                 : "",
         ],
     }),
+    // Month/Year views — rendered as <div> grids
     monthView: { class: "grid grid-cols-3 gap-1 mt-1" },
     yearView: { class: "grid grid-cols-3 gap-1 mt-1" },
     month: ({
@@ -106,94 +95,39 @@ const pt = {
         ],
     }),
 };
-// Date picker styling
-const ptDayMonthOfYear = {
-    ...pt,
-    selectYear: { class: "hidden" },
-    header: { class: "flex items-center justify-between mb-2" },
-    tableHeaderCell: {},
-};
-
-const showDayOfMonthPicker = computed(() => {
-    if (granularity.value === "month" && slice_type.value === "day_of_month") {
-        return true;
-    }
-    return false;
-});
-
-const showMonthOfYearPicker = computed(() => {
-    if (granularity.value === "year" && slice_type.value === "month_of_year") {
-        return true;
-    }
-    return false;
-});
-
-const showDayMonthOfYearPicker = computed(() => {
-    if (granularity.value === "year" && slice_type.value === "day_of_month") {
-        return true;
-    }
-    return false;
-});
 </script>
 
 <template>
-    <div class="flex gap-6">
+    <div id="container-day-picker" class="flex gap-2">
         <div class="flex flex-col text-center gap-1">
-            <p class="text-sm text-default">Type de moyenne</p>
-            <USelect
-                v-model="slice_type"
-                placeholder="Type de moyenne"
-                :items="displayedSlicedTypeValues"
-                default-value="full"
-            />
-        </div>
-        <div
-            v-if="showDayOfMonthPicker"
-            class="flex flex-col text-center gap-1"
-        >
-            <p class="text-sm text-default">Jour</p>
+            <p class="text-sm text-default">Jour de début</p>
             <DatePicker
-                v-model="itnStore.sliceDatepickerDate"
-                date-format="dd"
+                v-model="localStartDate"
+                :min-date="props.minDate"
+                :max-date="localEndDate"
+                date-format="dd/mm/yy"
                 :pt="pt"
                 unstyled
                 append-to="self"
                 show-icon
                 icon-display="input"
-                :show-other-months="false"
             />
         </div>
-        <div
-            v-if="showMonthOfYearPicker"
-            class="flex flex-col text-center gap-1"
-        >
-            <p class="text-sm text-default">Mois</p>
+        <div class="pt-7 self-center">
+            <UIcon name="i-lucide-arrow-right" />
+        </div>
+        <div class="flex flex-col text-center gap-1">
+            <p class="text-sm text-default">Jour de fin</p>
             <DatePicker
-                v-model="itnStore.sliceDatepickerDate"
-                view="month"
-                date-format="MM"
+                v-model="localStartDate"
+                :min-date="props.minDate"
+                :max-date="localEndDate"
+                date-format="dd/mm/yy"
                 :pt="pt"
                 unstyled
                 append-to="self"
                 show-icon
                 icon-display="input"
-                :show-other-months="false"
-            />
-        </div>
-        <div
-            v-if="showDayMonthOfYearPicker"
-            class="flex flex-col text-center gap-1"
-        >
-            <p class="text-sm text-default">Jour/Mois</p>
-            <DatePicker
-                v-model="itnStore.sliceDatepickerDate"
-                date-format="dd/mm"
-                :pt="ptDayMonthOfYear"
-                unstyled
-                append-to="self"
-                show-icon
-                icon-display="input"
-                :show-other-months="false"
             />
         </div>
     </div>
