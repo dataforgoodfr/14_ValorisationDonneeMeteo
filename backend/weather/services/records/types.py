@@ -18,10 +18,12 @@ class StationRecords:
 
 @dataclass(frozen=True)
 class RecordsQuery:
-    date_start: dt.date
-    date_end: dt.date
+    date_start: dt.date | None
+    date_end: dt.date | None
     station_ids: tuple[str, ...]
     departments: tuple[str, ...]
     record_kind: str  # "historical" | "absolute"
     record_scope: str  # "monthly" | "seasonal" | "all_time"
     type_records: str  # "hot" | "cold" | "all"
+    temperature_min: float | None
+    temperature_max: float | None

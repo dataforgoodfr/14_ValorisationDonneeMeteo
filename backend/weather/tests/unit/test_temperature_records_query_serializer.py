@@ -47,3 +47,27 @@ def test_temperature_records_query_serializer_parses_departments():
 
     assert s.is_valid(), s.errors
     assert s.validated_data["departments"] == ("13", "75")
+
+
+def test_temperature_records_query_serializer_allows_missing_dates():
+    s = TemperatureRecordsQuerySerializer(
+        data={
+            "record_kind": "absolute",
+            "record_scope": "all_time",
+            "type_records": "all",
+        }
+    )
+    assert s.is_valid(), s.errors
+    assert s.validated_data.get("date_start") is None
+    assert s.validated_data.get("date_end") is None
+
+
+def test_temperature_records_query_serializer_rejects_temperature_min_gt_temperature_max():
+    s = TemperatureRecordsQuerySerializer(
+        data={
+            "temperature_min": 30,
+            "temperature_max": 20,
+        }
+    )
+    assert not s.is_valid()
+    assert "temperature_max" in s.errors

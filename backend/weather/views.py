@@ -186,13 +186,15 @@ class RecordsAPIView(APIView):
         stations = get_records(data_source=ds, **params)
         full_payload = {
             "metadata": {
-                "date_start": params["date_start"],
-                "date_end": params["date_end"],
+                "date_start": params.get("date_start"),
+                "date_end": params.get("date_end"),
                 "record_kind": params["record_kind"],
                 "record_scope": params["record_scope"],
                 "type_records": params["type_records"],
                 "station_ids": list(params.get("station_ids", ())),
                 "departments": list(params.get("departments", ())),
+                "temperature_min": params.get("temperature_min"),
+                "temperature_max": params.get("temperature_max"),
             },
             "stations": stations,
         }

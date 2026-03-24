@@ -15,6 +15,8 @@ def test_fake_records_returns_requested_stations():
         record_kind="absolute",
         record_scope="all_time",
         type_records="all",
+        temperature_min=None,
+        temperature_max=None,
     )
 
     out = ds.fetch_records(query)
@@ -34,6 +36,8 @@ def test_fake_records_type_records_hot_keeps_only_hot_records():
         record_kind="historical",
         record_scope="monthly",
         type_records="hot",
+        temperature_min=None,
+        temperature_max=None,
     )
 
     out = ds.fetch_records(query)
@@ -54,6 +58,8 @@ def test_fake_records_type_records_cold_keeps_only_cold_records():
         record_kind="historical",
         record_scope="monthly",
         type_records="cold",
+        temperature_min=None,
+        temperature_max=None,
     )
 
     out = ds.fetch_records(query)
@@ -74,6 +80,8 @@ def test_fake_records_absolute_returns_single_record_per_type():
         record_kind="absolute",
         record_scope="monthly",
         type_records="all",
+        temperature_min=None,
+        temperature_max=None,
     )
 
     out = ds.fetch_records(query)
@@ -93,6 +101,8 @@ def test_fake_records_filters_by_departments():
         record_kind="absolute",
         record_scope="all_time",
         type_records="all",
+        temperature_min=None,
+        temperature_max=None,
     )
 
     out = ds.fetch_records(query)
@@ -111,8 +121,30 @@ def test_fake_records_applies_intersection_between_station_ids_and_departments()
         record_kind="absolute",
         record_scope="all_time",
         type_records="all",
+        temperature_min=None,
+        temperature_max=None,
     )
 
     out = ds.fetch_records(query)
 
     assert tuple(station.id for station in out) == ("07149",)
+
+
+def test_fake_records_filters_by_temperature_min():
+    ds = FakeRecordsDataSource()
+    query = RecordsQuery(
+        date_start=None,
+        date_end=None,
+        station_ids=("07149",),
+        departments=(),
+        record_kind="historical",
+        record_scope="monthly",
+        type_records="all",
+        temperature_min=25.0,
+        temperature_max=None,
+    )
+
+    out = ds.fetch_records(query)
+    for station in out:
+        for record in (*station.hot_records, *station.cold_records):
+            assert record.value >= 25.0

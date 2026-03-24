@@ -51,13 +51,13 @@ def _season_start_dates(year: int) -> tuple[dt.date, ...]:
 
 
 def _candidate_dates(query: RecordsQuery) -> tuple[dt.date, ...]:
-    start = query.date_start
-    end = query.date_end
+    start, end = _effective_date_range(query)
 
     if start > end:
         return ()
 
     if query.record_scope == "all_time":
+        # we represent all-time record with a single synthetic date
         return (end,)
 
     if query.record_scope == "monthly":
@@ -142,6 +142,26 @@ def _department_of_station(station_id: str) -> str:
     return station_id[:2]
 
 
+def _effective_date_range(query: RecordsQuery) -> tuple[dt.date, dt.date]:
+    start = query.date_start or dt.date(1990, 1, 1)
+    end = query.date_end or dt.date(2026, 4, 1)
+    return start, end
+
+
+def _filter_records_by_temperature(
+    records: tuple[TemperatureRecord, ...],
+    *,
+    temperature_min: float | None,
+    temperature_max: float | None,
+) -> tuple[TemperatureRecord, ...]:
+    return tuple(
+        record
+        for record in records
+        if (temperature_min is None or record.value >= temperature_min)
+        and (temperature_max is None or record.value <= temperature_max)
+    )
+
+
 class FakeRecordsDataSource(RecordsDataSource):
     def __init__(self) -> None:
         self._seed = 123
@@ -158,9 +178,15 @@ class FakeRecordsDataSource(RecordsDataSource):
 
         out: list[StationRecords] = []
         for station_id in station_ids:
-            out.append(
-                self._generate_station_records(station_id=station_id, query=query)
+            station = self._generate_station_records(
+                station_id=station_id,
+                query=query,
             )
+
+            if not station.hot_records and not station.cold_records:
+                continue
+
+            out.append(station)
 
         return tuple(out)
 
@@ -197,6 +223,18 @@ class FakeRecordsDataSource(RecordsDataSource):
             cold_records = ()
         elif query.type_records == "cold":
             hot_records = ()
+
+        hot_records = _filter_records_by_temperature(
+            hot_records,
+            temperature_min=query.temperature_min,
+            temperature_max=query.temperature_max,
+        )
+
+        cold_records = _filter_records_by_temperature(
+            cold_records,
+            temperature_min=query.temperature_min,
+            temperature_max=query.temperature_max,
+        )
 
         return StationRecords(
             id=station_id,

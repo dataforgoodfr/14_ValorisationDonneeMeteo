@@ -45,6 +45,8 @@ def test_temperature_records_business_passes_station_ids_and_filters_to_datasour
     record_kind = "historical"
     record_scope = "monthly"
     type_records = "hot"
+    temperature_min = 10
+    temperature_max = 30
     get_records(
         data_source=CapturingRecordsDataSource(),
         date_start=date_start,
@@ -53,6 +55,8 @@ def test_temperature_records_business_passes_station_ids_and_filters_to_datasour
         record_kind=record_kind,
         record_scope=record_scope,
         type_records=type_records,
+        temperature_max=temperature_max,
+        temperature_min=temperature_min,
     )
 
     q = captured["query"]
@@ -62,6 +66,8 @@ def test_temperature_records_business_passes_station_ids_and_filters_to_datasour
     assert q.record_kind == record_kind
     assert q.record_scope == record_scope
     assert q.type_records == type_records
+    assert q.temperature_min == temperature_min
+    assert q.temperature_max == temperature_max
 
 
 def test_temperature_records_business_passes_departments_to_datasource():

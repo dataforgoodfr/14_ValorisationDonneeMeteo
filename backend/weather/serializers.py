@@ -254,8 +254,8 @@ class TemperatureDeviationResponseSerializer(serializers.Serializer):
 
 
 class TemperatureRecordsQuerySerializer(serializers.Serializer):
-    date_start = serializers.DateField()
-    date_end = serializers.DateField()
+    date_start = serializers.DateField(required=False, allow_null=True)
+    date_end = serializers.DateField(required=False, allow_null=True)
     station_ids = CommaSeparatedStringListField(required=False)
     departments = CommaSeparatedStringListField(required=False)
 
@@ -277,15 +277,29 @@ class TemperatureRecordsQuerySerializer(serializers.Serializer):
         default="all",
     )
 
+    temperature_min = serializers.FloatField(required=False, allow_null=True)
+    temperature_max = serializers.FloatField(required=False, allow_null=True)
+
     def validate(self, attrs):
-        ds = attrs["date_start"]
-        de = attrs["date_end"]
-        if ds > de:
+        ds = attrs.get("date_start")
+        de = attrs.get("date_end")
+        if ds is not None and de is not None and ds > de:
             raise serializers.ValidationError(
                 {"date_end": "date_end doit être >= date_start."}
             )
+
+        tmin = attrs.get("temperature_min")
+        tmax = attrs.get("temperature_max")
+        if tmin is not None and tmax is not None and tmin > tmax:
+            raise serializers.ValidationError(
+                {"temperature_max": "temperature_max doit être >= temperature_min."}
+            )
+
         attrs["station_ids"] = attrs.get("station_ids", ())
         attrs["departments"] = attrs.get("departments", ())
+        attrs["temperature_min"] = tmin if "temperature_min" in attrs else None
+        attrs["temperature_max"] = tmax if "temperature_max" in attrs else None
+
         return attrs
 
 
@@ -302,19 +316,15 @@ class TemperatureRecordsStationSerializer(serializers.Serializer):
 
 
 class TemperatureRecordsMetadataSerializer(serializers.Serializer):
-    date_start = serializers.DateField()
-    date_end = serializers.DateField()
+    date_start = serializers.DateField(allow_null=True)
+    date_end = serializers.DateField(allow_null=True)
     record_kind = serializers.ChoiceField(choices=["historical", "absolute"])
     record_scope = serializers.ChoiceField(choices=["monthly", "seasonal", "all_time"])
     type_records = serializers.ChoiceField(choices=["hot", "cold", "all"])
-    station_ids = serializers.ListField(
-        child=serializers.CharField(),
-        required=True,
-    )
-    departments = serializers.ListField(
-        child=serializers.CharField(),
-        required=True,
-    )
+    station_ids = serializers.ListField(child=serializers.CharField())
+    departments = serializers.ListField(child=serializers.CharField())
+    temperature_min = serializers.FloatField(allow_null=True)
+    temperature_max = serializers.FloatField(allow_null=True)
 
 
 class TemperatureRecordsResponseSerializer(serializers.Serializer):
