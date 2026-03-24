@@ -188,6 +188,12 @@ paths:
 
         - le type de record (`hot`, `cold`, `all`)
 
+        - les stations (`station_ids`)
+
+        - les départements (`departments`)
+
+        Si `station_ids` et `departments` sont fournis, seules les stations présentes dans `station_ids` et appartenant aux `departments` sont retournées
+
         Exemples de requêtes :
 
         - `record_kind=absolute&record_scope=all_time&type_records=all`
@@ -195,6 +201,11 @@ paths:
         - `record_kind=historical&record_scope=monthly&type_records=hot`
 
         - `record_kind=absolute&record_scope=seasonal&type_records=cold`
+
+        - `record_kind=historical&record_scope=monthly&type_records=hot&departments=13,83`
+
+        - `record_kind=historical&record_scope=monthly&type_records=hot&station_ids=01014002,01071001`
+
       operationId: getTemperatureRecords
       tags:
         - Temperature
@@ -243,16 +254,29 @@ paths:
         - name: station_ids
           in: query
           required: false
-          description: Liste d'identifiants de stations à inclure dans la réponse.
+          description: |
+            Liste d'identifiants de stations à inclure dans la réponse.
+            Si `departments` est également fourni, seules les stations présentes dans `station_ids` et appartenant aux `departments` sont retournées
           schema:
             type: array
             items:
               type: string
           style: form
           explode: false
-          example:
-            - "07149"
-            - "07255"
+          example: "07149,07255"
+        - name: departments
+          in: query
+          required: false
+          description: |
+            Liste de codes de départements à inclure dans la réponse.
+            Si `station_ids` et `departments` sont fournis, seules les stations présentes dans `station_ids` et appartenant aux `departments` sont retournées.
+          schema:
+            type: array
+            items:
+              type: string
+          style: form
+          explode: false
+          example: "13,75"
         - name: type_records
           description: |
             Type de records à retourner :
@@ -290,6 +314,12 @@ paths:
                       record_kind: "historical"
                       record_scope: "monthly"
                       type_records: "hot"
+                      station_ids:
+                        - "07149"
+                        - "07156"
+                      departments:
+                        - "13"
+                        - "75"
                     stations:
                       - id: "07149"
                         name: "Orly"
@@ -836,7 +866,7 @@ components:
             properties:
               id:
                 type: string
-                description: Identifiant unique de la station (ex "07149")
+                description: Identifiant unique de la station (ex "'01071001")
               name:
                 type: string
               hot_records:
@@ -856,6 +886,8 @@ components:
         - record_kind
         - record_scope
         - type_records
+        - station_ids
+        - departments
       properties:
         date_start:
           type: string
@@ -872,6 +904,14 @@ components:
         type_records:
           type: string
           enum: [ hot, cold, all ]
+        station_ids:
+          type: array
+          items:
+            type: string
+        departments:
+          type: array
+          items:
+            type: string
 
     TemperatureRecord:
       type: object
