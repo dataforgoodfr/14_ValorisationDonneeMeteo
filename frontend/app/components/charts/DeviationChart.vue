@@ -51,12 +51,13 @@ const option = computed<ECOption>(() => {
                 "deviation_positive",
                 "deviation_negative",
             ],
-            source: data?.map((p) => ({
-                date: p.date,
-                deviation: p.deviation,
-                deviation_positive: p.deviation >= 0 ? p.deviation : null,
-                deviation_negative: p.deviation < 0 ? p.deviation : null,
-            })),
+            source:
+                data?.map((p) => ({
+                    date: p.date,
+                    deviation: p.deviation,
+                    deviation_positive: p.deviation >= 0 ? p.deviation : null,
+                    deviation_negative: p.deviation < 0 ? p.deviation : null,
+                })) ?? [],
         },
         grid: {
             left: 30,
@@ -168,6 +169,8 @@ const option = computed<ECOption>(() => {
 
 <template>
     <VChart
+        :ref="adapter.chartRef"
+        :key="adapter.granularity.value"
         :option="option"
         :init-options="initOptions"
         :loading="adapter.pending.value"

@@ -1,10 +1,10 @@
 <script setup lang="ts">
 import type { DropdownMenuItem } from "@nuxt/ui";
-import { useItnStore } from "#imports";
+import type { SelectBarAdapter } from "./selectBar/types";
 
-const itnStore = useItnStore();
-const { itnChartRef, granularity, pickedDateStart, pickedDateEnd, itnData } =
-    storeToRefs(itnStore);
+const adapter = inject<SelectBarAdapter>("selectBarAdapter")!;
+const { exportConfig, chartRef, granularity, pickedDateStart, pickedDateEnd } =
+    adapter;
 
 const exportMenuItems = ref<DropdownMenuItem[]>([
     {
@@ -35,7 +35,7 @@ const exportMenuItems = ref<DropdownMenuItem[]>([
 
 function exportAsPng() {
     if (!import.meta.client) return;
-    const dataURL = itnChartRef.value.getDataURL({
+    const dataURL = chartRef?.value.getDataURL({
         type: "png",
         pixelRatio: 2,
         backgroundColor: "#fff",
@@ -45,7 +45,7 @@ function exportAsPng() {
     const a = document.createElement("a");
     a.href = dataURL;
     a.download = useFormatFileName(
-        "itn",
+        exportConfig.chartName,
         granularity.value,
         pickedDateStart.value,
         pickedDateEnd.value,
@@ -56,17 +56,9 @@ function exportAsPng() {
 
 function exportAsCSV() {
     if (!import.meta.client) return;
-    const source = itnData.value?.time_series;
+    const source = exportConfig.getCsvRows();
     if (!source) return;
-    const headers = [
-        "Date",
-        "Température observée en °C (moyenne/valeur selon slice_type)",
-        "Température moyenne de référence 1991-2020 pour cette période en °C",
-        "Écart-type supérieur en °C (moyenne + 1°C écart-type)",
-        "Écart-type inférieur en °C (moyenne - 1°C écart-type)",
-        "Température maximale observée sur la période 1991-2020 en °C ",
-        "Température minimale observée sur la période 1991-2020 en °C ",
-    ];
+    const headers = exportConfig.csvHeaders;
     const rows = source.map((row) => Object.values(row).join(",")).join("\n");
 
     const csv = `${headers}\n${rows}`;
@@ -74,7 +66,7 @@ function exportAsCSV() {
     const a = document.createElement("a");
     a.href = `data:text/csv;charset=utf-8,${encodeURIComponent(csv)}`;
     a.download = useFormatFileName(
-        "itn",
+        exportConfig.chartName,
         granularity.value,
         pickedDateStart.value,
         pickedDateEnd.value,
@@ -85,13 +77,13 @@ function exportAsCSV() {
 
 function exportAsHTML() {
     if (!import.meta.client) return;
-    const options = itnChartRef.value.getOption();
+    const options = chartRef?.value.getOption();
     const scriptTag = "script";
     const html = `<!DOCTYPE html>
 <html>
 <head>
     <meta charset="utf-8">
-    <title>ITN</title>
+    <title>${exportConfig.chartName.toUpperCase()}</title>
     <${scriptTag} src="https://cdn.jsdelivr.net/npm/echarts/dist/echarts.min.js"></${scriptTag}>
     <style>html { margin: 0; padding: 0; width: 100%; height: 100vh; }, body { display: flex; align-items: center; margin: 0; padding: 0; width: 100%; height: 100vh; } #chart { margin: 20px; width: auto; height: calc(100vh - 40px); }</style>
 </head>

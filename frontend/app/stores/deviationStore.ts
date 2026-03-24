@@ -8,6 +8,8 @@ import type {
 const dates = useCustomDate();
 
 export const useDeviationStore = defineStore("deviationStore", () => {
+    const deviationChartRef = shallowRef();
+
     const pickedDateStart = ref(dates.lastYear.value);
     const pickedDateEnd = ref(dates.twoDaysAgo.value);
 
@@ -43,6 +45,7 @@ export const useDeviationStore = defineStore("deviationStore", () => {
     } = useTemperatureDeviation(params);
 
     return {
+        deviationChartRef,
         pickedDateStart,
         pickedDateEnd,
         granularity,

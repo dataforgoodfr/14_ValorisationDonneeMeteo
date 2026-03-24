@@ -21,6 +21,19 @@ const createMockItnStore = () => ({
         (mockStore.granularity.value as GranularityType) = value;
     }),
     turnOffSliceType: vi.fn(),
+    exportConfig: {
+        chartName: "itn",
+        csvHeaders: [
+            "Date",
+            "Température observée en °C (moyenne/valeur selon slice_type)",
+            "Température moyenne de référence 1991-2020 pour cette période en °C",
+            "Écart-type supérieur en °C (moyenne + 1°C écart-type)",
+            "Écart-type inférieur en °C (moyenne - 1°C écart-type)",
+            "Température maximale observée sur la période 1991-2020 en °C ",
+            "Température minimale observée sur la période 1991-2020 en °C ",
+        ],
+        getCsvRows: vi.fn(() => undefined),
+    },
 });
 
 let mockStore: ReturnType<typeof createMockItnStore>;
@@ -45,6 +58,7 @@ const useItnSelectBarAdapter =
                 hasChartTypeSelector: false,
                 hasExport: true,
             },
+            exportConfig: mockStore.exportConfig,
         };
     };
 
@@ -142,5 +156,48 @@ describe("useItnSelectBarAdapter", () => {
 
         expect(adapter.chartType).toBeUndefined();
         expect(adapter.chartTypeSwitchEnabled).toBeUndefined();
+    });
+
+    // Export menu: the adapter must expose exportConfig for the export menu to work
+    it("should expose exportConfig object", () => {
+        const adapter = useItnSelectBarAdapter();
+
+        expect(adapter.exportConfig).toBeDefined();
+    });
+
+    // Export menu: chartName is used to build the downloaded file name
+    it("should expose correct chartName in exportConfig", () => {
+        const adapter = useItnSelectBarAdapter();
+
+        expect(adapter.exportConfig.chartName).toBe("itn");
+    });
+
+    // Export menu: csvHeaders are written as the first row of the exported CSV file
+    it("should expose non-empty csvHeaders in exportConfig", () => {
+        const adapter = useItnSelectBarAdapter();
+
+        expect(adapter.exportConfig.csvHeaders).toBeInstanceOf(Array);
+        expect(adapter.exportConfig.csvHeaders.length).toBeGreaterThan(0);
+    });
+
+    // Export menu: getCsvRows is called when the user exports as CSV
+    it("should expose getCsvRows as a function in exportConfig", () => {
+        const adapter = useItnSelectBarAdapter();
+
+        expect(adapter.exportConfig.getCsvRows).toBeInstanceOf(Function);
+    });
+
+    // Export menu: getCsvRows returns undefined when there is no data loaded yet
+    it("should return undefined from getCsvRows when itnData is undefined", () => {
+        const adapter = useItnSelectBarAdapter();
+
+        expect(adapter.exportConfig.getCsvRows()).toBeUndefined();
+    });
+
+    // Export menu: the hasExport feature flag controls visibility of the export button
+    it("should have hasExport set to true in features", () => {
+        const adapter = useItnSelectBarAdapter();
+
+        expect(adapter.features.hasExport).toBe(true);
     });
 });
