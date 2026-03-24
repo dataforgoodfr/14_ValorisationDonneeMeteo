@@ -14,8 +14,12 @@
         "lint": "eslint --ext .js,.ts,.vue .",
         "lint:fix": "npm run lint -- --fix",
         "format": "prettier --write '**/*.{js,ts,vue,css,json,html}'",
-        "test:unit": "vitest run",
-        "check": "npm run lint:fix && npm run format && npm run lint"
+        "test:unit": "vitest --project unit",
+        "test:integration": "vitest run --project integration --no-file-parallelism",
+        "test:all": "vitest run --no-file-parallelism",
+        "test:ci": "vitest run --no-file-parallelism",
+        "coverage": "vitest run --coverage",
+        "check": "npm run lint:fix && npm run format && npm run lint && npm run test:unit"
     },
     "dependencies": {
         "@nuxt/fonts": "^0.13.0",
