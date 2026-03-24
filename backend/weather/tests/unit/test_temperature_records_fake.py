@@ -11,6 +11,7 @@ def test_fake_records_returns_requested_stations():
         date_start=dt.date(2024, 1, 1),
         date_end=dt.date(2024, 12, 31),
         station_ids=stations_ids,
+        departments=(),
         record_kind="absolute",
         record_scope="all_time",
         type_records="all",
@@ -29,6 +30,7 @@ def test_fake_records_type_records_hot_keeps_only_hot_records():
         date_start=dt.date(2024, 1, 1),
         date_end=dt.date(2024, 12, 31),
         station_ids=("12345678",),
+        departments=(),
         record_kind="historical",
         record_scope="monthly",
         type_records="hot",
@@ -48,6 +50,7 @@ def test_fake_records_type_records_cold_keeps_only_cold_records():
         date_start=dt.date(2024, 1, 1),
         date_end=dt.date(2024, 12, 31),
         station_ids=("12345678",),
+        departments=(),
         record_kind="historical",
         record_scope="monthly",
         type_records="cold",
@@ -67,6 +70,7 @@ def test_fake_records_absolute_returns_single_record_per_type():
         date_start=dt.date(2024, 1, 1),
         date_end=dt.date(2024, 12, 31),
         station_ids=("12345678",),
+        departments=(),
         record_kind="absolute",
         record_scope="monthly",
         type_records="all",
@@ -77,3 +81,38 @@ def test_fake_records_absolute_returns_single_record_per_type():
     station = out[0]
     assert len(station.hot_records) == 1
     assert len(station.cold_records) == 1
+
+
+def test_fake_records_filters_by_departments():
+    ds = FakeRecordsDataSource()
+    query = RecordsQuery(
+        date_start=dt.date(2024, 1, 1),
+        date_end=dt.date(2024, 12, 31),
+        station_ids=(),
+        departments=("07",),
+        record_kind="absolute",
+        record_scope="all_time",
+        type_records="all",
+    )
+
+    out = ds.fetch_records(query)
+
+    assert len(out) > 0
+    assert all(station.id.startswith("07") for station in out)
+
+
+def test_fake_records_applies_intersection_between_station_ids_and_departments():
+    ds = FakeRecordsDataSource()
+    query = RecordsQuery(
+        date_start=dt.date(2024, 1, 1),
+        date_end=dt.date(2024, 12, 31),
+        station_ids=("07149", "13123"),
+        departments=("07",),
+        record_kind="absolute",
+        record_scope="all_time",
+        type_records="all",
+    )
+
+    out = ds.fetch_records(query)
+
+    assert tuple(station.id for station in out) == ("07149",)

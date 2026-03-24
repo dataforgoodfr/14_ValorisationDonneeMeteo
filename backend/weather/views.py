@@ -191,6 +191,8 @@ class RecordsAPIView(APIView):
                 "record_kind": params["record_kind"],
                 "record_scope": params["record_scope"],
                 "type_records": params["type_records"],
+                "station_ids": list(params.get("station_ids", ())),
+                "departments": list(params.get("departments", ())),
             },
             "stations": stations,
         }

@@ -43,9 +43,11 @@ def test_get_temperature_records_defaults_are_applied(client: APIClient):
         "record_kind": "absolute",
         "record_scope": "all_time",
         "type_records": "all",
+        "station_ids": [],
+        "departments": [],
     }
 
-    assert len(body["stations"]) == 2
+    assert len(body["stations"]) == 3
 
 
 def test_get_temperature_records_returns_400_if_date_start_gt_date_end(
@@ -64,3 +66,36 @@ def test_get_temperature_records_returns_400_if_date_start_gt_date_end(
 
     assert body["error"]["code"] == "INVALID_PARAMETER"
     assert "date_end" in body["error"]["details"]
+
+
+def test_get_temperature_records_returns_departments_in_metadata(client: APIClient):
+    resp = client.get(
+        "/api/v1/temperature/records",
+        {
+            "date_start": "2024-01-01",
+            "date_end": "2024-12-31",
+            "departments": "07,13",
+        },
+    )
+
+    assert resp.status_code == 200
+    body = resp.json()
+
+    assert body["metadata"]["departments"] == ["07", "13"]
+
+
+def test_get_temperature_records_filters_by_departments(client: APIClient):
+    resp = client.get(
+        "/api/v1/temperature/records",
+        {
+            "date_start": "2024-01-01",
+            "date_end": "2024-12-31",
+            "departments": "07",
+        },
+    )
+
+    assert resp.status_code == 200
+    body = resp.json()
+
+    assert len(body["stations"]) > 0
+    assert all(station["id"].startswith("07") for station in body["stations"])

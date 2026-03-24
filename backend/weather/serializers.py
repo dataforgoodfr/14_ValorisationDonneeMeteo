@@ -174,7 +174,7 @@ class NationalIndicatorResponseSerializer(serializers.Serializer):
     time_series = NationalIndicatorTimePointSerializer(many=True)
 
 
-class CommaSeparatedStationIdsField(serializers.Field):
+class CommaSeparatedStringListField(serializers.Field):
     def to_internal_value(self, data):
         if data is None:
             return ()
@@ -190,7 +190,7 @@ class CommaSeparatedStationIdsField(serializers.Field):
             return tuple(items)
 
         raise serializers.ValidationError(
-            "Format station_ids invalide. Attendu : liste séparée par des virgules (ex: '07149,07255')."
+            "Format invalide. Attendu : liste séparée par des virgules."
         )
 
 
@@ -200,7 +200,7 @@ class TemperatureDeviationQuerySerializer(serializers.Serializer):
     granularity = serializers.ChoiceField(
         choices=["year", "month", "day"], required=True
     )
-    station_ids = CommaSeparatedStationIdsField(required=False)
+    station_ids = CommaSeparatedStringListField(required=False)
     include_national = serializers.BooleanField(required=False, default=True)
 
     def validate(self, attrs):
@@ -256,8 +256,8 @@ class TemperatureDeviationResponseSerializer(serializers.Serializer):
 class TemperatureRecordsQuerySerializer(serializers.Serializer):
     date_start = serializers.DateField()
     date_end = serializers.DateField()
-
-    station_ids = CommaSeparatedStationIdsField(required=False)
+    station_ids = CommaSeparatedStringListField(required=False)
+    departments = CommaSeparatedStringListField(required=False)
 
     record_kind = serializers.ChoiceField(
         choices=["historical", "absolute"],
@@ -284,6 +284,8 @@ class TemperatureRecordsQuerySerializer(serializers.Serializer):
             raise serializers.ValidationError(
                 {"date_end": "date_end doit être >= date_start."}
             )
+        attrs["station_ids"] = attrs.get("station_ids", ())
+        attrs["departments"] = attrs.get("departments", ())
         return attrs
 
 
@@ -305,6 +307,14 @@ class TemperatureRecordsMetadataSerializer(serializers.Serializer):
     record_kind = serializers.ChoiceField(choices=["historical", "absolute"])
     record_scope = serializers.ChoiceField(choices=["monthly", "seasonal", "all_time"])
     type_records = serializers.ChoiceField(choices=["hot", "cold", "all"])
+    station_ids = serializers.ListField(
+        child=serializers.CharField(),
+        required=True,
+    )
+    departments = serializers.ListField(
+        child=serializers.CharField(),
+        required=True,
+    )
 
 
 class TemperatureRecordsResponseSerializer(serializers.Serializer):

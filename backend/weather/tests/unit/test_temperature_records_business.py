@@ -62,3 +62,26 @@ def test_temperature_records_business_passes_station_ids_and_filters_to_datasour
     assert q.record_kind == record_kind
     assert q.record_scope == record_scope
     assert q.type_records == type_records
+
+
+def test_temperature_records_business_passes_departments_to_datasource():
+    captured = {}
+
+    class CapturingRecordsDataSource:
+        def fetch_records(self, query):
+            captured["query"] = query
+            return ()
+
+    get_records(
+        data_source=CapturingRecordsDataSource(),
+        date_start=dt.date(2024, 1, 1),
+        date_end=dt.date(2024, 12, 31),
+        station_ids=("07149", "07222"),
+        departments=("07", "13"),
+        record_kind="historical",
+        record_scope="monthly",
+        type_records="hot",
+    )
+
+    q = captured["query"]
+    assert q.departments == ("07", "13")

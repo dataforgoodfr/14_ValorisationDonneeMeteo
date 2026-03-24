@@ -34,3 +34,16 @@ def test_temperature_records_query_serializer_rejects_date_start_gt_date_end():
 
     assert not s.is_valid()
     assert "date_end" in s.errors
+
+
+def test_temperature_records_query_serializer_parses_departments():
+    s = TemperatureRecordsQuerySerializer(
+        data={
+            "date_start": "2024-01-01",
+            "date_end": "2024-12-31",
+            "departments": "13,75",
+        }
+    )
+
+    assert s.is_valid(), s.errors
+    assert s.validated_data["departments"] == ("13", "75")

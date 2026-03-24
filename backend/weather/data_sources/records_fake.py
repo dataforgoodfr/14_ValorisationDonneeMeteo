@@ -135,7 +135,11 @@ def _station_name(station_id: str) -> str:
 
 
 def _get_all_stations():
-    return "07231149", "07937156"  # parce que j'aime l'Ardèche
+    return "07231149", "07937156", "130013456"
+
+
+def _department_of_station(station_id: str) -> str:
+    return station_id[:2]
 
 
 class FakeRecordsDataSource(RecordsDataSource):
@@ -144,6 +148,13 @@ class FakeRecordsDataSource(RecordsDataSource):
 
     def fetch_records(self, query: RecordsQuery) -> tuple[StationRecords, ...]:
         station_ids = query.station_ids or _get_all_stations()
+
+        if query.departments:
+            station_ids = tuple(
+                sid
+                for sid in station_ids
+                if _department_of_station(sid) in query.departments
+            )
 
         out: list[StationRecords] = []
         for station_id in station_ids:

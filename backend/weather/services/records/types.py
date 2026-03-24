@@ -21,6 +21,7 @@ class RecordsQuery:
     date_start: dt.date
     date_end: dt.date
     station_ids: tuple[str, ...]
+    departments: tuple[str, ...]
     record_kind: str  # "historical" | "absolute"
     record_scope: str  # "monthly" | "seasonal" | "all_time"
     type_records: str  # "hot" | "cold" | "all"
