@@ -192,7 +192,16 @@ paths:
 
         - les départements (`departments`)
 
+        `date_start` et `date_end` sont optionnels.
+        - si `date_start` est fourni, seuls les records à partir de cette date sont pris en compte ;
+        - si `date_end` est fourni, seuls les records jusqu'à cette date sont pris en compte ;
+        - si les deux sont fournis, l'intervalle `[date_start, date_end]` est appliqué ;
+        - si `date_start` est supérieur à `date_end`, une erreur 400 est retournée.
+
         Si `station_ids` et `departments` sont fournis, seules les stations présentes dans `station_ids` et appartenant aux `departments` sont retournées
+
+        Un filtrage sur la valeur des records peut être appliqué via `temperature_min` et `temperature_max`.
+        Seuls les records dont la valeur est comprise dans cet intervalle sont retournés. Si `temperature_min` est supérieur à `temperature_max`, une erreur 400 est retournée.
 
         Exemples de requêtes :
 
@@ -237,7 +246,7 @@ paths:
             default: all_time
         - name: date_start
           in: query
-          required: true
+          required: false
           schema:
             type: string
             format: date
@@ -245,7 +254,7 @@ paths:
           example: "1990-01-01"
         - name: date_end
           in: query
-          required: true
+          required: false
           schema:
             type: string
             format: date
@@ -291,6 +300,25 @@ paths:
             type: string
             enum: [hot, cold, all]
             default: all
+        - name: temperature_min
+          in: query
+          required: false
+          description: |
+            Filtre les records dont la valeur est supérieure ou égale à cette température.
+          schema:
+            type: number
+            format: float
+          example: 25.0
+
+        - name: temperature_max
+          in: query
+          required: false
+          description: |
+            Filtre les records dont la valeur est inférieure ou égale à cette température.
+          schema:
+            type: number
+            format: float
+          example: 35.0
       responses:
         "200":
           description: |
@@ -320,6 +348,8 @@ paths:
                       departments:
                         - "13"
                         - "75"
+                      temperature_min: null
+                      temperature_max: null
                     stations:
                       - id: "07149"
                         name: "Orly"
@@ -888,13 +918,17 @@ components:
         - type_records
         - station_ids
         - departments
+        - temperature_min
+        - temperature_max
       properties:
         date_start:
           type: string
           format: date
+          nullable: true
         date_end:
           type: string
           format: date
+          nullable: true
         record_kind:
           type: string
           enum: [ historical, absolute ]
@@ -912,6 +946,12 @@ components:
           type: array
           items:
             type: string
+        temperature_min:
+          type: number
+          nullable: true
+        temperature_max:
+          type: number
+          nullable: true
 
     TemperatureRecord:
       type: object
