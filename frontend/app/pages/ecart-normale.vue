@@ -1,8 +1,3 @@
-<!--
-    Objectifs V0 :
-    - A Réaliser : https://github.com/dataforgoodfr/14_ValorisationDonneeMeteo/issues/7
--->
-
 <script setup lang="ts">
 import PagesHero from "~/components/layout/PagesHero.vue";
 import ChartLayout from "~/components/layout/ChartLayout.vue";
@@ -11,7 +6,7 @@ import { useDeviationSelectBarAdapter } from "~/adapters/deviationSelectBarAdapt
 import SelectBar from "~/components/ui/commons/selectBar/selectBar.vue";
 import DeviationChart from "~/components/charts/DeviationChart.vue";
 
-const selectBarAdapter = useDeviationSelectBarAdapter(); // besoin de le connecter au deviation store. Implementé ici juste pour le rendu graphique
+const selectBarAdapter = useDeviationSelectBarAdapter();
 
 const heroData = {
     title: "Ecart à la normale",
@@ -34,7 +29,7 @@ const heroData = {
                 <ChartSidebar />
             </template>
             <template #chart>
-                <DeviationChart class="px-3 py-2" />
+                <DeviationChart :adapter="selectBarAdapter" class="px-3 py-2" />
             </template>
         </ChartLayout>
     </UContainer>

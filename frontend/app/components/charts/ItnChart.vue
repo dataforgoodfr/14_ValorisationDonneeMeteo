@@ -253,6 +253,10 @@ const option = computed<ECOption>(() => {
                 type: "slider",
                 minSpan: 20,
             },
+            {
+                type: "inside",
+                minSpan: 20,
+            },
         ],
         emphasis: {
             focus: "none",

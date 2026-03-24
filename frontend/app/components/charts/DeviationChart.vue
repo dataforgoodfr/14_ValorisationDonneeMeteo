@@ -1,6 +1,8 @@
 <script setup lang="ts">
 import * as echarts from "echarts/core";
 import langFR from "~/i18n/langFR.js";
+import type { SelectBarAdapter } from "../ui/commons/selectBar/types";
+import type { DeviationResponse } from "~/types/api";
 import {
     TitleComponent,
     TooltipComponent,
@@ -8,6 +10,7 @@ import {
     DataZoomComponent,
     LegendComponent,
 } from "echarts/components";
+import { BarChart } from "echarts/charts";
 import { UniversalTransition } from "echarts/features";
 import { CanvasRenderer } from "echarts/renderers";
 echarts.registerLocale("FR", langFR);
@@ -15,13 +18,18 @@ echarts.use([
     TitleComponent,
     TooltipComponent,
     GridComponent,
+    BarChart,
     LegendComponent,
     DataZoomComponent,
     UniversalTransition,
     CanvasRenderer,
 ]);
 
-const deviationStore = useDeviationStore();
+interface Props {
+    adapter: SelectBarAdapter<DeviationResponse>;
+}
+
+const props = defineProps<Props>();
 
 // provide init-options
 const renderer = ref<"svg" | "canvas">("canvas");
@@ -33,8 +41,7 @@ const initOptions = computed(() => ({
 provide(INIT_OPTIONS_KEY, initOptions);
 
 const option = computed<ECOption>(() => {
-    const nationalData = deviationStore.deviationData?.national?.data ?? [];
-    const title = "Moyenne nationale";
+    const data = props.adapter.data.value?.national.data;
 
     return {
         dataset: {
@@ -44,7 +51,7 @@ const option = computed<ECOption>(() => {
                 "deviation_positive",
                 "deviation_negative",
             ],
-            source: nationalData.map((p) => ({
+            source: data?.map((p) => ({
                 date: p.date,
                 deviation: p.deviation,
                 deviation_positive: p.deviation >= 0 ? p.deviation : null,
@@ -94,10 +101,8 @@ const option = computed<ECOption>(() => {
             },
         ],
         title: {
-            text: title,
-            top: "1%",
-            right: "3%",
-            textStyle: { fontSize: 14, fontWeight: "bold" },
+            text: "Ecart à la normale",
+            left: "center",
         },
         legend: {
             data: ["Ecart positif", "Ecart négatif"],
@@ -117,9 +122,9 @@ const option = computed<ECOption>(() => {
                     params.find((p) => p.seriesName === name);
 
                 const dateOptions: Intl.DateTimeFormatOptions =
-                    deviationStore.granularity === "month"
+                    props.adapter.granularity.value === "month"
                         ? { year: "numeric", month: "long" }
-                        : deviationStore.granularity === "year"
+                        : props.adapter.granularity.value === "year"
                           ? { year: "numeric" }
                           : {
                                 weekday: "short",
@@ -142,7 +147,7 @@ const option = computed<ECOption>(() => {
 
                 return [
                     formattedDate,
-                    `${serie?.marker ?? ""}${title} : ${sign}${fmt(deviation)}`,
+                    `${serie?.marker ?? ""} : ${sign}${fmt(deviation)}`,
                 ].join("<br/>");
             },
         },
@@ -165,7 +170,8 @@ const option = computed<ECOption>(() => {
     <VChart
         :option="option"
         :init-options="initOptions"
-        :loading="deviationStore.pending"
+        :loading="adapter.pending.value"
+        :loading-options="{ text: 'Chargement…', color: '#3b82f6' }"
         autoresize
     />
 </template>
