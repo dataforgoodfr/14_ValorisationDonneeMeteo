@@ -220,7 +220,7 @@ const option = computed<ECOption>(() => {
 
                 const d = first.value as Record<string, number | string>;
                 if (d.isInterpolated) return "";
-                const fmt = (v: number) => `${v.toFixed(2)}°C`;
+                const fmt = (v: number) => `${v.toFixed(1)}°C`;
                 const find = (name: string) =>
                     params.find((p) => p.seriesName === name);
 

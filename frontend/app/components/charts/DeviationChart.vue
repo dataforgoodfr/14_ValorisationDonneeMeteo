@@ -112,7 +112,7 @@ const option = computed<ECOption>(() => {
                 if (!first) return "";
 
                 const d = first.value as Record<string, number | string>;
-                const fmt = (v: number) => `${v.toFixed(2)}°C`;
+                const fmt = (v: number) => `${v.toFixed(1)}°C`;
                 const find = (name: string) =>
                     params.find((p) => p.seriesName === name);
 
