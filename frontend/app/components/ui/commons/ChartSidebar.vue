@@ -1,47 +1,37 @@
 <script setup lang="ts">
-const selectedStations = ref<string[]>(["Paris", "Lyon"]);
+import type { Station } from "~/types/api";
+import SearchStation from "./searchStation.vue";
 
-const stations = [
-    "Paris",
-    "Lyon",
-    "Marseille",
-    "Toulouse",
-    "Nice",
-    "Nantes",
-    "Strasbourg",
-    "Montpellier",
-];
+const deviationStore = useDeviationStore();
+const { station_ids, selected_stations } = storeToRefs(deviationStore);
 
-function isStationSelected(station: string) {
-    return selectedStations.value.includes(station);
+function onSelect(station: Station) {
+    if (station_ids.value && station_ids.value.length > 0) {
+        deviationStore.setStations([
+            ...deviationStore.selected_stations,
+            station,
+        ]);
+    } else {
+        deviationStore.setStations([station]);
+    }
 }
 
-function toggleStation(station: string) {
-    if (isStationSelected(station)) {
-        selectedStations.value = selectedStations.value.filter(
-            (s) => s !== station,
-        );
-    } else {
-        selectedStations.value = [...selectedStations.value, station];
-    }
+function onUnselect(station: Station) {
+    if (!deviationStore.setStations) return;
+    deviationStore.setStations(
+        deviationStore.selected_stations.filter((s) => s.code !== station.code),
+    );
 }
 </script>
 
 <template>
     <div class="w-64 p-4 flex flex-col gap-4">
         <div class="flex flex-col gap-2">
-            <h3 class="text-sm font-semibold text-highlighted">Stations</h3>
-            <div class="flex flex-col gap-1.5">
-                <UCheckbox
-                    v-for="station in stations"
-                    :key="station"
-                    :model-value="isStationSelected(station)"
-                    :label="station"
-                    @update:model-value="toggleStation(station)"
-                />
-            </div>
+            <SearchStation
+                :selected-stations="selected_stations"
+                :on-select="onSelect"
+                :on-unselect="onUnselect"
+            />
         </div>
-
-        <UButton color="neutral" block> Appliquer les filtres </UButton>
     </div>
 </template>
