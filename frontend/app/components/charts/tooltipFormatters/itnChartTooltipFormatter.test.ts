@@ -63,7 +63,7 @@ describe("itnChartTooltipFormatter", () => {
 
     // --- Whole returned string ---
 
-    it("returns the right string with granularityt : day", () => {
+    it("returns the right string with granularity : day", () => {
         const params: TooltipComponentFormatterCallbackParams = [
             {
                 componentType: "series",
@@ -214,7 +214,7 @@ describe("itnChartTooltipFormatter", () => {
         );
     });
 
-    it("returns the right string with granularityt : month", () => {
+    it("returns the right string with granularity : month", () => {
         const params: TooltipComponentFormatterCallbackParams = [
             {
                 componentType: "series",
@@ -365,7 +365,7 @@ describe("itnChartTooltipFormatter", () => {
         );
     });
 
-    it("returns the right string with granularityt : year", () => {
+    it("returns the right string with granularity : year", () => {
         const params: TooltipComponentFormatterCallbackParams = [
             {
                 componentType: "series",
