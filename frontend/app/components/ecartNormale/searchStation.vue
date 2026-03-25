@@ -2,26 +2,23 @@
 import { refDebounced, useIntersectionObserver } from "@vueuse/core";
 import type { PaginatedResponse, Station } from "~/types/api";
 
-interface Props {
-    selectedStations: Station[];
-    onSelect: (station: Station) => void;
-    onUnselect: (station: Station) => void;
-}
-const props = defineProps<Props>();
+const deviationStore = useDeviationStore();
+const { stationIds, selectedStations } = storeToRefs(deviationStore);
 
-const searchQuery = ref("");
-const page = ref(1);
+const searchQuery = ref<undefined | string>(undefined);
+const page = ref<number>(0);
 const allStations = ref<Station[]>([]);
-const hasMore = ref(false);
+const hasMore = ref<boolean>(false);
 
 const params = computed(() => ({
     search: searchQuery.value,
+    offset: page.value * 100,
 }));
 const { data: stationsData, refresh } = useStations(params);
 
 function processStations(newData: PaginatedResponse<Station> | undefined) {
     if (!newData) return;
-    if (page.value === 1) {
+    if (page.value === 0) {
         allStations.value = newData.results;
     } else {
         allStations.value = [...allStations.value, ...newData.results];
@@ -34,28 +31,37 @@ onMounted(() => {
     processStations(stationsData.value);
 });
 
-function onSelectStation(_event: Event, station: Station) {
-    props.onSelect(station);
+function onSelectStation(_event: PointerEvent, station: Station) {
+    if (stationIds.value && stationIds.value.length > 0) {
+        deviationStore.setStations([
+            ...deviationStore.selectedStations,
+            station,
+        ]);
+    } else {
+        deviationStore.setStations([station]);
+    }
 }
 
-function onUnselectStation(_event: Event, station: Station) {
-    props.onUnselect(station);
+function onUnselectStation(_event: PointerEvent, station: Station) {
+    if (!deviationStore.setStations) return;
+    deviationStore.setStations(
+        deviationStore.selectedStations.filter((s) => s.code !== station.code),
+    );
 }
 
 const isStationSelected = (station: Station) =>
-    props.selectedStations.some((s) => s.code === station.code);
+    selectedStations.value.some((s) => s.code === station.code);
 
-const filteredStations = computed(() =>
+const unselectedFilteredStations = computed(() =>
     allStations.value?.filter(
         (station) =>
-            props.selectedStations.length === 0 || !isStationSelected(station),
+            selectedStations.value.length === 0 || !isStationSelected(station),
     ),
 );
 
 const debouncedSearch = refDebounced(searchQuery, 300);
-
 watch(debouncedSearch, () => {
-    page.value = 1;
+    page.value = 0;
     refresh();
 });
 
@@ -82,7 +88,7 @@ useIntersectionObserver(sentinel, ([entry]) => {
 
     <ul>
         <li
-            v-for="station in props.selectedStations"
+            v-for="station in selectedStations"
             :key="`selected-${station.code}`"
             :title="`${station.nom} (${station.departement})`"
             class="cursor-pointer pr-2 font-bold py-1 text-sm flex items-center justify-between"
@@ -94,12 +100,12 @@ useIntersectionObserver(sentinel, ([entry]) => {
             <UIcon name="i-lucide-x" class="shrink-0" />
         </li>
     </ul>
-    <USeparator v-if="props.selectedStations.length > 0" />
+    <USeparator v-if="selectedStations.length > 0" />
 
     <div class="max-h-64 overflow-y-auto">
         <ul>
             <li
-                v-for="station in filteredStations"
+                v-for="station in unselectedFilteredStations"
                 :key="`filtered-${station.code}`"
                 :title="`${station.nom} (${station.departement})`"
                 class="cursor-pointer pr-2 py-1 text-sm flex items-center justify-between"
