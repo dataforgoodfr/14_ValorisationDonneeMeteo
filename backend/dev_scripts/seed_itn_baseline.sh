@@ -25,26 +25,47 @@ if [[ ! -f "$CSV_PATH" ]]; then
   exit 1
 fi
 
+psql -h "$DB_HOST" \
+     -p "$DB_PORT" \
+     -U "$DB_USER" \
+     -d "$DB_NAME" \
+     -v ON_ERROR_STOP=1 <<SQL
+DO \$\$
+BEGIN
+    IF EXISTS (
+        SELECT 1
+        FROM pg_class c
+        JOIN pg_namespace n ON n.oid = c.relnamespace
+        WHERE n.nspname = 'public'
+          AND c.relname = '${TABLE_NAME}'
+          AND c.relkind = 'm'
+    ) THEN
+        EXECUTE 'DROP MATERIALIZED VIEW public.${TABLE_NAME}';
+    ELSIF EXISTS (
+        SELECT 1
+        FROM pg_class c
+        JOIN pg_namespace n ON n.oid = c.relnamespace
+        WHERE n.nspname = 'public'
+          AND c.relname = '${TABLE_NAME}'
+          AND c.relkind = 'r'
+    ) THEN
+        EXECUTE 'DROP TABLE public.${TABLE_NAME}';
+    END IF;
+END
+\$\$;
+SQL
+
 echo "Seeding ${TABLE_NAME} from ${CSV_PATH}"
 
-# Vérifie que la table existe
-TABLE_EXISTS=$(psql -h "$DB_HOST" \
-                    -p "$DB_PORT" \
-                    -U "$DB_USER" \
-                    -d "$DB_NAME" \
-                    -tAc "SELECT to_regclass('public.${TABLE_NAME}') IS NOT NULL;")
 # On créé la table en dev - en prod c'est une Materialized View
-# Comme on a pas les données en dev pour calculer la MV on créé une table, que l'on seed plus loin avec un csv"
-if [[ "$TABLE_EXISTS" != "t" ]]; then
-  echo "Table ${TABLE_NAME} does not exist, creating it..."
+# Comme on a pas les données en dev pour calculer la MV on créé une table, que l'on seed plus loin avec un csv
 
-  psql -h "$DB_HOST" \
+psql -h "$DB_HOST" \
        -p "$DB_PORT" \
        -U "$DB_USER" \
        -d "$DB_NAME" \
        -v ON_ERROR_STOP=1 <<SQL
 CREATE TABLE public.${TABLE_NAME} (
-    climatology_day integer PRIMARY KEY,
     month integer NOT NULL,
     day_of_month integer NOT NULL,
     sample_size integer NOT NULL,
@@ -52,10 +73,8 @@ CREATE TABLE public.${TABLE_NAME} (
     itn_stddev double precision NOT NULL,
     itn_p20 double precision NOT NULL,
     itn_p80 double precision NOT NULL,
-    CONSTRAINT uq_${TABLE_NAME}_month_day UNIQUE (month, day_of_month)
-);
+    CONSTRAINT pk_${TABLE_NAME} PRIMARY KEY (month, day_of_month));
 SQL
-fi
 
 # Vérifie les colonnes attendues
 echo "Checking target schema..."
@@ -71,15 +90,6 @@ WHERE table_schema = 'public'
 ORDER BY ordinal_position;
 SQL
 
-# Recharge complètement la table
-psql -h "$DB_HOST" \
-     -p "$DB_PORT" \
-     -U "$DB_USER" \
-     -d "$DB_NAME" \
-     -v ON_ERROR_STOP=1 <<SQL
-TRUNCATE TABLE public.${TABLE_NAME};
-SQL
-
 # Ici on seed la table (fausse MV) avec des données csv
 # Import CSV via \copy (côté client, donc pratique en dev)
 psql -h "$DB_HOST" \
@@ -87,7 +97,7 @@ psql -h "$DB_HOST" \
      -U "$DB_USER" \
      -d "$DB_NAME" \
      -v ON_ERROR_STOP=1 <<SQL
-\copy public.${TABLE_NAME} (climatology_day, month, day_of_month, sample_size, itn_mean, itn_stddev, itn_p20, itn_p80) FROM '${CSV_PATH}' WITH (FORMAT csv, HEADER true)
+\copy public.${TABLE_NAME} (month, day_of_month, sample_size, itn_mean, itn_stddev, itn_p20, itn_p80) FROM '${CSV_PATH}' WITH (FORMAT csv, HEADER true)
 SQL
 
 echo "Sanity checks:"
@@ -100,12 +110,12 @@ FROM public.${TABLE_NAME};
 
 SELECT *
 FROM public.${TABLE_NAME}
-ORDER BY climatology_day
+ORDER BY month, day_of_month
 LIMIT 5;
 
 SELECT *
 FROM public.${TABLE_NAME}
-ORDER BY climatology_day DESC
+ORDER BY month DESC, day_of_month DESC
 LIMIT 5;
 
 SELECT COUNT(*) AS invalid_sample_size_count
