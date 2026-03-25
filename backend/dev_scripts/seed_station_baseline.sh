@@ -24,48 +24,46 @@ echo "Seeding ${TABLE_NAME} from ${CSV_PATH}"
 # Catalogue PostgreSQL :
 # - relkind = 'r' → table
 # - relkind = 'm' → materialized view
-OBJECT_KIND=$(psql -h "$DB_HOST" \
-                   -p "$DB_PORT" \
-                   -U "$DB_USER" \
-                   -d "$DB_NAME" \
-                   -tAc "
-SELECT CASE c.relkind
-         WHEN 'r' THEN 'table'
-         WHEN 'm' THEN 'materialized_view'
-         ELSE c.relkind::text
-       END
-FROM pg_class c
-JOIN pg_namespace n ON n.oid = c.relnamespace
-WHERE n.nspname = 'public'
-  AND c.relname = '${TABLE_NAME}'
-LIMIT 1;")
 
-if [[ "$OBJECT_KIND" == "materialized_view" ]]; then
-  echo "Dropping materialized view public.${TABLE_NAME} to replace it with a seeded table..."
-  psql -h "$DB_HOST" \
-       -p "$DB_PORT" \
-       -U "$DB_USER" \
-       -d "$DB_NAME" \
-       -v ON_ERROR_STOP=1 \
-       -c "DROP MATERIALIZED VIEW IF EXISTS public.${TABLE_NAME};"
-fi
-
-TABLE_EXISTS=$(psql -h "$DB_HOST" \
-                    -p "$DB_PORT" \
-                    -U "$DB_USER" \
-                    -d "$DB_NAME" \
-                    -tAc "SELECT to_regclass('public.${TABLE_NAME}') IS NOT NULL;")
+psql -h "$DB_HOST" \
+     -p "$DB_PORT" \
+     -U "$DB_USER" \
+     -d "$DB_NAME" \
+     -v ON_ERROR_STOP=1 <<SQL
+DO \$\$
+BEGIN
+    IF EXISTS (
+        SELECT 1
+        FROM pg_class c
+        JOIN pg_namespace n ON n.oid = c.relnamespace
+        WHERE n.nspname = 'public'
+          AND c.relname = '${TABLE_NAME}'
+          AND c.relkind = 'm'
+    ) THEN
+        EXECUTE 'DROP MATERIALIZED VIEW public.${TABLE_NAME}';
+    ELSIF EXISTS (
+        SELECT 1
+        FROM pg_class c
+        JOIN pg_namespace n ON n.oid = c.relnamespace
+        WHERE n.nspname = 'public'
+          AND c.relname = '${TABLE_NAME}'
+          AND c.relkind = 'r'
+    ) THEN
+        EXECUTE 'DROP TABLE public.${TABLE_NAME}';
+    END IF;
+END
+\$\$;
+SQL
 
 # On créé la table en dev - en prod c'est une Materialized View
 # Comme on a pas les données en dev pour calculer la MV on créé une table, que l'on seed plus loin avec un csv"
-if [[ "$TABLE_EXISTS" != "t" ]]; then
-  echo "Table ${TABLE_NAME} does not exist, creating it..."
+echo "Creating table ${TABLE_NAME}..."
 
-  psql -h "$DB_HOST" \
-       -p "$DB_PORT" \
-       -U "$DB_USER" \
-       -d "$DB_NAME" \
-       -v ON_ERROR_STOP=1 <<SQL
+psql -h "$DB_HOST" \
+     -p "$DB_PORT" \
+     -U "$DB_USER" \
+     -d "$DB_NAME" \
+     -v ON_ERROR_STOP=1 <<SQL
 CREATE TABLE public.${TABLE_NAME} (
     station_code text NOT NULL,
     month integer NOT NULL,
@@ -76,7 +74,6 @@ CREATE TABLE public.${TABLE_NAME} (
         PRIMARY KEY (station_code, month, day)
 );
 SQL
-fi
 
 echo "Checking target schema..."
 psql -h "$DB_HOST" \
@@ -90,13 +87,6 @@ WHERE table_schema = 'public'
   AND table_name = '${TABLE_NAME}'
 ORDER BY ordinal_position;
 SQL
-
-psql -h "$DB_HOST" \
-     -p "$DB_PORT" \
-     -U "$DB_USER" \
-     -d "$DB_NAME" \
-     -v ON_ERROR_STOP=1 \
-     -c "TRUNCATE TABLE public.${TABLE_NAME};"
 
 # Ici on seed la table (fausse MV) avec des données csv
 psql -h "$DB_HOST" \
