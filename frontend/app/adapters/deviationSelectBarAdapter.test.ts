@@ -1,30 +1,35 @@
 import { describe, it, expect, beforeEach, vi } from "vitest";
-import { ref } from "vue";
+import { ref, shallowRef } from "vue";
 import type {
     GranularityType,
-    ChartType,
     SelectBarAdapter,
 } from "~/components/ui/commons/selectBar/types";
 import type { DeviationResponse } from "~/types/api";
 
 // Mock the store
 const createMockDeviationStore = () => ({
+    deviationChartRef: shallowRef(),
     granularity: ref("month" as const),
     pickedDateStart: ref(new Date(2024, 0, 1)),
     pickedDateEnd: ref(new Date(2024, 11, 31)),
     sliceTypeSwitchEnabled: ref(false),
     sliceType: ref("full" as const),
     sliceDatepickerDate: ref(new Date(2024, 0, 1)),
-    chartTypeSwitchEnabled: ref(false),
-    chartType: ref("bar" as const),
     deviationData: ref(undefined),
     pending: ref(false),
     setGranularity: vi.fn((value: GranularityType) => {
         (mockStore.granularity.value as GranularityType) = value;
     }),
-    setChartType: vi.fn((value: ChartType) => {
-        (mockStore.chartType.value as ChartType) = value;
-    }),
+    exportConfig: {
+        chartName: "ecart-normale",
+        csvHeaders: [
+            "Date",
+            "Écart à la normale en °C",
+            "Température observée en °C",
+            "Température de référence 1991-2020 en °C",
+        ],
+        getCsvRows: vi.fn(() => undefined),
+    },
 });
 
 let mockStore: ReturnType<typeof createMockDeviationStore>;
@@ -39,17 +44,16 @@ const useDeviationSelectBarAdapter =
             sliceTypeSwitchEnabled: mockStore.sliceTypeSwitchEnabled,
             sliceType: mockStore.sliceType,
             sliceDatepickerDate: mockStore.sliceDatepickerDate,
-            chartTypeSwitchEnabled: mockStore.chartTypeSwitchEnabled,
-            chartType: mockStore.chartType,
+            chartRef: mockStore.deviationChartRef,
             data: mockStore.deviationData,
             pending: mockStore.pending,
             setGranularity: mockStore.setGranularity,
-            setChartType: mockStore.setChartType,
             features: {
-                hasSliceType: true,
-                hasChartTypeSelector: true,
-                hasExport: false,
+                hasSliceType: false,
+                hasChartTypeSelector: false,
+                hasExport: true,
             },
+            exportConfig: mockStore.exportConfig,
         };
     };
 
@@ -74,25 +78,23 @@ describe("useDeviationSelectBarAdapter", () => {
             sliceDatepickerDate: expect.objectContaining({
                 value: expect.any(Date),
             }),
-            chartTypeSwitchEnabled: expect.objectContaining({
-                value: expect.any(Boolean),
-            }),
-            chartType: expect.objectContaining({ value: expect.any(String) }),
+            chartRef: expect.objectContaining({ value: undefined }),
             data: expect.objectContaining({ value: undefined }),
             pending: expect.objectContaining({ value: expect.any(Boolean) }),
             setGranularity: expect.any(Function),
-            setChartType: expect.any(Function),
             features: expect.any(Object),
+            exportConfig: expect.any(Object),
         });
     });
 
+    // Feature flags: sliceType and chartTypeSelector are not yet enabled for this chart
     it("should expose correct feature flags", () => {
         const adapter = useDeviationSelectBarAdapter();
 
         expect(adapter.features).toEqual({
-            hasSliceType: true,
-            hasChartTypeSelector: true,
-            hasExport: false,
+            hasSliceType: false,
+            hasChartTypeSelector: false,
+            hasExport: true,
         });
     });
 
@@ -105,13 +107,25 @@ describe("useDeviationSelectBarAdapter", () => {
         expect(adapter.granularity.value).toBe("day");
     });
 
-    it("should bind setChartType method from store", () => {
+    // Chart type selector is not available for the deviation chart
+    it("should not expose setChartType method", () => {
         const adapter = useDeviationSelectBarAdapter();
 
-        adapter.setChartType!("line");
+        expect(adapter.setChartType).toBeUndefined();
+    });
 
-        expect(mockStore.setChartType).toHaveBeenCalledWith("line");
-        expect(adapter.chartType!.value).toBe("line");
+    // Chart type selector is not available for the deviation chart
+    it("should not expose chartType and chartTypeSwitchEnabled properties", () => {
+        const adapter = useDeviationSelectBarAdapter();
+
+        expect(adapter.chartType).toBeUndefined();
+        expect(adapter.chartTypeSwitchEnabled).toBeUndefined();
+    });
+
+    it("should expose chartRef from store", () => {
+        const adapter = useDeviationSelectBarAdapter();
+
+        expect(adapter.chartRef).toBeDefined();
     });
 
     it("should expose data from deviationData store property", () => {
@@ -132,5 +146,48 @@ describe("useDeviationSelectBarAdapter", () => {
         (mockStore.granularity.value as GranularityType) = "year";
 
         expect(adapter.granularity.value).toBe("year");
+    });
+
+    // Export menu: the adapter must expose exportConfig for the export menu to work
+    it("should expose exportConfig object", () => {
+        const adapter = useDeviationSelectBarAdapter();
+
+        expect(adapter.exportConfig).toBeDefined();
+    });
+
+    // Export menu: chartName is used to build the downloaded file name
+    it("should expose correct chartName in exportConfig", () => {
+        const adapter = useDeviationSelectBarAdapter();
+
+        expect(adapter.exportConfig.chartName).toBe("ecart-normale");
+    });
+
+    // Export menu: csvHeaders are written as the first row of the exported CSV file
+    it("should expose non-empty csvHeaders in exportConfig", () => {
+        const adapter = useDeviationSelectBarAdapter();
+
+        expect(adapter.exportConfig.csvHeaders).toBeInstanceOf(Array);
+        expect(adapter.exportConfig.csvHeaders.length).toBeGreaterThan(0);
+    });
+
+    // Export menu: getCsvRows is called when the user exports as CSV
+    it("should expose getCsvRows as a function in exportConfig", () => {
+        const adapter = useDeviationSelectBarAdapter();
+
+        expect(adapter.exportConfig.getCsvRows).toBeInstanceOf(Function);
+    });
+
+    // Export menu: getCsvRows returns undefined when there is no data loaded yet
+    it("should return undefined from getCsvRows when deviationData is undefined", () => {
+        const adapter = useDeviationSelectBarAdapter();
+
+        expect(adapter.exportConfig.getCsvRows()).toBeUndefined();
+    });
+
+    // Export menu: the hasExport feature flag controls visibility of the export button
+    it("should have hasExport set to true in features", () => {
+        const adapter = useDeviationSelectBarAdapter();
+
+        expect(adapter.features.hasExport).toBe(true);
     });
 });

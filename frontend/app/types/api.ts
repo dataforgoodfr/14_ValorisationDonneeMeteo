@@ -97,6 +97,16 @@ export interface DeviationMetadata {
     granularity: "year" | "month" | "day";
 }
 
+export interface DeviationNational {
+    data: DeviationDataPoint[];
+}
+
+export interface DeviationStationSerie {
+    station_id: string;
+    station_name: string;
+    data: DeviationDataPoint[];
+}
+
 export interface DeviationDataPoint {
     date: string;
     deviation: number;
@@ -104,16 +114,10 @@ export interface DeviationDataPoint {
     baseline_mean: number;
 }
 
-export interface DeviationSerie {
-    is_national: boolean;
-    station_id?: string;
-    station_name?: string;
-    data: DeviationDataPoint[];
-}
-
 export interface DeviationResponse {
     metadata: DeviationMetadata;
-    series: DeviationSerie[];
+    national: DeviationNational;
+    stations: DeviationStationSerie[];
 }
 
 // ===== Temperature Records types =====

@@ -3,12 +3,13 @@ import { useCustomDate } from "#imports";
 import type {
     GranularityType,
     SliceType,
-    ChartType,
 } from "~/components/ui/commons/selectBar/types";
 
 const dates = useCustomDate();
 
-export const useDeviationStore = defineStore("DeviationStore", () => {
+export const useDeviationStore = defineStore("deviationStore", () => {
+    const deviationChartRef = shallowRef();
+
     const pickedDateStart = ref(dates.lastYear.value);
     const pickedDateEnd = ref(dates.twoDaysAgo.value);
 
@@ -18,11 +19,16 @@ export const useDeviationStore = defineStore("DeviationStore", () => {
 
     const sliceDatepickerDate = ref(new Date(2006, 0, 1));
 
-    const chartTypeSwitchEnabled = ref(false);
-    const chartType: Ref<ChartType> = ref<ChartType>(`bar`);
-
     const station_ids = ref<undefined | string[]>(undefined);
     const include_national = ref<boolean>(true);
+
+    const setGranularity = (value: GranularityType) => {
+        sliceType.value = "full";
+        granularity.value = value;
+        if (value === "day") {
+            sliceTypeSwitchEnabled.value = false;
+        }
+    };
 
     const params = computed<DeviationParams>(() => ({
         date_start: pickedDateStart.value.toISOString().substring(0, 10),
@@ -38,29 +44,15 @@ export const useDeviationStore = defineStore("DeviationStore", () => {
         error,
     } = useTemperatureDeviation(params);
 
-    const setGranularity = (value: GranularityType) => {
-        sliceType.value = "full";
-        granularity.value = value;
-        if (value === "day") {
-            sliceTypeSwitchEnabled.value = false;
-        }
-    };
-
-    const setChartType = (value: ChartType) => {
-        chartType.value = value;
-    };
-
     return {
+        deviationChartRef,
         pickedDateStart,
         pickedDateEnd,
         granularity,
         sliceTypeSwitchEnabled,
         sliceType,
         sliceDatepickerDate,
-        chartTypeSwitchEnabled,
-        chartType,
         setGranularity,
-        setChartType,
         station_ids,
         include_national,
         deviationData,
