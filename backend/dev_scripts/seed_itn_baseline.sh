@@ -6,7 +6,7 @@ ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 
 # Load .env if present
 if [[ -f "$ROOT_DIR/.env" ]]; then
-  export $(grep -v '^#' "$ROOT_DIR/.env" | xargs)
+  export $(grep -v '^#' "${ROOT_DIR}/.env" | xargs)
 fi
 
 : "${DB_HOST:=localhost}"
@@ -21,11 +21,11 @@ CSV_PATH="${1:-${ROOT_DIR}/db_data/itn_baseline_9120.csv}"
 TABLE_NAME="${TABLE_NAME:-mv_itn_baseline_1991_2020}"
 
 if [[ ! -f "$CSV_PATH" ]]; then
-  echo "ERROR: CSV file not found: $CSV_PATH" >&2
+  echo "ERROR: CSV file not found: ${CSV_PATH}" >&2
   exit 1
 fi
 
-echo "Seeding ${TABLE_NAME} from $(basename "$CSV_PATH")"
+echo "Seeding ${TABLE_NAME} from ${CSV_PATH}"
 
 # Vérifie que la table existe
 TABLE_EXISTS=$(psql -h "$DB_HOST" \

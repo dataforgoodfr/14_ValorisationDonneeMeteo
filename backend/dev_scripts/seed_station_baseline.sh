@@ -3,9 +3,9 @@ set -euo pipefail
 
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 
-if [[ -f "$ROOT_DIR/.env" ]]; then
+if [[ -f "${ROOT_DIR}/.env" ]]; then
   set -a
-  source "$ROOT_DIR/.env"
+  source "${ROOT_DIR}/.env"
   set +a
 fi
 
@@ -20,9 +20,9 @@ export PGPASSWORD="$DB_PASSWORD"
 CSV_PATH="${1:-${ROOT_DIR}/db_data/baseline_stations_daily_mean_9120.csv}"
 TABLE_NAME="${TABLE_NAME:-baseline_station_daily_mean_1991_2020}"
 
-[[ -f "$CSV_PATH" ]] || { echo "Missing CSV: $CSV_PATH" >&2; exit 1; }
+[[ -f "${CSV_PATH}" ]] || { echo "Missing CSV: ${CSV_PATH}" >&2; exit 1; }
 
-echo "Seeding ${TABLE_NAME} from $(basename "$CSV_PATH")"
+echo "Seeding ${TABLE_NAME} from ${CSV_PATH}"
 
 OBJECT_KIND=$(psql -h "$DB_HOST" \
                    -p "$DB_PORT" \
