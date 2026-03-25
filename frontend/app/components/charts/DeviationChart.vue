@@ -3,6 +3,7 @@ import * as echarts from "echarts/core";
 import langFR from "~/i18n/langFR.js";
 import type { SelectBarAdapter } from "../ui/commons/selectBar/types";
 import type { DeviationResponse } from "~/types/api";
+import { deviationChartTooltipFormatter } from "./tooltipFormatters/deviationChartTooltipFormatter";
 import {
     TitleComponent,
     TooltipComponent,
@@ -112,45 +113,11 @@ const option = computed<ECOption>(() => {
         tooltip: {
             trigger: "axis",
             axisPointer: { type: "shadow" },
-            formatter: (params) => {
-                if (!Array.isArray(params)) return "";
-                const [first] = params;
-                if (!first) return "";
-
-                const d = first.value as Record<string, number | string>;
-                const fmt = (v: number) => `${v.toFixed(1)}°C`;
-                const find = (name: string) =>
-                    params.find((p) => p.seriesName === name);
-
-                const dateOptions: Intl.DateTimeFormatOptions =
-                    props.adapter.granularity.value === "month"
-                        ? { year: "numeric", month: "long" }
-                        : props.adapter.granularity.value === "year"
-                          ? { year: "numeric" }
-                          : {
-                                weekday: "short",
-                                day: "numeric",
-                                month: "short",
-                                year: "numeric",
-                            };
-
-                const formattedDate = new Date(
-                    d.date as string,
-                ).toLocaleDateString("fr-FR", dateOptions);
-
-                const deviation = (d.deviation_positive ??
-                    d.deviation_negative) as number;
-                const serie =
-                    deviation >= 0
-                        ? find("Ecart positif")
-                        : find("Ecart négatif");
-                const sign = deviation >= 0 ? "+" : "";
-
-                return [
-                    formattedDate,
-                    `${serie?.marker ?? ""} : ${sign}${fmt(deviation)}`,
-                ].join("<br/>");
-            },
+            formatter: (params) =>
+                deviationChartTooltipFormatter(
+                    params,
+                    props.adapter.granularity.value,
+                ),
         },
         dataZoom: [
             {
