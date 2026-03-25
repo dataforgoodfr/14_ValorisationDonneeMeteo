@@ -68,7 +68,7 @@ Liste des fichiers attendus :
 
 ### Initialisation
 ```
-cd backend/scripts
+cd backend/dev_scripts
 bash seed_dev.sh
 ``
 Ce que fait le script
