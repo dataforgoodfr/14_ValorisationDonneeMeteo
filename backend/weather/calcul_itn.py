@@ -179,7 +179,7 @@ def compute_itn(
         temp_daily,
         index="date",
         columns="station_id",
-        values=["tntxm"],
+        values=["temp_min", "temp_max", "tntxm"],
         freq="D",
     )
 
@@ -208,7 +208,9 @@ def average_itn_calculation(
 ) -> pd.DataFrame:
     """
     Calculate the monthly or yearly ITN by taking the average of
-    the daily ITN.
+    the daily ITN. To improve the precision of the output value,
+    we average the daily minimum and maximum temperatures for
+    the 30 stations and average everything at once.
 
     Parameters
     ----------
@@ -229,7 +231,9 @@ def average_itn_calculation(
     pandas.core.frame.DataFrame
           computed monthly or yealry ITN
     """
-    itn = compute_itn(read_protocol, stations_itn, start_date, end_date)[1]
+    daily_records_by_station = compute_itn(
+        read_protocol, stations_itn, start_date, end_date
+    )[0]
 
     daterange = pd.date_range(start=start_date, end=end_date)
     if freq == "monthly":
@@ -241,6 +245,9 @@ def average_itn_calculation(
 
     for id in index:
         avg_itn.loc[id] = itn[id].mean()
+        temp_min = daily_records_by_station["temp_min"].loc[id].values
+        temp_max = daily_records_by_station["temp_max"].loc[id].values
+        avg_itn.loc[id] = np.nanmean((temp_min + temp_max) / 2)
 
     return avg_itn
 
