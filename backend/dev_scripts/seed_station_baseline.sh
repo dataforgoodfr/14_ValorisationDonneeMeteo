@@ -24,6 +24,12 @@ TABLE_NAME="${TABLE_NAME:-baseline_station_daily_mean_1991_2020}"
 
 echo "Seeding ${TABLE_NAME} from ${CSV_PATH}"
 
+# Détecte si l’objet cible existe déjà et s’il s’agit d’une table ou d’une materialized view.
+# En dev, cet objet peut avoir été créé comme une materialized view (comportement prod),
+# mais on souhaite le remplacer par une table alimentée depuis un CSV.
+# Catalogue PostgreSQL :
+# - relkind = 'r' → table
+# - relkind = 'm' → materialized view
 OBJECT_KIND=$(psql -h "$DB_HOST" \
                    -p "$DB_PORT" \
                    -U "$DB_USER" \
