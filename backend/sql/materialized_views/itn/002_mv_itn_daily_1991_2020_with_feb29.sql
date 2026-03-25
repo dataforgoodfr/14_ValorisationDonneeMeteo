@@ -8,7 +8,7 @@ WITH feb29_fictive AS (
         2 AS month,
         29 AS day_of_month,
         TRUE AS is_fictive,
-        ((feb28.itn + mar01.itn) / 2.0)::double precision AS itn
+        ((feb28.itn + mar01.itn) / 2.0) AS itn
     FROM mv_itn_daily_1991_2020_real feb28
     INNER JOIN mv_itn_daily_1991_2020_real mar01
         ON mar01.year = feb28.year

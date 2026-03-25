@@ -3,13 +3,13 @@ DROP MATERIALIZED VIEW IF EXISTS mv_itn_daily_1991_2020_real;
 CREATE MATERIALIZED VIEW mv_itn_daily_1991_2020_real AS
 WITH source AS (
     SELECT
-        q.station_code::text AS station_code,
-        q.date::date AS day,
-        q.tntxm::double precision AS tntxm
+        q.station_code AS station_code,
+        q.date AS day,
+        q.tntxm AS tntxm
     FROM v_quotidienne_itn q
     WHERE q.date >= DATE '1991-01-01'
       AND q.date <  DATE '2021-01-01'
-      AND q.station_code::text IN (
+      AND q.station_code IN (
           '47091001','20148001','25056001','33281001','73054001',
           '29075001','14137001','36063001','63113001','16089001',
           '21473001','72181001','59343001','69029001','13054001',
@@ -106,7 +106,7 @@ SELECT
     EXTRACT(MONTH FROM n.day)::int AS month,
     EXTRACT(DAY   FROM n.day)::int AS day_of_month,
     FALSE AS is_fictive,
-    AVG(n.tntxm)::double precision AS itn
+    AVG(n.tntxm) AS itn
 FROM normalized n
 INNER JOIN valid_days v
     ON v.day = n.day
