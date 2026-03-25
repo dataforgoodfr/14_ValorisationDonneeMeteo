@@ -3,6 +3,7 @@ import { useCustomDate } from "#imports";
 import type {
     GranularityType,
     SliceType,
+    ChartType,
 } from "~/components/ui/commons/selectBar/types";
 
 const dates = useCustomDate();
@@ -19,15 +20,18 @@ export const useDeviationStore = defineStore("deviationStore", () => {
 
     const sliceDatepickerDate = ref(new Date(2006, 0, 1));
 
-    const station_ids = ref<undefined | string[]>(undefined);
-    const selected_stations = ref<Station[]>([]);
+    const chartTypeSwitchEnabled = ref(false);
+    const chartType: Ref<ChartType> = ref<ChartType>(`bar`);
+
+    const stationIds = ref<undefined | string[]>(undefined);
+    const selectedStations = ref<Station[]>([]);
     const include_national = ref<boolean>(true);
 
     const params = computed<DeviationParams>(() => ({
         date_start: pickedDateStart.value.toISOString().substring(0, 10),
         date_end: pickedDateEnd.value.toISOString().substring(0, 10),
         granularity: granularity.value,
-        station_ids: station_ids.value,
+        station_ids: stationIds.value,
         include_national: include_national.value,
     }));
 
@@ -49,13 +53,9 @@ export const useDeviationStore = defineStore("deviationStore", () => {
         chartType.value = value;
     };
 
-    const setStationIds = (ids: string[] | undefined) => {
-        station_ids.value = ids;
-    };
-
     const setStations = (stations: Station[] | undefined) => {
-        station_ids.value = stations?.map((station) => station.code);
-        selected_stations.value = stations || [];
+        stationIds.value = stations?.map((station) => station.code);
+        selectedStations.value = stations || [];
     };
 
     return {
@@ -66,12 +66,13 @@ export const useDeviationStore = defineStore("deviationStore", () => {
         sliceTypeSwitchEnabled,
         sliceType,
         sliceDatepickerDate,
+        chartTypeSwitchEnabled,
+        chartType,
         setGranularity,
         setChartType,
-        setStationIds,
         setStations,
-        station_ids,
-        selected_stations,
+        stationIds,
+        selectedStations,
         include_national,
         deviationData,
         pending,

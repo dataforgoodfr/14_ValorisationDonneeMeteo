@@ -9,21 +9,15 @@ interface Props {
 }
 const props = defineProps<Props>();
 
-const { useApiFetch } = useApiClient();
-
 const searchQuery = ref("");
 const page = ref(1);
 const allStations = ref<Station[]>([]);
 const hasMore = ref(false);
 
-const { data: stationsData, refresh } = await useApiFetch<
-    PaginatedResponse<Station>
->("/stations", {
-    query: {
-        search: searchQuery,
-    },
-    immediate: true,
-});
+const params = computed(() => ({
+    search: searchQuery.value,
+}));
+const { data: stationsData, refresh } = useStations(params);
 
 function processStations(newData: PaginatedResponse<Station> | undefined) {
     if (!newData) return;
@@ -36,7 +30,9 @@ function processStations(newData: PaginatedResponse<Station> | undefined) {
 }
 
 watch(stationsData, processStations);
-processStations(stationsData.value);
+onMounted(() => {
+    processStations(stationsData.value);
+});
 
 function onSelectStation(_event: Event, station: Station) {
     props.onSelect(station);
@@ -46,11 +42,13 @@ function onUnselectStation(_event: Event, station: Station) {
     props.onUnselect(station);
 }
 
+const isStationSelected = (station: Station) =>
+    props.selectedStations.some((s) => s.code === station.code);
+
 const filteredStations = computed(() =>
-    allStations.value?.filter((station) =>
-        props.selectedStations.length > 0
-            ? !props.selectedStations.some((s) => s.code === station.code)
-            : true,
+    allStations.value?.filter(
+        (station) =>
+            props.selectedStations.length === 0 || !isStationSelected(station),
     ),
 );
 
@@ -84,8 +82,9 @@ useIntersectionObserver(sentinel, ([entry]) => {
 
     <ul>
         <li
-            v-for="(station, index) in props.selectedStations"
-            :key="index"
+            v-for="station in props.selectedStations"
+            :key="`selected-${station.code}`"
+            :title="`${station.nom} (${station.departement})`"
             class="cursor-pointer pr-2 font-bold py-1 text-sm flex items-center justify-between"
             @click="onUnselectStation($event, station)"
         >
@@ -100,8 +99,8 @@ useIntersectionObserver(sentinel, ([entry]) => {
     <div class="max-h-64 overflow-y-auto">
         <ul>
             <li
-                v-for="(station, index) in filteredStations"
-                :key="index"
+                v-for="station in filteredStations"
+                :key="`filtered-${station.code}`"
                 :title="`${station.nom} (${station.departement})`"
                 class="cursor-pointer pr-2 py-1 text-sm flex items-center justify-between"
                 @click="onSelectStation($event, station)"
@@ -112,7 +111,7 @@ useIntersectionObserver(sentinel, ([entry]) => {
                 <UIcon name="i-lucide-plus" class="shrink-0" />
             </li>
             <li ref="sentinel" class="py-1 text-center text-xs text-gray-400">
-                <span v-if="hasMore">Chargement...</span>
+                <span v-show="hasMore">Chargement...</span>
             </li>
         </ul>
     </div>

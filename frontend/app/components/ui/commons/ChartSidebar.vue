@@ -3,12 +3,12 @@ import type { Station } from "~/types/api";
 import SearchStation from "./searchStation.vue";
 
 const deviationStore = useDeviationStore();
-const { station_ids, selected_stations } = storeToRefs(deviationStore);
+const { stationIds, selectedStations } = storeToRefs(deviationStore);
 
 function onSelect(station: Station) {
-    if (station_ids.value && station_ids.value.length > 0) {
+    if (stationIds.value && stationIds.value.length > 0) {
         deviationStore.setStations([
-            ...deviationStore.selected_stations,
+            ...deviationStore.selectedStations,
             station,
         ]);
     } else {
@@ -19,7 +19,7 @@ function onSelect(station: Station) {
 function onUnselect(station: Station) {
     if (!deviationStore.setStations) return;
     deviationStore.setStations(
-        deviationStore.selected_stations.filter((s) => s.code !== station.code),
+        deviationStore.selectedStations.filter((s) => s.code !== station.code),
     );
 }
 </script>
@@ -28,7 +28,7 @@ function onUnselect(station: Station) {
     <div class="w-64 p-4 flex flex-col gap-4">
         <div class="flex flex-col gap-2">
             <SearchStation
-                :selected-stations="selected_stations"
+                :selected-stations="selectedStations"
                 :on-select="onSelect"
                 :on-unselect="onUnselect"
             />
