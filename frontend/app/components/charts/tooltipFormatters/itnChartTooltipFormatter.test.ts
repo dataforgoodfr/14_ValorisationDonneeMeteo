@@ -134,7 +134,7 @@ describe("itnChartTooltipFormatter", () => {
                 axisId: "\u0000series\u00000\u00000",
                 axisValue: 1774220400000,
                 axisValueLabel: "2026-03-23",
-                marker: '<span style="display:inline-block;margin-right:4px;border-radius:10px;width:10px;height:10px;background-color:rgba(100, 100, 100, 0.2);"></span>',
+                marker: "dummy-marker",
             },
             {
                 componentType: "series",
@@ -205,12 +205,12 @@ describe("itnChartTooltipFormatter", () => {
                 axisId: "\u0000series\u00000\u00000",
                 axisValue: 1774220400000,
                 axisValueLabel: "2026-03-23",
-                marker: '<span style="display:inline-block;margin-right:4px;border-radius:10px;width:10px;height:10px;background-color:rgba(175, 175, 175, 1);"></span>',
+                marker: 'dummy-marker"></span>',
             },
         ];
         const result = itnChartTooltipFormatter(params, "day");
         expect(result).toBe(
-            'lun. 23 mars 2026<br/>Température : 17.3°C<br/>Indicateur MF : 18.5°C<br/><span style="display:inline-block;margin-right:4px;border-radius:10px;width:10px;height:10px;background-color:rgba(100, 100, 100, 0.2);"></span>Extrêmes : [12.6°C – 24.4°C]<br/><span style="display:inline-block;margin-right:4px;border-radius:10px;width:10px;height:10px;background-color:rgba(175, 175, 175, 1);"></span>Écart-type : [16.9°C – 20.1°C]',
+            'lun. 23 mars 2026<br/>Température : 17.3°C<br/>Indicateur MF : 18.5°C<br/>dummy-markerExtrêmes : [12.6°C – 24.4°C]<br/>dummy-marker"></span>Écart-type : [16.9°C – 20.1°C]',
         );
     });
 
@@ -285,7 +285,7 @@ describe("itnChartTooltipFormatter", () => {
                 axisId: "\u0000series\u00000\u00000",
                 axisValue: 1772319600000,
                 axisValueLabel: "2026-03-01",
-                marker: '<span style="display:inline-block;margin-right:4px;border-radius:10px;width:10px;height:10px;background-color:rgba(100, 100, 100, 0.2);"></span>',
+                marker: "dummy-marker",
             },
             {
                 componentType: "series",
@@ -356,12 +356,12 @@ describe("itnChartTooltipFormatter", () => {
                 axisId: "\u0000series\u00000\u00000",
                 axisValue: 1772319600000,
                 axisValueLabel: "2026-03-01",
-                marker: '<span style="display:inline-block;margin-right:4px;border-radius:10px;width:10px;height:10px;background-color:rgba(175, 175, 175, 1);"></span>',
+                marker: 'dummy-marker"></span>',
             },
         ];
         const result = itnChartTooltipFormatter(params, "month");
         expect(result).toBe(
-            'mars 2026<br/>Température : 18.0°C<br/>Indicateur MF : 17.9°C<br/><span style="display:inline-block;margin-right:4px;border-radius:10px;width:10px;height:10px;background-color:rgba(100, 100, 100, 0.2);"></span>Extrêmes : [11.1°C – 24.4°C]<br/><span style="display:inline-block;margin-right:4px;border-radius:10px;width:10px;height:10px;background-color:rgba(175, 175, 175, 1);"></span>Écart-type : [16.2°C – 19.6°C]',
+            'mars 2026<br/>Température : 18.0°C<br/>Indicateur MF : 17.9°C<br/>dummy-markerExtrêmes : [11.1°C – 24.4°C]<br/>dummy-marker"></span>Écart-type : [16.2°C – 19.6°C]',
         );
     });
 
@@ -436,7 +436,7 @@ describe("itnChartTooltipFormatter", () => {
                 axisId: "\u0000series\u00000\u00000",
                 axisValue: 1767222000000,
                 axisValueLabel: "2026-01-01",
-                marker: '<span style="display:inline-block;margin-right:4px;border-radius:10px;width:10px;height:10px;background-color:rgba(100, 100, 100, 0.2);"></span>',
+                marker: "dummy-marker",
             },
             {
                 componentType: "series",
@@ -507,12 +507,12 @@ describe("itnChartTooltipFormatter", () => {
                 axisId: "\u0000series\u00000\u00000",
                 axisValue: 1767222000000,
                 axisValueLabel: "2026-01-01",
-                marker: '<span style="display:inline-block;margin-right:4px;border-radius:10px;width:10px;height:10px;background-color:rgba(175, 175, 175, 1);"></span>',
+                marker: 'dummy-marker"></span>',
             },
         ];
         const result = itnChartTooltipFormatter(params, "year");
         expect(result).toBe(
-            '2026<br/>Température : 15.5°C<br/>Indicateur MF : 15.4°C<br/><span style="display:inline-block;margin-right:4px;border-radius:10px;width:10px;height:10px;background-color:rgba(100, 100, 100, 0.2);"></span>Extrêmes : [4.7°C – 24.4°C]<br/><span style="display:inline-block;margin-right:4px;border-radius:10px;width:10px;height:10px;background-color:rgba(175, 175, 175, 1);"></span>Écart-type : [13.7°C – 17.2°C]',
+            '2026<br/>Température : 15.5°C<br/>Indicateur MF : 15.4°C<br/>dummy-markerExtrêmes : [4.7°C – 24.4°C]<br/>dummy-marker"></span>Écart-type : [13.7°C – 17.2°C]',
         );
     });
 
