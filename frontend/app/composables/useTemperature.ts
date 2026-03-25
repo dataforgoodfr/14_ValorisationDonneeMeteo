@@ -1,9 +1,3 @@
-/**
- * Composables for planned temperature endpoints.
- * These endpoints are not yet implemented in the backend.
- * Parameter types will be narrowed when the OpenAPI spec is finalized.
- */
-
 import type { DeviationParams, DeviationResponse } from "~/types/api";
 
 export function useTemperatureDeviation(

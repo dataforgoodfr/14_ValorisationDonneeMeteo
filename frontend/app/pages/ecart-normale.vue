@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import PagesHero from "~/components/layout/PagesHero.vue";
 import ChartLayout from "~/components/layout/ChartLayout.vue";
-import ChartSidebar from "~/components/ui/commons/ChartSidebar.vue";
+import SearchStation from "~/components/ecartNormale/searchStation.vue";
 import { useDeviationSelectBarAdapter } from "~/adapters/deviationSelectBarAdapter";
 import SelectBar from "~/components/ui/commons/selectBar/selectBar.vue";
 import DeviationChart from "~/components/charts/DeviationChart.vue";
@@ -26,7 +26,7 @@ const heroData = {
                 <SelectBar :adapter="selectBarAdapter" />
             </template>
             <template #sidebar>
-                <ChartSidebar />
+                <SearchStation />
             </template>
             <template #chart>
                 <DeviationChart :adapter="selectBarAdapter" class="px-3 py-2" />
