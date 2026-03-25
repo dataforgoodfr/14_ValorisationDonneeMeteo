@@ -56,6 +56,8 @@ TABLE_EXISTS=$(psql -h "$DB_HOST" \
                     -d "$DB_NAME" \
                     -tAc "SELECT to_regclass('public.${TABLE_NAME}') IS NOT NULL;")
 
+# On créé la table en dev - en prod c'est une Materialized View
+# Comme on a pas les données en dev pour calculer la MV on créé une table, que l'on seed plus loin avec un csv"
 if [[ "$TABLE_EXISTS" != "t" ]]; then
   echo "Table ${TABLE_NAME} does not exist, creating it..."
 
@@ -96,6 +98,7 @@ psql -h "$DB_HOST" \
      -v ON_ERROR_STOP=1 \
      -c "TRUNCATE TABLE public.${TABLE_NAME};"
 
+# Ici on seed la table (fausse MV) avec des données csv
 psql -h "$DB_HOST" \
      -p "$DB_PORT" \
      -U "$DB_USER" \
