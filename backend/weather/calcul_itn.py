@@ -1,4 +1,5 @@
 import datetime
+from calendar import monthrange
 from collections.abc import Iterable
 
 import numpy as np
@@ -317,6 +318,12 @@ def monthly_itn(
     # by default, calculate ITN for France
     if stations_itn is None:
         stations_itn = DEFAULT_ITN_STATIONS_LIST
+
+    tmp = datetime.datetime.strptime(start_date, "%Y-%m-%d")
+    start_date = datetime.datetime(tmp.year, tmp.month, 1)
+    tmp = datetime.datetime.strptime(end_date, "%Y-%m-%d")
+    last_day = monthrange(tmp.year, tmp.month)[1]
+    end_date = datetime.datetime(tmp.year, tmp.month, last_day)
 
     itn = average_itn_calculation(
         read_protocol, stations_itn, start_date, end_date, freq="monthly"
