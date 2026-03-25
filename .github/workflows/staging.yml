@@ -1,10 +1,14 @@
-name: Build and Push Images
+name: Deploy staging
 
 on:
   push:
     tags:
       - 'v*.*.*'
   workflow_dispatch:
+    inputs:
+      tag:
+        description: "Image tag to deploy"
+        required: true
 
 env:
   REGISTRY: ghcr.io
