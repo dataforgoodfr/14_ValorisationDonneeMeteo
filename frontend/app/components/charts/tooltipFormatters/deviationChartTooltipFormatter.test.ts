@@ -27,6 +27,164 @@ describe("deviationChartTooltipFormatter", () => {
         expect(result).toBe("");
     });
 
+    // --- Whole returned string ---
+
+    it("returns the right string with granularityt : day", () => {
+        const params: TooltipComponentFormatterCallbackParams = [
+            {
+                componentType: "series",
+                componentSubType: "bar",
+                componentIndex: 0,
+                seriesName: "Ecart positif",
+                name: "",
+                dataIndex: 2,
+                data: {
+                    date: "2025-03-02",
+                    deviation: -0.4,
+                    deviation_positive: null,
+                    deviation_negative: -0.4,
+                },
+                value: {
+                    date: "2025-03-02",
+                    deviation: -0.4,
+                    deviation_positive: null,
+                    deviation_negative: -0.4,
+                },
+                $vars: ["seriesName", "name", "value"],
+                marker: "marker-positif",
+            },
+            {
+                componentType: "series",
+                componentSubType: "bar",
+                componentIndex: 1,
+                seriesName: "Ecart négatif",
+                name: "",
+                dataIndex: 2,
+                data: {
+                    date: "2025-03-02",
+                    deviation: -0.4,
+                    deviation_positive: null,
+                    deviation_negative: -0.4,
+                },
+                value: {
+                    date: "2025-03-02",
+                    deviation: -0.4,
+                    deviation_positive: null,
+                    deviation_negative: -0.4,
+                },
+                $vars: ["seriesName", "name", "value"],
+                marker: "marker-negatif",
+            },
+        ];
+        const result = deviationChartTooltipFormatter(params, "day");
+        expect(result).toBe("dim. 2 mars 2025<br/>marker-negatif : -0.4°C");
+    });
+
+    it("returns the right string with granularityt : month", () => {
+        const params: TooltipComponentFormatterCallbackParams = [
+            {
+                componentType: "series",
+                componentSubType: "bar",
+                componentIndex: 0,
+                seriesName: "Ecart positif",
+                name: "",
+                dataIndex: 12,
+                data: {
+                    date: "2026-03-01",
+                    deviation: 0.1,
+                    deviation_positive: 0.1,
+                    deviation_negative: null,
+                },
+                value: {
+                    date: "2026-03-01",
+                    deviation: 0.1,
+                    deviation_positive: 0.1,
+                    deviation_negative: null,
+                },
+                $vars: ["seriesName", "name", "value"],
+                marker: "marker-positif",
+            },
+            {
+                componentType: "series",
+                componentSubType: "bar",
+                componentIndex: 1,
+                seriesType: "bar",
+                seriesName: "Ecart négatif",
+                name: "",
+                dataIndex: 12,
+                data: {
+                    date: "2026-03-01",
+                    deviation: 0.1,
+                    deviation_positive: 0.1,
+                    deviation_negative: null,
+                },
+                value: {
+                    date: "2026-03-01",
+                    deviation: 0.1,
+                    deviation_positive: 0.1,
+                    deviation_negative: null,
+                },
+                $vars: ["seriesName", "name", "value"],
+                marker: "marker-negatif",
+            },
+        ];
+        const result = deviationChartTooltipFormatter(params, "month");
+        expect(result).toBe("mars 2026<br/>marker-positif : +0.1°C");
+    });
+
+    it("returns the right string with granularityt : year", () => {
+        const params: TooltipComponentFormatterCallbackParams = [
+            {
+                componentType: "series",
+                componentSubType: "bar",
+                componentIndex: 0,
+                seriesType: "bar",
+                seriesName: "Ecart positif",
+                name: "",
+                dataIndex: 1,
+                data: {
+                    date: "2026-01-01",
+                    deviation: 0.04,
+                    deviation_positive: 0.04,
+                    deviation_negative: null,
+                },
+                value: {
+                    date: "2026-01-01",
+                    deviation: 0.04,
+                    deviation_positive: 0.04,
+                    deviation_negative: null,
+                },
+                $vars: ["seriesName", "name", "value"],
+                marker: "marker-positif",
+            },
+            {
+                componentType: "series",
+                componentSubType: "bar",
+                componentIndex: 1,
+                seriesType: "bar",
+                seriesName: "Ecart négatif",
+                name: "",
+                dataIndex: 1,
+                data: {
+                    date: "2026-01-01",
+                    deviation: 0.04,
+                    deviation_positive: 0.04,
+                    deviation_negative: null,
+                },
+                value: {
+                    date: "2026-01-01",
+                    deviation: 0.04,
+                    deviation_positive: 0.04,
+                    deviation_negative: null,
+                },
+                $vars: ["seriesName", "name", "value"],
+                marker: "marker-negatif",
+            },
+        ];
+        const result = deviationChartTooltipFormatter(params, "year");
+        expect(result).toBe("2026<br/>marker-positif : +0.0°C");
+    });
+
     // --- Date formatting by granularity ---
 
     it("formats date with month and year for 'month' granularity", () => {
