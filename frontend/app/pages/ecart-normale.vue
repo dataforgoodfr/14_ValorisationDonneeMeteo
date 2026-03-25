@@ -45,8 +45,9 @@ const heroData = {
                 </ClientOnly>
             </template>
         </ChartLayout>
-        <div class="flex justify-center">
-            <MapD3 />
+        <div class="flex justify-center gap-8">
+            <MapD3 mode="points" />
+            <MapD3 mode="heatmap" />
         </div>
     </UContainer>
 </template>
