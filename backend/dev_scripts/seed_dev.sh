@@ -47,8 +47,8 @@ echo "== Import Quotidienne (CSV) =="
 echo "== Apply views =="
 bash "$ROOT_DIR/dev_scripts/apply_views.sh"
 
-echo "== Apply materialized views =="
-bash "$ROOT_DIR/dev_scripts/apply_materialized_views.sh"
+echo "== Seed station baseline (dev CSV) =="
+bash "$ROOT_DIR/dev_scripts/seed_station_baseline.sh"
 
 echo "== Seed ITN baseline (dev CSV) =="
 bash "$ROOT_DIR/dev_scripts/seed_itn_baseline.sh"

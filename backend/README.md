@@ -46,27 +46,39 @@ Contrairement aux premières versions du projet, la base de développement n'est
 Elle est alimentée par :
 
 - un schéma SQL
-
 - un dump des stations
-
-- un export CSV des données quotidiennes
-
+- un export CSV des données quotidiennes (2024–2025)
 - des vues SQL utilisées par Django
+- des baselines climatologiques pré-calculées (1991–2020) importées depuis des CSV
 
-Initialisation :
+### Fichiers requis
+
+Tous les fichiers doivent être présents dans :
+
+backend/db_data/
+
+Liste des fichiers attendus :
+
+- station.sql
+- quotidienne_2024_2025.csv
+- itn_baseline_9120.csv
+- baseline_stations_daily_mean_9120.csv
+
+⚠️ Si un de ces fichiers est absent, le script échouera.
+
+### Initialisation
 ```
 cd backend/scripts
 bash seed_dev.sh
-```
-Ce script :
-
+``
+Ce que fait le script
 - recrée le schéma public
 - crée les tables sources (Station, Quotidienne)
-- importe les données :
-  - stations
-  - données quotidiennes
-  - applique les vues SQL utilisées par l'API
-  - applique les materialized views utilisées par l'API
+- importe les données : stations, données quotidiennes
+- applique les vues SQL utilisées par l’API
+- importe les baselines climatologiques depuis des CSV :
+  - baseline ITN → mv_itn_baseline_1991_2020
+  - baseline par station → baseline_station_daily_mean_1991_2020
 
 ## Lancer le serveur
 
