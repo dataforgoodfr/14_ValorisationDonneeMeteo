@@ -18,16 +18,21 @@ STATION_SQL="${ROOT_DIR}/db_data/station.sql"
 QUOTIDIENNE_CSV="${ROOT_DIR}/db_data/quotidienne_2024_2025.csv"
 ITN_BASELINE_CSV="${ROOT_DIR}/db_data/itn_baseline_9120.csv"
 STATION_BASELINE_CSV="${ROOT_DIR}/db_data/baseline_stations_daily_mean_9120.csv"
+ITN_BASELINE_MONTHLY_CSV="${ROOT_DIR}/db_data/itn_baseline_monthly_9120.csv"
+ITN_BASELINE_YEARLY_CSV="${ROOT_DIR}/db_data/itn_baseline_yearly_9120.csv"
 
 for f in \
   "${SCHEMA_SQL}" \
   "${STATION_SQL}" \
   "${QUOTIDIENNE_CSV}" \
   "${ITN_BASELINE_CSV}" \
+  "${ITN_BASELINE_MONTHLY_CSV}" \
+  "${ITN_BASELINE_YEARLY_CSV}" \
   "${STATION_BASELINE_CSV}"
 do
   [[ -f "${f}" ]] || { echo "Missing file: ${f}" >&2; exit 1; }
 done
+
 
 echo "== Reset schema public =="
 "${psql_base[@]}" <<'SQL'
@@ -55,6 +60,12 @@ bash "${ROOT_DIR}/dev_scripts/seed_station_baseline.sh"
 echo "== Seed ITN baseline (dev CSV) =="
 bash "${ROOT_DIR}/dev_scripts/seed_itn_baseline.sh"
 
+echo "== Seed ITN monthly baseline (dev CSV) =="
+bash "${ROOT_DIR}/dev_scripts/seed_itn_baseline_monthly.sh"
+
+echo "== Seed ITN yearly baseline (dev CSV) =="
+bash "${ROOT_DIR}/dev_scripts/seed_itn_baseline_yearly.sh"
+
 echo "== Sanity checks =="
 "${psql_base[@]}" -c 'SELECT COUNT(*) AS station_count FROM public."Station";'
 "${psql_base[@]}" -c 'SELECT COUNT(*) AS quotidienne_count FROM public."Quotidienne";'
@@ -64,5 +75,9 @@ echo "== Sanity checks =="
 "${psql_base[@]}" -c 'SELECT COUNT(*) AS baseline_station_daily_mean_1991_2020_count FROM public.baseline_station_daily_mean_1991_2020;'
 "${psql_base[@]}" -c 'SELECT * FROM public.baseline_station_daily_mean_1991_2020 ORDER BY station_code, month, day LIMIT 5;'
 "${psql_base[@]}" -c 'SELECT COUNT(*) AS itn_baseline_count FROM public.mv_itn_baseline_1991_2020;'
+"${psql_base[@]}" -c 'SELECT COUNT(*) AS itn_baseline_monthly_count FROM public.mv_itn_baseline_monthly_1991_2020;'
+"${psql_base[@]}" -c 'SELECT COUNT(*) AS itn_baseline_yearly_count FROM public.mv_itn_baseline_yearly_1991_2020;'
+"${psql_base[@]}" -c 'SELECT * FROM public.mv_itn_baseline_monthly_1991_2020 ORDER BY month LIMIT 5;'
+"${psql_base[@]}" -c 'SELECT * FROM public.mv_itn_baseline_yearly_1991_2020;'
 
 echo "Seed done."

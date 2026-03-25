@@ -64,7 +64,10 @@ Liste des fichiers attendus :
 - station.sql
 - quotidienne_2024_2025.csv
 - itn_baseline_9120.csv
+- itn_baseline_monthly_9120.csv
+- itn_baseline_yearly_9120.csv
 - baseline_stations_daily_mean_9120.csv
+-
 
 ⚠️ Si un de ces fichiers est absent, le seed échouera.
 
@@ -80,6 +83,8 @@ Ce que fait le script
 - applique les vues SQL utilisées par l’API
 - importe les baselines climatologiques depuis des CSV :
   - baseline ITN → mv_itn_baseline_1991_2020
+  - baseline ITN par mois → mv_itn_baseline_monthly_1991_2020
+  - baseline ITN par an → mv_itn_baseline_yearly_1991_2020
   - baseline par station → baseline_station_daily_mean_1991_2020
 
 ## Lancer le serveur
