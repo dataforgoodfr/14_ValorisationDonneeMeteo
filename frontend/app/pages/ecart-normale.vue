@@ -7,6 +7,7 @@ import SelectBar from "~/components/ui/commons/selectBar/selectBar.vue";
 import DeviationChart from "~/components/charts/DeviationChart.vue";
 import DeviationTable from "~/components/table/deviation/DeviationTable.vue";
 import type { ChartType } from "~/components/ui/commons/selectBar/types";
+import MapD3 from "~/components/charts/MapD3.vue";
 
 const selectBarAdapter = useDeviationSelectBarAdapter();
 const chartType = computed<ChartType>(
@@ -44,5 +45,8 @@ const heroData = {
                 </ClientOnly>
             </template>
         </ChartLayout>
+        <div class="flex justify-center">
+            <MapD3 />
+        </div>
     </UContainer>
 </template>
