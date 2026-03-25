@@ -77,9 +77,10 @@ const option = computed<ECOption>(() => {
         yAxis: {
             type: "value",
             splitNumber: 3,
-            name: "Écart à la normale (°C)",
+            name: "Température (°C)",
+            nameRotate: 90,
             nameLocation: "middle",
-            nameGap: 55,
+            nameGap: 40,
             nameTextStyle: { fontSize: 10, fontWeight: "bold" },
             axisLabel: { fontSize: 10 },
             splitLine: { lineStyle: { type: "dashed" } },

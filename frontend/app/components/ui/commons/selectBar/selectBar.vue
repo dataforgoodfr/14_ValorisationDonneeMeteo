@@ -83,7 +83,7 @@ const granularityValues = reactive([
                         sideOffset: 8,
                     }"
                 >
-                    <span>
+                    <span class="flex h-14">
                         <USwitch
                             v-model="adapter.sliceTypeSwitchEnabled!.value"
                             color="neutral"
@@ -92,7 +92,7 @@ const granularityValues = reactive([
                             checked-icon="i-lucide-check"
                             label="Moyenne par"
                             :ui="{
-                                root: 'flex-col-reverse justify-between text-left items-left',
+                                root: 'flex-col-reverse items-center gap-1',
                                 container: 'my-auto',
                             }"
                             @update:model-value="adapter.turnOffSliceType"

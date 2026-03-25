@@ -61,7 +61,7 @@ const pt = {
             <DatePicker
                 v-model="adapter.pickedDateStart.value"
                 :min-date="dates.absoluteMinDataDate.value"
-                :max-date="adapter.pickedDateStart.value"
+                :max-date="adapter.pickedDateEnd.value"
                 view="year"
                 date-format="yy"
                 :pt="pt"
