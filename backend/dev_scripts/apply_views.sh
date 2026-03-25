@@ -4,16 +4,12 @@ set -euo pipefail
 # Root directory (backend/)
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 
-# Load .env if present
-if [[ -f "$ROOT_DIR/.env" ]]; then
-  export $(grep -v '^#' "$ROOT_DIR/.env" | xargs)
-fi
 
-: "${DB_HOST:=localhost}"
-: "${DB_PORT:=5432}"
-: "${DB_NAME:=meteodb}"
-: "${DB_USER:=infoclimat}"
-: "${DB_PASSWORD:=}"
+: "${DB_HOST:?DB_HOST is required}"
+: "${DB_PORT:?DB_PORT is required}"
+: "${DB_NAME:?DB_NAME is required}"
+: "${DB_USER:?DB_USER is required}"
+: "${DB_PASSWORD:?DB_PASSWORD is required}"
 
 export PGPASSWORD="$DB_PASSWORD"
 

@@ -3,28 +3,30 @@ set -euo pipefail
 
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 
-if [[ -f "$ROOT_DIR/.env" ]]; then
-  set -a
-  source "$ROOT_DIR/.env"
-  set +a
-fi
+: "${DB_HOST:?DB_HOST is required}"
+: "${DB_PORT:?DB_PORT is required}"
+: "${DB_NAME:?DB_NAME is required}"
+: "${DB_USER:?DB_USER is required}"
+: "${DB_PASSWORD:?DB_PASSWORD is required}"
 
-: "${DB_HOST:=localhost}"
-: "${DB_PORT:=5432}"
-: "${DB_NAME:=meteodb}"
-: "${DB_USER:=infoclimat}"
-: "${DB_PASSWORD:=}"
+export PGPASSWORD="${DB_PASSWORD}"
 
-export PGPASSWORD="$DB_PASSWORD"
+psql_base=(psql -h "${DB_HOST}" -p "${DB_PORT}" -U "${DB_USER}" -d "${DB_NAME}" -v ON_ERROR_STOP=1)
 
-psql_base=(psql -h "$DB_HOST" -p "$DB_PORT" -U "$DB_USER" -d "$DB_NAME" -v ON_ERROR_STOP=1)
+SCHEMA_SQL="${ROOT_DIR}/sql/schemas/001_source_tables.sql"
+STATION_SQL="${ROOT_DIR}/db_data/station.sql"
+QUOTIDIENNE_CSV="${ROOT_DIR}/db_data/quotidienne_2024_2025.csv"
+ITN_BASELINE_CSV="${ROOT_DIR}/db_data/itn_baseline_9120.csv"
+STATION_BASELINE_CSV="${ROOT_DIR}/db_data/baseline_stations_daily_mean_9120.csv"
 
-SCHEMA_SQL="$ROOT_DIR/sql/schemas/001_source_tables.sql"
-STATION_SQL="$ROOT_DIR/db_data/station.sql"
-QUOTIDIENNE_CSV="$ROOT_DIR/db_data/quotidienne_2024_2025.csv"
-
-for f in "$SCHEMA_SQL" "$STATION_SQL" "$QUOTIDIENNE_CSV"; do
-  [[ -f "$f" ]] || { echo "Missing file: $f" >&2; exit 1; }
+for f in \
+  "${SCHEMA_SQL}" \
+  "${STATION_SQL}" \
+  "${QUOTIDIENNE_CSV}" \
+  "${ITN_BASELINE_CSV}" \
+  "${STATION_BASELINE_CSV}"
+do
+  [[ -f "${f}" ]] || { echo "Missing file: ${f}" >&2; exit 1; }
 done
 
 echo "== Reset schema public =="
