@@ -9,6 +9,10 @@
     </div>
 </template>
 
+<script>
+let cachedTempMOCKED = null;
+</script>
+
 <script setup>
 import { ref, onMounted } from "vue";
 import * as d3 from "d3";
@@ -205,6 +209,8 @@ function drawHeatmap(
         path(feature);
         context.stroke();
     });
+
+    // drawPoints(context, projection, tempMOCKED);
 }
 
 onMounted(async () => {
@@ -223,7 +229,10 @@ onMounted(async () => {
         (f) => !DOM_REG_CODES.includes(f.properties.code),
     );
 
-    const tempMOCKED = generateTempMOCKED(500, featuresREG);
+    if (!cachedTempMOCKED) {
+        cachedTempMOCKED = generateTempMOCKED(500, featuresREG);
+    }
+    const tempMOCKED = cachedTempMOCKED;
 
     const context = canvas.value.getContext("2d");
     context.scale(dpr, dpr);
