@@ -244,7 +244,6 @@ def average_itn_calculation(
     avg_itn = pd.DataFrame(columns=["avg_itn"], index=index)
 
     for id in index:
-        avg_itn.loc[id] = itn[id].mean()
         temp_min = daily_records_by_station["temp_min"].loc[id].values
         temp_max = daily_records_by_station["temp_max"].loc[id].values
         avg_itn.loc[id] = np.nanmean((temp_min + temp_max) / 2)

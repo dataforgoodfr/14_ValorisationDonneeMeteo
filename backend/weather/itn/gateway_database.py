@@ -96,7 +96,6 @@ class ReadTemperaturesDatabase:
         elif start_date is not None:
             sql_request += f"and \"AAAAMMJJ\" >= '{start_date}' "
         elif end_date is not None:
-            sql_request += f"and date <= '{end_date}' "
             sql_request += f"and \"AAAAMMJJ\" <= '{end_date}' "
         temp_daily = self.sql2pandas(sql_request)
         temp_daily["date"] = pd.to_datetime(temp_daily["date"])
