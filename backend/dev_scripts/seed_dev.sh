@@ -44,16 +44,16 @@ echo "== Import Station (SQL dump) =="
 "${psql_base[@]}" -f "$STATION_SQL"
 
 echo "== Import Quotidienne (CSV) =="
-"${psql_base[@]}" -c "\copy public.\"Quotidienne\" FROM '$QUOTIDIENNE_CSV' WITH (FORMAT csv, HEADER true)"
+"${psql_base[@]}" -c "\copy public.\"Quotidienne\" FROM '${QUOTIDIENNE_CSV}' WITH (FORMAT csv, HEADER true)"
 
 echo "== Apply views =="
-bash "$ROOT_DIR/dev_scripts/apply_views.sh"
+bash "${ROOT_DIR}/dev_scripts/apply_views.sh"
 
 echo "== Seed station baseline (dev CSV) =="
-bash "$ROOT_DIR/dev_scripts/seed_station_baseline.sh"
+bash "${ROOT_DIR}/dev_scripts/seed_station_baseline.sh"
 
 echo "== Seed ITN baseline (dev CSV) =="
-bash "$ROOT_DIR/dev_scripts/seed_itn_baseline.sh"
+bash "${ROOT_DIR}/dev_scripts/seed_itn_baseline.sh"
 
 echo "== Sanity checks =="
 "${psql_base[@]}" -c 'SELECT COUNT(*) AS station_count FROM public."Station";'

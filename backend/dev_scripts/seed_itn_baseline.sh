@@ -19,7 +19,12 @@ if [[ ! -f "$CSV_PATH" ]]; then
   echo "ERROR: CSV file not found: ${CSV_PATH}" >&2
   exit 1
 fi
-
+# Détecte si l’objet cible existe déjà et s’il s’agit d’une table ou d’une materialized view.
+# En dev, cet objet peut avoir été créé comme une materialized view (comportement prod),
+# mais on souhaite le remplacer par une table alimentée depuis un CSV.
+# Catalogue PostgreSQL :
+# - relkind = 'r' → table
+# - relkind = 'm' → materialized view
 psql -h "$DB_HOST" \
      -p "$DB_PORT" \
      -U "$DB_USER" \
