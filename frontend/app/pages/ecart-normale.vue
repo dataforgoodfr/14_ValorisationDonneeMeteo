@@ -6,6 +6,7 @@ import ChartLayout from "~/components/layout/ChartLayout.vue";
 import ChartSidebar from "~/components/ui/commons/ChartSidebar.vue";
 import { useDeviationSelectBarAdapter } from "~/adapters/deviationSelectBarAdapter";
 import SelectBar from "~/components/ui/commons/selectBar/selectBar.vue";
+import MapD3 from "~/components/charts/MapD3.vue";
 
 const selectBarAdapter = useDeviationSelectBarAdapter();
 
@@ -36,5 +37,8 @@ const heroData = {
                 />
             </template>
         </ChartLayout>
+        <div class="flex justify-center">
+            <MapD3 />
+        </div>
     </UContainer>
 </template>
