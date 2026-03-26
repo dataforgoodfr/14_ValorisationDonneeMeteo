@@ -235,7 +235,11 @@ def average_itn_calculation(
         read_protocol, stations_itn, start_date, end_date
     )[0]
 
-    daterange = pd.date_range(start=start_date, end=end_date)
+    try:
+        daterange = pd.date_range(start=start_date, end=end_date)
+    except ValueError:
+        daterange = daily_records_by_station.index
+
     if freq == "monthly":
         index = np.unique(daterange.strftime("%Y-%m"))
     elif freq == "yearly":
@@ -325,11 +329,17 @@ def monthly_itn(
     if stations_itn is None:
         stations_itn = DEFAULT_ITN_STATIONS_LIST
 
-    tmp = datetime.datetime.strptime(start_date, "%Y-%m-%d")
-    start_date = datetime.datetime(tmp.year, tmp.month, 1)
-    tmp = datetime.datetime.strptime(end_date, "%Y-%m-%d")
-    last_day = monthrange(tmp.year, tmp.month)[1]
-    end_date = datetime.datetime(tmp.year, tmp.month, last_day)
+    try:
+        tmp = datetime.datetime.strptime(start_date, "%Y-%m-%d")
+        start_date = datetime.datetime(tmp.year, tmp.month, 1)
+    except TypeError:
+        pass
+    try:
+        tmp = datetime.datetime.strptime(end_date, "%Y-%m-%d")
+        last_day = monthrange(tmp.year, tmp.month)[1]
+        end_date = datetime.datetime(tmp.year, tmp.month, last_day)
+    except TypeError:
+        pass
 
     itn = average_itn_calculation(
         read_protocol, stations_itn, start_date, end_date, freq="monthly"
