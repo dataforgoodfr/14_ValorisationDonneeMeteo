@@ -46,10 +46,9 @@ const isStationSelected = (station: Station) =>
     selectedStations.value.some((s) => s.code === station.code);
 
 const unselectedFilteredStations = computed(() =>
-    allStations.value?.filter(
-        (station) =>
-            selectedStations.value.length === 0 || !isStationSelected(station),
-    ),
+    selectedStations.value.length === 0
+        ? allStations.value
+        : allStations.value?.filter((s) => !isStationSelected(s)),
 );
 
 const debouncedSearch = refDebounced(searchQuery, 300);
