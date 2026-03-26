@@ -3,7 +3,7 @@ import { refDebounced, useIntersectionObserver } from "@vueuse/core";
 import type { PaginatedResponse, Station } from "~/types/api";
 
 const deviationStore = useDeviationStore();
-const { stationIds, selectedStations } = storeToRefs(deviationStore);
+const { selectedStations } = storeToRefs(deviationStore);
 
 const searchQuery = ref<undefined | string>(undefined);
 const page = ref<number>(0);
@@ -32,14 +32,7 @@ onMounted(() => {
 });
 
 function onSelectStation(_event: PointerEvent, station: Station) {
-    if (stationIds.value && stationIds.value.length > 0) {
-        deviationStore.setStations([
-            ...deviationStore.selectedStations,
-            station,
-        ]);
-    } else {
-        deviationStore.setStations([station]);
-    }
+    deviationStore.setStations([...deviationStore.selectedStations, station]);
 }
 
 function onUnselectStation(_event: PointerEvent, station: Station) {

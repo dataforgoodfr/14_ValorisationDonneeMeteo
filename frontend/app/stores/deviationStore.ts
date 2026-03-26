@@ -25,14 +25,14 @@ export const useDeviationStore = defineStore("deviationStore", () => {
 
     const stationIds = ref<undefined | string[]>(undefined);
     const selectedStations = ref<Station[]>([]);
-    const include_national = ref<boolean>(true);
+    const includeNational = ref<boolean>(true);
 
     const params = computed<DeviationParams>(() => ({
         date_start: pickedDateStart.value.toISOString().substring(0, 10),
         date_end: pickedDateEnd.value.toISOString().substring(0, 10),
         granularity: granularity.value,
         station_ids: stationIds.value?.join(","),
-        include_national: include_national.value,
+        include_national: includeNational.value,
     }));
 
     const {
@@ -55,7 +55,6 @@ export const useDeviationStore = defineStore("deviationStore", () => {
 
     const setStations = (stations: Station[] | undefined) => {
         stationIds.value = stations?.map((station) => station.code);
-        console.log(stations);
         selectedStations.value = stations || [];
     };
 
@@ -74,7 +73,7 @@ export const useDeviationStore = defineStore("deviationStore", () => {
         setStations,
         stationIds,
         selectedStations,
-        include_national,
+        includeNational,
         deviationData,
         pending,
         error,
