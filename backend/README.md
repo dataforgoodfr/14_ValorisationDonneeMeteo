@@ -10,13 +10,13 @@ API REST Django/DRF pour les donnees meteorologiques InfoClimat.
 
 ## Installation
 
-```bash
+```
 cd backend
 
-# Installer les dependances, ainsi que les dépendances optionnelles de dev
+# Installer les dépendances, ainsi que les dépendances optionnelles de dev
 uv sync --extra dev
 
-# Copier la configuration
+# Copier la configuration (utile pour le backend, pas pour le seed DB)
 cp .env.example .env
 ```
 
@@ -24,7 +24,7 @@ cp .env.example .env
 
 ```bash
 cd timescaledb-env
-docker compose up -d
+docker compose up -d timescaledb
 cd ..
 ```
 
@@ -42,31 +42,50 @@ Si au contraire on souhaite utiliser une vraie base de données, voir la section
 ## Initialiser la base de développement
 
 Contrairement aux premières versions du projet, la base de développement n'est pas générée par Django.
+Elle est initialisée via un conteneur dédié (db-seed) afin de ne pas dépendre d’un psql installé localement.
 
 Elle est alimentée par :
 
 - un schéma SQL
-
 - un dump des stations
-
-- un export CSV des données quotidiennes
-
+- un export CSV des données quotidiennes (2024–2025)
 - des vues SQL utilisées par Django
+- des baselines climatologiques pré-calculées (1991–2020) importées depuis des CSV
 
-Initialisation :
-```
-cd backend/scripts
-bash seed_dev.sh
-```
-Ce script :
 
+### Fichiers requis
+
+Tous les fichiers doivent être présents dans :
+
+backend/db_data/
+
+Liste des fichiers attendus :
+
+- station.sql
+- quotidienne_2024_2025.csv
+- itn_baseline_9120.csv
+- itn_baseline_monthly_9120.csv
+- itn_baseline_yearly_9120.csv
+- baseline_stations_daily_mean_9120.csv
+-
+
+⚠️ Si un de ces fichiers est absent, le seed échouera.
+
+### Initialisation
+```
+cd backend/timescaledb-env
+docker compose run --rm db-seed
+```
+Ce que fait le script
 - recrée le schéma public
 - crée les tables sources (Station, Quotidienne)
-- importe les données :
-  - stations
-  - données quotidiennes
-  - applique les vues SQL utilisées par l'API
-  - applique les materialized views utilisées par l'API
+- importe les données : stations, données quotidiennes
+- applique les vues SQL utilisées par l’API
+- importe les baselines climatologiques depuis des CSV :
+  - baseline ITN → mv_itn_baseline_1991_2020
+  - baseline ITN par mois → mv_itn_baseline_monthly_1991_2020
+  - baseline ITN par an → mv_itn_baseline_yearly_1991_2020
+  - baseline par station → baseline_station_daily_mean_1991_2020
 
 ## Lancer le serveur
 
