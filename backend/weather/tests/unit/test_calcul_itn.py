@@ -8,6 +8,7 @@ from weather.calcul_itn import (
     correct_temperatures_Reims,
     itn,
     itn_calculation,
+    monthly_itn,
     separate_by_station,
 )
 from weather.itn.gateway_tests import (
@@ -223,5 +224,20 @@ def test_itn():
             ["2012-05-09", 36.0 / 3.0],
         ]
     )
+    np.testing.assert_array_equal(result[:, 0], expected[:, 0])
+    np.testing.assert_allclose(result[:, 1].astype(float), expected[:, 1].astype(float))
+
+
+# == monthly_itn =====================================================
+
+
+def test_monthly_itn():
+    dates = pd.date_range("2024-01-01", "2024-03-31", freq="D")
+    index = np.unique(dates.strftime("%Y-%m"))
+
+    result = monthly_itn(read_protocol=ReadMonthlyTemperaturesTests)
+    avg_itn = [(11 + 3 + 17) / 3.0 for idx in index]
+    expected = np.array([[index[i], avg_itn[i]] for i in range(len(index))])
+
     np.testing.assert_array_equal(result[:, 0], expected[:, 0])
     np.testing.assert_allclose(result[:, 1].astype(float), expected[:, 1].astype(float))
