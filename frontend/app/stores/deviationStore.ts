@@ -23,15 +23,19 @@ export const useDeviationStore = defineStore("deviationStore", () => {
     const chartTypeSwitchEnabled = ref(false);
     const chartType: Ref<ChartType> = ref<ChartType>(`bar`);
 
-    const stationIds = ref<undefined | string[]>(undefined);
+    const stationIds = ref<string[]>([]);
     const selectedStations = ref<Station[]>([]);
     const includeNational = ref<boolean>(true);
 
     const params = computed<DeviationParams>(() => ({
-        date_start: pickedDateStart.value.toISOString().substring(0, 10),
-        date_end: pickedDateEnd.value.toISOString().substring(0, 10),
+        date_start: pickedDateStart.value
+            .toISOString()
+            .substring(0, "YYYY-MM-DD".length),
+        date_end: pickedDateEnd.value
+            .toISOString()
+            .substring(0, "YYYY-MM-DD".length),
         granularity: granularity.value,
-        station_ids: stationIds.value?.join(","),
+        station_ids: stationIds.value.join(","),
         include_national: includeNational.value,
     }));
 
@@ -53,9 +57,9 @@ export const useDeviationStore = defineStore("deviationStore", () => {
         chartType.value = value;
     };
 
-    const setStations = (stations: Station[] | undefined) => {
-        stationIds.value = stations?.map((station) => station.code);
-        selectedStations.value = stations || [];
+    const setStations = (stations: Station[]) => {
+        stationIds.value = stations.map((station) => station.code);
+        selectedStations.value = stations;
     };
 
     return {
