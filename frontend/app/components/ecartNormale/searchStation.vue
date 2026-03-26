@@ -86,23 +86,25 @@ useIntersectionObserver(sentinel, ([entry]) => {
             variant="outline"
             placeholder="Entrez le nom d'une station"
         />
-        <ul
+        <div
             v-if="selectedStations.length > 0"
             class="max-h-44 overflow-y-auto shrink-0"
         >
-            <li
-                v-for="station in selectedStations"
-                :key="`selected-${station.code}`"
-                :title="`${station.nom} (${station.departement})`"
-                class="cursor-pointer pr-2 font-bold py-1 text-sm flex items-center justify-between"
-                @click="onUnselectStation($event, station)"
-            >
-                <span class="truncate"
-                    >{{ station.nom }} ({{ station.departement }})</span
+            <ul>
+                <li
+                    v-for="station in selectedStations"
+                    :key="`selected-${station.code}`"
+                    :title="`${station.nom} (${station.departement})`"
+                    class="cursor-pointer pr-2 font-bold py-1 text-sm flex items-center justify-between"
+                    @click="onUnselectStation($event, station)"
                 >
-                <UIcon name="i-lucide-x" class="shrink-0" />
-            </li>
-        </ul>
+                    <span class="truncate"
+                        >{{ station.nom }} ({{ station.departement }})</span
+                    >
+                    <UIcon name="i-lucide-x" class="shrink-0" />
+                </li>
+            </ul>
+        </div>
 
         <USeparator v-if="selectedStations.length > 0" />
 
@@ -121,10 +123,11 @@ useIntersectionObserver(sentinel, ([entry]) => {
                     <UIcon name="i-lucide-plus" class="shrink-0" />
                 </li>
                 <li
+                    v-if="hasMore"
                     ref="sentinel"
                     class="py-1 text-center text-xs text-gray-400"
                 >
-                    <span v-show="hasMore">Chargement...</span>
+                    <span>Chargement...</span>
                 </li>
             </ul>
         </div>

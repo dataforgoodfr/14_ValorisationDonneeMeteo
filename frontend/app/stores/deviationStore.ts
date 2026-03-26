@@ -31,7 +31,7 @@ export const useDeviationStore = defineStore("deviationStore", () => {
         date_start: pickedDateStart.value.toISOString().substring(0, 10),
         date_end: pickedDateEnd.value.toISOString().substring(0, 10),
         granularity: granularity.value,
-        station_ids: stationIds.value,
+        station_ids: stationIds.value?.join(","),
         include_national: include_national.value,
     }));
 
@@ -55,6 +55,7 @@ export const useDeviationStore = defineStore("deviationStore", () => {
 
     const setStations = (stations: Station[] | undefined) => {
         stationIds.value = stations?.map((station) => station.code);
+        console.log(stations);
         selectedStations.value = stations || [];
     };
 

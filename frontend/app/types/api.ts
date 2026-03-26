@@ -86,7 +86,7 @@ export interface DeviationParams {
     date_start: string;
     date_end: string;
     granularity: "year" | "month" | "day";
-    station_ids?: string[];
+    station_ids?: string;
     include_national: boolean;
 }
 
