@@ -169,6 +169,14 @@ def test_compute_itn():
     expected_records_by_station = _make_pivoted(
         dates,
         {
+            ("temp_min", REIMS_COURCY_ID): [3.0, 4.0, NAN, NAN],
+            ("temp_min", REIMS_PRUNAY_ID): [NAN, NAN, 6.0, 7.0],
+            ("temp_min", "75114001"): [-2.0, -1.0, 0.0, 1.0],
+            ("temp_min", "13054001"): [10.0, 11.0, 12.0, 13.0],
+            ("temp_max", REIMS_COURCY_ID): [13.0, 14.0, NAN, NAN],
+            ("temp_max", REIMS_PRUNAY_ID): [NAN, NAN, 16.0, 17.0],
+            ("temp_max", "75114001"): [8.0, 9.0, 10.0, 11.0],
+            ("temp_max", "13054001"): [20.0, 21.0, 22.0, 23.0],
             ("tntxm", REIMS_COURCY_ID): [8.0, 9.0, NAN, NAN],
             ("tntxm", REIMS_PRUNAY_ID): [NAN, NAN, 11.0, 12.0],
             ("tntxm", "75114001"): [3.0, 4.0, 5.0, 6.0],
