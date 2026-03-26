@@ -246,7 +246,7 @@ def average_itn_calculation(
     elif freq == "yearly":
         index = np.unique(daterange.strftime("%Y"))
 
-    avg_itn = pd.DataFrame(columns=["avg_itn"], index=index)
+    avg_itn = pd.DataFrame(columns=["avg_itn"], index=index, dtype=float)
 
     for id in index:
         temp_min = daily_records_by_station["temp_min"].loc[id].values
