@@ -3,13 +3,17 @@ import pandas as pd
 import pytest
 
 from weather.calcul_itn import (
+    average_itn_calculation,
     compute_itn,
     correct_temperatures_Reims,
     itn,
     itn_calculation,
     separate_by_station,
 )
-from weather.itn.gateway_tests import ReadTemperaturesTests
+from weather.itn.gateway_tests import (
+    ReadMonthlyTemperaturesTests,
+    ReadTemperaturesTests,
+)
 
 NAN = float("nan")
 REIMS_PRUNAY_ID = "51449002"
@@ -188,6 +192,22 @@ def test_compute_itn():
     ).asfreq("D")
     pd.testing.assert_frame_equal(results[0], expected_records_by_station)
     pd.testing.assert_series_equal(results[1], expected_itn)
+
+
+# == average_itn_calculation =========================================
+
+
+def test_average_itn_calculation():
+    dates = pd.date_range("2024-01-01", "2024-03-31", freq="D")
+    index = np.unique(dates.strftime("%Y-%m"))
+
+    results = average_itn_calculation(
+        read_protocol=ReadMonthlyTemperaturesTests, freq="monthly"
+    )
+    expected_avg_itn = pd.DataFrame(
+        {"avg_itn": [(11 + 3 + 17) / 3.0 for idx in index]}, index=index
+    )
+    pd.testing.assert_frame_equal(results, expected_avg_itn)
 
 
 # == itn =============================================================
