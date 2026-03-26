@@ -14,7 +14,8 @@ function nowDateFormatted() {
     return `${year}${month}${day}_${hours}${minutes}${seconds}`;
 }
 
-const toISODate = (date: Date) => date.toISOString().substring(0, 10);
+const toISODate = (date: Date) =>
+    date.toISOString().substring(0, "YYYY-MM-DD".length);
 
 export function useFormatFileName(
     chartName: string,

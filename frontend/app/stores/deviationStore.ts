@@ -1,8 +1,9 @@
-import type { DeviationParams } from "~/types/api";
+import type { DeviationParams, Station } from "~/types/api";
 import { useCustomDate } from "#imports";
 import type {
     GranularityType,
     SliceType,
+    ChartType,
 } from "~/components/ui/commons/selectBar/types";
 
 const dates = useCustomDate();
@@ -19,8 +20,30 @@ export const useDeviationStore = defineStore("deviationStore", () => {
 
     const sliceDatepickerDate = ref(new Date(2006, 0, 1));
 
-    const station_ids = ref<undefined | string[]>(undefined);
-    const include_national = ref<boolean>(true);
+    const chartTypeSwitchEnabled = ref(false);
+    const chartType: Ref<ChartType> = ref<ChartType>(`bar`);
+
+    const stationIds = ref<string[]>([]);
+    const selectedStations = ref<Station[]>([]);
+    const includeNational = ref<boolean>(true);
+
+    const params = computed<DeviationParams>(() => ({
+        date_start: pickedDateStart.value
+            .toISOString()
+            .substring(0, "YYYY-MM-DD".length),
+        date_end: pickedDateEnd.value
+            .toISOString()
+            .substring(0, "YYYY-MM-DD".length),
+        granularity: granularity.value,
+        station_ids: stationIds.value.join(","),
+        include_national: includeNational.value,
+    }));
+
+    const {
+        data: deviationData,
+        pending,
+        error,
+    } = useTemperatureDeviation(params);
 
     const setGranularity = (value: GranularityType) => {
         sliceType.value = "full";
@@ -30,19 +53,14 @@ export const useDeviationStore = defineStore("deviationStore", () => {
         }
     };
 
-    const params = computed<DeviationParams>(() => ({
-        date_start: pickedDateStart.value.toISOString().substring(0, 10),
-        date_end: pickedDateEnd.value.toISOString().substring(0, 10),
-        granularity: granularity.value,
-        station_ids: station_ids.value,
-        include_national: include_national.value,
-    }));
+    const setChartType = (value: ChartType) => {
+        chartType.value = value;
+    };
 
-    const {
-        data: deviationData,
-        pending,
-        error,
-    } = useTemperatureDeviation(params);
+    const setStations = (stations: Station[]) => {
+        stationIds.value = stations.map((station) => station.code);
+        selectedStations.value = stations;
+    };
 
     return {
         deviationChartRef,
@@ -52,9 +70,14 @@ export const useDeviationStore = defineStore("deviationStore", () => {
         sliceTypeSwitchEnabled,
         sliceType,
         sliceDatepickerDate,
+        chartTypeSwitchEnabled,
+        chartType,
         setGranularity,
-        station_ids,
-        include_national,
+        setChartType,
+        setStations,
+        stationIds,
+        selectedStations,
+        includeNational,
         deviationData,
         pending,
         error,

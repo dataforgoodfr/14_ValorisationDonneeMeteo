@@ -47,8 +47,12 @@ export const useItnStore = defineStore("itnStore", () => {
     };
 
     const params = computed<NationalIndicatorParams>(() => ({
-        date_start: pickedDateStart.value.toISOString().substring(0, 10),
-        date_end: pickedDateEnd.value.toISOString().substring(0, 10),
+        date_start: pickedDateStart.value
+            .toISOString()
+            .substring(0, "YYYY-MM-DD".length),
+        date_end: pickedDateEnd.value
+            .toISOString()
+            .substring(0, "YYYY-MM-DD".length),
         granularity: granularity.value,
         slice_type: sliceType.value,
         month_of_year: month_of_year.value,
