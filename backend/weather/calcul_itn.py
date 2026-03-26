@@ -202,9 +202,9 @@ def compute_itn(
 # --------------------------------------------------------------------
 def average_itn_calculation(
     read_protocol: ReadTemperaturesGateway,
-    stations_itn: tuple[str],
-    start_date: str | pd.Timestamp | datetime.datetime,
-    end_date: str | pd.Timestamp | datetime.datetime,
+    stations_itn: Iterable | None = None,
+    start_date: str | pd.Timestamp | datetime.datetime | None = None,
+    end_date: str | pd.Timestamp | datetime.datetime | None = None,
     freq: str = "monthly",
 ) -> pd.DataFrame:
     """
