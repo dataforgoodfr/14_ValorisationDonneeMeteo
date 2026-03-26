@@ -47,4 +47,4 @@ jobs:
 
       - name: Run frontend tests
         working-directory: frontend
-        run: npm run test:all
+        run: npm run test:ci
