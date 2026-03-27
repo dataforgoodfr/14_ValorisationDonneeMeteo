@@ -17,6 +17,9 @@ def setup_db_schema_and_views(django_db_setup, django_db_blocker):
     baseline_mv_sql = (
         BASE_DIR / "sql" / "materialized_views" / "baseline-station-daily-mean-9120.sql"
     ).read_text()
+    itn_baseline_tables_sql = (
+        BASE_DIR / "sql" / "test_tables" / "itn_baseline.sql"
+    ).read_text()
 
     with django_db_blocker.unblock():
         with connection.cursor() as cur:
@@ -24,3 +27,4 @@ def setup_db_schema_and_views(django_db_setup, django_db_blocker):
             cur.execute(v_station_sql)
             cur.execute(v_quot_sql)
             cur.execute(baseline_mv_sql)
+            cur.execute(itn_baseline_tables_sql)
