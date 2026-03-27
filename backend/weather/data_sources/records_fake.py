@@ -50,6 +50,35 @@ def _season_start_dates(year: int) -> tuple[dt.date, ...]:
     )
 
 
+def _season_anchor_dates_in_range(start: dt.date, end: dt.date) -> tuple[dt.date, ...]:
+    out: list[dt.date] = []
+    for year in range(start.year, end.year + 1):
+        for d in _season_start_dates(year):
+            clamped = _clamp_date(d, start, end)
+            if start <= clamped <= end:
+                out.append(clamped)
+    return tuple(dict.fromkeys(out))
+
+
+def _monthly_anchor_dates_in_range(start: dt.date, end: dt.date) -> tuple[dt.date, ...]:
+    out: list[dt.date] = []
+    year = start.year
+    month = start.month
+
+    while (year, month) <= (end.year, end.month):
+        d = dt.date(year, month, 15)
+        clamped = _clamp_date(d, start, end)
+        out.append(clamped)
+
+        if month == 12:
+            year += 1
+            month = 1
+        else:
+            month += 1
+
+    return tuple(dict.fromkeys(out))
+
+
 def _candidate_dates(query: RecordsQuery) -> tuple[dt.date, ...]:
     start, end = _effective_date_range(query)
 
@@ -61,25 +90,10 @@ def _candidate_dates(query: RecordsQuery) -> tuple[dt.date, ...]:
         return (end,)
 
     if query.record_scope == "monthly":
-        out: list[dt.date] = []
-        year = start.year
-        month = start.month
-        while (year, month) <= (end.year, end.month):
-            out.append(_clamp_date(dt.date(year, month, 15), start, end))
-            if month == 12:
-                year += 1
-                month = 1
-            else:
-                month += 1
-        return tuple(dict.fromkeys(out))
+        return _monthly_anchor_dates_in_range(start, end)
 
     if query.record_scope == "seasonal":
-        out: list[dt.date] = []
-        for year in range(start.year, end.year + 1):
-            for d in _season_start_dates(year):
-                out.append(_clamp_date(d, start, end))
-        out = [d for d in out if start <= d <= end]
-        return tuple(dict.fromkeys(out))
+        return _season_anchor_dates_in_range(start, end)
 
     raise ValueError(f"Unsupported record_scope: {query.record_scope}")
 
