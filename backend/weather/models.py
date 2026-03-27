@@ -85,3 +85,49 @@ class BaselineStationDailyMean19912020(models.Model):
 
     def __str__(self) -> str:
         return f"{self.station_code} {self.month:02d}-{self.day:02d}"
+
+
+class ITNBaselineDaily19912020(models.Model):
+    pk = models.CompositePrimaryKey("month", "day_of_month")
+    month = models.IntegerField()
+    day_of_month = models.IntegerField()
+    itn_mean = models.FloatField()
+    itn_stddev = models.FloatField()
+
+    class Meta:
+        managed = False
+        db_table = "mv_itn_baseline_1991_2020"
+        unique_together = ("month", "day_of_month")
+
+    def __str__(self) -> str:
+        return f"{self.month:02d}-{self.day_of_month:02d}"
+
+
+class ITNBaselineMonthly19912020(models.Model):
+    month = models.IntegerField(primary_key=True)
+    itn_mean = models.FloatField()
+    itn_stddev = models.FloatField()
+
+    class Meta:
+        managed = False
+        db_table = "mv_itn_baseline_monthly_1991_2020"
+
+    def __str__(self) -> str:
+        return f"month={self.month:02d}"
+
+
+class ITNBaselineYearly19912020(models.Model):
+    sample_size = models.IntegerField(
+        primary_key=True
+    )  # on a besoin d'une PK, meme si on a qu'une ligne
+    itn_mean = models.FloatField()
+    itn_stddev = models.FloatField()
+    itn_p20 = models.FloatField()
+    itn_p80 = models.FloatField()
+
+    class Meta:
+        managed = False
+        db_table = "mv_itn_baseline_yearly_1991_2020"
+
+    def __str__(self) -> str:
+        return f"sample_size={self.sample_size}"

@@ -5,9 +5,13 @@ from dataclasses import dataclass
 
 
 @dataclass(frozen=True)
-class DailyPoint:
+class ObservedPoint:
     date: dt.date
     temperature: float
+
+
+@dataclass(frozen=True)
+class BaselinePoint:
     baseline_mean: float
     baseline_std_dev_upper: float
     baseline_std_dev_lower: float
