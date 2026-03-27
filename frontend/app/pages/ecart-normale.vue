@@ -49,5 +49,26 @@ const heroData = {
             <MapD3 mode="points" />
             <MapD3 mode="heatmap" />
         </div>
+        <div class="flex justify-center gap-8">
+            <!-- <MapD3 mode="stationsPoints" date="2025-01-01" />
+            <MapD3 mode="stationsPoints" date="2025-04-01" />
+            <MapD3 mode="stationsPoints" date="2025-07-01" /> -->
+            <MapD3 mode="stationsPoints" date="2025-10-01" />
+        </div>
+        <div class="flex justify-center gap-8">
+            <!-- <MapD3 mode="heatmapStationsTemp" date="2025-01-01" />
+            <MapD3 mode="heatmapStationsTemp" date="2025-04-01" />
+            <MapD3 mode="heatmapStationsTemp" date="2025-07-01" /> -->
+            <MapD3 mode="heatmapStationsTemp" date="2025-10-01" />
+        </div>
+        <!-- <div class="flex justify-center gap-8">
+            <MapD3 mode="stationsPoints" date="2025-07-01" />
+            <MapD3 mode="stationsPoints" date="2025-10-01" />
+            <MapD3 mode="stationsPoints" date="2025-12-01" />
+        </div>
+        <div class="flex justify-center gap-8">
+            <MapD3 mode="stations" :stationType="0" />
+            <MapD3 mode="stations" :stationType="2" />
+        </div> -->
     </UContainer>
 </template>

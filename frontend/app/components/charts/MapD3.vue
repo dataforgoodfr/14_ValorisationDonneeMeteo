@@ -21,14 +21,24 @@ import * as topojson from "topojson-client";
 const props = defineProps({
     mode: {
         type: String,
-        default: "points", // "points" | "heatmap"
+        default: "points", // "points" | "heatmap" | "stations"
+    },
+    stationType: {
+        type: Number,
+        default: null,
+    },
+    date: {
+        type: String,
+        default: null,
     },
 });
 
-const width = 600;
-const height = 600;
+const width = 500;
+const height = 500;
 const dpr = 2;
 const canvas = ref(null);
+const minTemp = 0;
+const maxTemp = 30;
 
 // Génère N points aléatoires à l'intérieur des régions GeoJSON fournies
 // avec une température plus élevée dans le sud (lat faible) que dans le nord
@@ -115,9 +125,16 @@ function drawLegend(context, width, mapPadding, footer) {
     context.fillStyle = "#ffffff";
     context.font = "11px sans-serif";
     context.textAlign = "left";
-    context.fillText("8°C", legendX, legendY + legendH + 14);
+    context.fillText("0°C", legendX, legendY + legendH + 14);
     context.textAlign = "right";
-    context.fillText("21°C", legendX + legendW, legendY + legendH + 14);
+    context.fillText("30°C", legendX + legendW, legendY + legendH + 14);
+}
+
+function drawLegendDate(context, mapPadding, date) {
+    context.fillStyle = "#ffffff";
+    context.font = "bold 12px sans-serif";
+    context.textAlign = "left";
+    context.fillText(date, mapPadding + 10, mapPadding + 15);
 }
 
 function drawPoints(context, projection, tempMOCKED) {
@@ -126,13 +143,171 @@ function drawPoints(context, projection, tempMOCKED) {
         context.beginPath();
         context.arc(x, y, 3, 0, 2 * Math.PI);
         context.fillStyle = d3.interpolateRdYlBu(
-            1 - (temperature - 8) / (21 - 8),
+            1 - (temperature - minTemp) / (maxTemp - minTemp),
         );
         context.fill();
         context.strokeStyle = "rgba(255,255,255,0.5)";
         context.lineWidth = 0.4;
         context.stroke();
     });
+}
+
+function drawPointsStationsTemp(
+    context,
+    projection,
+    infoclimatStationsTemp,
+    temperatureDate = "2025-06-01",
+) {
+    infoclimatStationsTemp.forEach((station, i) => {
+        const lon = station.lon;
+        const lat = station.lat;
+        const temp = station[temperatureDate];
+
+        const [x, y] = projection([lon, lat]);
+        context.beginPath();
+        context.arc(x, y, 3, 0, 2 * Math.PI);
+        context.fillStyle = d3.interpolateRdYlBu(
+            1 - (temp - minTemp) / (maxTemp - minTemp),
+        );
+        context.fill();
+        context.strokeStyle = "rgba(255,255,255,0.5)";
+        context.lineWidth = 0.4;
+        context.stroke();
+    });
+}
+
+const stationTypeColor = d3
+    .scaleOrdinal()
+    .domain([0, 1, 2, 3, 4])
+    .range(["#ffffb2", "#fecc5c", "#fd8d3c", "#f03b20", "#bd0026"]);
+
+function drawStationsLegend(
+    context,
+    width,
+    mapPadding,
+    footer,
+    stationType,
+    count,
+) {
+    const centerX = width / 2;
+    const legendY = height - footer + 20;
+
+    context.fillStyle = "#ffffff";
+    context.font = "bold 12px sans-serif";
+    context.textAlign = "center";
+    const typeLabel = stationType !== null ? stationType : "tous";
+    context.fillText(
+        `Type de station : ${typeLabel} - ${count} station${count > 1 ? "s" : ""}`,
+        centerX,
+        legendY + 14,
+    );
+}
+
+function drawStationsPoints(context, projection, stations, filterType = null) {
+    const data =
+        filterType !== null
+            ? stations.filter((s) => s.station_type === filterType)
+            : stations;
+    data.forEach(({ lon, lat, station_type }) => {
+        const [x, y] = projection([lon, lat]);
+        context.beginPath();
+        context.arc(x, y, 1, 0, 2 * Math.PI);
+        context.fillStyle =
+            filterType !== null ? "#ffffff" : stationTypeColor(station_type);
+        context.fill();
+        context.strokeStyle = "rgba(255,255,255,0.5)";
+        context.lineWidth = 0.4;
+        // context.stroke();
+    });
+}
+
+function drawHeatmapStationsTemp(
+    context,
+    projection,
+    infoclimatStationsTemp,
+    featuresDEP,
+    featuresREG,
+    path,
+    footer,
+    temperatureDate = "2025-06-01",
+) {
+    const projectedPoints = infoclimatStationsTemp
+        .filter((s) => s[temperatureDate] != null)
+        .map((s) => {
+            const [px, py] = projection([s.lon, s.lat]);
+            return { px, py, temperature: s[temperatureDate] };
+        });
+
+    const mapAreaH = height - footer;
+    const offscreen = document.createElement("canvas");
+    offscreen.width = width;
+    offscreen.height = mapAreaH;
+    const offCtx = offscreen.getContext("2d");
+    const imageData = offCtx.createImageData(width, mapAreaH);
+
+    const sigma = 40;
+    const step = 1;
+    for (let y = 0; y < mapAreaH; y += step) {
+        for (let x = 0; x < width; x += step) {
+            let sumWeight = 0;
+            let sumTemp = 0;
+            for (const { px, py, temperature } of projectedPoints) {
+                const dist2 = (x - px) ** 2 + (y - py) ** 2;
+                const w = Math.exp(-dist2 / (2 * sigma ** 2));
+                sumWeight += w;
+                sumTemp += w * temperature;
+            }
+            const temp = sumTemp / sumWeight;
+            const col = d3.color(
+                d3.interpolateRdYlBu(
+                    1 - (temp - minTemp) / (maxTemp - minTemp),
+                ),
+            );
+            for (let dy = 0; dy < step && y + dy < mapAreaH; dy++) {
+                for (let dx = 0; dx < step && x + dx < width; dx++) {
+                    const idx = ((y + dy) * width + (x + dx)) * 4;
+                    imageData.data[idx] = col.r;
+                    imageData.data[idx + 1] = col.g;
+                    imageData.data[idx + 2] = col.b;
+                    imageData.data[idx + 3] = 210;
+                }
+            }
+        }
+    }
+    offCtx.putImageData(imageData, 0, 0);
+
+    const svgPath = d3.geoPath().projection(projection);
+    const clipPath = new Path2D();
+    featuresDEP.forEach((feature) => {
+        const d = svgPath(feature);
+        if (d) clipPath.addPath(new Path2D(d));
+    });
+    context.save();
+    context.clip(clipPath);
+    context.drawImage(offscreen, 0, 0);
+    context.restore();
+
+    context.strokeStyle = "rgba(255,255,255,0.5)";
+    context.lineWidth = 0.4;
+    featuresDEP.forEach((feature) => {
+        context.beginPath();
+        path(feature);
+        context.stroke();
+    });
+    context.strokeStyle = "#ffffff";
+    context.lineWidth = 0.9;
+    featuresREG.forEach((feature) => {
+        context.beginPath();
+        path(feature);
+        context.stroke();
+    });
+
+    // drawPointsStationsTemp(
+    //     context,
+    //     projection,
+    //     infoclimatStationsTemp,
+    //     temperatureDate,
+    // );
 }
 
 function drawHeatmap(
@@ -156,6 +331,7 @@ function drawHeatmap(
     const offCtx = offscreen.getContext("2d");
     const imageData = offCtx.createImageData(width, mapAreaH);
 
+    const sigma = 40; // rayon de lissage gaussien en pixels
     const step = 1;
     for (let y = 0; y < mapAreaH; y += step) {
         for (let x = 0; x < width; x += step) {
@@ -163,7 +339,8 @@ function drawHeatmap(
             let sumTemp = 0;
             for (const { px, py, temperature } of projectedPoints) {
                 const dist2 = (x - px) ** 2 + (y - py) ** 2;
-                const w = dist2 < 0.25 ? 1e8 : 1 / dist2;
+                // const w = dist2 < 0.25 ? 1e8 : 1 / dist2;
+                const w = Math.exp(-dist2 / (2 * sigma ** 2));
                 sumWeight += w;
                 sumTemp += w * temperature;
             }
@@ -210,13 +387,27 @@ function drawHeatmap(
         context.stroke();
     });
 
-    // drawPoints(context, projection, tempMOCKED);
+    drawPoints(context, projection, tempMOCKED);
 }
 
 onMounted(async () => {
     const topoData = await fetch("/json/France_2024_WGS84_DEP.json").then(
         (res) => res.json(),
     );
+
+    const infoclimatStations = await fetch("/data/D4G_stations.csv")
+        .then((res) => res.text())
+        .then((text) => d3.csvParse(text, d3.autoType));
+
+    console.log("infoclimatStations :", infoclimatStations);
+
+    const infoclimatStationsTemp = await fetch(
+        "/data/stations_temperatures_2024_2025.csv",
+    )
+        .then((res) => res.text())
+        .then((text) => d3.dsvFormat(";").parse(text, d3.autoType));
+
+    console.log("infoclimatStationsTemp :", infoclimatStationsTemp);
 
     const geojsonREG = topojson.feature(topoData, topoData.objects.REG);
     const geojsonDEP = topojson.feature(topoData, topoData.objects.DEP);
@@ -257,6 +448,11 @@ onMounted(async () => {
     context.fillStyle = "#202d43";
     context.fillRect(0, 0, width, height);
 
+    if (props.mode === "points") {
+        drawBasemap(context, path, featuresDEP, featuresREG);
+        drawPoints(context, projection, tempMOCKED);
+        drawLegend(context, width, mapPadding, footer);
+    }
     if (props.mode === "heatmap") {
         drawHeatmap(
             context,
@@ -267,11 +463,58 @@ onMounted(async () => {
             path,
             footer,
         );
-    } else {
+        drawLegend(context, width, mapPadding, footer);
+    }
+    if (props.mode === "stations") {
         drawBasemap(context, path, featuresDEP, featuresREG);
-        drawPoints(context, projection, tempMOCKED);
+        drawStationsPoints(
+            context,
+            projection,
+            infoclimatStations,
+            props.stationType,
+        );
+        const filteredCount =
+            props.stationType !== null
+                ? infoclimatStations.filter(
+                      (s) => s.station_type === props.stationType,
+                  ).length
+                : infoclimatStations.length;
+        drawStationsLegend(
+            context,
+            width,
+            mapPadding,
+            footer,
+            props.stationType,
+            filteredCount,
+        );
     }
 
-    drawLegend(context, width, mapPadding, footer);
+    if (props.mode === "stationsPoints") {
+        drawBasemap(context, path, featuresDEP, featuresREG);
+        console.log("props.date :", props.date);
+        drawPointsStationsTemp(
+            context,
+            projection,
+            infoclimatStationsTemp,
+            props.date,
+        );
+        drawLegend(context, width, mapPadding, footer);
+        drawLegendDate(context, mapPadding, props.date);
+    }
+
+    if (props.mode === "heatmapStationsTemp") {
+        drawHeatmapStationsTemp(
+            context,
+            projection,
+            infoclimatStationsTemp,
+            featuresDEP,
+            featuresREG,
+            path,
+            footer,
+            props.date,
+        );
+        drawLegend(context, width, mapPadding, footer);
+        drawLegendDate(context, mapPadding, props.date);
+    }
 });
 </script>
