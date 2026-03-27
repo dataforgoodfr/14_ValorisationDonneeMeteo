@@ -6,8 +6,15 @@ const makeParam = (
     seriesName: string,
     value: Record<string, number | string>,
     marker = `<span style="color:red;">●</span>`,
+    axisIndex = 0,
 ) =>
-    ({ seriesName, value, marker }) as unknown as NonNullable<
+    ({
+        seriesName,
+        value,
+        data: value,
+        marker,
+        axisIndex,
+    }) as unknown as NonNullable<
         Extract<TooltipComponentFormatterCallbackParams, unknown[]>[number]
     >;
 
@@ -18,12 +25,13 @@ describe("deviationChartTooltipFormatter", () => {
         const result = deviationChartTooltipFormatter(
             "not an array" as unknown as TooltipComponentFormatterCallbackParams,
             "day",
+            [],
         );
         expect(result).toBe("");
     });
 
     it("returns empty string when params array is empty", () => {
-        const result = deviationChartTooltipFormatter([], "day");
+        const result = deviationChartTooltipFormatter([], "day", []);
         expect(result).toBe("");
     });
 
@@ -52,6 +60,7 @@ describe("deviationChartTooltipFormatter", () => {
                 },
                 $vars: ["seriesName", "name", "value"],
                 marker: "marker-positif",
+                axisIndex: 0,
             },
             {
                 componentType: "series",
@@ -74,10 +83,13 @@ describe("deviationChartTooltipFormatter", () => {
                 },
                 $vars: ["seriesName", "name", "value"],
                 marker: "marker-negatif",
+                axisIndex: 0,
             },
-        ];
-        const result = deviationChartTooltipFormatter(params, "day");
-        expect(result).toBe("dim. 2 mars 2025<br/>marker-negatif : -0.4°C");
+        ] as unknown as TooltipComponentFormatterCallbackParams;
+        const result = deviationChartTooltipFormatter(params, "day", ["Lyon"]);
+        expect(result).toBe(
+            "dim. 2 mars 2025<br/>marker-negatif Lyon : -0.4°C",
+        );
     });
 
     it("returns the right string with granularity : month", () => {
@@ -103,6 +115,7 @@ describe("deviationChartTooltipFormatter", () => {
                 },
                 $vars: ["seriesName", "name", "value"],
                 marker: "marker-positif",
+                axisIndex: 0,
             },
             {
                 componentType: "series",
@@ -126,10 +139,13 @@ describe("deviationChartTooltipFormatter", () => {
                 },
                 $vars: ["seriesName", "name", "value"],
                 marker: "marker-negatif",
+                axisIndex: 0,
             },
-        ];
-        const result = deviationChartTooltipFormatter(params, "month");
-        expect(result).toBe("mars 2026<br/>marker-positif : +0.1°C");
+        ] as unknown as TooltipComponentFormatterCallbackParams;
+        const result = deviationChartTooltipFormatter(params, "month", [
+            "Lyon",
+        ]);
+        expect(result).toBe("mars 2026<br/>marker-positif Lyon : +0.1°C");
     });
 
     it("returns the right string with granularity : year", () => {
@@ -156,6 +172,7 @@ describe("deviationChartTooltipFormatter", () => {
                 },
                 $vars: ["seriesName", "name", "value"],
                 marker: "marker-positif",
+                axisIndex: 0,
             },
             {
                 componentType: "series",
@@ -179,10 +196,11 @@ describe("deviationChartTooltipFormatter", () => {
                 },
                 $vars: ["seriesName", "name", "value"],
                 marker: "marker-negatif",
+                axisIndex: 0,
             },
-        ];
-        const result = deviationChartTooltipFormatter(params, "year");
-        expect(result).toBe("2026<br/>marker-positif : +0.0°C");
+        ] as unknown as TooltipComponentFormatterCallbackParams;
+        const result = deviationChartTooltipFormatter(params, "year", ["Lyon"]);
+        expect(result).toBe("2026<br/>marker-positif Lyon : +0.0°C");
     });
 
     // --- Date formatting by granularity ---
@@ -195,7 +213,9 @@ describe("deviationChartTooltipFormatter", () => {
             }),
         ];
 
-        const result = deviationChartTooltipFormatter(params, "month");
+        const result = deviationChartTooltipFormatter(params, "month", [
+            "Station",
+        ]);
 
         // French locale: "juin 2024"
         expect(result).toContain("2024");
@@ -214,7 +234,9 @@ describe("deviationChartTooltipFormatter", () => {
             }),
         ];
 
-        const result = deviationChartTooltipFormatter(params, "year");
+        const result = deviationChartTooltipFormatter(params, "year", [
+            "Station",
+        ]);
 
         expect(result).toContain("2024");
         expect(result).not.toContain("juin");
@@ -229,7 +251,9 @@ describe("deviationChartTooltipFormatter", () => {
             }),
         ];
 
-        const result = deviationChartTooltipFormatter(params, "day");
+        const result = deviationChartTooltipFormatter(params, "day", [
+            "Station",
+        ]);
 
         expect(result).toContain("2024");
         expect(result).toContain("juin");
@@ -253,7 +277,9 @@ describe("deviationChartTooltipFormatter", () => {
             }),
         ];
 
-        const result = deviationChartTooltipFormatter(params, "month");
+        const result = deviationChartTooltipFormatter(params, "month", [
+            "Station",
+        ]);
 
         expect(result).toContain(marker);
         expect(result).toContain("+3.7°C");
@@ -267,7 +293,9 @@ describe("deviationChartTooltipFormatter", () => {
             }),
         ];
 
-        const result = deviationChartTooltipFormatter(params, "month");
+        const result = deviationChartTooltipFormatter(params, "month", [
+            "Station",
+        ]);
 
         expect(result).toContain("+3.0°C");
     });
@@ -285,7 +313,9 @@ describe("deviationChartTooltipFormatter", () => {
             ),
         ];
 
-        const result = deviationChartTooltipFormatter(params, "month");
+        const result = deviationChartTooltipFormatter(params, "month", [
+            "Station",
+        ]);
 
         expect(result).toContain(marker);
         expect(result).toContain("-2.3°C");
@@ -300,14 +330,16 @@ describe("deviationChartTooltipFormatter", () => {
             }),
         ];
 
-        const result = deviationChartTooltipFormatter(params, "month");
+        const result = deviationChartTooltipFormatter(params, "month", [
+            "Station",
+        ]);
 
         expect(result).toContain("-1.0°C");
     });
 
     // --- Zero deviation ---
 
-    it("treats zero deviation as positive (uses '+' sign and 'Ecart positif' series)", () => {
+    it("treats zero deviation as neutral (no sign, 'Ecart positif' series)", () => {
         const marker = `<span>◆</span>`;
         const params = [
             makeParam(
@@ -317,9 +349,11 @@ describe("deviationChartTooltipFormatter", () => {
             ),
         ];
 
-        const result = deviationChartTooltipFormatter(params, "month");
+        const result = deviationChartTooltipFormatter(params, "month", [
+            "Station",
+        ]);
 
-        expect(result).toContain("+0.0°C");
+        expect(result).toContain("0.0°C");
         expect(result).toContain(marker);
     });
 
@@ -337,7 +371,9 @@ describe("deviationChartTooltipFormatter", () => {
         // Override marker to undefined
         (params[0] as unknown as Record<string, unknown>).marker = undefined;
 
-        const result = deviationChartTooltipFormatter(params, "month");
+        const result = deviationChartTooltipFormatter(params, "month", [
+            "Station",
+        ]);
 
         // Should still produce output, marker part is just empty
         expect(result).toContain("+1.0°C");
@@ -354,7 +390,9 @@ describe("deviationChartTooltipFormatter", () => {
             }),
         ];
 
-        const result = deviationChartTooltipFormatter(params, "month");
+        const result = deviationChartTooltipFormatter(params, "month", [
+            "Station",
+        ]);
 
         const parts = result.split("<br/>");
         expect(parts).toHaveLength(2);
