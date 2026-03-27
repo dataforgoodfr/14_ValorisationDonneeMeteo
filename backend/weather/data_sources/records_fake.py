@@ -153,6 +153,8 @@ def _get_all_stations():
 
 
 def _department_of_station(station_id: str) -> str:
+    if station_id.startswith(("971", "972", "973", "974", "976")):
+        return station_id[:3]
     return station_id[:2]
 
 
