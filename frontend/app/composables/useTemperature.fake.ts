@@ -11,7 +11,7 @@ import type {
 
 const fakeRecords = [
     {
-        id: "07149",
+        id: "34129001",
         name: "Orly",
         departement: "94",
         TNN: -7.2,
@@ -20,7 +20,7 @@ const fakeRecords = [
         TXX_date: "1980-07-18",
     },
     {
-        id: "07156",
+        id: "55001001",
         name: "Paris-Montsouris",
         departement: "75",
         TNN: -11.4,
@@ -29,7 +29,7 @@ const fakeRecords = [
         TXX_date: "1981-08-02",
     },
     {
-        id: "07181",
+        id: "80001001",
         name: "Melun",
         departement: "77",
         TNN: -16.0,
@@ -38,7 +38,7 @@ const fakeRecords = [
         TXX_date: "1982-07-23",
     },
     {
-        id: "07222",
+        id: "80001005",
         name: "Tours",
         departement: "37",
         TNN: -14.3,
@@ -47,7 +47,7 @@ const fakeRecords = [
         TXX_date: "1983-08-09",
     },
     {
-        id: "07460",
+        id: "80001003",
         name: "Marseille-Marignane",
         departement: "13",
         TNN: -10.6,
@@ -56,7 +56,7 @@ const fakeRecords = [
         TXX_date: "1985-07-30",
     },
     {
-        id: "07510",
+        id: "80001002",
         name: "Bordeaux-Mérignac",
         departement: "33",
         TNN: -11.6,
@@ -65,7 +65,7 @@ const fakeRecords = [
         TXX_date: "1987-08-14",
     },
     {
-        id: "07130",
+        id: "25004001",
         name: "Lille-Lesquin",
         departement: "59",
         TNN: -15.5,
@@ -74,7 +74,7 @@ const fakeRecords = [
         TXX_date: "1989-07-27",
     },
     {
-        id: "07480",
+        id: "25004002",
         name: "Lyon-Bron",
         departement: "69",
         TNN: -18.8,
@@ -83,7 +83,7 @@ const fakeRecords = [
         TXX_date: "1991-08-05",
     },
     {
-        id: "07690",
+        id: "37001001",
         name: "Toulouse-Blagnac",
         departement: "31",
         TNN: -12.6,
@@ -92,7 +92,7 @@ const fakeRecords = [
         TXX_date: "1992-07-21",
     },
     {
-        id: "07371",
+        id: "78003002",
         name: "Strasbourg-Entzheim",
         departement: "67",
         TNN: -23.6,
@@ -101,7 +101,7 @@ const fakeRecords = [
         TXX_date: "1994-08-01",
     },
     {
-        id: "07230",
+        id: "78003001",
         name: "Clermont-Ferrand",
         departement: "63",
         TNN: -17.2,
@@ -110,7 +110,7 @@ const fakeRecords = [
         TXX_date: "1995-07-25",
     },
     {
-        id: "07434",
+        id: "54003001",
         name: "Montpellier",
         departement: "34",
         TNN: -9.4,
@@ -119,7 +119,7 @@ const fakeRecords = [
         TXX_date: "1997-08-12",
     },
     {
-        id: "07110",
+        id: "54003002",
         name: "Cherbourg",
         departement: "50",
         TNN: -8.1,
@@ -128,7 +128,7 @@ const fakeRecords = [
         TXX_date: "1998-07-19",
     },
     {
-        id: "07335",
+        id: "74001001",
         name: "Dijon",
         departement: "21",
         TNN: -19.5,
@@ -137,7 +137,7 @@ const fakeRecords = [
         TXX_date: "1999-08-07",
     },
     {
-        id: "07190",
+        id: "74001002",
         name: "Reims",
         departement: "51",
         TNN: -20.1,
@@ -146,7 +146,7 @@ const fakeRecords = [
         TXX_date: "2000-07-31",
     },
     {
-        id: "07255",
+        id: "64005001",
         name: "Bourges",
         departement: "18",
         TNN: -16.8,
@@ -155,7 +155,7 @@ const fakeRecords = [
         TXX_date: "2002-08-03",
     },
     {
-        id: "07540",
+        id: "57003002",
         name: "Agen",
         departement: "47",
         TNN: -10.3,
@@ -164,7 +164,7 @@ const fakeRecords = [
         TXX_date: "2003-07-28",
     },
     {
-        id: "07699",
+        id: "57003005",
         name: "Perpignan",
         departement: "66",
         TNN: -8.7,
@@ -173,7 +173,7 @@ const fakeRecords = [
         TXX_date: "2005-08-16",
     },
     {
-        id: "07270",
+        id: "57003001",
         name: "Nancy",
         departement: "54",
         TNN: -21.3,
@@ -182,7 +182,7 @@ const fakeRecords = [
         TXX_date: "2006-07-22",
     },
     {
-        id: "07461",
+        id: "57003003",
         name: "Nîmes",
         departement: "30",
         TNN: -9.1,
@@ -191,7 +191,7 @@ const fakeRecords = [
         TXX_date: "2008-08-10",
     },
     {
-        id: "07145",
+        id: "05001001",
         name: "Chartres",
         departement: "28",
         TNN: -18.4,
@@ -200,7 +200,7 @@ const fakeRecords = [
         TXX_date: "2010-07-15",
     },
     {
-        id: "07620",
+        id: "05001401",
         name: "Pau",
         departement: "64",
         TNN: -10.9,
@@ -209,7 +209,7 @@ const fakeRecords = [
         TXX_date: "2012-08-19",
     },
     {
-        id: "07280",
+        id: "05001400",
         name: "Metz",
         departement: "57",
         TNN: -22.4,
@@ -218,7 +218,7 @@ const fakeRecords = [
         TXX_date: "2013-07-09",
     },
     {
-        id: "07560",
+        id: "59002001",
         name: "Biarritz",
         departement: "64",
         TNN: -6.3,
@@ -227,7 +227,7 @@ const fakeRecords = [
         TXX_date: "2015-08-23",
     },
     {
-        id: "07207",
+        id: "33001001",
         name: "Rennes",
         departement: "35",
         TNN: -12.7,
@@ -236,7 +236,7 @@ const fakeRecords = [
         TXX_date: "2017-07-04",
     },
     {
-        id: "07120",
+        id: "75116004",
         name: "Rouen",
         departement: "76",
         TNN: -14.9,
@@ -245,7 +245,7 @@ const fakeRecords = [
         TXX_date: "2019-07-25",
     },
     {
-        id: "07650",
+        id: "64006001",
         name: "Millau",
         departement: "12",
         TNN: -15.6,
@@ -254,7 +254,7 @@ const fakeRecords = [
         TXX_date: "2020-08-06",
     },
     {
-        id: "07384",
+        id: "57605001",
         name: "Grenoble",
         departement: "38",
         TNN: -20.7,
@@ -263,7 +263,7 @@ const fakeRecords = [
         TXX_date: "2022-07-17",
     },
     {
-        id: "07747",
+        id: "78005002",
         name: "Toulon",
         departement: "83",
         TNN: -5.8,
@@ -272,7 +272,7 @@ const fakeRecords = [
         TXX_date: "2024-08-01",
     },
     {
-        id: "07790",
+        id: "78005001",
         name: "Nice",
         departement: "06",
         TNN: -4.2,
