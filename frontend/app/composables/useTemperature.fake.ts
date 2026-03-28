@@ -3,13 +3,17 @@
  * These return static data filtered client-side, without hitting the backend.
  */
 
+import type {
+    TemperatureRecordsParams,
+    TemperatureRecordsResponse,
+    TemperatureRecordEntry,
+} from "~/types/api";
+
 const fakeRecords = [
     {
         id: "07149",
         name: "Orly",
-        ville: "Orly",
         departement: "94",
-        date_creation: "1945-03-01",
         TNN: -7.2,
         TXX: 32.1,
         TNN_date: "1980-01-15",
@@ -18,9 +22,7 @@ const fakeRecords = [
     {
         id: "07156",
         name: "Paris-Montsouris",
-        ville: "Paris",
         departement: "75",
-        date_creation: "1872-01-01",
         TNN: -11.4,
         TXX: 36.1,
         TNN_date: "1981-02-07",
@@ -29,9 +31,7 @@ const fakeRecords = [
     {
         id: "07181",
         name: "Melun",
-        ville: "Melun",
         departement: "77",
-        date_creation: "1963-05-01",
         TNN: -16.0,
         TXX: 38.0,
         TNN_date: "1982-01-19",
@@ -40,9 +40,7 @@ const fakeRecords = [
     {
         id: "07222",
         name: "Tours",
-        ville: "Tours",
         departement: "37",
-        date_creation: "1921-01-01",
         TNN: -14.3,
         TXX: 39.2,
         TNN_date: "1983-02-03",
@@ -51,9 +49,7 @@ const fakeRecords = [
     {
         id: "07460",
         name: "Marseille-Marignane",
-        ville: "Marseille",
         departement: "13",
-        date_creation: "1920-01-01",
         TNN: -10.6,
         TXX: 41.0,
         TNN_date: "1985-01-08",
@@ -62,9 +58,7 @@ const fakeRecords = [
     {
         id: "07510",
         name: "Bordeaux-Mérignac",
-        ville: "Bordeaux",
         departement: "33",
-        date_creation: "1920-01-01",
         TNN: -11.6,
         TXX: 41.2,
         TNN_date: "1987-02-12",
@@ -73,9 +67,7 @@ const fakeRecords = [
     {
         id: "07130",
         name: "Lille-Lesquin",
-        ville: "Lille",
         departement: "59",
-        date_creation: "1947-01-01",
         TNN: -15.5,
         TXX: 36.4,
         TNN_date: "1989-01-22",
@@ -84,9 +76,7 @@ const fakeRecords = [
     {
         id: "07480",
         name: "Lyon-Bron",
-        ville: "Lyon",
         departement: "69",
-        date_creation: "1920-01-01",
         TNN: -18.8,
         TXX: 40.5,
         TNN_date: "1991-01-11",
@@ -95,9 +85,7 @@ const fakeRecords = [
     {
         id: "07690",
         name: "Toulouse-Blagnac",
-        ville: "Toulouse",
         departement: "31",
-        date_creation: "1947-01-01",
         TNN: -12.6,
         TXX: 40.9,
         TNN_date: "1992-02-17",
@@ -106,9 +94,7 @@ const fakeRecords = [
     {
         id: "07371",
         name: "Strasbourg-Entzheim",
-        ville: "Strasbourg",
         departement: "67",
-        date_creation: "1920-01-01",
         TNN: -23.6,
         TXX: 38.9,
         TNN_date: "1994-01-28",
@@ -117,9 +103,7 @@ const fakeRecords = [
     {
         id: "07230",
         name: "Clermont-Ferrand",
-        ville: "Clermont-Ferrand",
         departement: "63",
-        date_creation: "1920-01-01",
         TNN: -17.2,
         TXX: 39.8,
         TNN_date: "1995-02-04",
@@ -128,9 +112,7 @@ const fakeRecords = [
     {
         id: "07434",
         name: "Montpellier",
-        ville: "Montpellier",
         departement: "34",
-        date_creation: "1921-01-01",
         TNN: -9.4,
         TXX: 42.1,
         TNN_date: "1997-01-31",
@@ -139,9 +121,7 @@ const fakeRecords = [
     {
         id: "07110",
         name: "Cherbourg",
-        ville: "Cherbourg-en-Cotentin",
         departement: "50",
-        date_creation: "1955-01-01",
         TNN: -8.1,
         TXX: 33.6,
         TNN_date: "1998-02-09",
@@ -150,9 +130,7 @@ const fakeRecords = [
     {
         id: "07335",
         name: "Dijon",
-        ville: "Dijon",
         departement: "21",
-        date_creation: "1920-01-01",
         TNN: -19.5,
         TXX: 39.4,
         TNN_date: "1999-01-14",
@@ -161,9 +139,7 @@ const fakeRecords = [
     {
         id: "07190",
         name: "Reims",
-        ville: "Reims",
         departement: "51",
-        date_creation: "1949-01-01",
         TNN: -20.1,
         TXX: 38.3,
         TNN_date: "2000-02-21",
@@ -172,9 +148,7 @@ const fakeRecords = [
     {
         id: "07255",
         name: "Bourges",
-        ville: "Bourges",
         departement: "18",
-        date_creation: "1920-01-01",
         TNN: -16.8,
         TXX: 40.1,
         TNN_date: "2002-01-06",
@@ -183,9 +157,7 @@ const fakeRecords = [
     {
         id: "07540",
         name: "Agen",
-        ville: "Agen",
         departement: "47",
-        date_creation: "1970-01-01",
         TNN: -10.3,
         TXX: 41.8,
         TNN_date: "2003-02-14",
@@ -194,9 +166,7 @@ const fakeRecords = [
     {
         id: "07699",
         name: "Perpignan",
-        ville: "Perpignan",
         departement: "66",
-        date_creation: "1921-01-01",
         TNN: -8.7,
         TXX: 43.2,
         TNN_date: "2005-01-18",
@@ -205,9 +175,7 @@ const fakeRecords = [
     {
         id: "07270",
         name: "Nancy",
-        ville: "Nancy",
         departement: "54",
-        date_creation: "1968-01-01",
         TNN: -21.3,
         TXX: 37.8,
         TNN_date: "2006-02-25",
@@ -216,9 +184,7 @@ const fakeRecords = [
     {
         id: "07461",
         name: "Nîmes",
-        ville: "Nîmes",
         departement: "30",
-        date_creation: "1946-01-01",
         TNN: -9.1,
         TXX: 42.6,
         TNN_date: "2008-01-10",
@@ -227,9 +193,7 @@ const fakeRecords = [
     {
         id: "07145",
         name: "Chartres",
-        ville: "Chartres",
         departement: "28",
-        date_creation: "1975-01-01",
         TNN: -18.4,
         TXX: 38.7,
         TNN_date: "2010-02-01",
@@ -238,9 +202,7 @@ const fakeRecords = [
     {
         id: "07620",
         name: "Pau",
-        ville: "Pau",
         departement: "64",
-        date_creation: "1920-01-01",
         TNN: -10.9,
         TXX: 40.3,
         TNN_date: "2012-01-24",
@@ -249,9 +211,7 @@ const fakeRecords = [
     {
         id: "07280",
         name: "Metz",
-        ville: "Metz",
         departement: "57",
-        date_creation: "1966-01-01",
         TNN: -22.4,
         TXX: 37.1,
         TNN_date: "2013-02-08",
@@ -260,9 +220,7 @@ const fakeRecords = [
     {
         id: "07560",
         name: "Biarritz",
-        ville: "Biarritz",
         departement: "64",
-        date_creation: "1947-01-01",
         TNN: -6.3,
         TXX: 39.0,
         TNN_date: "2015-01-17",
@@ -271,9 +229,7 @@ const fakeRecords = [
     {
         id: "07207",
         name: "Rennes",
-        ville: "Rennes",
         departement: "35",
-        date_creation: "1945-01-01",
         TNN: -12.7,
         TXX: 38.2,
         TNN_date: "2017-02-11",
@@ -282,9 +238,7 @@ const fakeRecords = [
     {
         id: "07120",
         name: "Rouen",
-        ville: "Rouen",
         departement: "76",
-        date_creation: "1920-01-01",
         TNN: -14.9,
         TXX: 37.6,
         TNN_date: "2019-01-29",
@@ -293,9 +247,7 @@ const fakeRecords = [
     {
         id: "07650",
         name: "Millau",
-        ville: "Millau",
         departement: "12",
-        date_creation: "1978-01-01",
         TNN: -15.6,
         TXX: 40.7,
         TNN_date: "2020-02-18",
@@ -304,9 +256,7 @@ const fakeRecords = [
     {
         id: "07384",
         name: "Grenoble",
-        ville: "Grenoble",
         departement: "38",
-        date_creation: "1921-01-01",
         TNN: -20.7,
         TXX: 39.5,
         TNN_date: "2022-01-05",
@@ -315,9 +265,7 @@ const fakeRecords = [
     {
         id: "07747",
         name: "Toulon",
-        ville: "Toulon",
         departement: "83",
-        date_creation: "1946-01-01",
         TNN: -5.8,
         TXX: 40.8,
         TNN_date: "2024-02-22",
@@ -326,9 +274,7 @@ const fakeRecords = [
     {
         id: "07790",
         name: "Nice",
-        ville: "Nice",
         departement: "06",
-        date_creation: "1920-01-01",
         TNN: -4.2,
         TXX: 38.4,
         TNN_date: "2025-01-13",
@@ -337,94 +283,77 @@ const fakeRecords = [
 ];
 
 export function useTemperatureRecordsFake(
-    params?: MaybeRef<Record<string, unknown>>,
+    params?: MaybeRef<TemperatureRecordsParams>,
 ) {
-    const data = ref<{ count: number; stations: unknown[] } | null>(null);
+    const data = ref<TemperatureRecordsResponse | null>(null);
     const pending = ref(false);
     const error = ref(null);
 
-    function compute(p: Record<string, unknown>) {
-        const limit = Number(p.limit ?? 10);
-        const offset = Number(p.offset ?? 0);
-        const record_type = (p.record_type as string) ?? "Chaud";
-        const isChaud = record_type === "Chaud";
-        const tempField = isChaud ? "TXX" : "TNN";
-        const dateField = isChaud ? "TXX_date" : "TNN_date";
-
-        const stringFilters =
-            (p.string_filters as Record<string, string[]>) ?? {};
-        const rangeFilters =
-            (p.range_filters as Record<string, { min: string; max: string }>) ??
-            {};
+    function compute(p: TemperatureRecordsParams): TemperatureRecordsResponse {
+        const typeRecords = p.type_records ?? "hot";
+        const recordKind = p.record_kind ?? "absolute";
+        const recordScope = p.record_scope ?? "all_time";
+        const dateStart = p.date_start ?? null;
+        const dateEnd = p.date_end ?? null;
+        const stationIds = p.station_ids ?? [];
+        const departments = p.departments ?? [];
+        const tempMin = p.temperature_min ?? null;
+        const tempMax = p.temperature_max ?? null;
+        const limit = p.limit ?? 10;
+        const offset = p.offset ?? 0;
 
         let stations = fakeRecords;
 
-        // String multi-select filters
-        if (stringFilters.name?.length) {
+        if (stationIds.length)
+            stations = stations.filter((s) => stationIds.includes(s.id));
+        if (departments.length)
             stations = stations.filter((s) =>
-                stringFilters.name.includes(s.name),
+                departments.includes(s.departement),
             );
-        }
-        if (stringFilters.ville?.length) {
-            stations = stations.filter((s) =>
-                stringFilters.ville.includes(s.ville),
-            );
-        }
-        if (stringFilters.departement?.length) {
-            stations = stations.filter((s) =>
-                stringFilters.departement.includes(s.departement),
-            );
-        }
 
-        // Range filters — ISO 8601 (YYYY-MM-DD) strings sort lexicographically, so string comparison is correct for dates
-        const dateCreationRange = rangeFilters.date_creation;
-        if (dateCreationRange?.min) {
-            stations = stations.filter(
-                (s) => s.date_creation >= dateCreationRange.min,
-            );
-        }
-        if (dateCreationRange?.max) {
-            stations = stations.filter(
-                (s) => s.date_creation <= dateCreationRange.max,
-            );
-        }
+        const filterRecord = (r: TemperatureRecordEntry): boolean => {
+            if (dateStart && r.date < dateStart) return false;
+            if (dateEnd && r.date > dateEnd) return false;
+            if (tempMin !== null && r.value < tempMin) return false;
+            if (tempMax !== null && r.value > tempMax) return false;
+            return true;
+        };
 
-        const recordRange = rangeFilters.record;
-        if (recordRange?.min) {
-            stations = stations.filter(
-                (s) => s[tempField] >= Number(recordRange.min),
-            );
-        }
-        if (recordRange?.max) {
-            stations = stations.filter(
-                (s) => s[tempField] <= Number(recordRange.max),
-            );
-        }
+        const mappedStations = stations.map((s) => ({
+            id: s.id,
+            name: s.name,
+            departement: s.departement,
+            hot_records:
+                typeRecords !== "cold"
+                    ? [{ value: s.TXX, date: s.TXX_date }].filter(filterRecord)
+                    : [],
+            cold_records:
+                typeRecords !== "hot"
+                    ? [{ value: s.TNN, date: s.TNN_date }].filter(filterRecord)
+                    : [],
+        }));
 
-        const recordDateRange = rangeFilters.record_date;
-        if (recordDateRange?.min) {
-            stations = stations.filter(
-                (s) => s[dateField] >= recordDateRange.min,
-            );
-        }
-        if (recordDateRange?.max) {
-            stations = stations.filter(
-                (s) => s[dateField] <= recordDateRange.max,
-            );
-        }
+        const allStations = mappedStations.filter(
+            (s) => s.hot_records.length > 0 || s.cold_records.length > 0,
+        );
 
-        const count = stations.length;
+        // station_ids and departments are parallel arrays — index i of station_ids
+        // corresponds to index i of departments, allowing callers to reconstruct
+        // per-station department without a separate lookup.
         return {
-            count,
-            stations: stations.slice(offset, offset + limit).map((s) => ({
-                id: s.id,
-                name: s.name,
-                ville: s.ville,
-                departement: s.departement,
-                date_creation: s.date_creation,
-                record: s[tempField],
-                record_date: s[dateField],
-            })),
+            count: allStations.length,
+            metadata: {
+                date_start: dateStart,
+                date_end: dateEnd,
+                record_kind: recordKind,
+                record_scope: recordScope,
+                type_records: typeRecords,
+                station_ids: allStations.map((s) => s.id),
+                departments: allStations.map((s) => s.departement),
+                temperature_min: tempMin,
+                temperature_max: tempMax,
+            },
+            stations: allStations.slice(offset, offset + limit),
         };
     }
 

@@ -131,6 +131,10 @@ const filterOptions = computed(() => {
         :filter-options="filterOptions"
         :filters="filters"
         :async-pending="{ name: stationPending }"
+        :async-has-more="{ name: stationHasMore }"
+        @update:filter="onUpdateFilter"
+        @clear="clearFilter"
+        @search="onSearch"
         @load-more="onLoadMore"
     >
         <template #actions>
