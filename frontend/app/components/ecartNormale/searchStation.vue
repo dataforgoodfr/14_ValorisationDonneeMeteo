@@ -3,7 +3,7 @@ import { refDebounced, useIntersectionObserver } from "@vueuse/core";
 import type { PaginatedResponse, Station } from "~/types/api";
 
 const deviationStore = useDeviationStore();
-const { selectedStations } = storeToRefs(deviationStore);
+const { includeNational, selectedStations } = storeToRefs(deviationStore);
 
 const searchQuery = ref<undefined | string>(undefined);
 const page = ref<number>(0);
@@ -79,10 +79,19 @@ useIntersectionObserver(sentinel, ([entry]) => {
             placeholder="Entrez le nom d'une station"
         />
         <div
-            v-if="selectedStations.length > 0"
+            v-if="selectedStations.length > 0 || includeNational"
             class="max-h-44 overflow-y-auto shrink-0"
         >
             <ul>
+                <li
+                    v-if="includeNational"
+                    class="cursor-pointer pr-2 font-bold py-1 text-sm flex items-center justify-between"
+                    :title="'France Métropolitaine'"
+                    @click="deviationStore.setIncludeNational(false)"
+                >
+                    <span>France Métropolitaine</span>
+                    <UIcon :name="'i-lucide-x'" class="shrink-0" />
+                </li>
                 <li
                     v-for="station in selectedStations"
                     :key="`selected-${station.code}`"
@@ -98,10 +107,19 @@ useIntersectionObserver(sentinel, ([entry]) => {
             </ul>
         </div>
 
-        <USeparator v-if="selectedStations.length > 0" />
+        <USeparator v-if="selectedStations.length > 0 || includeNational" />
 
         <div class="overflow-y-auto">
             <ul>
+                <li
+                    v-if="!includeNational"
+                    class="cursor-pointer pr-2 py-1 text-sm flex items-center justify-between"
+                    :title="'France Métropolitaine'"
+                    @click="deviationStore.setIncludeNational(true)"
+                >
+                    <span>France Métropolitaine</span>
+                    <UIcon :name="'i-lucide-plus'" class="shrink-0" />
+                </li>
                 <li
                     v-for="station in unselectedFilteredStations"
                     :key="`filtered-${station.code}`"
