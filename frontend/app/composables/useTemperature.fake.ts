@@ -2,7 +2,8 @@
  * Fake implementations of temperature composables for frontend development.
  * These return static data filtered client-side, without hitting the backend.
  */
-
+// The tests require explicitly importing the Vue imports (which are implicitly imported when using Nuxt)
+import { ref, watch, isRef, type MaybeRef } from "vue";
 import type {
     TemperatureRecordsParams,
     TemperatureRecordsResponse,
