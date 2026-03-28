@@ -1,0 +1,73 @@
+<script setup lang="ts">
+import type { FilterField, FilterOption } from "./filterBarTypes";
+
+const props = defineProps<{
+    field: FilterField;
+    options: FilterOption[];
+    selectedValues: string[];
+    searchQuery: string;
+    asyncPending?: boolean;
+}>();
+
+const emit = defineEmits<{
+    "update:searchQuery": [query: string];
+    search: [query: string];
+    toggle: [value: string];
+    clear: [];
+}>();
+
+function getEmptyStateMessage(): string {
+    if (props.field.type === "string-async" && !props.searchQuery)
+        return "Tapez pour rechercher...";
+    return "Aucun résultat";
+}
+
+function onInput(query: string) {
+    emit("update:searchQuery", query);
+    if (props.field.type === "string-async") emit("search", query);
+}
+</script>
+
+<template>
+    <div class="p-2 border-b border-accented">
+        <UInput
+            :model-value="searchQuery"
+            placeholder="Rechercher..."
+            size="sm"
+            icon="i-lucide-search"
+            :loading="asyncPending"
+            @update:model-value="onInput(String($event))"
+        />
+    </div>
+    <div class="max-h-52 overflow-y-auto py-1">
+        <label
+            v-for="val in options"
+            :key="val.value"
+            class="flex items-center gap-2.5 px-3 py-2 text-sm cursor-pointer hover:bg-elevated transition-colors"
+        >
+            <input
+                type="checkbox"
+                class="accent-primary shrink-0"
+                autocomplete="off"
+                :checked="selectedValues.includes(val.value)"
+                @change="emit('toggle', val.value)"
+            />
+            <span class="truncate">{{ val.label }}</span>
+        </label>
+        <p
+            v-if="options.length === 0"
+            class="px-3 py-2 text-sm text-muted italic"
+        >
+            {{ getEmptyStateMessage() }}
+        </p>
+    </div>
+    <div
+        v-if="selectedValues.length > 0"
+        class="px-3 py-2 border-t border-accented flex items-center justify-between text-xs text-muted"
+    >
+        <span>{{ selectedValues.length }} sélectionné(s)</span>
+        <button class="text-error hover:underline" @click="emit('clear')">
+            Tout effacer
+        </button>
+    </div>
+</template>

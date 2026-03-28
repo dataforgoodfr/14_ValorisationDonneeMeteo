@@ -1,84 +1,117 @@
 import { refDebounced } from "@vueuse/core";
 // TODO: Replace with the real API call when the endpoint is implemented.
 import { useTemperatureRecordsFake } from "~/composables/useTemperature.fake";
-import { stationNames } from "~/data/records/stationNames";
-import { villes } from "~/data/records/villes";
 import { departements } from "~/data/records/departements";
+import type {
+    RecordKind,
+    TypeRecords,
+    TemperatureRecordsParams,
+} from "~/types/api";
 
 const debounceDuration = 300;
 
 export const useRecordsStore = defineStore("recordsStore", () => {
-    // Record type filter
-    const recordType = ref<"Chaud" | "Froid">("Chaud");
-
     // Pagination
     const page = ref(1);
     const pageSize = ref(10);
 
-    // String multi-select filters: fieldId -> selected values
-    const stringFilters = ref<Record<string, string[]>>({});
+    // Query shape
+    const typeRecords = ref<TypeRecords>("hot");
+    const recordKind = ref<RecordKind>("absolute");
 
-    // Range filters: fieldId -> { min, max }
-    const rangeFilters = ref<Record<string, { min: string; max: string }>>({});
+    // Filters — stored as strings to stay compatible with FilterBar's range inputs
+    const stationIds = ref<string[]>([]);
+    const departments = ref<string[]>([]);
+    const temperatureMin = ref("");
+    const temperatureMax = ref("");
+    const dateStart = ref("");
+    const dateEnd = ref("");
 
-    // Unique values for filter dropdowns — { value } is sent to the API, { label } is shown in the UI
+    // Unique values for the Département dropdown
     const uniqueValues = {
-        name: stationNames.map((v) => ({ value: v, label: v })),
-        ville: villes.map((v) => ({ value: v, label: v })),
         departement: departements.map((d) => ({
             value: d.code,
             label: `${d.code} - ${d.name}`,
         })),
     };
 
+    // Computed shapes expected by FilterBar (for active chips / initial state)
+    const stringFilters = computed(() => ({
+        ...(stationIds.value.length && { name: stationIds.value }),
+        ...(departments.value.length && { departement: departments.value }),
+    }));
+
+    const rangeFilters = computed(() => ({
+        ...(temperatureMin.value || temperatureMax.value
+            ? {
+                  record: {
+                      min: temperatureMin.value,
+                      max: temperatureMax.value,
+                  },
+              }
+            : {}),
+        ...(dateStart.value || dateEnd.value
+            ? { record_date: { min: dateStart.value, max: dateEnd.value } }
+            : {}),
+    }));
+
+    // Map FilterBar field IDs to typed store state
     function setStringFilter(id: string, values: string[]) {
-        if (values.length === 0) {
-            const { [id]: _, ...rest } = stringFilters.value;
-            stringFilters.value = rest;
-        } else {
-            stringFilters.value = { ...stringFilters.value, [id]: values };
-        }
-        page.value = 1;
+        if (id === "name") stationIds.value = values;
+        else if (id === "departement") departments.value = values;
     }
 
     function setRangeFilter(id: string, min: string, max: string) {
-        if (!min && !max) {
-            const { [id]: _, ...rest } = rangeFilters.value;
-            rangeFilters.value = rest;
-        } else {
-            rangeFilters.value = { ...rangeFilters.value, [id]: { min, max } };
+        if (id === "record") {
+            temperatureMin.value = min;
+            temperatureMax.value = max;
+        } else if (id === "record_date") {
+            dateStart.value = min;
+            dateEnd.value = max;
         }
-        page.value = 1;
     }
 
     function clearFilter(id: string) {
-        const { [id]: _s, ...strRest } = stringFilters.value;
-        stringFilters.value = strRest;
-
-        const { [id]: _r, ...rngRest } = rangeFilters.value;
-        rangeFilters.value = rngRest;
-
-        page.value = 1;
+        if (id === "name") stationIds.value = [];
+        else if (id === "departement") departments.value = [];
+        else if (id === "record") {
+            temperatureMin.value = "";
+            temperatureMax.value = "";
+        } else if (id === "record_date") {
+            dateStart.value = "";
+            dateEnd.value = "";
+        }
     }
 
-    // Debounced values used to drive API calls
-    const debouncedStringFilters = refDebounced(
-        stringFilters,
-        debounceDuration,
-    );
-    const debouncedRangeFilters = refDebounced(rangeFilters, debounceDuration);
+    // Debounce text inputs before sending to the API
+    const debouncedStationIds = refDebounced(stationIds, debounceDuration);
+    const debouncedDepartments = refDebounced(departments, debounceDuration);
+    const debouncedTempMin = refDebounced(temperatureMin, debounceDuration);
+    const debouncedTempMax = refDebounced(temperatureMax, debounceDuration);
+    const debouncedDateStart = refDebounced(dateStart, debounceDuration);
+    const debouncedDateEnd = refDebounced(dateEnd, debounceDuration);
 
-    // Reset to page 1 when record type changes (string/range setters handle it themselves)
-    watch(recordType, () => {
-        page.value = 1;
-    });
-
-    const params = computed(() => ({
-        record_type: recordType.value,
+    const params = computed<TemperatureRecordsParams>(() => ({
+        type_records: typeRecords.value,
+        record_kind: recordKind.value,
+        ...(debouncedStationIds.value.length && {
+            station_ids: debouncedStationIds.value,
+        }),
+        ...(debouncedDepartments.value.length && {
+            departments: debouncedDepartments.value,
+        }),
+        ...(debouncedTempMin.value && {
+            temperature_min: Number(debouncedTempMin.value),
+        }),
+        ...(debouncedTempMax.value && {
+            temperature_max: Number(debouncedTempMax.value),
+        }),
+        ...(debouncedDateStart.value && {
+            date_start: debouncedDateStart.value,
+        }),
+        ...(debouncedDateEnd.value && { date_end: debouncedDateEnd.value }),
         limit: pageSize.value,
         offset: (page.value - 1) * pageSize.value,
-        string_filters: debouncedStringFilters.value,
-        range_filters: debouncedRangeFilters.value,
     }));
 
     const {
@@ -88,9 +121,10 @@ export const useRecordsStore = defineStore("recordsStore", () => {
     } = useTemperatureRecordsFake(params);
 
     return {
-        recordType,
         page,
         pageSize,
+        typeRecords,
+        recordKind,
         stringFilters,
         rangeFilters,
         uniqueValues,
