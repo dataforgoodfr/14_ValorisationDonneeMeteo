@@ -77,7 +77,11 @@ function toggleDropdown(field: FilterField) {
 }
 
 function getDisplayedOptions(field: FilterField): FilterOption[] {
-    if (field.type === "string-async") return filterOptionsFor(field.id);
+    // For async fields the parent fetches results only while a query is active.
+    // When the query is empty the dropdown should be blank so the user sees the
+    // "Tapez pour rechercher…" placeholder, not stale or selected-only options.
+    if (field.type === "string-async")
+        return searchQuery.value ? filterOptionsFor(field.id) : [];
     const allValues = filterOptionsFor(field.id);
     const search = searchQuery.value.toLowerCase();
     if (!search) return allValues;
