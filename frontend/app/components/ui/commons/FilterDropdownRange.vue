@@ -1,5 +1,12 @@
 <script setup lang="ts">
-defineProps<{ min: string; max: string; hasFilter: boolean }>();
+defineProps<{
+    /** Current minimum bound (empty string means no bound set). */
+    min: string;
+    /** Current maximum bound (empty string means no bound set). */
+    max: string;
+    /** When true, shows the "Effacer" button. */
+    hasFilter: boolean;
+}>();
 
 const emit = defineEmits<{
     "update:min": [value: string];

@@ -16,9 +16,13 @@ interface ActiveRangeFilter {
 }
 
 const props = defineProps<{
+    /** String filter groups that have at least one active value. */
     activeStringFilters: ActiveStringFilter[];
+    /** Range filters that have an active min or max bound. */
     activeRangeFilters: ActiveRangeFilter[];
-    uniqueValues: Record<string, FilterOption[]>;
+    /** Options map used to resolve a raw filter value (e.g. a station code)
+     *  to its display label inside each chip. */
+    filterOptions: Record<string, FilterOption[]>;
 }>();
 
 const emit = defineEmits<{
@@ -28,7 +32,7 @@ const emit = defineEmits<{
 
 function getValueLabel(fieldId: string, value: string): string {
     return (
-        props.uniqueValues[fieldId]?.find((v) => v.value === value)?.label ??
+        props.filterOptions[fieldId]?.find((v) => v.value === value)?.label ??
         value
     );
 }

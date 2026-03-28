@@ -4,7 +4,7 @@ import { h } from "vue";
 import { UBadge } from "#components";
 import { storeToRefs } from "pinia";
 import { useRecordsStore } from "~/stores/recordsStore";
-import RecordsFilterBar from "~/components/ui/records/RecordsFilterBar.vue";
+import RecordsFilterBar from "~/components/table/records/RecordsFilterBar.vue";
 
 const store = useRecordsStore();
 const { page, pageSize, typeRecords, recordsData, pending, error } =

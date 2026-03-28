@@ -1,7 +1,14 @@
 <script setup lang="ts">
-import DayPicker from "./dayPicker.vue";
+import DayPicker from "./selectBar/dayPicker.vue";
 
-defineProps<{ startDate: Date; endDate: Date; hasFilter: boolean }>();
+defineProps<{
+    /** Start of the selected date range. */
+    startDate: Date;
+    /** End of the selected date range. */
+    endDate: Date;
+    /** When true, shows the "Effacer" button. */
+    hasFilter: boolean;
+}>();
 
 const emit = defineEmits<{
     "update:startDate": [date: Date];

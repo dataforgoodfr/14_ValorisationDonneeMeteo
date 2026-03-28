@@ -37,7 +37,7 @@ const {
 
 watch(debouncedQuery, (query) => {
     if (query) {
-        stationsData.value = null;
+        stationsData.value = undefined;
         fetchStations();
     }
 });
@@ -50,24 +50,55 @@ const stationOptions = computed<FilterOption[]>(() => {
     }));
 });
 
-function onSearch(id: string, query: string) {
-    if (id === "name") searchQuery.value = query;
+// Preserve code→name for selected stations so chips resolve labels after
+// search results are cleared. Updated at selection time when labels are available.
+const selectedStationOptions = ref<FilterOption[]>([]);
+
+function onUpdateStringFilter(id: string, values: string[]) {
+    if (id === "name") {
+        selectedStationOptions.value = values.map(
+            (code) =>
+                stationOptions.value.find((o) => o.value === code) ??
+                selectedStationOptions.value.find((o) => o.value === code) ?? {
+                    value: code,
+                    label: code,
+                },
+        );
+    }
+    setStringFilter(id, values);
 }
 
-const uniqueValues = computed(() => ({
-    ...store.uniqueValues,
-    name: stationOptions.value,
-}));
+function onSearch(id: string, query: string) {
+    if (id === "name") {
+        searchQuery.value = query;
+        if (!query) stationsData.value = undefined;
+    }
+}
+
+// Merge live search results with selected-station options (deduped).
+// Selected options are appended only when not already present in search results,
+// so chips can always resolve code→name even when search results are cleared.
+const filterOptions = computed(() => {
+    const searchResults = stationOptions.value;
+    const searchResultCodes = new Set(searchResults.map((o) => o.value));
+    const extraSelected = selectedStationOptions.value.filter(
+        (o) => !searchResultCodes.has(o.value),
+    );
+    return {
+        ...store.uniqueValues,
+        name: [...searchResults, ...extraSelected],
+    };
+});
 </script>
 
 <template>
     <FilterBar
         :fields="filterFields"
-        :unique-values="uniqueValues"
+        :filter-options="filterOptions"
         :string-filters="stringFilters"
         :range-filters="rangeFilters"
         :async-pending="{ name: stationPending }"
-        @update:string-filter="setStringFilter"
+        @update:string-filter="onUpdateStringFilter"
         @update:range-filter="setRangeFilter"
         @clear="clearFilter"
         @search="onSearch"

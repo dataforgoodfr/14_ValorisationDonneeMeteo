@@ -2,10 +2,17 @@
 import type { FilterField, FilterOption } from "./filterBarTypes";
 
 const props = defineProps<{
+    /** Field definition — used to tailor empty-state messaging and
+     *  to decide whether typing should trigger an async search. */
     field: FilterField;
+    /** Options to display in the list (pre-filtered by the parent for static
+     *  fields, or the raw API results for async fields). */
     options: FilterOption[];
+    /** Values of currently selected options (controlled). */
     selectedValues: string[];
+    /** Current search input value (controlled). */
     searchQuery: string;
+    /** When true, shows a loading spinner in the search input. */
     asyncPending?: boolean;
 }>();
 

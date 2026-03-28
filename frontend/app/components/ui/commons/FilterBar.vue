@@ -9,10 +9,17 @@ import FilterActiveChips from "./FilterActiveChips.vue";
 export type { FilterType, FilterField, FilterOption } from "./filterBarTypes";
 
 const props = defineProps<{
+    /** Field definitions that determine which filters are shown and their type. */
     fields: FilterField[];
-    uniqueValues: Record<string, FilterOption[]>;
+    /** Available options for each field, keyed by field id. For async fields,
+     *  this should include both live search results and options for already-selected
+     *  values so that active chips can always resolve labels. */
+    filterOptions: Record<string, FilterOption[]>;
+    /** Currently active string filters, keyed by field id. */
     stringFilters: Record<string, string[]>;
+    /** Currently active range filters, keyed by field id. */
     rangeFilters: Record<string, { min: string; max: string }>;
+    /** Loading state per field id, shown as a spinner in the search input. */
     asyncPending?: Record<string, boolean>;
 }>();
 
@@ -34,8 +41,8 @@ const localDateRange = ref<{ start: Date; end: Date }>({
 
 // Prop access helpers — consolidate ?? in one place, not scattered across the template.
 const stringFilterFor = (id: string): string[] => props.stringFilters[id] ?? [];
-const uniqueValuesFor = (id: string): FilterOption[] =>
-    props.uniqueValues[id] ?? [];
+const filterOptionsFor = (id: string): FilterOption[] =>
+    props.filterOptions[id] ?? [];
 
 const containerRef = ref<HTMLElement | null>(null);
 onClickOutside(containerRef, () => {
@@ -64,11 +71,14 @@ function toggleDropdown(field: FilterField) {
     }
     searchQuery.value = "";
     openField.value = field;
+    if (field.type === "string-async") {
+        emit("search", field.id, "");
+    }
 }
 
 function getDisplayedOptions(field: FilterField): FilterOption[] {
-    if (field.type === "string-async") return uniqueValuesFor(field.id);
-    const allValues = uniqueValuesFor(field.id);
+    if (field.type === "string-async") return filterOptionsFor(field.id);
+    const allValues = filterOptionsFor(field.id);
     const search = searchQuery.value.toLowerCase();
     if (!search) return allValues;
     return allValues.filter((v) => v.label.toLowerCase().includes(search));
@@ -238,7 +248,7 @@ const hasAnyFilter = computed(
                     v-if="hasAnyFilter"
                     :active-string-filters="activeStringFilters"
                     :active-range-filters="activeRangeFilters"
-                    :unique-values="uniqueValues"
+                    :filter-options="filterOptions"
                     @toggle-string-value="toggleStringValue"
                     @clear="emit('clear', $event)"
                 />
