@@ -3,6 +3,7 @@ from collections.abc import Iterable
 import numpy as np
 import pandas as pd
 
+from weather.calcul_itn import DEFAULT_ITN_STATIONS_LIST
 from weather.itn.gateway import ReadTemperaturesGateway
 
 
@@ -74,6 +75,11 @@ def normale_itn(
     numpy.ndarray
           array Nx2 containing the date and the daily/monthly normale of the ITN
     """
+
+    # by default, calculate ITN for France
+    if stations_itn is None:
+        stations_itn = DEFAULT_ITN_STATIONS_LIST
+
     normale_itn = compute_normale_itn(
         read_protocol, stations_itn, start_year, end_year, freq
     )
