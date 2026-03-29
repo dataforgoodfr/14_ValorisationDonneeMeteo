@@ -2,7 +2,6 @@ import datetime as dt
 from collections.abc import Callable
 
 import pytest
-from django.db import connection
 
 from weather.data_sources.timescale import (
     TimescaleNationalIndicatorBaselineDataSource,
@@ -15,88 +14,14 @@ from weather.services.national_indicator.stations import (
     expected_reims_code,
 )
 from weather.services.national_indicator.types import DailySeriesQuery
+from weather.tests.helpers.itn import insert_quotidienne
+from weather.tests.helpers.itn_baseline import (
+    insert_daily_baseline,
+    insert_monthly_baseline,
+    insert_yearly_baseline,
+)
 
 pytestmark = pytest.mark.django_db
-
-
-# ----------------------------
-# Helpers DB
-# ----------------------------
-
-
-def insert_daily_baseline(
-    month: int,
-    day: int,
-    mean: float,
-    std: float,
-    *,
-    sample_size: int = 30,
-    p20: float = 8.0,
-    p80: float = 12.0,
-):
-    with connection.cursor() as cursor:
-        cursor.execute(
-            """
-            INSERT INTO mv_itn_baseline_1991_2020
-                (month, day_of_month, sample_size, itn_mean, itn_stddev, itn_p20, itn_p80)
-            VALUES (%s, %s, %s, %s, %s, %s, %s)
-            """,
-            [month, day, sample_size, mean, std, p20, p80],
-        )
-
-
-def insert_monthly_baseline(
-    month: int,
-    mean: float,
-    std: float,
-    *,
-    sample_size: int = 30,
-    p20: float = 18.0,
-    p80: float = 22.0,
-):
-    with connection.cursor() as cursor:
-        cursor.execute(
-            """
-            INSERT INTO mv_itn_baseline_monthly_1991_2020
-                (month, sample_size, itn_mean, itn_stddev, itn_p20, itn_p80)
-            VALUES (%s, %s, %s, %s, %s, %s)
-            """,
-            [month, sample_size, mean, std, p20, p80],
-        )
-
-
-def insert_yearly_baseline(
-    sample_size: int,
-    mean: float,
-    std: float,
-    *,
-    p20: float = 28.0,
-    p80: float = 32.0,
-):
-    with connection.cursor() as cursor:
-        cursor.execute(
-            """
-            INSERT INTO mv_itn_baseline_yearly_1991_2020
-                (sample_size, itn_mean, itn_stddev, itn_p20, itn_p80)
-            VALUES (%s, %s, %s, %s, %s)
-            """,
-            [sample_size, mean, std, p20, p80],
-        )
-
-
-def insert_quotidienne(day: dt.date, code: str, tntxm: float) -> None:
-    with connection.cursor() as cursor:
-        cursor.execute(
-            """
-            INSERT INTO public."Quotidienne"
-              ("NUM_POSTE", "NOM_USUEL", "LAT", "LON", "ALTI", "AAAAMMJJ", "TNTXM")
-            VALUES
-              (%s, %s, 0.0, 0.0, 0.0, %s, %s)
-            ON CONFLICT ("NUM_POSTE", "AAAAMMJJ")
-            DO UPDATE SET "TNTXM" = EXCLUDED."TNTXM"
-            """,
-            [code, f"ST {code}", day, tntxm],
-        )
 
 
 @pytest.fixture()

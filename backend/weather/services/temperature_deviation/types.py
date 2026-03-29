@@ -5,6 +5,12 @@ from dataclasses import dataclass
 
 
 @dataclass(frozen=True)
+class ObservedPoint:
+    date: dt.date
+    temperature: float
+
+
+@dataclass(frozen=True)
 class DailyDeviationSeriesQuery:
     date_start: dt.date
     date_end: dt.date
@@ -53,3 +59,21 @@ class StationDeviationSeries:
 class TemperatureDeviationResult:
     national: NationalDeviationSeries | None
     stations: list[StationDeviationSeries]
+
+
+@dataclass(frozen=True)
+class DailyBaselinePoint:
+    month: int
+    day_of_month: int
+    mean: float
+
+
+@dataclass(frozen=True)
+class MonthlyBaselinePoint:
+    month: int
+    mean: float
+
+
+@dataclass(frozen=True)
+class YearlyBaselinePoint:
+    mean: float

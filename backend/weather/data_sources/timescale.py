@@ -28,15 +28,21 @@ from weather.services.national_indicator.stations import (
 from weather.services.national_indicator.types import (
     BaselinePoint,
     DailySeriesQuery,
-    ObservedPoint,
+)
+from weather.services.national_indicator.types import (
+    ObservedPoint as NationalObservedPoint,
 )
 from weather.services.temperature_deviation.protocols import (
     TemperatureDeviationDailyDataSource,
 )
 from weather.services.temperature_deviation.types import (
+    DailyBaselinePoint,
     DailyDeviationPoint,
     DailyDeviationSeriesQuery,
+    MonthlyBaselinePoint,
+    ObservedPoint,
     StationDailySeries,
+    YearlyBaselinePoint,
 )
 
 
@@ -79,7 +85,7 @@ class TimescaleNationalIndicatorObservedDataSource(NationalIndicatorObservedData
     def fetch_daily_series(
         self,
         query: DailySeriesQuery,
-    ) -> list[ObservedPoint]:
+    ) -> list[NationalObservedPoint]:
         qs = QuotidienneITN.objects.filter(
             date__gte=query.date_start,
             date__lte=query.date_end,
@@ -100,14 +106,14 @@ class TimescaleNationalIndicatorObservedDataSource(NationalIndicatorObservedData
                 continue
             grouped[row["date"]][row["station_code"]] = float(value)
 
-        out: list[ObservedPoint] = []
+        out: list[NationalObservedPoint] = []
         for day in sorted(grouped):
             itn = compute_itn_for_day(day, grouped[day])
             if itn is None:
                 continue
 
             out.append(
-                ObservedPoint(
+                NationalObservedPoint(
                     date=day,
                     temperature=itn,
                 )
@@ -184,7 +190,6 @@ class TimescaleTemperatureDeviationDailyDataSource(TemperatureDeviationDailyData
             .values("station_code", "date", "tntxm", "baseline_mean")
         )
 
-        # lookup station names (1 requête, pas de join lourd)
         station_names = {
             s.station_code: s.name
             for s in Station.objects.filter(station_code__in=query.station_ids).only(
@@ -213,9 +218,53 @@ class TimescaleTemperatureDeviationDailyDataSource(TemperatureDeviationDailyData
             if station_id in grouped
         ]
 
-    def fetch_national_daily_series(
+    def fetch_national_observed_series(
         self, query: DailyDeviationSeriesQuery
-    ) -> list[DailyDeviationPoint]:
-        raise NotImplementedError(
-            "National deviation is not implemented yet: waiting for ITN baseline."
+    ) -> list[ObservedPoint]:
+        observed_points = (
+            TimescaleNationalIndicatorObservedDataSource().fetch_daily_series(
+                DailySeriesQuery(
+                    date_start=query.date_start,
+                    date_end=query.date_end,
+                    target_dates=None,
+                )
+            )
         )
+
+        return [
+            ObservedPoint(
+                date=point.date,
+                temperature=float(point.temperature),
+            )
+            for point in observed_points
+        ]
+
+    def fetch_national_daily_baseline(self) -> list[DailyBaselinePoint]:
+        rows = ITNBaselineDaily19912020.objects.all().order_by("month", "day_of_month")
+
+        return [
+            DailyBaselinePoint(
+                month=row.month,
+                day_of_month=row.day_of_month,
+                mean=float(row.itn_mean),
+            )
+            for row in rows
+        ]
+
+    def fetch_national_monthly_baseline(self) -> list[MonthlyBaselinePoint]:
+        rows = ITNBaselineMonthly19912020.objects.all().order_by("month")
+
+        return [
+            MonthlyBaselinePoint(
+                month=row.month,
+                mean=float(row.itn_mean),
+            )
+            for row in rows
+        ]
+
+    def fetch_national_yearly_baseline(self) -> YearlyBaselinePoint | None:
+        row = ITNBaselineYearly19912020.objects.first()
+        if row is None:
+            return None
+
+        return YearlyBaselinePoint(mean=float(row.itn_mean))
