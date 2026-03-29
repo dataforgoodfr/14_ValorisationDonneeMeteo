@@ -6,6 +6,8 @@ import pandas as pd
 from weather.calcul_itn import DEFAULT_ITN_STATIONS_LIST, compute_itn
 from weather.itn.gateway import ReadTemperaturesGateway
 
+NAN = float("nan")
+
 
 def compute_normale_itn(
     read_protocol: ReadTemperaturesGateway,
@@ -39,33 +41,29 @@ def compute_normale_itn(
     start_date = f"{start_year}-01-01"
     end_date = f"{end_year}-12-31"
 
-    daily_records_by_station = compute_itn(
-        read_protocol, stations_itn, start_date, end_date
-    )[0]
+    itn = compute_itn(read_protocol, stations_itn, start_date, end_date)[1]
 
-    try:
-        daterange = pd.date_range(start=start_date, end=end_date)
-    except ValueError:
-        daterange = daily_records_by_station.index
-
-    if freq == "monthly":
-        index = np.unique(daterange.strftime("%Y-%m"))
+    if freq == "daily":
+        index = pd.date_range(start="2024-01-01", end="2024-12-31", freq="D").strftime(
+            "%d-%b"
+        )
+        normale = pd.DataFrame(columns=["normale"], index=index, dtype=float)
+        for date in index:
+            if date == "29-Feb":
+                normale.loc[date] = NAN
+            else:
+                normale.loc[date] = itn[itn.index.strftime("%d-%b") == date].mean()
+    elif freq == "monthly":
+        index = pd.date_range(start="2024-01-01", periods=12, freq="ME").strftime("%b")
+        normale = pd.DataFrame(columns=["normale"], index=index, dtype=float)
+        for month in index:
+            normale.loc[month] = itn[itn.index.strftime("%b") == month].mean()
     elif freq == "yearly":
-        index = np.unique(daterange.strftime("%Y"))
+        normale = pd.DataFrame(
+            {"normale": [itn.mean()]}, index=[f"{start_year}-{end_year}"]
+        )
 
-    avg_itn = pd.DataFrame(columns=["avg_itn"], index=index, dtype=float)
-
-    for id in index:
-        temp_min = daily_records_by_station["temp_min"].loc[id].values
-        temp_max = daily_records_by_station["temp_max"].loc[id].values
-        avg_itn.loc[id] = np.nanmean((temp_min + temp_max) / 2)
-
-    normale_itn = pd.Series(
-        [26.0 / 3.0, 29.0 / 3.0, 33.0 / 3.0, 36.0 / 3.0],
-        index=pd.to_datetime(["2012-05-06", "2012-05-07", "2012-05-08", "2012-05-09"]),
-    ).asfreq("D")
-
-    return daily_records_by_station, normale_itn
+    return normale
 
 
 # --------------------------------------------------------------------
@@ -109,7 +107,7 @@ def normale_itn(
     )
 
     dates = normale_itn.index.to_numpy()
-    values = normale_itn["avg_itn"].values
+    values = normale_itn["normale"].values
 
     return np.array(list(zip(dates, values, strict=True)))
 
