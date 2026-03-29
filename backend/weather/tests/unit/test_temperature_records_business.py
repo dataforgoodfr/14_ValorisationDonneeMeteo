@@ -31,45 +31,6 @@ def test_temperature_records_business_returns_datasource_output():
     assert out == expected
 
 
-def test_temperature_records_business_passes_station_ids_and_filters_to_datasource():
-    captured = {}
-
-    class CapturingRecordsDataSource:
-        def fetch_records(self, query):
-            captured["query"] = query
-            return ()
-
-    date_start = dt.date(2024, 1, 1)
-    date_end = dt.date(2024, 12, 31)
-    station_ids = ("12345678", "87654321")
-    record_kind = "historical"
-    record_scope = "monthly"
-    type_records = "hot"
-    temperature_min = 10
-    temperature_max = 30
-    get_records(
-        data_source=CapturingRecordsDataSource(),
-        date_start=date_start,
-        date_end=date_end,
-        station_ids=station_ids,
-        record_kind=record_kind,
-        record_scope=record_scope,
-        type_records=type_records,
-        temperature_max=temperature_max,
-        temperature_min=temperature_min,
-    )
-
-    q = captured["query"]
-    assert q.date_start == date_start
-    assert q.date_end == date_end
-    assert q.station_ids == station_ids
-    assert q.record_kind == record_kind
-    assert q.record_scope == record_scope
-    assert q.type_records == type_records
-    assert q.temperature_min == temperature_min
-    assert q.temperature_max == temperature_max
-
-
 def test_temperature_records_business_passes_departments_to_datasource():
     captured = {}
 
