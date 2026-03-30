@@ -14,7 +14,13 @@ def insert_station_daily_baseline(
             """
             INSERT INTO public.baseline_station_daily_mean_1991_2020
                 (station_code, month, day, sample_count, baseline_mean_tntxm)
-            VALUES (%s, %s, %s, %s, %s)
+            VALUES (%(station_code)s, %(month)s, %(day)s, %(sample_count)s, %(mean)s)
             """,
-            [station_code, month, day, sample_count, mean],
+            {
+                "station_code": station_code,
+                "month": month,
+                "day": day,
+                "sample_count": sample_count,
+                "mean": mean,
+            },
         )
