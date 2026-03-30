@@ -16,14 +16,16 @@ export default defineNuxtConfig({
         "nuxt-echarts",
         "@pinia/nuxt",
         "@primevue/nuxt-module",
+        "nuxt-maplibre",
     ],
-
+    maplibre: {
+        css: false,
+    },
     runtimeConfig: {
         public: {
             apiBase: "", // api url will be injected when the container is launched with an env variable
         },
     },
-
     css: ["~/assets/css/main.css"],
     ui: {
         colorMode: false,
@@ -37,7 +39,13 @@ export default defineNuxtConfig({
             htmlAttrs: {
                 lang: "fr",
             },
-            link: [{ rel: "icon", type: "image/x-icon", href: "/favicon.ico" }],
+            link: [
+                { rel: "icon", type: "image/x-icon", href: "/favicon.ico" },
+                {
+                    rel: "stylesheet",
+                    href: "https://unpkg.com/maplibre-gl@5.18.0/dist/maplibre-gl.css",
+                },
+            ],
         },
     },
     echarts: {
@@ -45,5 +53,69 @@ export default defineNuxtConfig({
         charts: ["BarChart", "LineChart"],
         components: ["DatasetComponent", "GridComponent", "TooltipComponent"],
         features: ["LabelLayout", "UniversalTransition"],
+    },
+    primevue: {
+        options: {
+            locale: {
+                monthNames: [
+                    "Janvier",
+                    "Février",
+                    "Mars",
+                    "Avril",
+                    "Mai",
+                    "Juin",
+                    "Juillet",
+                    "Août",
+                    "Septembre",
+                    "Octobre",
+                    "Novembre",
+                    "Décembre",
+                ],
+                monthNamesShort: [
+                    "Jan",
+                    "Fev",
+                    "Mar",
+                    "Avr",
+                    "Mai",
+                    "Jui",
+                    "Juil",
+                    "Aou",
+                    "Sept",
+                    "Oct",
+                    "Nov",
+                    "Dec",
+                ],
+                dayNames: [
+                    "Dimanche",
+                    "Lundi",
+                    "Mardi",
+                    "Mercredi",
+                    "Jeudi",
+                    "Vendredi",
+                    "Samedi",
+                ],
+                dayNamesShort: [
+                    "Dim",
+                    "Lun",
+                    "Mar",
+                    "Mer",
+                    "Jeu",
+                    "Ven",
+                    "Sam",
+                ],
+                dayNamesMin: ["Di", "Lu", "Ma", "Me", "Je", "Ve", "Sa"],
+                fileSizeTypes: [
+                    "B",
+                    "KB",
+                    "MB",
+                    "GB",
+                    "TB",
+                    "PB",
+                    "EB",
+                    "ZB",
+                    "YB",
+                ],
+            },
+        },
     },
 });

@@ -1,7 +1,7 @@
 import datetime as dt
 
 from weather.services.national_indicator.types import DailyPoint, OutputPoint
-from weather.services.time_windows import (
+from weather.utils.date_range import (
     iter_month_starts_intersecting,
     iter_year_starts_intersecting,
 )

@@ -1,13 +1,11 @@
-<!--
- Objectifs V0 :
- - A Réaliser : https://github.com/dataforgoodfr/14_ValorisationDonneeMeteo/issues/4
--->
-
 <script setup lang="ts">
-// import CombinedChart from "~/components/charts/CombinedChart.vue";
 import ItnChart from "~/components/charts/ItnChart.vue";
 import PagesHero from "~/components/layout/PagesHero.vue";
-import SelectBar from "~/components/ui/itn/selectBar.vue";
+import SelectBar from "~/components/ui/commons/selectBar/selectBar.vue";
+import ChartLayout from "~/components/layout/ChartLayout.vue";
+import { useItnSelectBarAdapter } from "~/adapters/itnSelectBarAdapter";
+
+const selectBarAdapter = useItnSelectBarAdapter();
 
 const heroData = {
     title: "ITN",
@@ -22,11 +20,13 @@ const heroData = {
             :title="heroData.title"
             :description="heroData.description"
         />
-        <div
-            class="inline-flex flex-col divide-y divide-gray-200 border border-gray-200 rounded-lg overflow-hidden"
-        >
-            <SelectBar />
-            <ItnChart class="px-3 py-2" />
-        </div>
+        <ChartLayout>
+            <template #select-bar>
+                <SelectBar :adapter="selectBarAdapter" />
+            </template>
+            <template #chart>
+                <ItnChart :adapter="selectBarAdapter" class="px-3 py-2" />
+            </template>
+        </ChartLayout>
     </UContainer>
 </template>

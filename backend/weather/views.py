@@ -4,27 +4,30 @@ DRF ViewSets for weather data API endpoints.
 
 from drf_spectacular.utils import extend_schema, extend_schema_view
 from rest_framework import status, viewsets
-from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from weather.data_generators.national_indicator_fake import (
-    FakeNationalIndicatorDailyDataSource,
+from weather.bootstrap_itn import ITNDependencyProvider
+from weather.bootstrap_temperature_deviation import (
+    TemperatureDeviationDependencyProvider,
 )
-from weather.services.national_indicator.service import compute_national_indicator
+from weather.data_sources.records_fake import FakeRecordsDataSource
+from weather.services.national_indicator.use_case import get_national_indicator
+from weather.services.records.use_case import get_records
+from weather.services.temperature_deviation.use_case import get_temperature_deviation
 
-from .filters import HoraireTempsReelFilter, QuotidienneFilter, StationFilter
-from .models import HoraireTempsReel, Quotidienne, Station
+from .filters import StationFilter
+from .models import Station
 from .serializers import (
     ErrorSerializer,
-    HoraireTempsReelDetailSerializer,
-    HoraireTempsReelSerializer,
     NationalIndicatorQuerySerializer,
     NationalIndicatorResponseSerializer,
-    QuotidienneDetailSerializer,
-    QuotidienneSerializer,
     StationDetailSerializer,
     StationSerializer,
+    TemperatureDeviationQuerySerializer,
+    TemperatureDeviationResponseSerializer,
+    TemperatureRecordsQuerySerializer,
+    TemperatureRecordsResponseSerializer,
 )
 
 
@@ -49,87 +52,14 @@ class StationViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = Station.objects.all()
     serializer_class = StationSerializer
     filterset_class = StationFilter
-    search_fields = ["nom", "code"]
-    ordering_fields = ["nom", "departement", "alt"]
-    ordering = ["nom"]
+    search_fields = ["name", "departement", "station_code"]
+    ordering_fields = ["name", "departement", "alt"]
+    ordering = ["name"]
 
     def get_serializer_class(self):
         if self.action == "retrieve":
             return StationDetailSerializer
         return StationSerializer
-
-
-@extend_schema_view(
-    list=extend_schema(
-        summary="Donnees horaires temps reel",
-        description="Retourne les mesures horaires en temps reel.",
-        tags=["Temps Reel"],
-    ),
-    retrieve=extend_schema(
-        summary="Detail mesure horaire",
-        tags=["Temps Reel"],
-    ),
-)
-class HoraireTempsReelViewSet(viewsets.ReadOnlyModelViewSet):
-    """
-    ViewSet for hourly real-time weather measurements.
-    Optimized for time-series queries on TimescaleDB hypertable.
-    """
-
-    queryset = HoraireTempsReel.objects.select_related("station").all()
-    serializer_class = HoraireTempsReelSerializer
-    filterset_class = HoraireTempsReelFilter
-    ordering_fields = ["validity_time", "t", "rr1"]
-    ordering = ["-validity_time"]
-
-    def get_serializer_class(self):
-        if self.action == "retrieve":
-            return HoraireTempsReelDetailSerializer
-        return HoraireTempsReelSerializer
-
-    @extend_schema(
-        summary="Derniere mesure par station",
-        description="Retourne la derniere mesure pour chaque station.",
-        tags=["Temps Reel"],
-    )
-    @action(detail=False, methods=["get"])
-    def latest(self, request):
-        """Get the most recent measurement for each station."""
-        latest_data = (
-            HoraireTempsReel.objects.select_related("station")
-            .order_by("station", "-validity_time")
-            .distinct("station")
-        )
-        serializer = self.get_serializer(latest_data, many=True)
-        return Response(serializer.data)
-
-
-@extend_schema_view(
-    list=extend_schema(
-        summary="Donnees quotidiennes",
-        description="Retourne les donnees meteorologiques journalieres agregees.",
-        tags=["Quotidien"],
-    ),
-    retrieve=extend_schema(
-        summary="Detail donnee quotidienne",
-        tags=["Quotidien"],
-    ),
-)
-class QuotidienneViewSet(viewsets.ReadOnlyModelViewSet):
-    """
-    ViewSet for daily aggregated weather data.
-    """
-
-    queryset = Quotidienne.objects.select_related("station").all()
-    serializer_class = QuotidienneSerializer
-    filterset_class = QuotidienneFilter
-    ordering_fields = ["date", "tn", "tx", "rr"]
-    ordering = ["-date"]
-
-    def get_serializer_class(self):
-        if self.action == "retrieve":
-            return QuotidienneDetailSerializer
-        return QuotidienneSerializer
 
 
 class NationalIndicatorAPIView(APIView):
@@ -154,10 +84,8 @@ class NationalIndicatorAPIView(APIView):
             )
 
         params = q.validated_data
-
-        # Génération fake
-        ds = FakeNationalIndicatorDailyDataSource()
-        data = compute_national_indicator(data_source=ds, **params)
+        ds = ITNDependencyProvider.get_dep()
+        data = get_national_indicator(data_source=ds, **params)
         metadata = {
             "date_start": params["date_start"],
             "date_end": params["date_end"],
@@ -179,4 +107,96 @@ class NationalIndicatorAPIView(APIView):
         out = NationalIndicatorResponseSerializer(data=full_payload)
         out.is_valid(raise_exception=True)
 
+        return Response(out.data, status=status.HTTP_200_OK)
+
+
+class TemperatureDeviationAPIView(APIView):
+    """
+    GET /api/v1/temperature/deviation
+    Implémentation mock, alignée sur le pattern ITN.
+    """
+
+    authentication_classes = []
+    permission_classes = []
+
+    def get(self, request):
+        q = TemperatureDeviationQuerySerializer(data=request.query_params)
+        if not q.is_valid():
+            return Response(
+                ErrorSerializer.build(
+                    code="INVALID_PARAMETER",
+                    message="Paramètre invalide ou manquant",
+                    details=q.errors,
+                ),
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        params = q.validated_data
+        ds = TemperatureDeviationDependencyProvider.get_dep()
+        try:
+            data = get_temperature_deviation(data_source=ds, **params)
+        except NotImplementedError as exc:
+            return Response(
+                ErrorSerializer.build(
+                    code="NOT_IMPLEMENTED",
+                    message=str(exc),
+                ),
+                status=status.HTTP_501_NOT_IMPLEMENTED,
+            )
+        full_payload = {
+            "metadata": {
+                "date_start": params["date_start"],
+                "date_end": params["date_end"],
+                "baseline": "1991-2020",
+                "granularity": params["granularity"],
+            },
+            **data,
+        }
+
+        out = TemperatureDeviationResponseSerializer(data=full_payload)
+        out.is_valid(raise_exception=True)
+
+        return Response(out.data, status=status.HTTP_200_OK)
+
+
+class RecordsAPIView(APIView):
+    """
+    GET /api/v1/temperature/records
+
+    implémentation données mockées
+    """
+
+    authentication_classes = []
+    permission_classes = []
+
+    def get(self, request):
+        q = TemperatureRecordsQuerySerializer(data=request.query_params)
+        if not q.is_valid():
+            return Response(
+                ErrorSerializer.build(
+                    code="INVALID_PARAMETER",
+                    message="Paramètre invalide ou manquant",
+                    details=q.errors,
+                ),
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+        params = q.validated_data
+
+        ds = FakeRecordsDataSource()
+        stations = get_records(data_source=ds, **params)
+        full_payload = {
+            "metadata": {
+                "date_start": params.get("date_start"),
+                "date_end": params.get("date_end"),
+                "record_kind": params["record_kind"],
+                "record_scope": params["record_scope"],
+                "type_records": params["type_records"],
+                "station_ids": list(params.get("station_ids", ())),
+                "departments": list(params.get("departments", ())),
+                "temperature_min": params.get("temperature_min"),
+                "temperature_max": params.get("temperature_max"),
+            },
+            "stations": stations,
+        }
+        out = TemperatureRecordsResponseSerializer(full_payload)
         return Response(out.data, status=status.HTTP_200_OK)

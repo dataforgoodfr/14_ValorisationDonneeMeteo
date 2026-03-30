@@ -43,6 +43,7 @@ export function insertCrossingPoints(
                 ),
                 baseline_max: lerp(prev.baseline_max, curr.baseline_max),
                 baseline_min: lerp(prev.baseline_min, curr.baseline_min),
+                isInterpolated: true,
             });
         }
 

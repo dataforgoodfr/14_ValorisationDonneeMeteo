@@ -6,18 +6,15 @@ const route = useRoute();
 const items = computed<NavigationMenuItem[]>(() => [
     {
         label: "Températures",
-        // icon: "material-symbols:thermostat",
         children: [
             {
                 label: "Ecart à la normale",
-                description: "Une description courte de la page",
                 to: "/ecart-normale",
                 icon: "i-lucide-move-horizontal",
                 active: route.path.startsWith("/ecart-normale"),
             },
             {
                 label: "Indicateur Thermique National",
-                description: "Une description courte de la page",
                 to: "/itn",
                 icon: "i-lucide-thermometer-sun",
                 active: route.path.startsWith("/itn"),
@@ -25,25 +22,21 @@ const items = computed<NavigationMenuItem[]>(() => [
             {
                 disabled: true,
                 label: "Min/max",
-                description: "Bientôt disponible",
                 to: "/itn",
                 icon: "i-lucide-diff",
                 // active: route.path.startsWith("/itn"),
             },
             {
-                disabled: true,
                 label: "Records",
-                description: "Bientôt disponible",
-                to: "/itn",
+                to: "/records",
                 icon: "i-lucide-sun-snow",
-                // active: route.path.startsWith("/itn"),
+                active: route.path.startsWith("/records"),
             },
         ],
     },
     {
         disabled: true,
         label: "Pluviométrie",
-        // icon: "material-symbols:rainy-outline",
         children: [
             {
                 //To be filled

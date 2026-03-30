@@ -158,3 +158,6 @@ media/
 # OS
 .DS_Store
 Thumbs.db
+
+# dev db seed data
+db_data/

@@ -43,72 +43,6 @@ export interface StationFilters {
     offset?: number;
 }
 
-// ===== Hourly measurement types =====
-
-export interface HourlyMeasurement {
-    id: number;
-    station: number;
-    station_code: string;
-    lat: number;
-    lon: number;
-    validity_time: string;
-    t: number | null;
-    td: number | null;
-    tx: number | null;
-    tn: number | null;
-    u: number | null;
-    dd: number | null;
-    ff: number | null;
-    rr1: number | null;
-    vv: number | null;
-    n: number | null;
-    pres: number | null;
-    pmer: number | null;
-}
-
-export interface HourlyDataFilters {
-    station?: number;
-    station_code?: string;
-    validity_time_after?: string;
-    validity_time_before?: string;
-    t_min?: number;
-    t_max?: number;
-    ordering?: string;
-    limit?: number;
-    offset?: number;
-}
-
-// ===== Daily measurement types =====
-
-export interface DailyMeasurement {
-    id: number;
-    station: number;
-    station_code: string;
-    nom_usuel: string;
-    lat: number;
-    lon: number;
-    alti: number;
-    date: string;
-    rr: number | null;
-    tn: number | null;
-    tx: number | null;
-    tm: number | null;
-    ffm: number | null;
-    fxy: number | null;
-}
-
-export interface DailyDataFilters {
-    station?: number;
-    station_code?: string;
-    date_after?: string;
-    date_before?: string;
-    tn_min?: number;
-    tx_max?: number;
-    ordering?: string;
-    limit?: number;
-    offset?: number;
-}
-
 // ===== National Indicator (ITN) types =====
 
 export interface NationalIndicatorParams {
@@ -138,11 +72,67 @@ export interface NationalIndicatorDataPoint {
     baseline_std_dev_lower: number;
     baseline_max: number;
     baseline_min: number;
+    isInterpolated?: boolean;
 }
 
 export interface NationalIndicatorResponse {
     metadata: NationalIndicatorMetadata;
     time_series: NationalIndicatorDataPoint[];
+}
+
+// ===== Ecart à la normale (Temperature Deviation) types =====
+
+export interface DeviationParams {
+    date_start: string;
+    date_end: string;
+    granularity: "year" | "month" | "day";
+    station_ids?: string;
+    include_national: boolean;
+}
+
+export interface DeviationMetadata {
+    date_start: string;
+    date_end: string;
+    baseline: string;
+    granularity: "year" | "month" | "day";
+}
+
+export interface DeviationNational {
+    data: DeviationDataPoint[];
+}
+
+export interface DeviationStationSerie {
+    station_id: string;
+    station_name: string;
+    data: DeviationDataPoint[];
+}
+
+export interface DeviationDataPoint {
+    date: string;
+    deviation: number;
+    temperature: number;
+    baseline_mean: number;
+}
+
+export interface DeviationResponse {
+    metadata: DeviationMetadata;
+    national: DeviationNational;
+    stations: DeviationStationSerie[];
+}
+
+// ===== Temperature Records types =====
+
+export interface TemperatureRecord {
+    id: string;
+    name: string;
+    departement: string;
+    record: number;
+    record_date: string;
+}
+
+export interface TemperatureRecordsResponse {
+    count: number;
+    stations: TemperatureRecord[];
 }
 
 // ===== API Error type =====

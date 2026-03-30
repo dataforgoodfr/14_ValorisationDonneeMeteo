@@ -4,20 +4,22 @@ DRF Serializers for weather data models.
 
 from rest_framework import serializers
 
-from .models import HoraireTempsReel, Quotidienne, Station
+from .models import Station
 
 
 class StationSerializer(serializers.ModelSerializer):
-    """Serializer for weather station metadata."""
+    code = serializers.CharField(source="station_code", read_only=True)
+    nom = serializers.CharField(source="name", read_only=True)
+    poste_ouvert = serializers.BooleanField(source="is_open", read_only=True)
+    type_poste = serializers.IntegerField(source="station_type", read_only=True)
+    poste_public = serializers.BooleanField(source="is_public", read_only=True)
 
     class Meta:
         model = Station
         fields = [
-            "id",
             "code",
             "nom",
             "departement",
-            "frequence",
             "poste_ouvert",
             "type_poste",
             "lon",
@@ -28,78 +30,11 @@ class StationSerializer(serializers.ModelSerializer):
 
 
 class StationDetailSerializer(StationSerializer):
-    """Detailed serializer including timestamps."""
+    created_at = serializers.DateTimeField(read_only=True)
+    updated_at = serializers.DateTimeField(read_only=True)
 
     class Meta(StationSerializer.Meta):
         fields = [*StationSerializer.Meta.fields, "created_at", "updated_at"]
-
-
-class HoraireTempsReelSerializer(serializers.ModelSerializer):
-    """Serializer for hourly real-time measurements."""
-
-    station_code = serializers.CharField(source="station.code", read_only=True)
-
-    class Meta:
-        model = HoraireTempsReel
-        fields = [
-            "id",
-            "station",
-            "station_code",
-            "lat",
-            "lon",
-            "validity_time",
-            "t",
-            "td",
-            "tx",
-            "tn",
-            "u",
-            "dd",
-            "ff",
-            "rr1",
-            "vv",
-            "n",
-            "pres",
-            "pmer",
-        ]
-
-
-class HoraireTempsReelDetailSerializer(HoraireTempsReelSerializer):
-    """Detailed serializer with all measurement fields."""
-
-    class Meta(HoraireTempsReelSerializer.Meta):
-        fields = "__all__"
-
-
-class QuotidienneSerializer(serializers.ModelSerializer):
-    """Serializer for daily aggregated data."""
-
-    station_code = serializers.CharField(source="station.code", read_only=True)
-
-    class Meta:
-        model = Quotidienne
-        fields = [
-            "id",
-            "station",
-            "station_code",
-            "nom_usuel",
-            "lat",
-            "lon",
-            "alti",
-            "date",
-            "rr",
-            "tn",
-            "tx",
-            "tm",
-            "ffm",
-            "fxy",
-        ]
-
-
-class QuotidienneDetailSerializer(QuotidienneSerializer):
-    """Detailed serializer with all daily fields."""
-
-    class Meta(QuotidienneSerializer.Meta):
-        fields = "__all__"
 
 
 class ErrorSerializer(serializers.Serializer):
@@ -237,3 +172,161 @@ class NationalIndicatorMetadataSerializer(serializers.Serializer):
 class NationalIndicatorResponseSerializer(serializers.Serializer):
     metadata = NationalIndicatorMetadataSerializer()
     time_series = NationalIndicatorTimePointSerializer(many=True)
+
+
+class CommaSeparatedStringListField(serializers.Field):
+    def to_internal_value(self, data):
+        if data is None:
+            return ()
+        if isinstance(data, list | tuple):
+            items = [str(x).strip() for x in data if str(x).strip()]
+            return tuple(items)
+
+        if isinstance(data, str):
+            s = data.strip()
+            if not s:
+                return ()
+            items = [x.strip() for x in s.split(",") if x.strip()]
+            return tuple(items)
+
+        raise serializers.ValidationError(
+            "Format invalide. Attendu : liste séparée par des virgules."
+        )
+
+
+class TemperatureDeviationQuerySerializer(serializers.Serializer):
+    date_start = serializers.DateField(required=True)
+    date_end = serializers.DateField(required=True)
+    granularity = serializers.ChoiceField(
+        choices=["year", "month", "day"], required=True
+    )
+    station_ids = CommaSeparatedStringListField(required=False)
+    include_national = serializers.BooleanField(required=False, default=True)
+
+    def validate(self, attrs):
+        ds = attrs["date_start"]
+        de = attrs["date_end"]
+        if ds > de:
+            raise serializers.ValidationError(
+                {"date_end": "date_end doit être >= date_start."}
+            )
+
+        station_ids = attrs.get("station_ids", ())
+        include_national = attrs.get("include_national", True)
+
+        if not include_national and len(station_ids) == 0:
+            raise serializers.ValidationError(
+                {"station_ids": "Requis si include_national=false."}
+            )
+
+        attrs["station_ids"] = station_ids
+        return attrs
+
+
+class TemperatureDeviationPointSerializer(serializers.Serializer):
+    date = serializers.DateField()
+    deviation = serializers.FloatField()
+    temperature = serializers.FloatField()
+    baseline_mean = serializers.FloatField()
+
+
+class TemperatureDeviationNationalSerializer(serializers.Serializer):
+    data = TemperatureDeviationPointSerializer(many=True)
+
+
+class TemperatureDeviationStationSerializer(serializers.Serializer):
+    station_id = serializers.CharField()
+    station_name = serializers.CharField()
+    data = TemperatureDeviationPointSerializer(many=True)
+
+
+class TemperatureDeviationMetadataSerializer(serializers.Serializer):
+    date_start = serializers.DateField()
+    date_end = serializers.DateField()
+    baseline = serializers.CharField()
+    granularity = serializers.ChoiceField(choices=["year", "month", "day"])
+
+
+class TemperatureDeviationResponseSerializer(serializers.Serializer):
+    metadata = TemperatureDeviationMetadataSerializer()
+    national = TemperatureDeviationNationalSerializer(required=False)
+    stations = TemperatureDeviationStationSerializer(many=True)
+
+
+class TemperatureRecordsQuerySerializer(serializers.Serializer):
+    date_start = serializers.DateField(required=False, allow_null=True)
+    date_end = serializers.DateField(required=False, allow_null=True)
+    station_ids = CommaSeparatedStringListField(required=False)
+    departments = CommaSeparatedStringListField(required=False)
+
+    record_kind = serializers.ChoiceField(
+        choices=["historical", "absolute"],
+        required=False,
+        default="absolute",
+    )
+
+    record_scope = serializers.ChoiceField(
+        choices=["monthly", "seasonal", "all_time"],
+        required=False,
+        default="all_time",
+    )
+
+    type_records = serializers.ChoiceField(
+        choices=["hot", "cold", "all"],
+        required=False,
+        default="all",
+    )
+
+    temperature_min = serializers.FloatField(required=False, allow_null=True)
+    temperature_max = serializers.FloatField(required=False, allow_null=True)
+
+    def validate(self, attrs):
+        ds = attrs.get("date_start")
+        de = attrs.get("date_end")
+        if ds is not None and de is not None and ds > de:
+            raise serializers.ValidationError(
+                {"date_end": "date_end doit être >= date_start."}
+            )
+
+        tmin = attrs.get("temperature_min")
+        tmax = attrs.get("temperature_max")
+        if tmin is not None and tmax is not None and tmin > tmax:
+            raise serializers.ValidationError(
+                {"temperature_max": "temperature_max doit être >= temperature_min."}
+            )
+
+        attrs["station_ids"] = attrs.get("station_ids", ())
+        attrs["departments"] = attrs.get("departments", ())
+        attrs["temperature_min"] = tmin if "temperature_min" in attrs else None
+        attrs["temperature_max"] = tmax if "temperature_max" in attrs else None
+
+        return attrs
+
+
+class TemperatureRecordSerializer(serializers.Serializer):
+    value = serializers.FloatField()
+    date = serializers.DateField()
+
+
+class TemperatureRecordsStationSerializer(serializers.Serializer):
+    id = serializers.CharField()
+    name = serializers.CharField()
+    hot_records = TemperatureRecordSerializer(many=True)
+    cold_records = TemperatureRecordSerializer(many=True)
+
+
+class TemperatureRecordsMetadataSerializer(serializers.Serializer):
+    date_start = serializers.DateField(allow_null=True)
+    date_end = serializers.DateField(allow_null=True)
+    record_kind = serializers.ChoiceField(choices=["historical", "absolute"])
+    record_scope = serializers.ChoiceField(choices=["monthly", "seasonal", "all_time"])
+    type_records = serializers.ChoiceField(choices=["hot", "cold", "all"])
+    station_ids = serializers.ListField(child=serializers.CharField())
+    departments = serializers.ListField(child=serializers.CharField())
+    temperature_min = serializers.FloatField(allow_null=True)
+    temperature_max = serializers.FloatField(allow_null=True)
+
+
+class TemperatureRecordsResponseSerializer(serializers.Serializer):
+    metadata = TemperatureRecordsMetadataSerializer()
+    stations = TemperatureRecordsStationSerializer(many=True)

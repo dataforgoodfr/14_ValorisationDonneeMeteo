@@ -65,7 +65,7 @@ paths:
           required: true
           schema:
             type: string
-            enum: [ year, month, day ]
+            enum: [year, month, day]
           description: >
             Unité de l'axe des abscisses.
             - year : agrégation par année
@@ -94,18 +94,65 @@ paths:
             type: boolean
             default: true
           description: >
-            Permet d'afficher ou masquer les données moyennées sur toute la France.
+            Indique si la série nationale doit être incluse dans la réponse.
+            Si ce paramètre vaut 'true', la propriété `national` est présente dans la réponse.
             Si ce paramètre est défini à 'false', et que 'station_ids' est absent ou vide, l'API retourne une erreur 400.
 
       responses:
         "200":
-          description: Séries temporelles de l'écart à la normale (France et/ou stations).
+          description: Séries temporelles de l'écart à la normale pour la moyenne nationale (optionnelle) et les stations demandées.
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/TemperatureDeviationResponse"
+              examples:
+                national_and_stations:
+                  summary: Moyenne nationale et deux stations
+                  value:
+                    metadata:
+                      date_start: "2025-02-01"
+                      date_end: "2025-02-28"
+                      baseline: "1991-2020"
+                      granularity: "day"
+                    national:
+                      data:
+                        - date: "2025-02-01"
+                          deviation: 1.2
+                          temperature: 8.4
+                          baseline_mean: 7.2
+                    stations:
+                      - station_id: "07149"
+                        station_name: "Orly"
+                        data:
+                          - date: "2025-02-01"
+                            deviation: 0.8
+                            temperature: 7.9
+                            baseline_mean: 7.1
+                      - station_id: "07255"
+                        station_name: "Marseille-Marignane"
+                        data:
+                          - date: "2025-02-01"
+                            deviation: 1.5
+                            temperature: 10.3
+                            baseline_mean: 8.8
+                stations_only:
+                  summary: Stations uniquement
+                  value:
+                    metadata:
+                      date_start: "2025-02-01"
+                      date_end: "2025-02-28"
+                      baseline: "1991-2020"
+                      granularity: "day"
+                    stations:
+                      - station_id: "07149"
+                        station_name: "Orly"
+                        data:
+                          - date: "2025-02-01"
+                            deviation: 0.8
+                            temperature: 7.9
+                            baseline_mean: 7.1
         "400":
-          $ref: '#/components/responses/BadRequest'
+          $ref: "#/components/responses/BadRequest"
 
   /temperature/extremes:
     get:
@@ -119,35 +166,205 @@ paths:
         - Temperature
       parameters: []
       responses:
-        '200':
+        "200":
           description: Succès
           content:
             application/json:
               schema:
                 type: object
-        '400':
-          $ref: '#/components/responses/BadRequest'
+        "400":
+          $ref: "#/components/responses/BadRequest"
 
   /temperature/records:
     get:
       summary: Records de température
       description: |
-        Liste les records de température (min/max) battus sur une période donnée.
+        Liste les records de température pour un ensemble de stations sur une période donnée.
 
-        **Documentation des paramètres et schémas à compléter**
+        L'endpoint permet de filtrer :
+        - la nature du record (`historical` ou `absolute`)
+
+        - la portée temporelle (`monthly`, `seasonal`, `all_time`)
+
+        - le type de record (`hot`, `cold`, `all`)
+
+        - les stations (`station_ids`)
+
+        - les départements (`departments`)
+
+        `date_start` et `date_end` sont optionnels.
+        - si `date_start` est fourni, seuls les records à partir de cette date sont pris en compte ;
+        - si `date_end` est fourni, seuls les records jusqu'à cette date sont pris en compte ;
+        - si les deux sont fournis, l'intervalle `[date_start, date_end]` est appliqué ;
+        - si `date_start` est supérieur à `date_end`, une erreur 400 est retournée.
+
+        Si `station_ids` et `departments` sont fournis, seules les stations présentes dans `station_ids` et appartenant aux `departments` sont retournées
+
+        Un filtrage sur la valeur des records peut être appliqué via `temperature_min` et `temperature_max`.
+        Seuls les records dont la valeur est comprise dans cet intervalle sont retournés. Si `temperature_min` est supérieur à `temperature_max`, une erreur 400 est retournée.
+
+        Exemples de requêtes :
+
+        - `record_kind=absolute&record_scope=all_time&type_records=all`
+
+        - `record_kind=historical&record_scope=monthly&type_records=hot`
+
+        - `record_kind=absolute&record_scope=seasonal&type_records=cold`
+
+        - `record_kind=historical&record_scope=monthly&type_records=hot&departments=13,83`
+
+        - `record_kind=historical&record_scope=monthly&type_records=hot&station_ids=01014002,01071001`
+
       operationId: getTemperatureRecords
       tags:
         - Temperature
-      parameters: []
+      parameters:
+        - name: record_kind
+          in: query
+          required: false
+          description: |
+            Nature des records à retourner :
+            - `historical` : historique des records battus
+            - `absolute` : records en vigueur à date
+          schema:
+            type: string
+            enum: [ historical, absolute ]
+            default: absolute
+        - name: record_scope
+          in: query
+          required: false
+          description: |
+            Portée temporelle des records :
+            - `monthly` : records calculés mois par mois
+
+            - `seasonal` : records calculés saison par saison
+
+            - `all_time` : records sans découpage temporel
+          schema:
+            type: string
+            enum: [ monthly, seasonal, all_time ]
+            default: all_time
+        - name: date_start
+          in: query
+          required: false
+          schema:
+            type: string
+            format: date
+          description: Date de début incluse (YYYY-MM-DD).
+          example: "1990-01-01"
+        - name: date_end
+          in: query
+          required: false
+          schema:
+            type: string
+            format: date
+          description: Date de fin incluse (YYYY-MM-DD).
+          example: "2024-12-31"
+        - name: station_ids
+          in: query
+          required: false
+          description: |
+            Liste d'identifiants de stations à inclure dans la réponse.
+            Si `departments` est également fourni, seules les stations présentes dans `station_ids` et appartenant aux `departments` sont retournées
+          schema:
+            type: array
+            items:
+              type: string
+          style: form
+          explode: false
+          example: "07149,07255"
+        - name: departments
+          in: query
+          required: false
+          description: |
+            Liste de codes de départements à inclure dans la réponse.
+            Si `station_ids` et `departments` sont fournis, seules les stations présentes dans `station_ids` et appartenant aux `departments` sont retournées.
+          schema:
+            type: array
+            items:
+              type: string
+          style: form
+          explode: false
+          example: "13,75"
+        - name: type_records
+          description: |
+            Type de records à retourner :
+            - `hot` : retourne uniquement les records chauds ; `cold_records` est présent mais vide.
+
+            - `cold` : retourne uniquement les records froids ; `hot_records` est présent mais vide.
+
+            - `all` : retourne les deux types de records.
+          in: query
+          required: false
+          schema:
+            type: string
+            enum: [hot, cold, all]
+            default: all
+        - name: temperature_min
+          in: query
+          required: false
+          description: |
+            Filtre les records dont la valeur est supérieure ou égale à cette température.
+          schema:
+            type: number
+            format: float
+          example: 25.0
+
+        - name: temperature_max
+          in: query
+          required: false
+          description: |
+            Filtre les records dont la valeur est inférieure ou égale à cette température.
+          schema:
+            type: number
+            format: float
+          example: 35.0
       responses:
-        '200':
-          description: Succès
+        "200":
+          description: |
+            Liste des stations correspondant aux filtres. Les champs `hot_records` et
+            `cold_records` sont toujours présents. Selon la valeur de `type_records`,
+            l'un des deux tableaux peut être vide.
+
+            Le contenu des tableaux est interprété selon les paramètres `record_kind`
+            et `record_scope` de la requête.
           content:
             application/json:
               schema:
-                type: object
-        '400':
-          $ref: '#/components/responses/BadRequest'
+                $ref: "#/components/schemas/TemperatureRecordsResponse"
+              examples:
+                sample:
+                  summary: Exemple de réponse
+                  value:
+                    metadata:
+                      date_start: "1990-01-01"
+                      date_end: "2024-12-31"
+                      record_kind: "historical"
+                      record_scope: "monthly"
+                      type_records: "hot"
+                      station_ids:
+                        - "07149"
+                        - "07156"
+                      departments:
+                        - "13"
+                        - "75"
+                      temperature_min: null
+                      temperature_max: null
+                    stations:
+                      - id: "07149"
+                        name: "Orly"
+                        hot_records:
+                          - value: 32.1
+                            date: "2025-07-25"
+                        cold_records: [ ]
+
+                      - id: "07156"
+                        name: "Paris-Montsouris"
+                        hot_records: [ ]
+                        cold_records: [ ]
+
+        "400":
+          $ref: "#/components/responses/BadRequest"
 
   /temperature/records/cumulative:
     get:
@@ -161,14 +378,14 @@ paths:
         - Temperature
       parameters: []
       responses:
-        '200':
+        "200":
           description: Succès
           content:
             application/json:
               schema:
                 type: object
-        '400':
-          $ref: '#/components/responses/BadRequest'
+        "400":
+          $ref: "#/components/responses/BadRequest"
 
   /temperature/national-indicator:
     get:
@@ -219,7 +436,7 @@ paths:
           required: true
           schema:
             type: string
-            enum: [ year, month, day ]
+            enum: [year, month, day]
           description: >
             Granularité de la série temporelle.
             - year : un point par année
@@ -232,7 +449,7 @@ paths:
           required: false
           schema:
             type: string
-            enum: [ full, month_of_year, day_of_month ]
+            enum: [full, month_of_year, day_of_month]
             default: full
           description: >
             Filtre intra-période appliqué à chaque période (selon `granularity`).
@@ -292,14 +509,14 @@ paths:
         - Photos
       parameters: []
       responses:
-        '200':
+        "200":
           description: Succès
           content:
             application/json:
               schema:
                 type: object
-        '400':
-          $ref: '#/components/responses/BadRequest'
+        "400":
+          $ref: "#/components/responses/BadRequest"
 
   /stations:
     get:
@@ -348,12 +565,12 @@ paths:
             type: string
             example: '{"start":"2024-01-01","end":"2024-12-31"}'
       responses:
-        '200':
+        "200":
           description: Succès
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/StationsResponse'
+                $ref: "#/components/schemas/StationsResponse"
               examples:
                 paris_area:
                   summary: Stations région parisienne
@@ -372,9 +589,8 @@ paths:
                           start_date: "1948-01-01"
                           end_date: "2024-12-31"
                           completeness: 0.98
-        '400':
-          $ref: '#/components/responses/BadRequest'
-
+        "400":
+          $ref: "#/components/responses/BadRequest"
 
 components:
   schemas:
@@ -523,7 +739,7 @@ components:
               creation_year:
                 type: integer
               coordinates:
-                $ref: '#/components/schemas/Coordinates'
+                $ref: "#/components/schemas/Coordinates"
               altitude:
                 type: number
                 format: float
@@ -568,11 +784,41 @@ components:
           format: float
           description: "Température moyenne de référence 1991-2020 pour cette période"
 
+    NationalTemperatureDeviationSeries:
+      type: object
+      required:
+        - data
+      properties:
+        data:
+          type: array
+          description: "Série agrégée au niveau national"
+          items:
+            $ref: "#/components/schemas/TemperatureDeviationPoint"
+
+    StationTemperatureDeviationSeries:
+      type: object
+      required:
+        - station_id
+        - station_name
+        - data
+      properties:
+        station_id:
+          type: string
+          description: "Identifiant de la station"
+        station_name:
+          type: string
+          description: "Nom de la station (utile pour la légende du graphe)"
+        data:
+          type: array
+          description: "Série agrégée pour cette station"
+          items:
+            $ref: "#/components/schemas/TemperatureDeviationPoint"
+
     TemperatureDeviationResponse:
       type: object
       required:
         - metadata
-        - series
+        - stations
       properties:
         metadata:
           type: object
@@ -596,45 +842,13 @@ components:
               type: string
               enum: [year, month, day]
               description: "Granularité de la série (axe X)."
-        series:
+        national:
+          $ref: "#/components/schemas/NationalTemperatureDeviationSeries"
+        stations:
           type: array
-          description: "Liste des séries de données (moyenne nationale et/ou stations demandées pour superposition)"
+          description: "Liste des séries correspondant aux stations demandées"
           items:
-            oneOf:
-              - type: object
-                required:
-                  - is_national
-                  - data
-                properties:
-                  is_national:
-                    type: boolean
-                    enum: [true]
-                    description: "Série correspondant à la moyenne nationale"
-                  data:
-                    type: array
-                    items:
-                      $ref: "#/components/schemas/TemperatureDeviationPoint"
-              - type: object
-                required:
-                  - is_national
-                  - station_id
-                  - station_name
-                  - data
-                properties:
-                  is_national:
-                    type: boolean
-                    enum: [false]
-                    description: "Série correspondant à une station spécifique"
-                  station_id:
-                    type: string
-                    description: "Identifiant de la station"
-                  station_name:
-                    type: string
-                    description: "Nom de la station (utile pour la légende du graphe)"
-                  data:
-                    type: array
-                    items:
-                      $ref: "#/components/schemas/TemperatureDeviationPoint"
+            $ref: "#/components/schemas/StationTemperatureDeviationSeries"
     Error:
       type: object
       required:
@@ -662,13 +876,104 @@ components:
               type: object
               additionalProperties: true
 
+    TemperatureRecordsResponse:
+      type: object
+      required:
+        - metadata
+        - stations
+      properties:
+        metadata:
+          $ref: "#/components/schemas/TemperatureRecordsMetadata"
+        stations:
+          type: array
+          items:
+            type: object
+            required:
+              - id
+              - name
+              - hot_records
+              - cold_records
+            properties:
+              id:
+                type: string
+                description: Identifiant unique de la station (ex "'01071001")
+              name:
+                type: string
+              hot_records:
+                type: array
+                items:
+                  $ref: "#/components/schemas/TemperatureRecord"
+              cold_records:
+                type: array
+                items:
+                  $ref: "#/components/schemas/TemperatureRecord"
+
+    TemperatureRecordsMetadata:
+      type: object
+      required:
+        - date_start
+        - date_end
+        - record_kind
+        - record_scope
+        - type_records
+        - station_ids
+        - departments
+        - temperature_min
+        - temperature_max
+      properties:
+        date_start:
+          type: string
+          format: date
+          nullable: true
+        date_end:
+          type: string
+          format: date
+          nullable: true
+        record_kind:
+          type: string
+          enum: [ historical, absolute ]
+        record_scope:
+          type: string
+          enum: [ monthly, seasonal, all_time ]
+        type_records:
+          type: string
+          enum: [ hot, cold, all ]
+        station_ids:
+          type: array
+          items:
+            type: string
+        departments:
+          type: array
+          items:
+            type: string
+        temperature_min:
+          type: number
+          nullable: true
+        temperature_max:
+          type: number
+          nullable: true
+
+    TemperatureRecord:
+      type: object
+      required:
+        - value
+        - date
+      properties:
+        value:
+          type: number
+          description: valeur de la température pour ce record
+        date:
+          type: string
+          format: date
+          description: date à laquelle le record a été enregistré
+
   responses:
     BadRequest:
       description: Paramètres de requête invalides
       content:
         application/json:
           schema:
-            $ref: '#/components/schemas/Error'
+            $ref: "#/components/schemas/Error"
           examples:
             invalid_parameter:
               summary: Paramètre invalide
