@@ -1,7 +1,6 @@
 import datetime
 from calendar import monthrange
 from collections.abc import Iterable
-from contextlib import suppress
 
 import numpy as np
 import pandas as pd
@@ -330,13 +329,19 @@ def monthly_itn(
     if stations_itn is None:
         stations_itn = DEFAULT_ITN_STATIONS_LIST
 
-    with suppress(TypeError):
+    if (type(start_date) is str) and (start_date is not None):
         tmp = datetime.datetime.strptime(start_date, "%Y-%m-%d")
         start_date = datetime.datetime(tmp.year, tmp.month, 1)
-    with suppress(TypeError):
+    elif start_date is not None:
+        start_date = start_date.replace(day=1)
+
+    if (type(end_date) is str) and (end_date is not None):
         tmp = datetime.datetime.strptime(end_date, "%Y-%m-%d")
         last_day = monthrange(tmp.year, tmp.month)[1]
         end_date = datetime.datetime(tmp.year, tmp.month, last_day)
+    elif end_date is not None:
+        last_day = monthrange(end_date.year, end_date.month)[1]
+        end_date = end_date.replace(day=last_day)
 
     itn = average_itn_calculation(
         read_protocol, stations_itn, start_date, end_date, freq="monthly"
@@ -381,12 +386,17 @@ def annual_itn(
     if stations_itn is None:
         stations_itn = DEFAULT_ITN_STATIONS_LIST
 
-    with suppress(TypeError):
+    if (type(start_date) is str) and (start_date is not None):
         tmp = datetime.datetime.strptime(start_date, "%Y-%m-%d")
         start_date = datetime.datetime(tmp.year, 1, 1)
-    with suppress(TypeError):
+    elif start_date is not None:
+        start_date = start_date.replace(month=1, day=1)
+
+    if (type(end_date) is str) and (end_date is not None):
         tmp = datetime.datetime.strptime(end_date, "%Y-%m-%d")
         end_date = datetime.datetime(tmp.year, 12, 31)
+    elif end_date is not None:
+        end_date = end_date.replace(month=12, day=31)
 
     itn = average_itn_calculation(
         read_protocol, stations_itn, start_date, end_date, freq="yearly"
