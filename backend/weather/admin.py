@@ -41,3 +41,4 @@ class QuotidienneAdmin(admin.ModelAdmin):
     list_display = ["station", "nom_usuel", "date", "tn", "tx", "rr"]
     list_filter = ["station"]
     ordering = ["-date"]
+codex resume 019cbd47-69a3-7672-b084-28f2af621f67

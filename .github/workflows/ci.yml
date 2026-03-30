@@ -19,16 +19,20 @@ on:
 env:
   REGISTRY: ghcr.io
 
+permissions:
+  contents: read
+
 jobs:
   install-dependencies:
     name: Install Dependencies
     runs-on: ubuntu-24.04
+
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: Setup Python
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v6
         with:
           python-version: "3.12"
 
@@ -41,7 +45,7 @@ jobs:
           uv sync --frozen --extra dev
 
       - name: Setup Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v6
         with:
           node-version: "24"
           cache: "npm"
@@ -56,12 +60,13 @@ jobs:
     name: Run Tests
     runs-on: ubuntu-24.04
     needs: install-dependencies
+
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: Setup Python
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v6
         with:
           python-version: "3.12"
 
@@ -69,7 +74,7 @@ jobs:
         uses: astral-sh/setup-uv@v7
 
       - name: Setup Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v6
         with:
           node-version: "24"
           cache: "npm"
@@ -95,15 +100,15 @@ jobs:
           if npx --yes vitest --version >/dev/null 2>&1; then
             npx vitest run --reporter=junit --outputFile=../reports/tests/frontend-junit.xml
           else
-            cat > ../reports/tests/frontend-junit.xml << 'XML'
-<testsuites>
-  <testsuite name="frontend" tests="0" failures="0" skipped="1">
-    <testcase classname="frontend" name="vitest-not-installed">
-      <skipped message="vitest non disponible, tests frontend ignorés"/>
-    </testcase>
-  </testsuite>
-</testsuites>
-XML
+            printf '%s\n' \
+              '<testsuites>' \
+              '  <testsuite name="frontend" tests="0" failures="0" skipped="1">' \
+              '    <testcase classname="frontend" name="vitest-not-installed">' \
+              '      <skipped message="vitest non disponible, tests frontend ignores"/>' \
+              '    </testcase>' \
+              '  </testsuite>' \
+              '</testsuites>' \
+              > ../reports/tests/frontend-junit.xml
           fi
 
       - name: Upload test report
@@ -118,12 +123,13 @@ XML
     name: Run Linter
     runs-on: ubuntu-24.04
     needs: run-tests
+
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: Setup Python
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v6
         with:
           python-version: "3.12"
 
@@ -131,7 +137,7 @@ XML
         uses: astral-sh/setup-uv@v7
 
       - name: Setup Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v6
         with:
           node-version: "24"
           cache: "npm"
@@ -165,12 +171,13 @@ XML
     name: Run Security Scan
     runs-on: ubuntu-24.04
     needs: run-linter
+
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: Setup Python
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v6
         with:
           python-version: "3.12"
 
@@ -178,7 +185,7 @@ XML
         uses: astral-sh/setup-uv@v7
 
       - name: Setup Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v6
         with:
           node-version: "24"
           cache: "npm"
@@ -276,13 +283,15 @@ XML
     name: Build Docker Image
     runs-on: ubuntu-24.04
     needs: run-security-scan
+
     strategy:
       fail-fast: false
       matrix:
         service: [backend, frontend]
+
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
@@ -306,16 +315,19 @@ XML
     runs-on: ubuntu-24.04
     if: github.ref == 'refs/heads/main'
     needs: build-docker-image
+
     strategy:
       fail-fast: false
       matrix:
         service: [backend, frontend]
+
     permissions:
       contents: read
       packages: write
+
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: Normalize image name
         run: echo "IMAGE_NAME=${GITHUB_REPOSITORY,,}" >> "$GITHUB_ENV"
