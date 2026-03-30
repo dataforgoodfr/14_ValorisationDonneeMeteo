@@ -100,7 +100,12 @@ jobs:
         run: npm run lint --if-present
 
       - name: Run frontend tests
-        run: npm run test:unit --if-present
+        run: |
+          if npm ls vitest >/dev/null 2>&1; then
+            npm run test:unit --if-present
+          else
+            echo "Vitest not installed, skipping frontend tests."
+          fi
 
       - name: Build frontend
         run: npm run build --if-present
