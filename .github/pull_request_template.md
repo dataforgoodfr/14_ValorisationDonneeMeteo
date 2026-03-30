@@ -27,3 +27,4 @@
 - [ ] Aucune nouvelle dette technique introduite
 - [ ] Les migrations de base de données sont incluses si nécessaire
 - [ ] Les changements ont été testés localement
+
