@@ -25,7 +25,11 @@ jobs:
           --health-retries=5
 
     env:
-      DATABASE_URL: postgres://infoclimat:infoclimat@localhost:5432/test_db
+      DB_NAME: test_db
+      DB_USER: infoclimat
+      DB_PASSWORD: infoclimat
+      DB_HOST: localhost
+      DB_PORT: 5432
 
     steps:
       - uses: actions/checkout@v4
@@ -39,6 +43,20 @@ jobs:
         run: |
           cd backend
           pip install .[dev]
+
+      - name: Wait for DB
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y postgresql-client
+          until pg_isready -h localhost -p 5432 -U infoclimat; do
+            echo "Waiting for database..."
+            sleep 2
+          done
+
+      - name: Run migrations
+        run: |
+          cd backend
+          python manage.py migrate
 
       - name: Run tests
         run: |
