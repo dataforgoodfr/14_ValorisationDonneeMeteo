@@ -1,0 +1,72 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+env:
+  REGISTRY: ghcr.io
+  IMAGE_PREFIX: ${{ github.repository_owner }}/${{ github.event.repository.name }}
+
+jobs:
+  backend-lint:
+    name: "Backend - Lint"
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v6
+
+      - name: Docker up
+        run: docker compose up backend timescaledb -d
+
+      - name: Install dependencies
+        run: docker compose exec backend uv sync --extra dev
+
+      - name: Ruff check
+        run: docker compose exec backend uv run ruff check .
+
+      - name: Ruff format check
+        run: docker compose exec backend uv run ruff format --check .
+
+  backend-test:
+    name: "Backend - Lint"
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v6
+
+      - name: Docker up
+        run: docker compose up backend timescaledb -d
+
+      - name: Install dependencies
+        run: docker compose exec backend uv sync --extra dev
+
+      - name: Run migrations
+        run: docker compose exec backend uv run python manage.py migrate
+
+      - name: Run tests
+        run: docker compose exec backend uv run pytest
+
+  backend-security:
+    name: "Backend - Security"
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v6
+
+      - name: Build image
+        run: docker compose build -t ${{ env.REGISTRY }}/${{ env.IMAGE_PREFIX }}-backend:{{ github.sha }} backend
+
+      - name: Run Trivy vulnerability scanner
+        uses: aquasecurity/trivy-action@0.33.1
+        with:
+          image-ref: '${{ env.REGISTRY }}/${{ env.IMAGE_PREFIX }}-backend:${{ github.sha }}'
+          format: 'sarif'
+          output: 'trivy-results.sarif'
+
+      - name: Upload Trivy scan results to GitHub Security tab
+        uses: github/codeql-action/upload-sarif@v4
+        with:
+          sarif_file: 'trivy-results.sarif'
