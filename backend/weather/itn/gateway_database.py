@@ -91,7 +91,7 @@ class ReadTemperaturesDatabase:
                      """
         if (start_date is not None) and (end_date is not None):
             sql_request += (
-                f"and \"AAAAMMJJ\" >= '{start_date}' and \"AAAAMMJJ\" <= '{end_date}' "
+                f"and '{start_date}' <= \"AAAAMMJJ\" and \"AAAAMMJJ\" <= '{end_date}' "
             )
         elif start_date is not None:
             sql_request += f"and \"AAAAMMJJ\" >= '{start_date}' "
