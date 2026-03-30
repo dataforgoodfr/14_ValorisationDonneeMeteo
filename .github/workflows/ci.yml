@@ -63,7 +63,12 @@ jobs:
           cd backend
           pytest
 
-      - name: Run linter
+      - name: Auto-fix lint with Ruff
+        run: |
+          cd backend
+          ruff check . --fix
+
+      - name: Verify lint
         run: |
           cd backend
           ruff check .
