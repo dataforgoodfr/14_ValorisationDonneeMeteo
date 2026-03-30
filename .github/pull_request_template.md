@@ -26,4 +26,4 @@
 - [ ] Les commentaires ont été ajoutés pour le code complexe
 - [ ] Aucune nouvelle dette technique introduite
 - [ ] Les migrations de base de données sont incluses si nécessaire
-- [ ] Les changements ont été testés localement
+- [ ] Les changements ont été testés localement (soon conflict)
