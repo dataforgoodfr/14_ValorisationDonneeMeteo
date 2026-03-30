@@ -51,12 +51,12 @@ const initOptions = computed(() => ({
 provide(INIT_OPTIONS_KEY, initOptions);
 
 const option = computed<ECOption>(() => {
-    const stations =
-        (props.adapter.data.value?.stations.length ?? 0) > 1
-            ? (props.adapter.data.value?.stations ?? [])
-            : [props.adapter.data.value?.national];
-
-    const plotAmountToDisplay = props.adapter.data.value?.stations.length || 1;
+    const data = props.adapter.data.value;
+    if (!data) {
+        return {};
+    }
+    const stations = data.stations.length > 1 ? data.stations : [data.national];
+    const plotAmountToDisplay = data.stations.length || 1;
 
     return {
         dataset:
