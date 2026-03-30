@@ -11,7 +11,9 @@ from weather.bootstrap_itn import ITNDependencyProvider
 from weather.bootstrap_temperature_deviation import (
     TemperatureDeviationDependencyProvider,
 )
+from weather.data_sources.records_fake import FakeRecordsDataSource
 from weather.services.national_indicator.use_case import get_national_indicator
+from weather.services.records.use_case import get_records
 from weather.services.temperature_deviation.use_case import get_temperature_deviation
 
 from .filters import StationFilter
@@ -24,6 +26,8 @@ from .serializers import (
     StationSerializer,
     TemperatureDeviationQuerySerializer,
     TemperatureDeviationResponseSerializer,
+    TemperatureRecordsQuerySerializer,
+    TemperatureRecordsResponseSerializer,
 )
 
 
@@ -152,4 +156,47 @@ class TemperatureDeviationAPIView(APIView):
         out = TemperatureDeviationResponseSerializer(data=full_payload)
         out.is_valid(raise_exception=True)
 
+        return Response(out.data, status=status.HTTP_200_OK)
+
+
+class RecordsAPIView(APIView):
+    """
+    GET /api/v1/temperature/records
+
+    implémentation données mockées
+    """
+
+    authentication_classes = []
+    permission_classes = []
+
+    def get(self, request):
+        q = TemperatureRecordsQuerySerializer(data=request.query_params)
+        if not q.is_valid():
+            return Response(
+                ErrorSerializer.build(
+                    code="INVALID_PARAMETER",
+                    message="Paramètre invalide ou manquant",
+                    details=q.errors,
+                ),
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+        params = q.validated_data
+
+        ds = FakeRecordsDataSource()
+        stations = get_records(data_source=ds, **params)
+        full_payload = {
+            "metadata": {
+                "date_start": params.get("date_start"),
+                "date_end": params.get("date_end"),
+                "record_kind": params["record_kind"],
+                "record_scope": params["record_scope"],
+                "type_records": params["type_records"],
+                "station_ids": list(params.get("station_ids", ())),
+                "departments": list(params.get("departments", ())),
+                "temperature_min": params.get("temperature_min"),
+                "temperature_max": params.get("temperature_max"),
+            },
+            "stations": stations,
+        }
+        out = TemperatureRecordsResponseSerializer(full_payload)
         return Response(out.data, status=status.HTTP_200_OK)
