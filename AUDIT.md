@@ -1,12 +1,10 @@
 # Audit Système — Plan d'Action
 
-> Audit réalisé le 5 mars 2026 sur le projet ValorisationDonneeMeteo
-
 ---
 
 ## Résumé
 
-Le projet a de bonnes bases (linting, ORM sécurisé, factories, CI pre-commit) mais présente des lacunes critiques en **monitoring** (inexistant), **sécurité production** (pas de HTTPS, containers root, pas de rate limiting), **tests** (0 tests frontend, pas de CI), et **documentation** (partielle).
+Le projet a de bonnes bases (linting, ORM sécurisé, factories, CI pre-commit, workflow GitHub Actions `ci.yml` avec tests, audits et push d’images) mais présente des lacunes critiques en **monitoring** (inexistant), **sécurité production** (pas de HTTPS, containers root, pas de rate limiting), **tests** (couverture frontend encore faible), et **documentation** (partielle).
 
 ---
 
@@ -21,6 +19,7 @@ Le projet a de bonnes bases (linting, ORM sécurisé, factories, CI pre-commit) 
 - **.editorconfig** (UTF-8, LF, 4 espaces)
 - **Lock files** (uv.lock, package-lock.json)
 - **CI pre-commit** : `.github/workflows/pre-commit.yaml`
+- **CI principale** : `.github/workflows/ci.yml` (pytest + Vitest, Ruff + ESLint, pip-audit + npm audit, Trivy fs, build/push Docker sur `main`, artefacts JUnit/coverage, SonarCloud optionnel via `SONAR_ENABLED`)
 
 ### Ce qui manque
 
@@ -28,7 +27,7 @@ Le projet a de bonnes bases (linting, ORM sécurisé, factories, CI pre-commit) 
 | -------------------------------------- | -------------------------------- | -------- |
 | Type checking Python (mypy/pyright)    | Bugs runtime non détectés        | Moyen    |
 | Métriques de complexité (McCabe/radon) | Dette technique invisible        | Faible   |
-| Dependabot / audit deps                | Vulnérabilités invisibles        | Moyen    |
+| Dependabot                             | Vulnérabilités suivies automatiquement | Faible (audit manuel en CI) |
 | Bandit (scanner sécurité Python)       | Failles de sécurité dans le code | Moyen    |
 
 ### Manuel vs Automatisé
@@ -39,7 +38,7 @@ Le projet a de bonnes bases (linting, ORM sécurisé, factories, CI pre-commit) 
 | Formatting Python | Automatisé (pre-commit + CI)          |
 | Linting Frontend  | Automatisé (pre-commit via npm check) |
 | Type checking     | Manuel (non configuré)                |
-| Audit dépendances | Manuel (pas de Dependabot/safety)     |
+| Audit dépendances | Automatisé en CI (pip-audit, npm audit) ; Dependabot optionnel |
 
 ### Points de défaillance
 
@@ -65,10 +64,10 @@ Le projet a de bonnes bases (linting, ORM sécurisé, factories, CI pre-commit) 
 
 | Manque                                | Impact                                   | Priorité |
 | ------------------------------------- | ---------------------------------------- | -------- |
-| 0 fichier de test frontend            | Régressions silencieuses                 | Élevé    |
+| Peu de tests frontend (hors exemples)   | Couverture UI encore faible             | Élevé    |
 | 0 test E2E (Playwright non configuré) | Workflows utilisateur non validés        | Moyen    |
-| Coverage non configuré                | Pas de visibilité sur la couverture      | Élevé    |
-| Tests NON exécutés en CI              | Merge de code cassé possible             | Critique |
+| Coverage non seuillé en dur             | Couverture visible via CI / artefacts    | Moyen    |
+| Gate merge via CI à renforcer (branch protection) | Régressions possibles si règles GitHub non activées | Moyen |
 | Tests contrat API (vs openapi.yaml)   | API peut diverger de la spec             | Moyen    |
 | Tests de charge (k6/Locust)           | Pas de baseline de performance           | Faible   |
 | Tests modèles Django                  | Station, Horaire, Quotidienne non testés | Moyen    |
@@ -77,16 +76,16 @@ Le projet a de bonnes bases (linting, ORM sécurisé, factories, CI pre-commit) 
 
 | Tâche          | État                                      |
 | -------------- | ----------------------------------------- |
-| Tests backend  | Manuel (`uv run pytest` local uniquement) |
-| Tests frontend | Inexistants                               |
-| Tests E2E      | Inexistants                               |
-| Coverage       | Non configuré                             |
-| Tests en CI    | Non implémenté                            |
+| Tests backend  | CI (`pytest` dans `ci.yml`) + local      |
+| Tests frontend | CI (`npm run test:ci`) + local             |
+| Tests E2E      | Inexistants                                |
+| Coverage       | Rapports XML/LCOV produits en CI (artefacts) |
+| Tests en CI    | Implémenté (`ci.yml`)                    |
 
 ### Points de défaillance
 
 - Régressions frontend silencieuses (0% couverture)
-- Merge de code cassé possible (pas de gate CI)
+- Gate de merge dépend des réglages GitHub (branch protection) en plus de la CI
 - API peut diverger de la spec OpenAPI sans alerte
 - Aucune baseline de performance
 
@@ -204,7 +203,7 @@ Le projet a de bonnes bases (linting, ORM sécurisé, factories, CI pre-commit) 
 | HSTS (SECURE_HSTS_SECONDS)                                | Pas de protection downgrade | Élevé    |
 | Content-Security-Policy                                   | Risque XSS                  | Élevé    |
 | Rate limiting / throttling                                | Vulnérable au DoS           | Élevé    |
-| Bandit / pip-audit                                        | Pas de scan sécurité code   | Moyen    |
+| Bandit (SAST Python)                                      | Complément possible au-delà de pip-audit / Trivy | Moyen |
 | Containers Docker en root                                 | Escalade de privilèges      | Critique |
 | Django Admin sans restriction IP                          | Cible brute force           | Moyen    |
 | CSRF_TRUSTED_ORIGINS pour production                      | CSRF en prod HTTPS          | Élevé    |
@@ -213,8 +212,8 @@ Le projet a de bonnes bases (linting, ORM sécurisé, factories, CI pre-commit) 
 
 | Tâche                       | État           |
 | --------------------------- | -------------- |
-| Scan de vulnérabilités code | Non implémenté |
-| Scan de dépendances         | Non implémenté |
+| Scan de vulnérabilités code | Partiel (Trivy fs, SonarCloud optionnel) |
+| Scan de dépendances         | pip-audit + npm audit en CI                |
 | Rotation des secrets        | Manuel         |
 | Audit de sécurité           | Manuel         |
 
@@ -248,7 +247,7 @@ Le projet a de bonnes bases (linting, ORM sécurisé, factories, CI pre-commit) 
 | Doc déploiement production                     | Procédure absente           | Élevé    |
 | Runbook opérationnel                           | Pas de procédure d'incident | Élevé    |
 | frontend/README.md détaillé                    | Template Nuxt par défaut    | Faible   |
-| Doc pipeline CI/CD                             | Non documenté               | Faible   |
+| Doc pipeline CI/CD                             | `docs/CI.md`                | OK       |
 
 ### Manuel vs Automatisé
 
@@ -257,6 +256,7 @@ Le projet a de bonnes bases (linting, ORM sécurisé, factories, CI pre-commit) 
 | Doc API (Swagger/ReDoc) | Auto-générée |
 | Schema OpenAPI          | Auto-généré  |
 | README maintenance      | Manuel       |
+| CI/CD                   | `docs/CI.md` |
 | Changelog               | Inexistant   |
 | Doc architecture        | Inexistant   |
 
@@ -301,17 +301,17 @@ Le projet a de bonnes bases (linting, ORM sécurisé, factories, CI pre-commit) 
 
 ### #2 — Tests non exécutés en CI (Testing / Déploiement)
 
-**Constat** : pytest existe localement mais aucun workflow GitHub Actions n'exécute les tests. Du code cassé peut être mergé et déployé en staging sans détection. Le pipeline staging build les images Docker directement sans étape de validation.
+**Constat** : Les tests backend et frontend sont exécutés dans `.github/workflows/ci.yml`. Il reste à activer les règles de protection de branche sur `main` (exiger CI verte avant merge) et, si besoin, un seuil de couverture minimal dans `pyproject.toml`.
 
 **Correctif court terme** :
 
-- Créer un workflow `.github/workflows/tests.yml` qui exécute `uv run pytest` sur chaque PR et push vers main
-- Ajouter une étape de test dans le workflow staging (avant le build Docker)
-- Configurer `pytest-cov` avec un seuil minimum (ex: 60%) dans `pyproject.toml`
+- Activer les branch protection rules sur `main` (status check obligatoire sur le workflow CI)
+- Ajouter une étape de test dans le workflow staging (avant le build Docker) si le déploiement ne doit pas dépendre uniquement de `main`
+- Configurer `pytest-cov` avec un seuil minimum (ex: 60%) dans `pyproject.toml` si l’équipe le souhaite
 
 **Solution long terme** :
 
-- Ajouter un job vitest dans le même workflow CI pour le frontend
+- Le frontend est déjà couvert par `ci.yml` (Vitest) ; poursuivre l’augmentation des tests applicatifs
 - Rendre le merge conditionné par les tests (branch protection rules GitHub)
 - Publier les rapports de coverage sur chaque PR (via `coverage-comment` ou Codecov)
 - Implémenter une matrice de tests (Python 3.12/3.13, PostgreSQL versions)
@@ -401,9 +401,9 @@ Le projet a de bonnes bases (linting, ORM sécurisé, factories, CI pre-commit) 
 
 ---
 
-### #5 — Zéro test frontend (Testing)
+### #5 — Couverture frontend limitée (Testing)
 
-**Constat** : Malgré Vitest, @nuxt/test-utils, @vue/test-utils et @testing-library/vue déjà installés, aucun fichier de test n'existe. Les composables (useApiClient, useTemperature, useNationalIndicator…), le store Pinia (itnStore), et les composants sont totalement non testés. Toute régression frontend est silencieuse.
+**Constat** : Vitest, @nuxt/test-utils, @vue/test-utils et @testing-library/vue sont en place ; la base de tests reste réduite (exemples + CI). Les composables (useApiClient, useTemperature, useNationalIndicator…), le store Pinia (itnStore), et les composants sont totalement non testés. Toute régression frontend est silencieuse.
 
 **Correctif court terme** :
 
@@ -441,7 +441,7 @@ Le projet a de bonnes bases (linting, ORM sécurisé, factories, CI pre-commit) 
 | 3   | Ajouter HTTPS + headers sécurité dans nginx                | Sécurité + Déploiement | Moyen  |
 | 4   | Configurer `SECURE_*` settings Django (SSL, HSTS, cookies) | Sécurité               | Faible |
 | 5   | Containers non-root dans les Dockerfiles                   | Sécurité + Déploiement | Faible |
-| 6   | Ajouter workflow CI pour pytest (gate avant merge)         | Testing                | Faible |
+| 6   | Branch protection + CI obligatoire avant merge sur `main`  | Testing / Processus    | Faible |
 
 ### Élevé — Prochaine itération
 

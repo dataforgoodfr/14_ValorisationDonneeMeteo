@@ -4,6 +4,10 @@
 
 Projet Data For Good - Saison 14
 
+## CI/CD
+
+Pipeline GitHub Actions (lint, tests, audits, images Docker sur `main`) : voir [docs/CI.md](docs/CI.md). Le badge en tête de ce fichier pointe vers le dernier statut du workflow `ci.yml`.
+
 ## Structure du projet
 
 ```

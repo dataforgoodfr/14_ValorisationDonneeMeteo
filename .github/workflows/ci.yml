@@ -6,6 +6,10 @@ on:
   pull_request:
     branches: ["**"]
 
+permissions:
+  contents: read
+  packages: write
+
 env:
   REGISTRY: ghcr.io
   BACKEND_IMAGE: ghcr.io/${{ github.repository }}/backend
@@ -65,11 +69,40 @@ jobs:
       - name: Run formatter check – ruff format
         run: uv run ruff format --check .
 
-      - name: Run tests – pytest
-        run: uv run pytest -v --tb=short
+      - name: Prepare reports directory
+        run: mkdir -p reports
+
+      - name: Run tests – pytest (JUnit + coverage)
+        run: |
+          uv run pytest \
+            --junitxml=reports/junit-backend.xml \
+            --cov=weather \
+            --cov=config \
+            --cov-report=xml:reports/coverage-backend.xml \
+            --cov-report=term-missing
 
       - name: Run security scan – pip-audit
-        run: uvx pip-audit
+        run: |
+          set -o pipefail
+          uvx pip-audit 2>&1 | tee reports/pip-audit.txt
+
+      - name: Trivy filesystem scan (backend)
+        uses: aquasecurity/trivy-action@0.28.0
+        with:
+          scan-type: fs
+          scan-ref: backend
+          format: table
+          output: backend/reports/trivy-backend.txt
+          exit-code: "0"
+          severity: UNKNOWN,LOW,MEDIUM,HIGH,CRITICAL
+
+      - name: Upload backend CI reports
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: backend-reports-${{ github.sha }}
+          path: backend/reports
+          retention-days: 14
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
@@ -118,11 +151,34 @@ jobs:
       - name: Run linter – eslint
         run: npm run lint
 
-      - name: Run tests – vitest
-        run: npm run test:unit
+      - name: Prepare reports directory
+        run: mkdir -p reports
+
+      - name: Run tests – vitest (JUnit + coverage)
+        run: npm run test:ci
 
       - name: Run security scan – npm audit
-        run: npm audit --audit-level=high
+        run: |
+          set -o pipefail
+          npm audit --audit-level=high 2>&1 | tee reports/npm-audit.txt
+
+      - name: Trivy filesystem scan (frontend)
+        uses: aquasecurity/trivy-action@0.28.0
+        with:
+          scan-type: fs
+          scan-ref: frontend
+          format: table
+          output: frontend/reports/trivy-frontend.txt
+          exit-code: "0"
+          severity: UNKNOWN,LOW,MEDIUM,HIGH,CRITICAL
+
+      - name: Upload frontend CI reports
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: frontend-reports-${{ github.sha }}
+          path: frontend/reports
+          retention-days: 14
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
@@ -145,3 +201,34 @@ jobs:
             ${{ env.FRONTEND_IMAGE }}:${{ github.sha }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
+
+  sonarqube:
+    name: SonarCloud
+    needs: [backend, frontend]
+    if: |
+      vars.SONAR_ENABLED == 'true' &&
+      (github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Download backend reports
+        uses: actions/download-artifact@v4
+        with:
+          name: backend-reports-${{ github.sha }}
+          path: backend/reports
+
+      - name: Download frontend reports
+        uses: actions/download-artifact@v4
+        with:
+          name: frontend-reports-${{ github.sha }}
+          path: frontend/reports
+
+      - name: SonarCloud Scan
+        uses: SonarSource/sonarqube-scan-action@v4
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}

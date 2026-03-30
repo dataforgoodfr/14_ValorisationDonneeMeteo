@@ -61,6 +61,11 @@ DJANGO_SETTINGS_MODULE = "config.settings"
 python_files = ["test_*.py"]
 addopts = "-v --tb=short"
 
+[tool.coverage.run]
+branch = true
+source = ["weather", "config"]
+omit = ["*/migrations/*", "*/tests/*", "*/__pycache__/*"]
+
 [tool.hatch.build.targets.wheel]
 packages = ["config", "weather"]
 
