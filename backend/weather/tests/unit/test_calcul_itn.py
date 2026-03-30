@@ -3,13 +3,20 @@ import pandas as pd
 import pytest
 
 from weather.calcul_itn import (
+    annual_itn,
+    average_itn_calculation,
     compute_itn,
     correct_temperatures_Reims,
     itn,
     itn_calculation,
+    monthly_itn,
     separate_by_station,
 )
-from weather.itn.gateway_tests import ReadTemperaturesTests
+from weather.itn.gateway_tests import (
+    ReadMonthlyTemperaturesTests,
+    ReadTemperaturesTests,
+    ReadYearlyTemperaturesTests,
+)
 
 NAN = float("nan")
 REIMS_PRUNAY_ID = "51449002"
@@ -169,6 +176,14 @@ def test_compute_itn():
     expected_records_by_station = _make_pivoted(
         dates,
         {
+            ("temp_min", REIMS_COURCY_ID): [3.0, 4.0, NAN, NAN],
+            ("temp_min", REIMS_PRUNAY_ID): [NAN, NAN, 6.0, 7.0],
+            ("temp_min", "75114001"): [-2.0, -1.0, 0.0, 1.0],
+            ("temp_min", "13054001"): [10.0, 11.0, 12.0, 13.0],
+            ("temp_max", REIMS_COURCY_ID): [13.0, 14.0, NAN, NAN],
+            ("temp_max", REIMS_PRUNAY_ID): [NAN, NAN, 16.0, 17.0],
+            ("temp_max", "75114001"): [8.0, 9.0, 10.0, 11.0],
+            ("temp_max", "13054001"): [20.0, 21.0, 22.0, 23.0],
             ("tntxm", REIMS_COURCY_ID): [8.0, 9.0, NAN, NAN],
             ("tntxm", REIMS_PRUNAY_ID): [NAN, NAN, 11.0, 12.0],
             ("tntxm", "75114001"): [3.0, 4.0, 5.0, 6.0],
@@ -180,6 +195,33 @@ def test_compute_itn():
     ).asfreq("D")
     pd.testing.assert_frame_equal(results[0], expected_records_by_station)
     pd.testing.assert_series_equal(results[1], expected_itn)
+
+
+# == average_itn_calculation =========================================
+
+
+def test_average_itn_calculation():
+    dates = pd.date_range("2024-01-01", "2024-03-31", freq="D")
+    index = np.unique(dates.strftime("%Y-%m"))
+
+    results = average_itn_calculation(
+        read_protocol=ReadMonthlyTemperaturesTests, freq="monthly"
+    )
+    expected_avg_itn = pd.DataFrame(
+        {"avg_itn": [(11 + 3 + 17) / 3.0 for idx in index]}, index=index
+    )
+    pd.testing.assert_frame_equal(results, expected_avg_itn)
+
+    dates = pd.date_range("2021-01-01", "2023-12-31", freq="D")
+    index = np.unique(dates.strftime("%Y"))
+
+    results = average_itn_calculation(
+        read_protocol=ReadYearlyTemperaturesTests, freq="yearly"
+    )
+    expected_avg_itn = pd.DataFrame(
+        {"avg_itn": [(14 - 1 + 21) / 3.0 for idx in index]}, index=index
+    )
+    pd.testing.assert_frame_equal(results, expected_avg_itn)
 
 
 # == itn =============================================================
@@ -195,5 +237,35 @@ def test_itn():
             ["2012-05-09", 36.0 / 3.0],
         ]
     )
+    np.testing.assert_array_equal(result[:, 0], expected[:, 0])
+    np.testing.assert_allclose(result[:, 1].astype(float), expected[:, 1].astype(float))
+
+
+# == monthly_itn =====================================================
+
+
+def test_monthly_itn():
+    dates = pd.date_range("2024-01-01", "2024-03-31", freq="D")
+    index = np.unique(dates.strftime("%Y-%m"))
+
+    result = monthly_itn(read_protocol=ReadMonthlyTemperaturesTests)
+    avg_itn = [(11 + 3 + 17) / 3.0 for idx in index]
+    expected = np.array([[index[i], avg_itn[i]] for i in range(len(index))])
+
+    np.testing.assert_array_equal(result[:, 0], expected[:, 0])
+    np.testing.assert_allclose(result[:, 1].astype(float), expected[:, 1].astype(float))
+
+
+# == annual_itn =====================================================
+
+
+def test_annual_itn():
+    dates = pd.date_range("2021-01-01", "2023-12-31", freq="D")
+    index = np.unique(dates.strftime("%Y"))
+
+    result = annual_itn(read_protocol=ReadYearlyTemperaturesTests)
+    avg_itn = [(14 - 1 + 21) / 3.0 for idx in index]
+    expected = np.array([[index[i], avg_itn[i]] for i in range(len(index))])
+
     np.testing.assert_array_equal(result[:, 0], expected[:, 0])
     np.testing.assert_allclose(result[:, 1].astype(float), expected[:, 1].astype(float))

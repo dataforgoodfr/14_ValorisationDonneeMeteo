@@ -1,4 +1,5 @@
 import datetime
+from calendar import monthrange
 from collections.abc import Iterable
 
 import numpy as np
@@ -152,6 +153,8 @@ def compute_itn(
 
     Parameters
     ----------
+    read_protocol: ReadTemperaturesGateway
+          protocol used to read the data
     stations_itn: Iterable
           list of the unique ID of the meteorological stations to be
           considered to calculate the ITN.
@@ -176,7 +179,7 @@ def compute_itn(
         temp_daily,
         index="date",
         columns="station_id",
-        values=["tntxm"],
+        values=["temp_min", "temp_max", "tntxm"],
         freq="D",
     )
 
@@ -196,6 +199,63 @@ def compute_itn(
 
 
 # --------------------------------------------------------------------
+def average_itn_calculation(
+    read_protocol: ReadTemperaturesGateway,
+    stations_itn: Iterable | None = None,
+    start_date: str | pd.Timestamp | datetime.datetime | None = None,
+    end_date: str | pd.Timestamp | datetime.datetime | None = None,
+    freq: str = "monthly",
+) -> pd.DataFrame:
+    """
+    Calculate the monthly or yearly ITN by taking the average of
+    the daily ITN. To improve the precision of the output value,
+    we average the daily minimum and maximum temperatures for
+    the 30 stations and average everything at once.
+
+    Parameters
+    ----------
+    read_protocol: ReadTemperaturesGateway
+          protocol used to read the data
+    stations_itn: tuple of str
+        the unique ID of the meteorological stations that are used to
+        calculate the ITN
+    start_date: str or pd.Timestamp or datetime.datetime
+          beginning of the time period to consider
+    end_date: str or pd.Timestamp or datetime.datetime
+          end of the time period to consider
+    freq: str
+        specify whether to calculate the monthly or yearly ITN
+
+    Returns
+    -------
+    pandas.core.frame.DataFrame
+          computed monthly or yealry ITN
+    """
+    daily_records_by_station = compute_itn(
+        read_protocol, stations_itn, start_date, end_date
+    )[0]
+
+    try:
+        daterange = pd.date_range(start=start_date, end=end_date)
+    except ValueError:
+        daterange = daily_records_by_station.index
+
+    if freq == "monthly":
+        index = np.unique(daterange.strftime("%Y-%m"))
+    elif freq == "yearly":
+        index = np.unique(daterange.strftime("%Y"))
+
+    avg_itn = pd.DataFrame(columns=["avg_itn"], index=index, dtype=float)
+
+    for id in index:
+        temp_min = daily_records_by_station["temp_min"].loc[id].values
+        temp_max = daily_records_by_station["temp_max"].loc[id].values
+        avg_itn.loc[id] = np.nanmean((temp_min + temp_max) / 2)
+
+    return avg_itn
+
+
+# --------------------------------------------------------------------
 def itn(
     *,
     read_protocol: ReadTemperaturesGateway,
@@ -208,6 +268,8 @@ def itn(
 
     Parameters
     ----------
+    read_protocol: ReadTemperaturesGateway
+          protocol used to read the data
     stations_itn: Iterable
           list of the unique ID of the meteorological stations to be
           considered to calculate the ITN.
@@ -230,6 +292,118 @@ def itn(
 
     dates = itn.index.strftime("%Y-%m-%d").to_numpy()
     values = itn.values
+
+    return np.array(list(zip(dates, values, strict=True)))
+
+
+# --------------------------------------------------------------------
+def monthly_itn(
+    *,
+    read_protocol: ReadTemperaturesGateway,
+    stations_itn: Iterable | None = None,
+    start_date: str | pd.Timestamp | datetime.datetime | None = None,
+    end_date: str | pd.Timestamp | datetime.datetime | None = None,
+) -> np.array:
+    """
+    Export the monthly ITN in an array.
+
+    Parameters
+    ----------
+    read_protocol: ReadTemperaturesGateway
+          protocol used to read the data
+    stations_itn: Iterable
+          list of the unique ID of the meteorological stations to be
+          considered to calculate the ITN.
+    start_date: str or pd.Timestamp or datetime.datetime
+          beginning of the time period to consider
+    end_date: str or pd.Timestamp or datetime.datetime
+          end of the time period to consider
+
+    Returns
+    -------
+    numpy.ndarray
+          array Nx2 containing the date and ITN
+    """
+
+    # by default, calculate ITN for France
+    if stations_itn is None:
+        stations_itn = DEFAULT_ITN_STATIONS_LIST
+
+    if (type(start_date) is str) and (start_date is not None):
+        tmp = datetime.datetime.strptime(start_date, "%Y-%m-%d")
+        start_date = datetime.datetime(tmp.year, tmp.month, 1)
+    elif start_date is not None:
+        start_date = start_date.replace(day=1)
+
+    if (type(end_date) is str) and (end_date is not None):
+        tmp = datetime.datetime.strptime(end_date, "%Y-%m-%d")
+        last_day = monthrange(tmp.year, tmp.month)[1]
+        end_date = datetime.datetime(tmp.year, tmp.month, last_day)
+    elif end_date is not None:
+        last_day = monthrange(end_date.year, end_date.month)[1]
+        end_date = end_date.replace(day=last_day)
+
+    itn = average_itn_calculation(
+        read_protocol, stations_itn, start_date, end_date, freq="monthly"
+    )
+
+    dates = itn.index.to_numpy()
+    values = itn["avg_itn"].values
+
+    return np.array(list(zip(dates, values, strict=True)))
+
+
+# --------------------------------------------------------------------
+def annual_itn(
+    *,
+    read_protocol: ReadTemperaturesGateway,
+    stations_itn: Iterable | None = None,
+    start_date: str | pd.Timestamp | datetime.datetime | None = None,
+    end_date: str | pd.Timestamp | datetime.datetime | None = None,
+) -> np.array:
+    """
+    Export the annual ITN in an array.
+
+    Parameters
+    ----------
+    read_protocol: ReadTemperaturesGateway
+          protocol used to read the data
+    stations_itn: Iterable
+          list of the unique ID of the meteorological stations to be
+          considered to calculate the ITN.
+    start_date: str or pd.Timestamp or datetime.datetime
+          beginning of the time period to consider
+    end_date: str or pd.Timestamp or datetime.datetime
+          end of the time period to consider
+
+    Returns
+    -------
+    numpy.ndarray
+          array Nx2 containing the date and ITN
+    """
+
+    # by default, calculate ITN for France
+    if stations_itn is None:
+        stations_itn = DEFAULT_ITN_STATIONS_LIST
+
+    if (type(start_date) is str) and (start_date is not None):
+        tmp = datetime.datetime.strptime(start_date, "%Y-%m-%d")
+        start_date = datetime.datetime(tmp.year, 1, 1)
+    elif start_date is not None:
+        start_date = start_date.replace(month=1, day=1)
+
+    if (type(end_date) is str) and (end_date is not None):
+        tmp = datetime.datetime.strptime(end_date, "%Y-%m-%d")
+        end_date = datetime.datetime(tmp.year, 12, 31)
+    elif end_date is not None:
+        end_date = end_date.replace(month=12, day=31)
+
+    itn = average_itn_calculation(
+        read_protocol, stations_itn, start_date, end_date, freq="yearly"
+    )
+
+    dates = itn.index.to_numpy()
+    values = itn["avg_itn"].values
 
     return np.array(list(zip(dates, values, strict=True)))
 
