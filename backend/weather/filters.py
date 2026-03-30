@@ -4,16 +4,19 @@ Django-filter definitions for weather API filtering.
 
 import django_filters
 
-from .models import HoraireTempsReel, Quotidienne, Station
+from .models import Station
 
 
 class StationFilter(django_filters.FilterSet):
-    """Filter for weather stations."""
+    """Filter for weather stations (read-only view)."""
 
-    code = django_filters.CharFilter()
-    departement = django_filters.NumberFilter()
-    poste_ouvert = django_filters.BooleanFilter()
-    poste_public = django_filters.BooleanFilter()
+    # Compat API: on garde le paramètre "code" mais il filtre station_code
+    code = django_filters.CharFilter(field_name="station_code")
+    departement = django_filters.NumberFilter(field_name="departement")
+
+    # Compat API: mêmes noms qu'avant
+    poste_ouvert = django_filters.BooleanFilter(field_name="is_open")
+    poste_public = django_filters.BooleanFilter(field_name="is_public")
 
     # Bounding box filters for geographic queries
     lat_min = django_filters.NumberFilter(field_name="lat", lookup_expr="gte")
@@ -23,42 +26,9 @@ class StationFilter(django_filters.FilterSet):
 
     class Meta:
         model = Station
-        fields = ["code", "departement", "frequence", "poste_ouvert", "poste_public"]
-
-
-class HoraireTempsReelFilter(django_filters.FilterSet):
-    """Filter for hourly real-time measurements."""
-
-    station = django_filters.NumberFilter()
-    station_code = django_filters.CharFilter(field_name="station__code")
-    validity_time_after = django_filters.DateTimeFilter(
-        field_name="validity_time", lookup_expr="gte"
-    )
-    validity_time_before = django_filters.DateTimeFilter(
-        field_name="validity_time", lookup_expr="lte"
-    )
-
-    # Temperature range filters
-    t_min = django_filters.NumberFilter(field_name="t", lookup_expr="gte")
-    t_max = django_filters.NumberFilter(field_name="t", lookup_expr="lte")
-
-    class Meta:
-        model = HoraireTempsReel
-        fields = ["station", "station_code"]
-
-
-class QuotidienneFilter(django_filters.FilterSet):
-    """Filter for daily aggregated data."""
-
-    station = django_filters.NumberFilter()
-    station_code = django_filters.CharFilter(field_name="station__code")
-    date_after = django_filters.DateFilter(field_name="date", lookup_expr="gte")
-    date_before = django_filters.DateFilter(field_name="date", lookup_expr="lte")
-
-    # Temperature range filters
-    tn_min = django_filters.NumberFilter(field_name="tn", lookup_expr="gte")
-    tx_max = django_filters.NumberFilter(field_name="tx", lookup_expr="lte")
-
-    class Meta:
-        model = Quotidienne
-        fields = ["station", "station_code"]
+        fields = [
+            "code",
+            "departement",
+            "poste_ouvert",
+            "poste_public",
+        ]

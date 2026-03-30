@@ -1,5 +1,9 @@
 <script setup lang="ts">
 import * as echarts from "echarts/core";
+import langFR from "~/i18n/langFR.js";
+import type { SelectBarAdapter } from "~/components/ui/commons/selectBar/types";
+import type { NationalIndicatorResponse } from "~/types/api";
+import { itnChartTooltipFormatter } from "./tooltipFormatters/itnChartTooltipFormatter";
 
 import {
     TitleComponent,
@@ -12,6 +16,7 @@ import {
 import { LineChart } from "echarts/charts";
 import { UniversalTransition } from "echarts/features";
 import { CanvasRenderer } from "echarts/renderers";
+echarts.registerLocale("FR", langFR);
 echarts.use([
     TitleComponent,
     ToolboxComponent,
@@ -24,12 +29,17 @@ echarts.use([
     DataZoomComponent,
 ]);
 
-const itnStore = useItnStore();
+interface Props {
+    adapter: SelectBarAdapter<NationalIndicatorResponse>;
+}
+
+const props = defineProps<Props>();
 
 // provide init-options
-const renderer = ref<"svg" | "canvas">("svg");
+const renderer = ref<"svg" | "canvas">("canvas");
 const initOptions = computed(() => ({
     height: 600,
+    locale: "FR",
     renderer: renderer.value,
 }));
 provide(INIT_OPTIONS_KEY, initOptions);
@@ -38,9 +48,8 @@ const colorEcartType = "rgba(175, 175, 175, 1)";
 const colorExtremes = "rgba(100, 100, 100, 0.2)";
 
 const option = computed<ECOption>(() => {
-    const timeSeries = insertCrossingPoints(
-        itnStore.itnData?.time_series ?? [],
-    );
+    const data = props.adapter.data.value;
+    const timeSeries = insertCrossingPoints(data?.time_series ?? []);
 
     return {
         dataset: {
@@ -57,6 +66,7 @@ const option = computed<ECOption>(() => {
                 "hot_red_band",
                 "cold_blue_band",
                 "hot_cold_invisible_band",
+                "isInterpolated",
             ],
             source:
                 timeSeries.map((point) => ({
@@ -81,15 +91,23 @@ const option = computed<ECOption>(() => {
                         point.temperature,
                         point.baseline_mean,
                     ),
+                    isInterpolated: point.isInterpolated ? 1 : 0,
                 })) ?? [],
         },
         grid: {
-            left: 10,
+            left: 30,
             right: 10,
+            bottom: 150,
             containLabel: true,
         },
         xAxis: { type: "time" },
-        yAxis: {},
+        yAxis: {
+            type: "value",
+            name: "Température (°C)",
+            nameRotate: 90,
+            nameLocation: "middle",
+            nameGap: 40,
+        },
         series: [
             // extreme - Invisible base — pushes the band up to start at lower bound
             {
@@ -186,61 +204,47 @@ const option = computed<ECOption>(() => {
                 tooltip: { show: false },
             },
         ],
+        title: {
+            text: "Indicateur thermique national",
+            left: "center",
+        },
         legend: {
             data: ["Température", "Indicateur MF", "Écart-type", "Extrêmes"],
-            top: 0,
+            bottom: 85,
         },
         tooltip: {
             trigger: "axis",
-            formatter: (params) => {
-                if (!Array.isArray(params)) return "";
-                const [first] = params;
-                if (!first) return "";
-
-                const d = first.value as Record<string, number | string>;
-                const fmt = (v: number) => `${v.toFixed(2)}°C`;
-                const find = (name: string) =>
-                    params.find((p) => p.seriesName === name);
-
-                const dateOptions: Intl.DateTimeFormatOptions =
-                    itnStore.granularity === "month"
-                        ? { year: "numeric", month: "long" }
-                        : itnStore.granularity === "year"
-                          ? { year: "numeric" }
-                          : {
-                                weekday: "short",
-                                day: "numeric",
-                                month: "short",
-                                year: "numeric",
-                            };
-                const formattedDate = new Date(
-                    d.date as string,
-                ).toLocaleDateString("fr-FR", dateOptions);
-
-                return [
-                    formattedDate,
-                    `${find("Température")?.marker ?? ""}Température : ${fmt(d.temperature as number)}`,
-                    `${find("Indicateur MF")?.marker ?? ""}Indicateur MF : ${fmt(d.baseline_mean as number)}`,
-                    `${find("Extrêmes")?.marker ?? ""}Extrêmes : [${fmt(d.baseline_min as number)} – ${fmt(d.baseline_max as number)}]`,
-                    `${find("Écart-type")?.marker ?? ""}Écart-type : [${fmt(d.baseline_std_dev_lower as number)} – ${fmt(d.baseline_std_dev_upper as number)}]`,
-                ].join("<br/>");
-            },
+            formatter: (params) =>
+                itnChartTooltipFormatter(
+                    params,
+                    props.adapter.granularity.value,
+                ),
         },
         dataZoom: [
             {
                 type: "slider",
                 minSpan: 20,
             },
+            {
+                type: "inside",
+                minSpan: 20,
+            },
         ],
+        emphasis: {
+            focus: "none",
+            disabled: true, // disables all emphasis state changes on hover
+        },
     };
 });
 </script>
 
 <template>
     <VChart
+        :ref="adapter.chartRef"
+        :key="adapter.granularity.value"
         :option="option"
         :init-options="initOptions"
-        :loading="itnStore.pending"
+        :loading="adapter.pending.value"
         :loading-options="{ text: 'Chargement…', color: '#3b82f6' }"
         autoresize
     />

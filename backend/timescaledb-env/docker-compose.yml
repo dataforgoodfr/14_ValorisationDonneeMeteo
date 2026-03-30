@@ -17,6 +17,25 @@ services:
       retries: 5
     restart: unless-stopped
 
+  db-seed:
+    build:
+      context: ..
+      dockerfile: dev_scripts/Dockerfile.db-seed
+    depends_on:
+      - timescaledb
+    working_dir: /workspace/backend
+    environment:
+      DB_HOST: timescaledb
+      DB_PORT: 5432
+      DB_NAME: meteodb
+      DB_USER: infoclimat
+      DB_PASSWORD: infoclimat2026
+    volumes:
+      - ..:/workspace/backend
+    profiles:
+      - tools
+    entrypoint: [ "bash", "dev_scripts/seed_dev.sh" ]
+
 volumes:
   timescaledb-data:
     driver: local

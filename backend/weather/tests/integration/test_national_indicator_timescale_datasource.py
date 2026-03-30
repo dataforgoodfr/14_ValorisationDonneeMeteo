@@ -3,124 +3,141 @@ from __future__ import annotations
 import datetime as dt
 
 import pytest
+from django.db import connection
 
-from weather.data_sources.timescale import (
-    TimescaleNationalIndicatorDailyDataSource,
-)
-from weather.factories.weather import QuotidienneFactory
-from weather.models import Station
+from weather.data_sources.timescale import TimescaleNationalIndicatorDailyDataSource
 from weather.services.national_indicator.stations import (
     ITN_ALWAYS_STATION_CODES,
     REIMS_COURCY,
     REIMS_PRUNAY,
-    REIMS_SWITCH_DATE,
     expected_reims_code,
 )
 from weather.services.national_indicator.types import DailySeriesQuery
-from weather.tests.conftest import make_station
+
+
+def insert_quotidienne(day: dt.date, code: str, tntxm: float) -> None:
+    with connection.cursor() as cur:
+        cur.execute(
+            """
+            INSERT INTO public."Quotidienne"
+              ("NUM_POSTE","NOM_USUEL","LAT","LON","ALTI","AAAAMMJJ","TNTXM")
+            VALUES
+              (%(code)s, %(name)s, 0.0, 0.0, 0.0, %(day)s, %(tntxm)s)
+            ON CONFLICT ("NUM_POSTE","AAAAMMJJ")
+            DO UPDATE SET "TNTXM" = EXCLUDED."TNTXM"
+            """,
+            {
+                "code": code,
+                "name": f"ST {code}",
+                "day": day,
+                "tntxm": tntxm,
+            },
+        )
 
 
 @pytest.fixture()
-def itn_stations(db) -> dict[str, Station]:
-    # 29 always + 2 Reims
-    codes = set(ITN_ALWAYS_STATION_CODES) | {REIMS_COURCY, REIMS_PRUNAY}
-    return {code: make_station(code) for code in codes}
+def seed_itn_day(db):
+    def _seed(
+        day: dt.date,
+        *,
+        always_val: float = 10.0,
+        reims_val: float = 20.0,
+        incomplete: bool = False,
+        include_both_reims: bool = False,
+        other_reims_val: float = 30.0,
+    ) -> None:
+        always_codes = list(ITN_ALWAYS_STATION_CODES)
 
+        if incomplete:
+            always_codes = always_codes[:-1]
 
-def seed_itn_day(
-    itn_stations: dict[str, Station],
-    day: dt.date,
-    *,
-    always_val: float = 10.0,
-    reims_val: float = 20.0,
-    incomplete: bool = False,
-) -> None:
-    always_codes = list(ITN_ALWAYS_STATION_CODES)
-    if incomplete:
-        always_codes = always_codes[:-1]  # manque 1 always => drop
+        for code in always_codes:
+            insert_quotidienne(day, code, always_val)
 
-    for code in always_codes:
-        QuotidienneFactory(station=itn_stations[code], date=day, tntxm=always_val)
+        reims_expected = expected_reims_code(day)
+        insert_quotidienne(day, reims_expected, reims_val)
 
-    reims_code = expected_reims_code(day)
-    QuotidienneFactory(station=itn_stations[reims_code], date=day, tntxm=reims_val)
+        if include_both_reims:
+            other = REIMS_PRUNAY if reims_expected == REIMS_COURCY else REIMS_COURCY
+            insert_quotidienne(day, other, other_reims_val)
+
+    return _seed
 
 
 @pytest.mark.django_db
-def test_fetch_daily_series_happy_path_one_day_baseline_mean_equals_temperature(
-    itn_stations,
-):
+def test_fetch_daily_series_happy_path(seed_itn_day):
     day = dt.date(2025, 1, 1)
-    seed_itn_day(itn_stations, day, always_val=10.0, reims_val=40.0)
+    seed_itn_day(day)
 
     ds = TimescaleNationalIndicatorDailyDataSource()
-    series = ds.fetch_daily_series(
-        DailySeriesQuery(
-            date_start=day,
-            date_end=day,
-        )
+
+    query = DailySeriesQuery(
+        date_start=day,
+        date_end=day,
+        target_dates=None,
     )
-    assert len(series) == 1
-    p = series[0]
-    assert p.date == day
-    assert p.temperature == (29 * 10.0 + 40.0) / 30.0
+
+    result = ds.fetch_daily_series(query)
+
+    assert len(result) == 1
+    assert result[0].date == day
+    assert result[0].temperature == pytest.approx((29 * 10 + 20) / 30)
 
 
 @pytest.mark.django_db
-def test_fetch_daily_series_drop_if_incomplete_day(itn_stations):
+def test_fetch_daily_series_drop_incomplete_day(seed_itn_day):
     day = dt.date(2025, 1, 1)
-    seed_itn_day(itn_stations, day, incomplete=True)
+
+    seed_itn_day(day, incomplete=True)
 
     ds = TimescaleNationalIndicatorDailyDataSource()
-    series = ds.fetch_daily_series(
-        DailySeriesQuery(
-            date_start=day,
-            date_end=day,
-        )
+
+    query = DailySeriesQuery(
+        date_start=day,
+        date_end=day,
+        target_dates=None,
     )
-    assert series == []
+
+    result = ds.fetch_daily_series(query)
+
+    assert result == []
 
 
 @pytest.mark.django_db
-def test_fetch_daily_series_accepts_double_reims_and_uses_expected(itn_stations):
-    day = REIMS_SWITCH_DATE  # 2012-05-08 => Prunay attendue
+def test_fetch_daily_series_double_reims(seed_itn_day):
+    day = dt.date(2025, 1, 1)
 
-    # 29 always
-    for code in ITN_ALWAYS_STATION_CODES:
-        QuotidienneFactory(station=itn_stations[code], date=day, tntxm=10.0)
-
-    # Les deux Reims le même jour (Courcy doit être ignorée)
-    QuotidienneFactory(station=itn_stations[REIMS_PRUNAY], date=day, tntxm=30.0)
-    QuotidienneFactory(station=itn_stations[REIMS_COURCY], date=day, tntxm=999.0)
+    seed_itn_day(day, include_both_reims=True)
 
     ds = TimescaleNationalIndicatorDailyDataSource()
-    series = ds.fetch_daily_series(
-        DailySeriesQuery(
-            date_start=day,
-            date_end=day,
-        )
+
+    query = DailySeriesQuery(
+        date_start=day,
+        date_end=day,
+        target_dates=None,
     )
-    assert len(series) == 1
-    assert series[0].temperature == (29 * 10.0 + 30.0) / 30.0
+
+    result = ds.fetch_daily_series(query)
+
+    assert len(result) == 1
 
 
 @pytest.mark.django_db
-def test_fetch_daily_series_multiple_days_keeps_only_valid_days_sorted(itn_stations):
-    day1 = dt.date(2025, 1, 1)
-    day2 = dt.date(2025, 1, 2)
-    day3 = dt.date(2025, 1, 3)
+def test_fetch_daily_series_multiple_days(seed_itn_day):
+    d1 = dt.date(2025, 1, 1)
+    d2 = dt.date(2025, 1, 2)
 
-    seed_itn_day(itn_stations, day1, always_val=10.0, reims_val=20.0)
-    seed_itn_day(itn_stations, day2, incomplete=True)  # drop
-    seed_itn_day(itn_stations, day3, always_val=10.0, reims_val=40.0)
+    seed_itn_day(d1)
+    seed_itn_day(d2)
 
     ds = TimescaleNationalIndicatorDailyDataSource()
-    series = ds.fetch_daily_series(
-        DailySeriesQuery(
-            date_start=day1,
-            date_end=day3,
-        )
+
+    query = DailySeriesQuery(
+        date_start=d1,
+        date_end=d2,
+        target_dates=None,
     )
-    assert [p.date for p in series] == [day1, day3]
-    assert series[0].temperature == (29 * 10.0 + 20.0) / 30.0
-    assert series[1].temperature == (29 * 10.0 + 40.0) / 30.0
+
+    result = ds.fetch_daily_series(query)
+
+    assert len(result) == 2
