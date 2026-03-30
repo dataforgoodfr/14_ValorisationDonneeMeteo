@@ -1,4 +1,7 @@
-import type { TooltipComponentFormatterCallbackParams } from "echarts";
+import type {
+    DefaultLabelFormatterCallbackParams,
+    TooltipComponentFormatterCallbackParams,
+} from "echarts";
 import type { GranularityType } from "~/components/ui/commons/selectBar/types";
 
 export function deviationChartTooltipFormatter(
@@ -16,47 +19,47 @@ export function deviationChartTooltipFormatter(
         }
         if (granularity === "year") {
             return { year: "numeric" };
-        } else {
-            return {
-                weekday: "short",
-                day: "numeric",
-                month: "short",
-                year: "numeric",
-            };
         }
+        return {
+            weekday: "short",
+            day: "numeric",
+            month: "short",
+            year: "numeric",
+        };
     })();
 
     const formattedDate = new Date(
         firstParam.date as string,
     ).toLocaleDateString("fr-FR", dateOptions);
 
+    const tooltipLabelFormatter = (
+        serie: DefaultLabelFormatterCallbackParams,
+    ) => {
+        const data = serie.data as Record<string, number | null>;
+        if (
+            serie.seriesName === "Ecart positif" &&
+            data?.deviation_positive === null
+        )
+            return [];
+        if (
+            serie.seriesName === "Ecart négatif" &&
+            data?.deviation_negative === null
+        )
+            return [];
+        const stationName =
+            stationsNames[
+                (serie as typeof serie & { axisIndex: number }).axisIndex
+            ];
+        const deviation =
+            data?.deviation_positive || data?.deviation_negative || 0;
+        const plusSign = Math.sign(deviation) === 1 ? "+" : "";
+        return [
+            `${serie?.marker ?? ""} ${stationName} : ${plusSign}${deviation?.toFixed(1)}°C`,
+        ];
+    };
+
     const tooltipContent = () =>
-        params
-            .flatMap((serie) => {
-                const data = serie.data as Record<string, number | null>;
-                if (
-                    serie.seriesName === "Ecart positif" &&
-                    data?.deviation_positive === null
-                )
-                    return [];
-                if (
-                    serie.seriesName === "Ecart négatif" &&
-                    data?.deviation_negative === null
-                )
-                    return [];
-                const stationName =
-                    stationsNames[
-                        (serie as typeof serie & { axisIndex: number })
-                            .axisIndex
-                    ];
-                const deviation =
-                    data?.deviation_positive || data?.deviation_negative || 0;
-                const plusSign = Math.sign(deviation) === 1 ? "+" : "";
-                return [
-                    `${serie?.marker ?? ""} ${stationName} : ${plusSign}${deviation?.toFixed(1)}°C`,
-                ];
-            })
-            .join("<br/>");
+        params.flatMap(tooltipLabelFormatter).join("<br/>");
 
     return [formattedDate, tooltipContent()].join("<br/>");
 }
