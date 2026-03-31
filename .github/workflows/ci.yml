@@ -1,0 +1,289 @@
+name: CI/CD
+
+on:
+  push:
+    branches: ["**"]
+  pull_request:
+    branches: [main]
+
+env:
+  REGISTRY: docker.io
+  IMAGE_BACKEND: ${{ secrets.DOCKERHUB_USERNAME }}/meteo-backend
+  IMAGE_FRONTEND: ${{ secrets.DOCKERHUB_USERNAME }}/meteo-frontend
+
+# Backend installation + linter
+
+jobs:
+  backend-lint:
+    name: Backend - Lint
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: backend
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v5
+        with:
+          version: "0.10.0"
+
+      - name: Install dependencies
+        run: uv sync --extra dev
+
+      - name: Run ruff
+        run: uv run ruff check . --output-format=github
+
+      - name: Upload lint report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: backend-lint-report
+          path: backend/ruff-report.json
+          if-no-files-found: ignore
+
+  # Backend tests
+
+  backend-test:
+    name: Backend - Tests (pytest)
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: backend
+
+    services:
+      postgres:
+        image: timescale/timescaledb:latest-pg16
+        env:
+          POSTGRES_DB: meteodb
+          POSTGRES_USER: infoclimat
+          POSTGRES_PASSWORD: infoclimat2026
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    env:
+      DB_HOST: localhost
+      DB_PORT: "5432"
+      DB_NAME: meteodb
+      DB_USER: infoclimat
+      DB_PASSWORD: infoclimat2026
+      DJANGO_SETTINGS_MODULE: config.settings
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v5
+        with:
+          version: "0.10.0"
+
+      - name: Install dependencies
+        run: uv sync --extra dev
+
+      - name: Run migrations
+        run: uv run python manage.py migrate --noinput
+
+      - name: Run tests with coverage
+        run: |
+          uv run pytest \
+            --junitxml=test-report.xml \
+            --cov=. \
+            --cov-report=xml:coverage.xml \
+            --cov-report=html:htmlcov \
+            -v
+
+      - name: Upload test report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: backend-test-report
+          path: |
+            backend/test-report.xml
+            backend/coverage.xml
+            backend/htmlcov/
+
+      - name: Publish test results
+        if: always()
+        uses: mikepenz/action-junit-report@v4
+        with:
+          report_paths: backend/test-report.xml
+          check_name: Backend Test Results
+
+  # Frontend installation + linter
+
+  frontend-lint:
+    name: Frontend - Lint (ESLint)
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: frontend
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+          cache: "npm"
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run ESLint
+        run: npm run lint
+
+  # Security scan
+
+  security-scan:
+    name: Security scan
+    runs-on: ubuntu-latest
+    needs: [backend-lint, backend-test, frontend-lint]
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Trivy scan - backend
+        uses: aquasecurity/trivy-action@master
+        with:
+          scan-type: "fs"
+          scan-ref: "./backend"
+          format: "json"
+          output: "trivy-backend-code-report.json"
+          severity: "CRITICAL,HIGH"
+          exit-code: "0"
+
+      - name: Trivy scan - frontend
+        uses: aquasecurity/trivy-action@master
+        with:
+          scan-type: "fs"
+          scan-ref: "./frontend"
+          format: "json"
+          output: "trivy-frontend-code-report.json"
+          severity: "CRITICAL,HIGH"
+          exit-code: "0"
+
+      - name: Upload security reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: security-scan-report
+          path: |
+            trivy-backend-code-report.json
+            trivy-frontend-code-report.json
+
+  # Build Docker
+
+  docker-build:
+    name: Docker - Build & Trivy scan
+    runs-on: ubuntu-latest
+    needs: [security-scan]
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build backend image
+        uses: docker/build-push-action@v6
+        with:
+          context: ./backend
+          push: false
+          tags: ${{ env.IMAGE_BACKEND }}:${{ github.sha }}
+          outputs: type=docker,dest=/tmp/backend-image.tar
+
+      - name: Build frontend image
+        uses: docker/build-push-action@v6
+        with:
+          context: ./frontend
+          push: false
+          tags: ${{ env.IMAGE_FRONTEND }}:${{ github.sha }}
+          outputs: type=docker,dest=/tmp/frontend-image.tar
+
+      - name: Load images
+        run: |
+          docker load --input /tmp/backend-image.tar
+          docker load --input /tmp/frontend-image.tar
+
+      - name: Run Trivy on backend image
+        uses: aquasecurity/trivy-action@master
+        with:
+          image-ref: ${{ env.IMAGE_BACKEND }}:${{ github.sha }}
+          format: "json"
+          output: "trivy-backend-report.json"
+          severity: "CRITICAL,HIGH"
+          exit-code: "0"
+
+      - name: Run Trivy on frontend image
+        uses: aquasecurity/trivy-action@master
+        with:
+          image-ref: ${{ env.IMAGE_FRONTEND }}:${{ github.sha }}
+          format: "json"
+          output: "trivy-frontend-report.json"
+          severity: "CRITICAL,HIGH"
+          exit-code: "0"
+
+      - name: Upload Trivy reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: trivy-reports
+          path: |
+            trivy-backend-report.json
+            trivy-frontend-report.json
+
+      - name: Save images for push job
+        uses: actions/upload-artifact@v4
+        with:
+          name: docker-images
+          path: /tmp/*.tar
+          retention-days: 1
+
+  push-registry:
+    name: Docker Push
+    runs-on: ubuntu-latest
+    needs: [docker-build]
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    permissions:
+      contents: read
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Download images
+        uses: actions/download-artifact@v4
+        with:
+          name: docker-images
+          path: /tmp
+
+      - name: Load images
+        run: |
+          docker load --input /tmp/backend-image.tar
+          docker load --input /tmp/frontend-image.tar
+
+      - name: Login to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Tag & push backend
+        run: |
+          docker tag ${{ env.IMAGE_BACKEND }}:${{ github.sha }} ${{ env.IMAGE_BACKEND }}:latest
+          docker push ${{ env.IMAGE_BACKEND }}:${{ github.sha }}
+          docker push ${{ env.IMAGE_BACKEND }}:latest
+
+      - name: Tag & push frontend
+        run: |
+          docker tag ${{ env.IMAGE_FRONTEND }}:${{ github.sha }} ${{ env.IMAGE_FRONTEND }}:latest
+          docker push ${{ env.IMAGE_FRONTEND }}:${{ github.sha }}
+          docker push ${{ env.IMAGE_FRONTEND }}:latest

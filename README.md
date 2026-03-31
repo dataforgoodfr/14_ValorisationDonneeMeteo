@@ -1,5 +1,7 @@
 # Valorisation Donnée Météo
 
+[![CI/CD](https://github.com/Mijosed/14_ValorisationDonneeMeteo/actions/workflows/ci.yml/badge.svg)](https://github.com/Mijosed/14_ValorisationDonneeMeteo/actions/workflows/ci.yml)
+
 Projet Data For Good - Saison 14
 
 ## Structure du projet
