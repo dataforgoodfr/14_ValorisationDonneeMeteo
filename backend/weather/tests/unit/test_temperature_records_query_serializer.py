@@ -1,73 +1,72 @@
-import datetime as dt
-
 from weather.serializers import TemperatureRecordsQuerySerializer
 
 
-def test_temperature_records_query_serializer_happy_path():
-    s = TemperatureRecordsQuerySerializer(
-        data={
-            "date_start": "2024-01-01",
-            "date_end": "2024-12-31",
-            "station_ids": "12345678,87654321",
-            "record_kind": "historical",
-            "record_scope": "monthly",
-            "type_records": "hot",
-        }
-    )
-
+def test_records_query_serializer_defaults_to_all_time_hot():
+    s = TemperatureRecordsQuerySerializer(data={})
     assert s.is_valid(), s.errors
-    assert s.validated_data["date_start"] == dt.date(2024, 1, 1)
-    assert s.validated_data["date_end"] == dt.date(2024, 12, 31)
-    assert s.validated_data["station_ids"] == ("12345678", "87654321")
-    assert s.validated_data["record_kind"] == "historical"
-    assert s.validated_data["record_scope"] == "monthly"
+    assert s.validated_data["period_type"] == "all_time"
     assert s.validated_data["type_records"] == "hot"
 
 
-def test_temperature_records_query_serializer_rejects_date_start_gt_date_end():
+def test_records_query_serializer_month_happy_path():
     s = TemperatureRecordsQuerySerializer(
-        data={
-            "date_start": "2024-02-01",
-            "date_end": "2024-01-31",
-        }
-    )
-
-    assert not s.is_valid()
-    assert "date_end" in s.errors
-
-
-def test_temperature_records_query_serializer_parses_departments():
-    s = TemperatureRecordsQuerySerializer(
-        data={
-            "date_start": "2024-01-01",
-            "date_end": "2024-12-31",
-            "departments": "13,75",
-        }
-    )
-
-    assert s.is_valid(), s.errors
-    assert s.validated_data["departments"] == ("13", "75")
-
-
-def test_temperature_records_query_serializer_allows_missing_dates():
-    s = TemperatureRecordsQuerySerializer(
-        data={
-            "record_kind": "absolute",
-            "record_scope": "all_time",
-            "type_records": "all",
-        }
+        data={"period_type": "month", "month": 7, "type_records": "hot"}
     )
     assert s.is_valid(), s.errors
-    assert s.validated_data.get("date_start") is None
-    assert s.validated_data.get("date_end") is None
+    assert s.validated_data["month"] == 7
 
 
-def test_temperature_records_query_serializer_rejects_temperature_min_gt_temperature_max():
+def test_records_query_serializer_season_happy_path():
     s = TemperatureRecordsQuerySerializer(
-        data={
-            "temperature_min": 30,
-            "temperature_max": 20,
-        }
+        data={"period_type": "season", "season": "winter", "type_records": "cold"}
+    )
+    assert s.is_valid(), s.errors
+    assert s.validated_data["season"] == "winter"
+    assert s.validated_data["type_records"] == "cold"
+
+
+def test_records_query_serializer_all_time_happy_path():
+    s = TemperatureRecordsQuerySerializer(
+        data={"period_type": "all_time", "type_records": "hot"}
+    )
+    assert s.is_valid(), s.errors
+
+
+def test_records_query_serializer_rejects_month_missing_when_period_type_month():
+    s = TemperatureRecordsQuerySerializer(
+        data={"period_type": "month", "type_records": "hot"}
     )
     assert not s.is_valid()
-    assert "temperature_max" in s.errors
+    assert "month" in s.errors
+
+
+def test_records_query_serializer_rejects_season_missing_when_period_type_season():
+    s = TemperatureRecordsQuerySerializer(
+        data={"period_type": "season", "type_records": "cold"}
+    )
+    assert not s.is_valid()
+    assert "season" in s.errors
+
+
+def test_records_query_serializer_rejects_unknown_period_type():
+    s = TemperatureRecordsQuerySerializer(
+        data={"period_type": "weekly", "type_records": "hot"}
+    )
+    assert not s.is_valid()
+    assert "period_type" in s.errors
+
+
+def test_records_query_serializer_rejects_month_out_of_range():
+    s = TemperatureRecordsQuerySerializer(
+        data={"period_type": "month", "month": 13, "type_records": "hot"}
+    )
+    assert not s.is_valid()
+    assert "month" in s.errors
+
+
+def test_records_query_serializer_rejects_unknown_season():
+    s = TemperatureRecordsQuerySerializer(
+        data={"period_type": "season", "season": "monsoon", "type_records": "cold"}
+    )
+    assert not s.is_valid()
+    assert "season" in s.errors

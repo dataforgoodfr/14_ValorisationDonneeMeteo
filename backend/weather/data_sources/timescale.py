@@ -3,6 +3,7 @@ from __future__ import annotations
 import datetime as dt
 from collections import defaultdict
 
+from django.db import connection
 from django.db.models import OuterRef, Subquery
 from django.db.models.functions import ExtractDay, ExtractMonth
 
@@ -12,7 +13,13 @@ from weather.models import (
     ITNBaselineMonthly19912020,
     ITNBaselineYearly19912020,
     QuotidienneITN,
+    RecordAbsolu,
     Station,
+)
+from weather.services.temperature_records.types import (
+    SEASON_MONTHS,
+    TemperatureRecordEntry,
+    TemperatureRecordsRequest,
 )
 from weather.services.national_indicator.protocols import (
     NationalIndicatorBaselineDataSource,
@@ -268,3 +275,71 @@ class TimescaleTemperatureDeviationDailyDataSource(TemperatureDeviationDailyData
             return None
 
         return YearlyBaselinePoint(mean=float(row.itn_mean))
+
+
+class TimescaleTemperatureRecordsDataSource:
+    """
+    Data source réelle : calcule les records progressifs via window function SQL.
+    Retourne N lignes par station (une par fois que la station a battu son propre record).
+    """
+
+    def fetch_records(
+        self, request: TemperatureRecordsRequest
+    ) -> list[TemperatureRecordEntry]:
+        col = "TX" if request.type_records == "hot" else "TN"
+        agg = "MAX" if request.type_records == "hot" else "MIN"
+        cmp = ">" if request.type_records == "hot" else "<"
+
+        period_clause, params = self._period_clause(request)
+
+        sql = f"""
+            WITH ordered AS (
+                SELECT
+                    q."NUM_POSTE",
+                    q."AAAAMMJJ",
+                    q."{col}",
+                    {agg}(q."{col}") OVER (
+                        PARTITION BY q."NUM_POSTE"
+                        ORDER BY q."AAAAMMJJ"
+                        ROWS BETWEEN UNBOUNDED PRECEDING AND 1 PRECEDING
+                    ) AS prev_val
+                FROM public."Quotidienne" q
+                WHERE {period_clause}
+                  AND q."{col}" IS NOT NULL
+            )
+            SELECT
+                o."NUM_POSTE",
+                s.name,
+                s.departement,
+                o."{col}",
+                o."AAAAMMJJ"
+            FROM ordered o
+            JOIN public.v_station s ON s.station_code = o."NUM_POSTE"
+            WHERE o.prev_val IS NULL OR o."{col}" {cmp} o.prev_val
+            ORDER BY s.name, o."AAAAMMJJ"
+        """
+
+        with connection.cursor() as cur:
+            cur.execute(sql, params)
+            rows = cur.fetchall()
+
+        return [
+            TemperatureRecordEntry(
+                station_id=row[0].strip(),
+                station_name=row[1],
+                department=str(row[2]) if row[2] is not None else "",
+                record_value=float(row[3]),
+                record_date=row[4].date() if isinstance(row[4], dt.datetime) else row[4],
+            )
+            for row in rows
+        ]
+
+    def _period_clause(self, request: TemperatureRecordsRequest) -> tuple[str, list]:
+        if request.period_type == "month":
+            return 'EXTRACT(MONTH FROM q."AAAAMMJJ") = %s', [request.month]
+        elif request.period_type == "season":
+            months = list(SEASON_MONTHS[request.season])
+            placeholders = ", ".join(["%s"] * len(months))
+            return f'EXTRACT(MONTH FROM q."AAAAMMJJ") IN ({placeholders})', months
+        else:
+            return "TRUE", []

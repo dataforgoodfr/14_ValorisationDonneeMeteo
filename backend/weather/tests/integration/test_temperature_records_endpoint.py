@@ -1,181 +1,141 @@
+import pytest
 from rest_framework.test import APIClient
 
+from weather.bootstrap_temperature_records import (
+    TemperatureRecordsDependencyProvider,
+)
+from weather.data_sources.temperature_records_fake import (
+    FakeTemperatureRecordsDataSource,
+)
 
-def test_get_temperature_records_happy_path(client: APIClient):
+
+@pytest.fixture
+def fake_temperature_records_dep():
+    TemperatureRecordsDependencyProvider.set_builder(
+        lambda: FakeTemperatureRecordsDataSource()
+    )
+    try:
+        yield
+    finally:
+        TemperatureRecordsDependencyProvider.reset()
+
+
+@pytest.mark.usefixtures("fake_temperature_records_dep")
+def test_get_records_all_time_hot_happy_path(client: APIClient):
     resp = client.get(
         "/api/v1/temperature/records",
-        {
-            "date_start": "2024-01-01",
-            "date_end": "2024-12-31",
-        },
+        {"type_records": "hot"},
     )
 
     assert resp.status_code == 200
     body = resp.json()
 
-    assert body["metadata"]["date_start"] == "2024-01-01"
-    assert body["metadata"]["date_end"] == "2024-12-31"
-    assert "stations" in body
-    assert len(body["stations"]) > 0
+    assert isinstance(body, list)
+    assert len(body) >= 5
 
-    station = body["stations"][0]
-    assert "id" in station
-    assert "name" in station
-    assert "hot_records" in station
-    assert "cold_records" in station
+    first = body[0]
+    assert "station_id" in first
+    assert "station_name" in first
+    assert "department" in first
+    assert "record_value" in first
+    assert "record_date" in first
 
 
-def test_get_temperature_records_defaults_are_applied(client: APIClient):
+@pytest.mark.usefixtures("fake_temperature_records_dep")
+def test_get_records_defaults_to_all_time_hot(client: APIClient):
+    resp = client.get("/api/v1/temperature/records")
+
+    assert resp.status_code == 200
+    body = resp.json()
+    assert isinstance(body, list)
+    assert len(body) >= 5
+    # Default is hot, so all values should be >= 30
+    assert all(entry["record_value"] >= 30 for entry in body)
+
+
+@pytest.mark.usefixtures("fake_temperature_records_dep")
+def test_get_records_cold(client: APIClient):
     resp = client.get(
         "/api/v1/temperature/records",
-        {
-            "date_start": "2024-01-01",
-            "date_end": "2024-12-31",
-        },
+        {"type_records": "cold"},
     )
 
     assert resp.status_code == 200
     body = resp.json()
-
-    assert body["metadata"] == {
-        "date_start": "2024-01-01",
-        "date_end": "2024-12-31",
-        "record_kind": "absolute",
-        "record_scope": "all_time",
-        "type_records": "all",
-        "station_ids": [],
-        "departments": [],
-        "temperature_min": None,
-        "temperature_max": None,
-    }
-
-    assert len(body["stations"]) == 3
+    assert all(entry["record_value"] <= 0 for entry in body)
 
 
-def test_get_temperature_records_returns_400_if_date_start_gt_date_end(
+@pytest.mark.usefixtures("fake_temperature_records_dep")
+def test_get_records_month_happy_path(client: APIClient):
+    resp = client.get(
+        "/api/v1/temperature/records",
+        {"period_type": "month", "month": 7, "type_records": "hot"},
+    )
+
+    assert resp.status_code == 200
+    body = resp.json()
+    assert isinstance(body, list)
+
+
+@pytest.mark.usefixtures("fake_temperature_records_dep")
+def test_get_records_season_happy_path(client: APIClient):
+    resp = client.get(
+        "/api/v1/temperature/records",
+        {"period_type": "season", "season": "winter", "type_records": "cold"},
+    )
+
+    assert resp.status_code == 200
+    body = resp.json()
+    assert isinstance(body, list)
+
+
+def test_get_records_returns_400_if_period_type_month_without_month(
     client: APIClient,
 ):
     resp = client.get(
         "/api/v1/temperature/records",
-        {
-            "date_start": "2024-02-01",
-            "date_end": "2024-01-31",
-        },
+        {"period_type": "month", "type_records": "hot"},
     )
 
     assert resp.status_code == 400
     body = resp.json()
-
     assert body["error"]["code"] == "INVALID_PARAMETER"
-    assert "date_end" in body["error"]["details"]
+    assert "month" in body["error"]["details"]
 
 
-def test_get_temperature_records_returns_departments_in_metadata(client: APIClient):
-    resp = client.get(
-        "/api/v1/temperature/records",
-        {
-            "date_start": "2024-01-01",
-            "date_end": "2024-12-31",
-            "departments": "07,13",
-        },
-    )
-
-    assert resp.status_code == 200
-    body = resp.json()
-
-    assert body["metadata"]["departments"] == ["07", "13"]
-
-
-def test_get_temperature_records_filters_by_departments(client: APIClient):
-    resp = client.get(
-        "/api/v1/temperature/records",
-        {
-            "date_start": "2024-01-01",
-            "date_end": "2024-12-31",
-            "departments": "07",
-        },
-    )
-
-    assert resp.status_code == 200
-    body = resp.json()
-
-    assert len(body["stations"]) > 0
-    assert all(station["id"].startswith("07") for station in body["stations"])
-
-
-def test_get_temperature_records_allows_missing_dates(client: APIClient):
-    resp = client.get(
-        "/api/v1/temperature/records",
-        {
-            "record_kind": "historical",
-            "record_scope": "monthly",
-            "type_records": "all",
-        },
-    )
-
-    assert resp.status_code == 200
-    body = resp.json()
-
-    assert body["metadata"]["date_start"] is None
-    assert body["metadata"]["date_end"] is None
-    assert "stations" in body
-
-
-def test_get_temperature_records_returns_temperature_filters_in_metadata(
+def test_get_records_returns_400_if_period_type_season_without_season(
     client: APIClient,
 ):
     resp = client.get(
         "/api/v1/temperature/records",
-        {
-            "temperature_min": "25",
-            "temperature_max": "35",
-        },
-    )
-
-    assert resp.status_code == 200
-    body = resp.json()
-
-    assert body["metadata"]["temperature_min"] == 25.0
-    assert body["metadata"]["temperature_max"] == 35.0
-
-
-def test_get_temperature_records_returns_400_if_temperature_min_gt_temperature_max(
-    client: APIClient,
-):
-    resp = client.get(
-        "/api/v1/temperature/records",
-        {
-            "temperature_min": "35",
-            "temperature_max": "25",
-        },
+        {"period_type": "season", "type_records": "cold"},
     )
 
     assert resp.status_code == 400
     body = resp.json()
-
     assert body["error"]["code"] == "INVALID_PARAMETER"
-    assert "temperature_max" in body["error"]["details"]
+    assert "season" in body["error"]["details"]
 
 
-def test_get_temperature_records_filters_records_by_temperature_interval(
-    client: APIClient,
-):
+def test_get_records_returns_400_if_unknown_period_type(client: APIClient):
     resp = client.get(
         "/api/v1/temperature/records",
-        {
-            "record_kind": "historical",
-            "record_scope": "monthly",
-            "type_records": "all",
-            "temperature_min": "10",
-            "temperature_max": "30",
-        },
+        {"period_type": "weekly"},
+    )
+
+    assert resp.status_code == 400
+    body = resp.json()
+    assert body["error"]["code"] == "INVALID_PARAMETER"
+
+
+@pytest.mark.usefixtures("fake_temperature_records_dep")
+def test_get_records_endpoint_uses_dependency_provider(client: APIClient):
+    resp = client.get(
+        "/api/v1/temperature/records",
+        {"period_type": "all_time", "type_records": "hot"},
     )
 
     assert resp.status_code == 200
     body = resp.json()
-
-    for station in body["stations"]:
-        for record in station["hot_records"]:
-            assert 10.0 <= record["value"] <= 30.0
-        for record in station["cold_records"]:
-            assert 10.0 <= record["value"] <= 30.0
+    assert len(body) >= 5
+    assert body[0]["station_id"]  # non-empty string
