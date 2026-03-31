@@ -1,5 +1,9 @@
 [![Scorecard supply-chain security](https://github.com/Pyracantharia/14_ValorisationDonneeMeteo/actions/workflows/scorecard.yml/badge.svg)](https://github.com/Pyracantharia/14_ValorisationDonneeMeteo/actions/workflows/scorecard.yml)
 
+[![CI](https://github.com/Pyracantharia/14_ValorisationDonneeMeteo/actions/workflows/ci.yml/badge.svg)](https://github.com/Pyracantharia/14_ValorisationDonneeMeteo/actions/workflows/ci.yml)
+
+[![CD](https://github.com/Pyracantharia/14_ValorisationDonneeMeteo/actions/workflows/cd.yml/badge.svg)](https://github.com/Pyracantharia/14_ValorisationDonneeMeteo/actions/workflows/cd.yml)
+
 # Valorisation Donnée Météo
 
 Projet Data For Good - Saison 14
