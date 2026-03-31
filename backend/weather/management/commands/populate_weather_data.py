@@ -6,7 +6,6 @@ Generates realistic French weather station data for development and testing.
 import random
 from datetime import timedelta
 
-import numpy as np
 from django.conf import settings
 from django.core.management.base import BaseCommand, CommandError
 from django.db import connection, models
@@ -82,7 +81,6 @@ class Command(BaseCommand):
 
         # Set seeds for reproducibility
         random.seed(options["seed"])
-        np.random.seed(options["seed"])
 
         verbosity = options["verbosity"]
 

@@ -4,6 +4,8 @@ Projet Data For Good - Saison 14
 
 [![CI](https://github.com/dataforgoodfr/14_ValorisationDonneeMeteo/actions/workflows/ci.yml/badge.svg)](https://github.com/dataforgoodfr/14_ValorisationDonneeMeteo/actions/workflows/ci.yml)
 
+Rendu exercice CI/CD : [rendu exo pipeline creation](rendu%20exo%20pipeline%20creation/README.md)
+
 ## Structure du projet
 
 ```

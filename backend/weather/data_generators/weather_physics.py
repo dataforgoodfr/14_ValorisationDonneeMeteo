@@ -1,11 +1,14 @@
 """
 Weather data generation algorithms with realistic physical correlations.
-All functions return Python native types (not numpy types) for database compatibility.
+All functions return Python native types for database compatibility.
 """
 
+import math
 import random
 
-import numpy as np
+
+def _clip(value: float, lower: float, upper: float) -> float:
+    return max(lower, min(value, upper))
 
 
 def generate_temperature_profile(
@@ -23,8 +26,8 @@ def generate_temperature_profile(
     Returns:
         Temperature in Celsius as Python float
     """
-    hour_rad = (hour - 6) * 2 * np.pi / 24
-    return float(base_temp + amplitude * np.sin(hour_rad))
+    hour_rad = (hour - 6) * 2 * math.pi / 24
+    return float(base_temp + amplitude * math.sin(hour_rad))
 
 
 def calculate_base_climate(lat: float, alt: float) -> dict:
@@ -57,7 +60,7 @@ def generate_humidity(base: float, temp_deviation: float) -> tuple[int, int, int
     Returns:
         Tuple of (current, max, min) humidity as integers
     """
-    humidity = int(np.clip(base - temp_deviation * 2 + random.gauss(0, 5), 30, 100))
+    humidity = int(_clip(base - temp_deviation * 2 + random.gauss(0, 5), 30, 100))
     humidity_max = min(humidity + random.randint(5, 15), 100)
     humidity_min = max(humidity - random.randint(5, 15), 30)
     return (humidity, humidity_max, humidity_min)
@@ -139,7 +142,7 @@ def generate_cloud_cover(is_raining: bool) -> int:
     base = random.gauss(4, 3)
     if is_raining:
         base += 3
-    return int(np.clip(base, 0, 8))
+    return int(_clip(base, 0, 8))
 
 
 def generate_solar_radiation(hour: int, clouds: int) -> float | None:
@@ -156,7 +159,7 @@ def generate_solar_radiation(hour: int, clouds: int) -> float | None:
     if 6 <= hour <= 20:
         radiation = max(
             0,
-            800 * np.sin((hour - 6) * np.pi / 14) * (1 - clouds / 10)
+            800 * math.sin((hour - 6) * math.pi / 14) * (1 - clouds / 10)
             + random.gauss(0, 50),
         )
         return round(float(radiation), 0) if radiation > 0 else None

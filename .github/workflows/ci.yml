@@ -5,14 +5,29 @@ on:
   push:
     branches:
       - "**"
+  workflow_dispatch:
+    inputs:
+      break_test:
+        description: "Force the dedicated CI test to fail"
+        required: false
+        default: false
+        type: boolean
 
 permissions:
   contents: read
 
+env:
+  REGISTRY: ghcr.io
+  PYTHON_VERSION: "3.12"
+  NODE_VERSION: "24"
+  CI_BREAK_TEST: ${{ github.event.inputs.break_test == 'true' && 'true' || 'false' }}
+
 jobs:
   backend:
-    name: Backend Python
+    name: Backend | Install, Lint, Test
     runs-on: ubuntu-24.04
+    permissions:
+      contents: read
     env:
       DEBUG: "true"
       SECRET_KEY: ci-secret-key
@@ -50,28 +65,46 @@ jobs:
       - name: Setup Python
         uses: actions/setup-python@v6
         with:
-          python-version: "3.12"
+          python-version: ${{ env.PYTHON_VERSION }}
 
       - name: Install uv
         uses: astral-sh/setup-uv@v7
 
-      - name: Sync backend dependencies
+      - name: Install backend dependencies
         run: uv sync --frozen --extra dev
 
-      - name: Lint backend
-        run: uv run ruff check weather config manage.py --ignore DJ001,C420
+      - name: Prepare report directories
+        run: mkdir -p reports/test-report reports/scan-code-report
+
+      - name: Run backend linter
+        run: |
+          uv run ruff check weather config manage.py --output-format json > reports/scan-code-report/backend-ruff.json
+          uv run ruff format --check weather config manage.py > reports/scan-code-report/backend-ruff-format.txt
 
       - name: Run backend tests
-        run: |
-          if [ -d weather/tests ]; then
-            uv run pytest weather/tests
-          else
-            echo "No backend tests directory found, skipping."
-          fi
+        run: uv run pytest weather/tests --junitxml=reports/test-report/backend-pytest.xml
+
+      - name: Upload test report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-report
+          path: backend/reports/test-report
+          if-no-files-found: error
+
+      - name: Upload scan code report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: scan-code-report-backend
+          path: backend/reports/scan-code-report
+          if-no-files-found: error
 
   frontend:
-    name: Frontend JS
+    name: Frontend | Install, Lint, Test, Build
     runs-on: ubuntu-24.04
+    permissions:
+      contents: read
 
     defaults:
       run:
@@ -84,28 +117,297 @@ jobs:
       - name: Setup Node
         uses: actions/setup-node@v6
         with:
-          node-version: "24"
+          node-version: ${{ env.NODE_VERSION }}
           cache: npm
           cache-dependency-path: frontend/package-lock.json
-
-      - name: Show versions
-        run: |
-          node -v
-          npm -v
 
       - name: Install frontend dependencies
         run: npm ci --legacy-peer-deps
 
-      - name: Lint frontend
-        run: npm run lint --if-present
+      - name: Prepare report directories
+        run: mkdir -p reports/test-report reports/scan-code-report
+
+      - name: Run frontend linter
+        run: npx eslint . --ext .js,.ts,.vue -f json -o reports/scan-code-report/frontend-eslint.json
 
       - name: Run frontend tests
-        run: |
-          if npm ls vitest >/dev/null 2>&1; then
-            npm run test:unit --if-present
-          else
-            echo "Vitest not installed, skipping frontend tests."
-          fi
+        run: npx vitest run --reporter=default --reporter=junit --outputFile=reports/test-report/frontend-vitest.xml
 
       - name: Build frontend
-        run: npm run build --if-present
+        run: npm run build
+
+      - name: Upload test report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-report-frontend
+          path: frontend/reports/test-report
+          if-no-files-found: error
+
+      - name: Upload scan code report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: scan-code-report-frontend
+          path: frontend/reports/scan-code-report
+          if-no-files-found: error
+
+  security-scan:
+    name: Security | Audit, Bandit, Trivy, VEX
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: read
+      security-events: write
+
+    defaults:
+      run:
+        shell: bash
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+
+      - name: Setup Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v7
+
+      - name: Setup Node
+        uses: actions/setup-node@v6
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Install backend dependencies
+        working-directory: backend
+        run: uv sync --frozen --extra dev
+
+      - name: Install frontend dependencies
+        working-directory: frontend
+        run: npm ci --legacy-peer-deps
+
+      - name: Prepare security report directories
+        run: |
+          mkdir -p reports/security-scan-report
+          mkdir -p reports/trivy-report
+          mkdir -p reports/fichier-vex
+
+      - name: Run backend dependency audit
+        working-directory: backend
+        run: |
+          set +e
+          uvx --from pip-audit pip-audit --format json --output ../reports/security-scan-report/backend-pip-audit.json
+          status=$?
+          echo "$status" > ../reports/security-scan-report/backend-pip-audit.exitcode
+          exit 0
+
+      - name: Run backend static security scan
+        working-directory: backend
+        run: |
+          set +e
+          uvx --from bandit bandit -r weather -f json -o ../reports/security-scan-report/backend-bandit.json
+          status=$?
+          echo "$status" > ../reports/security-scan-report/backend-bandit.exitcode
+          exit 0
+
+      - name: Run frontend dependency audit
+        working-directory: frontend
+        run: |
+          set +e
+          npm audit --json > ../reports/security-scan-report/frontend-npm-audit.json
+          status=$?
+          echo "$status" > ../reports/security-scan-report/frontend-npm-audit.exitcode
+          exit 0
+
+      - name: Run Trivy filesystem scan
+        uses: aquasecurity/trivy-action@0.32.0
+        with:
+          scan-type: fs
+          scan-ref: .
+          format: json
+          output: reports/trivy-report/trivy-report.json
+          ignore-unfixed: true
+          vuln-type: os,library
+          severity: CRITICAL,HIGH,MEDIUM
+
+      - name: Run Trivy SARIF export
+        uses: aquasecurity/trivy-action@0.32.0
+        with:
+          scan-type: fs
+          scan-ref: .
+          format: sarif
+          output: reports/trivy-report/trivy-report.sarif
+          ignore-unfixed: true
+          vuln-type: os,library
+          severity: CRITICAL,HIGH,MEDIUM
+
+      - name: Generate OpenVEX file
+        run: |
+          python - <<'PY'
+          import json
+          from datetime import datetime, timezone
+          from pathlib import Path
+
+          trivy_path = Path("reports/trivy-report/trivy-report.json")
+          data = json.loads(trivy_path.read_text())
+
+          statements = []
+          for result in data.get("Results", []):
+              target = result.get("Target", "unknown")
+              for vuln in result.get("Vulnerabilities", []) or []:
+                  vuln_id = vuln.get("VulnerabilityID")
+                  if not vuln_id:
+                      continue
+                  statements.append(
+                      {
+                          "vulnerability": {"name": vuln_id},
+                          "products": [{"@id": target}],
+                          "status": "under_investigation",
+                          "justification": "component_not_present",
+                          "timestamp": datetime.now(timezone.utc).isoformat(),
+                      }
+                  )
+
+          vex = {
+              "@context": "https://openvex.dev/ns/v0.2.0",
+              "@id": "https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}",
+              "author": "GitHub Actions",
+              "role": "build",
+              "timestamp": datetime.now(timezone.utc).isoformat(),
+              "version": 1,
+              "tooling": "custom-ci-workflow",
+              "statements": statements,
+          }
+
+          Path("reports/fichier-vex/openvex.json").write_text(json.dumps(vex, indent=2))
+          PY
+
+      - name: Upload security scan report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: security-scan-report
+          path: reports/security-scan-report
+          if-no-files-found: error
+
+      - name: Upload Trivy report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: trivy-report
+          path: reports/trivy-report
+          if-no-files-found: error
+
+      - name: Upload VEX file
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: fichier-vex
+          path: reports/fichier-vex
+          if-no-files-found: error
+
+  build-images:
+    name: Docker | Build Images
+    runs-on: ubuntu-24.04
+    needs:
+      - backend
+      - frontend
+    permissions:
+      contents: read
+
+    defaults:
+      run:
+        shell: bash
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+
+      - name: Set image names
+        run: |
+          echo "IMAGE_REPOSITORY=${GITHUB_REPOSITORY,,}" >> "$GITHUB_ENV"
+          echo "IMAGE_TAG=${GITHUB_SHA::7}" >> "$GITHUB_ENV"
+
+      - name: Build backend image
+        run: docker build -t "$REGISTRY/$IMAGE_REPOSITORY-backend:$IMAGE_TAG" ./backend
+
+      - name: Build frontend image
+        run: docker build -t "$REGISTRY/$IMAGE_REPOSITORY-frontend:$IMAGE_TAG" ./frontend
+
+      - name: Export backend image
+        run: |
+          mkdir -p reports/docker-image-backend
+          docker save "$REGISTRY/$IMAGE_REPOSITORY-backend:$IMAGE_TAG" | gzip > reports/docker-image-backend/backend-image.tar.gz
+
+      - name: Export frontend image
+        run: |
+          mkdir -p reports/docker-image-frontend
+          docker save "$REGISTRY/$IMAGE_REPOSITORY-frontend:$IMAGE_TAG" | gzip > reports/docker-image-frontend/frontend-image.tar.gz
+
+      - name: Upload backend image artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: docker-image-backend
+          path: reports/docker-image-backend
+          if-no-files-found: error
+
+      - name: Upload frontend image artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: docker-image-frontend
+          path: reports/docker-image-frontend
+          if-no-files-found: error
+
+  push-images:
+    name: Docker | Push to Registry
+    runs-on: ubuntu-24.04
+    needs:
+      - backend
+      - frontend
+      - security-scan
+      - build-images
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    permissions:
+      contents: read
+      packages: write
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+
+      - name: Set image metadata
+        run: |
+          echo "IMAGE_REPOSITORY=${GITHUB_REPOSITORY,,}" >> "$GITHUB_ENV"
+          echo "IMAGE_TAG=${GITHUB_SHA::7}" >> "$GITHUB_ENV"
+
+      - name: Login to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Setup Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build and push backend image
+        uses: docker/build-push-action@v6
+        with:
+          context: ./backend
+          push: true
+          tags: |
+            ${{ env.REGISTRY }}/${{ env.IMAGE_REPOSITORY }}-backend:${{ env.IMAGE_TAG }}
+            ${{ env.REGISTRY }}/${{ env.IMAGE_REPOSITORY }}-backend:latest
+
+      - name: Build and push frontend image
+        uses: docker/build-push-action@v6
+        with:
+          context: ./frontend
+          push: true
+          tags: |
+            ${{ env.REGISTRY }}/${{ env.IMAGE_REPOSITORY }}-frontend:${{ env.IMAGE_TAG }}
+            ${{ env.REGISTRY }}/${{ env.IMAGE_REPOSITORY }}-frontend:latest
