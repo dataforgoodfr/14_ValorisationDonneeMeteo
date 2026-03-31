@@ -2,7 +2,7 @@ name: CI
 
 on:
   push:
-    branches: [ main, master ]
+    branches: [main, master]
   workflow_dispatch:
 
 permissions:
@@ -11,44 +11,76 @@ permissions:
   security-events: write
 
 jobs:
-  test:
+  test-backend:
     runs-on: ubuntu-latest
-
     strategy:
       matrix:
-        python-version: [ "3.8", "3.9", "3.10" ]
+        python-version: ["3.12"]
 
     steps:
-      - name: checkout
+      - name: Checkout
         uses: actions/checkout@v5
 
-      - name: Python ${{ matrix.python-version }}
+      - name: Setup Python ${{ matrix.python-version }}
         uses: actions/setup-python@v6
         with:
           python-version: ${{ matrix.python-version }}
 
-      - name: dependencies
+      - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install flake8 pytest
+          pip install uv
+          cd backend
+          uv sync --extra dev
 
-      - name: flake8
+      - name: Lint with Ruff
         run: |
-          flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
-          flake8 . --count --exit-zero --statistics
+          cd backend
+          uv run ruff check .
 
-      - name: pytest
-        run: pytest tests
+      - name: Tests with pytest
+        run: |
+          cd backend
+          uv run pytest
+
+  test-frontend:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+          cache: "npm"
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Install dependencies
+        run: |
+          cd frontend
+          npm install
+
+      - name: Lint with ESLint
+        run: |
+          cd frontend
+          npm run lint
+
+      - name: Build
+        run: |
+          cd frontend
+          npm run build
 
   trivy-scan:
     runs-on: ubuntu-latest
-    needs: test
+    needs: [test-backend, test-frontend]
 
     steps:
-      - name: checkout
+      - name: Checkout
         uses: actions/checkout@v5
 
-      - name: trivy FS mode
+      - name: Trivy FS scan
         uses: aquasecurity/trivy-action@0.33.1
         with:
           scan-type: fs
@@ -56,7 +88,7 @@ jobs:
           output: results.sarif
           severity: CRITICAL,HIGH
 
-      - name: upload
+      - name: Upload to GitHub Security
         uses: github/codeql-action/upload-sarif@v4
         with:
           sarif_file: results.sarif
