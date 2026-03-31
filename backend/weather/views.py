@@ -84,8 +84,12 @@ class NationalIndicatorAPIView(APIView):
             )
 
         params = q.validated_data
-        ds = ITNDependencyProvider.get_dep()
-        data = get_national_indicator(data_source=ds, **params)
+        deps = ITNDependencyProvider.get_dep()
+        data = get_national_indicator(
+            observed_data_source=deps.observed_data_source,
+            baseline_data_source=deps.baseline_data_source,
+            **params,
+        )
         metadata = {
             "date_start": params["date_start"],
             "date_end": params["date_end"],

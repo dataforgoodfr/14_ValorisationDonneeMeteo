@@ -11,6 +11,7 @@ from .types import (
     DailyDeviationPoint,
     DailyDeviationSeriesQuery,
     NationalDeviationSeries,
+    ObservedPoint,
     StationDeviationSeries,
     TemperatureDeviationResult,
 )
@@ -50,6 +51,88 @@ def _aggregate(
             )
         )
     return out
+
+
+def _aggregate_observed(
+    observed: list[ObservedPoint],
+    *,
+    date_start: dt.date,
+    date_end: dt.date,
+    granularity: str,
+) -> list[ObservedPoint]:
+    observed = [p for p in observed if date_start <= p.date <= date_end]
+
+    if granularity == "day":
+        return sorted(observed, key=lambda x: x.date)
+
+    buckets: dict[dt.date, list[ObservedPoint]] = defaultdict(list)
+    for p in observed:
+        buckets[period_start(p.date, granularity)].append(p)
+
+    out: list[ObservedPoint] = []
+    for start_date in sorted(buckets.keys()):
+        pts = buckets[start_date]
+        out.append(
+            ObservedPoint(
+                date=start_date,
+                temperature=sum(x.temperature for x in pts) / len(pts),
+            )
+        )
+    return out
+
+
+def _inject_national_baseline(
+    observed: list[ObservedPoint],
+    *,
+    granularity: str,
+    data_source: TemperatureDeviationDailyDataSource,
+) -> list[AggregatedDeviationPoint]:
+    if granularity == "day":
+        baseline = {
+            (p.month, p.day_of_month): p.mean
+            for p in data_source.fetch_national_daily_baseline()
+        }
+
+        return [
+            AggregatedDeviationPoint(
+                date=p.date,
+                temperature=p.temperature,
+                baseline_mean=baseline[(p.date.month, p.date.day)],
+            )
+            for p in observed
+            if (p.date.month, p.date.day) in baseline
+        ]
+
+    if granularity == "month":
+        baseline = {
+            p.month: p.mean for p in data_source.fetch_national_monthly_baseline()
+        }
+
+        return [
+            AggregatedDeviationPoint(
+                date=p.date,
+                temperature=p.temperature,
+                baseline_mean=baseline[p.date.month],
+            )
+            for p in observed
+            if p.date.month in baseline
+        ]
+
+    if granularity == "year":
+        baseline = data_source.fetch_national_yearly_baseline()
+        if baseline is None:
+            return []
+
+        return [
+            AggregatedDeviationPoint(
+                date=p.date,
+                temperature=p.temperature,
+                baseline_mean=baseline.mean,
+            )
+            for p in observed
+        ]
+
+    raise ValueError(f"Granularité non supportée : {granularity}")
 
 
 def _point_to_payload(p: AggregatedDeviationPoint) -> dict:
@@ -101,12 +184,17 @@ def compute_temperature_deviation_series(
 
     national = None
     if include_national:
-        national_daily = data_source.fetch_national_daily_series(query)
-        nat_points = _aggregate(
-            national_daily,
+        national_observed = data_source.fetch_national_observed_series(query)
+        national_aggregated_observed = _aggregate_observed(
+            national_observed,
             date_start=date_start,
             date_end=date_end,
             granularity=granularity,
+        )
+        nat_points = _inject_national_baseline(
+            national_aggregated_observed,
+            granularity=granularity,
+            data_source=data_source,
         )
         national = NationalDeviationSeries(data=nat_points)
 
