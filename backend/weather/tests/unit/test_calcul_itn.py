@@ -100,7 +100,7 @@ def test_separate_by_station():
 # == correct_temperatures_Reims ======================================
 
 
-def test_correct_temperatures_Reims():
+def test_correct_temperatures_Reims():  # noqa: N802
     dates = pd.date_range("2012-05-06", "2012-05-09", freq="D")
     input_df = _make_pivoted(
         dates,

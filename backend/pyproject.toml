@@ -51,8 +51,12 @@ select = [
     "C4",     # flake8-comprehensions
     "UP",     # pyupgrade
     "DJ",     # flake8-django
+    "N", # pep8-naming
 ]
 ignore = ["E501"]
+
+[tool.ruff.lint.pep8-naming]
+ignore-names = ["_", "i", "j", "k"]
 
 [tool.ruff.lint.isort]
 known-first-party = ["config", "weather"]

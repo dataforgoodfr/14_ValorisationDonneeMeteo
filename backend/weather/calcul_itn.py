@@ -87,7 +87,7 @@ def separate_by_station(
 
 
 # --------------------------------------------------------------------
-def correct_temperatures_Reims(df: pd.DataFrame) -> pd.DataFrame:
+def correct_temperatures_Reims(df: pd.DataFrame) -> pd.DataFrame:  # noqa: N802
     """
     The ITN calculation will use the data of the Reims-Courcy station
     until 07/05/2012, and the Reims-Prunay station starting from 08/05/2012.
