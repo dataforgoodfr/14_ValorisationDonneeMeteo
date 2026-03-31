@@ -1,6 +1,7 @@
 name: CI
 
 on:
+  pull_request:
   push:
     branches: [main, master]
   workflow_dispatch:
@@ -16,6 +17,21 @@ jobs:
     strategy:
       matrix:
         python-version: ["3.12"]
+
+    services:
+      timescaledb:
+        image: timescale/timescaledb:2.25.0-pg17
+        env:
+          POSTGRES_USER: infoclimat
+          POSTGRES_PASSWORD: infoclimat2026
+          POSTGRES_DB: meteodb
+        options: >-
+          --health-cmd "pg_isready -U infoclimat -d meteodb"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
 
     steps:
       - name: Checkout
@@ -81,7 +97,7 @@ jobs:
         uses: actions/checkout@v5
 
       - name: Trivy FS scan
-        uses: aquasecurity/trivy-action@0.33.1
+        uses: aquasecurity/trivy-action@0.35.0
         with:
           scan-type: fs
           format: sarif
