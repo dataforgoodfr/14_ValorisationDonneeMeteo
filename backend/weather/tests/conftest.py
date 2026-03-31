@@ -120,8 +120,9 @@ def setup_db_schema_and_views(django_db_setup, django_db_blocker):
     ).read_text()
     v_station_sql = (BASE_DIR / "sql" / "views" / "001_v_station.sql").read_text()
     v_quot_sql = (BASE_DIR / "sql" / "views" / "002_v_quotidienne.sql").read_text()
-    baseline_station_table_sql = (
-        BASE_DIR / "sql" / "test_tables" / "baseline_station_daily_mean_9120.sql"
+    v_records_sql = (BASE_DIR / "sql" / "views" / "003_v_records_absolus.sql").read_text()
+    baseline_mv_sql = (
+        BASE_DIR / "sql" / "materialized_views" / "baseline-station-daily-mean-9120.sql"
     ).read_text()
     itn_baseline_tables_sql = (
         BASE_DIR / "sql" / "test_tables" / "itn_baseline.sql"
@@ -160,7 +161,8 @@ def setup_db_schema_and_views(django_db_setup, django_db_blocker):
             cur.execute(ref_department_region_sql)
             cur.execute(v_station_sql)
             cur.execute(v_quot_sql)
-            cur.execute(baseline_station_table_sql)
+            cur.execute(v_records_sql)
+            cur.execute(baseline_mv_sql)
             cur.execute(itn_baseline_tables_sql)
             cur.execute(
                 "CREATE TABLE public.mv_records_battus_meta (cutoff_date DATE NOT NULL);"
