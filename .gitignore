@@ -25,3 +25,6 @@ Thumbs.db
 .claude
 # Precommit hooks: ruff cache
 .ruff_cache
+
+# Rapport
+rapport.md
