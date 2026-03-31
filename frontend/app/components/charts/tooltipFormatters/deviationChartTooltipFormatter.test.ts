@@ -9,8 +9,7 @@ const makeParam = (
     seriesName: string,
     value: Record<string, number | string>,
     marker = `<span style="color:red;">●</span>`,
-    axisIndex = 0,
-): DefaultLabelFormatterCallbackParams & { axisIndex: number } => ({
+): DefaultLabelFormatterCallbackParams => ({
     componentType: "series",
     componentSubType: "bar",
     componentIndex: 0,
@@ -21,7 +20,6 @@ const makeParam = (
     value,
     marker,
     $vars: ["seriesName", "name", "value"],
-    axisIndex,
 });
 
 describe("deviationChartTooltipFormatter", () => {
