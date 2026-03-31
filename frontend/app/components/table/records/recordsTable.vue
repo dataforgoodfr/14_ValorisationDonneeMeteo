@@ -33,7 +33,7 @@ interface TableRow {
     name: string;
     departement: string | undefined;
     record: number | undefined;
-    record_date: string | undefined;
+    recordDate: string | undefined;
 }
 
 const tableData = computed<TableRow[]>(() =>
@@ -46,7 +46,7 @@ const tableData = computed<TableRow[]>(() =>
             name: s.name,
             departement: stationDeptMap.value.get(s.id),
             record: record?.value,
-            record_date: record?.date,
+            recordDate: record?.date,
         };
     }),
 );
@@ -68,7 +68,7 @@ const columns = computed<TableColumn<TableRow>[]>(() => [
                 () => row.getValue("record"),
             ),
     },
-    { accessorKey: "record_date", header: "Date du record" },
+    { accessorKey: "recordDate", header: "Date du record" },
 ]);
 </script>
 

@@ -1,6 +1,5 @@
 import { refDebounced } from "@vueuse/core";
-// TODO: Replace with the real API call when the endpoint is implemented.
-import { useTemperatureRecordsFake } from "~/composables/useTemperature.fake";
+import { useTemperatureRecords } from "~/composables/useTemperature";
 import { departements } from "~/data/records/departements";
 import type {
     RecordKind,
@@ -72,9 +71,11 @@ export const useRecordsStore = defineStore("recordsStore", () => {
     }
 
     function clearFilter(id: string) {
-        if (id === "name") stationIds.value = [];
-        else if (id === "departement") departments.value = [];
-        else if (id === "record") {
+        if (id === "name") {
+            stationIds.value = [];
+        } else if (id === "departement") {
+            departments.value = [];
+        } else if (id === "record") {
             temperatureMin.value = "";
             temperatureMax.value = "";
         } else if (id === "record_date") {
@@ -114,11 +115,7 @@ export const useRecordsStore = defineStore("recordsStore", () => {
         offset: (page.value - 1) * pageSize.value,
     }));
 
-    const {
-        data: recordsData,
-        pending,
-        error,
-    } = useTemperatureRecordsFake(params);
+    const { data: recordsData, pending, error } = useTemperatureRecords(params);
 
     return {
         page,

@@ -38,16 +38,14 @@ function getValueLabel(fieldId: string, value: string): string {
 }
 
 function getRangeDisplay(filter: ActiveRangeFilter): string {
-    const { min, max } = filter.range;
-    if (filter.type === "date-range") {
-        const fMin = min ? formatDateForDisplay(min) : null;
-        const fMax = max ? formatDateForDisplay(max) : null;
-        if (fMin && fMax) return `${fMin} → ${fMax}`;
-        if (fMin) return `≥ ${fMin}`;
-        if (fMax) return `≤ ${fMax}`;
-        return "";
-    }
+    let { min, max } = filter.range;
     const unit = filter.type === "number-range" ? "°C" : "";
+
+    if (filter.type === "date-range") {
+        min = min ? formatDateForDisplay(min) : "";
+        max = max ? formatDateForDisplay(max) : "";
+    }
+
     if (min && max) return `${min}${unit} → ${max}${unit}`;
     if (min) return `≥ ${min}${unit}`;
     if (max) return `≤ ${max}${unit}`;
