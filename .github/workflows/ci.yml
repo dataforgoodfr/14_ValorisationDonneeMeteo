@@ -263,28 +263,34 @@ jobs:
           exit 0
 
       - name: Run Trivy filesystem scan
-        continue-on-error: true
-        uses: aquasecurity/trivy-action@v0.33.1
-        with:
-          scan-type: fs
-          scan-ref: .
-          format: json
-          output: reports/trivy-report/trivy-report.json
-          ignore-unfixed: true
-          vuln-type: os,library
-          severity: CRITICAL,HIGH,MEDIUM
+        run: |
+          mkdir -p "$HOME/.cache/trivy"
+          docker run --rm \
+            -v "$PWD:/work" \
+            -v "$HOME/.cache/trivy:/root/.cache/" \
+            aquasec/trivy:0.65.0 \
+            fs /work \
+            --scanners vuln \
+            --ignore-unfixed \
+            --severity CRITICAL,HIGH,MEDIUM \
+            --format json \
+            --output /work/reports/trivy-report/trivy-report.json \
+            --exit-code 0
 
       - name: Run Trivy SARIF export
-        continue-on-error: true
-        uses: aquasecurity/trivy-action@v0.33.1
-        with:
-          scan-type: fs
-          scan-ref: .
-          format: sarif
-          output: reports/trivy-report/trivy-report.sarif
-          ignore-unfixed: true
-          vuln-type: os,library
-          severity: CRITICAL,HIGH,MEDIUM
+        run: |
+          mkdir -p "$HOME/.cache/trivy"
+          docker run --rm \
+            -v "$PWD:/work" \
+            -v "$HOME/.cache/trivy:/root/.cache/" \
+            aquasec/trivy:0.65.0 \
+            fs /work \
+            --scanners vuln \
+            --ignore-unfixed \
+            --severity CRITICAL,HIGH,MEDIUM \
+            --format sarif \
+            --output /work/reports/trivy-report/trivy-report.sarif \
+            --exit-code 0
 
       - name: Generate OpenVEX file
         run: |
