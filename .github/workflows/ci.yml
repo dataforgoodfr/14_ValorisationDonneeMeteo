@@ -156,6 +156,7 @@ jobs:
     permissions:
       contents: read
       packages: write
+      security-events: write
 
     steps:
       - name: Checkout repository
@@ -224,6 +225,20 @@ jobs:
           path: |
             reports/trivy-report-back.sarif
             reports/trivy-report-front.sarif
+
+      - name: Upload Trivy backend SARIF to GitHub Security tab
+        uses: github/codeql-action/upload-sarif@v3
+        if: always()
+        with:
+          sarif_file: reports/trivy-report-back.sarif
+          category: trivy-backend
+
+      - name: Upload Trivy frontend SARIF to GitHub Security tab
+        uses: github/codeql-action/upload-sarif@v3
+        if: always()
+        with:
+          sarif_file: reports/trivy-report-front.sarif
+          category: trivy-frontend
 
       # ── Push to registry (main branch only) ──
 
