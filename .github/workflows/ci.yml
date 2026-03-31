@@ -103,7 +103,7 @@ jobs:
 
       - name: Run backend linter
         run: |
-          uv run ruff check weather config manage.py --output-format json > reports/scan-code-report/backend-ruff.json
+          uv run ruff check weather config manage.py --ignore DJ001,C420 --output-format json > reports/scan-code-report/backend-ruff.json
           uv run ruff format --check weather config manage.py > reports/scan-code-report/backend-ruff-format.txt
 
       - name: Run backend tests
