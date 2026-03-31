@@ -1,0 +1,94 @@
+name: CI
+
+on:
+  push:
+    branches: [main, master]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  actions: read
+  security-events: write
+
+jobs:
+  test-backend:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ["3.12"]
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+
+      - name: Setup Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v6
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install uv
+          cd backend
+          uv sync --extra dev
+
+      - name: Lint with Ruff
+        run: |
+          cd backend
+          uv run ruff check .
+
+      - name: Tests with pytest
+        run: |
+          cd backend
+          uv run pytest
+
+  test-frontend:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+          cache: "npm"
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Install dependencies
+        run: |
+          cd frontend
+          npm install
+
+      - name: Lint with ESLint
+        run: |
+          cd frontend
+          npm run lint
+
+      - name: Build
+        run: |
+          cd frontend
+          npm run build
+
+  trivy-scan:
+    runs-on: ubuntu-latest
+    needs: [test-backend, test-frontend]
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+
+      - name: Trivy FS scan
+        uses: aquasecurity/trivy-action@0.33.1
+        with:
+          scan-type: fs
+          format: sarif
+          output: results.sarif
+          severity: CRITICAL,HIGH
+
+      - name: Upload to GitHub Security
+        uses: github/codeql-action/upload-sarif@v4
+        with:
+          sarif_file: results.sarif
