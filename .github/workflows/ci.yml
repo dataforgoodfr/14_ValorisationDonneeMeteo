@@ -1,0 +1,240 @@
+name: CI/CD Pipeline
+
+on:
+  push:
+    branches: ['**']
+  pull_request:
+
+env:
+  REGISTRY: ghcr.io
+
+jobs:
+  # ──────────────────────────────────────────────
+  # Stage 1 – Install dependencies & Run Tests
+  # ──────────────────────────────────────────────
+
+  test-backend:
+    name: Backend – Install & Test
+    runs-on: ubuntu-24.04
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Install uv
+        run: curl -LsSf https://astral.sh/uv/install.sh | sh
+
+      - name: Install backend dependencies
+        working-directory: backend
+        run: |
+          uv sync --extra dev
+          cp .env.example .env
+
+      - name: Start TimescaleDB
+        working-directory: backend/timescaledb-env
+        run: docker compose up -d --wait
+
+      - name: Run tests and save report
+        working-directory: backend
+        run: |
+          mkdir -p $GITHUB_WORKSPACE/reports
+          uv run pytest 2>&1 | tee $GITHUB_WORKSPACE/reports/test-report-back.txt
+
+      - name: Upload test report
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: test-report-back
+          path: reports/test-report-back.txt
+
+  test-frontend:
+    name: Frontend – Install & Test
+    runs-on: ubuntu-24.04
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: 'npm'
+          cache-dependency-path: 'frontend/package-lock.json'
+
+      - name: Install frontend dependencies
+        working-directory: frontend
+        run: npm ci --legacy-peer-deps
+
+      - name: Run tests and save report
+        working-directory: frontend
+        run: |
+          mkdir -p $GITHUB_WORKSPACE/reports
+          npm run test:ci 2>&1 | tee $GITHUB_WORKSPACE/reports/test-report-front.txt
+
+      - name: Upload test report
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: test-report-front
+          path: reports/test-report-front.txt
+
+  # ──────────────────────────────────────────────
+  # Stage 2 – Linter
+  # ──────────────────────────────────────────────
+
+  lint-backend:
+    name: Backend – Lint
+    runs-on: ubuntu-24.04
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Install uv
+        run: curl -LsSf https://astral.sh/uv/install.sh | sh
+
+      - name: Install backend dependencies
+        working-directory: backend
+        run: uv sync --extra dev
+
+      - name: Run Ruff and save report
+        working-directory: backend
+        run: |
+          mkdir -p $GITHUB_WORKSPACE/reports
+          uv run ruff check . 2>&1 | tee $GITHUB_WORKSPACE/reports/code-report-back.txt
+        continue-on-error: true
+
+      - name: Upload lint report
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: code-report-back
+          path: reports/code-report-back.txt
+
+  lint-frontend:
+    name: Frontend – Lint
+    runs-on: ubuntu-24.04
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: 'npm'
+          cache-dependency-path: 'frontend/package-lock.json'
+
+      - name: Install frontend dependencies
+        working-directory: frontend
+        run: npm ci --legacy-peer-deps
+
+      - name: Run ESLint and save report
+        working-directory: frontend
+        run: |
+          mkdir -p $GITHUB_WORKSPACE/reports
+          npm run lint 2>&1 | tee $GITHUB_WORKSPACE/reports/code-report-front.txt
+        continue-on-error: true
+
+      - name: Upload lint report
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: code-report-front
+          path: reports/code-report-front.txt
+
+  # ──────────────────────────────────────────────
+  # Stage 3 – Security Scan, Docker Build & Push
+  # ──────────────────────────────────────────────
+
+  build-scan-push:
+    name: Docker – Build, Scan & Push
+    needs: [test-backend, test-frontend, lint-backend, lint-frontend]
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: read
+      packages: write
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set lowercase repository name
+        run: echo "IMAGE_NAME=${GITHUB_REPOSITORY,,}" >> $GITHUB_ENV
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Log in to GitHub Container Registry
+        if: github.ref == 'refs/heads/main'
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      # ── Build Docker images locally ──
+
+      - name: Build backend Docker image
+        uses: docker/build-push-action@v5
+        with:
+          context: ./backend
+          load: true
+          push: false
+          tags: backend:ci
+
+      - name: Build frontend Docker image
+        uses: docker/build-push-action@v5
+        with:
+          context: ./frontend
+          load: true
+          push: false
+          tags: frontend:ci
+
+      # ── Security scan with Trivy ──
+
+      - name: Create reports directory
+        run: mkdir -p $GITHUB_WORKSPACE/reports
+
+      - name: Run Trivy security scan – backend
+        uses: aquasecurity/trivy-action@master
+        with:
+          image-ref: 'backend:ci'
+          format: 'sarif'
+          output: 'reports/trivy-report-back.sarif'
+          exit-code: '0'
+          severity: 'CRITICAL,HIGH,MEDIUM'
+
+      - name: Run Trivy security scan – frontend
+        uses: aquasecurity/trivy-action@master
+        with:
+          image-ref: 'frontend:ci'
+          format: 'sarif'
+          output: 'reports/trivy-report-front.sarif'
+          exit-code: '0'
+          severity: 'CRITICAL,HIGH,MEDIUM'
+
+      - name: Upload Trivy reports
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: trivy-reports
+          path: |
+            reports/trivy-report-back.sarif
+            reports/trivy-report-front.sarif
+
+      # ── Push to registry (main branch only) ──
+
+      - name: Tag and push backend image to GHCR
+        if: github.ref == 'refs/heads/main'
+        run: |
+          docker tag backend:ci ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-backend:latest
+          docker push ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-backend:latest
+
+      - name: Tag and push frontend image to GHCR
+        if: github.ref == 'refs/heads/main'
+        run: |
+          docker tag frontend:ci ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-frontend:latest
+          docker push ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-frontend:latest
