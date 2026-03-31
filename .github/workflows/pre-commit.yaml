@@ -18,10 +18,8 @@ jobs:
     - name: Install backend dependencies
       run: |
         cd backend
-        uv sync --frozen
+        uv sync --frozen --extra dev
         uv run ruff check . --fix
-
-
 
     # Setup Node.js for frontend
     - uses: actions/setup-node@v4
