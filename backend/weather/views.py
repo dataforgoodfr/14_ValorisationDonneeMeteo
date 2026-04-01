@@ -185,7 +185,7 @@ class TemperatureRecordsAPIView(APIView):
             return Response(
                 ErrorSerializer.build(
                     code="INVALID_PARAMETER",
-                    message="Parametre invalide ou manquant",
+                    message="Paramètre invalide ou manquant",
                     details=q.errors,
                 ),
                 status=status.HTTP_400_BAD_REQUEST,
