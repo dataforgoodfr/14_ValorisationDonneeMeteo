@@ -6,15 +6,16 @@ import type { DeviationResponse } from "~/types/api";
 import { useDeviationStore } from "#imports";
 import { deviationChartTooltipFormatter } from "./tooltipFormatters/deviationChartTooltipFormatter";
 import {
+    DataZoomComponent,
+    GridComponent,
+    LegendComponent,
     TitleComponent,
     TooltipComponent,
-    GridComponent,
-    DataZoomComponent,
-    LegendComponent,
 } from "echarts/components";
 import { BarChart } from "echarts/charts";
 import { UniversalTransition } from "echarts/features";
 import { CanvasRenderer } from "echarts/renderers";
+
 echarts.registerLocale("FR", langFR);
 echarts.use([
     TitleComponent,
@@ -143,13 +144,12 @@ const option = computed<ECOption>(() => {
         tooltip: {
             trigger: "axis",
             axisPointer: { type: "line" },
-            formatter: (params) => {
-                return deviationChartTooltipFormatter(
+            formatter: (params) =>
+                deviationChartTooltipFormatter(
                     params,
                     props.adapter.granularity.value,
                     selectedStationsNames.value,
-                );
-            },
+                ),
         },
         dataZoom: [
             {

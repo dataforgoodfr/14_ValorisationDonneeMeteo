@@ -1,9 +1,6 @@
-import { describe, it, expect } from "vitest";
+import { describe, expect, it } from "vitest";
 import { deviationChartTooltipFormatter } from "./deviationChartTooltipFormatter";
-import type {
-    TooltipComponentFormatterCallbackParams,
-    DefaultLabelFormatterCallbackParams,
-} from "echarts";
+import type { DefaultLabelFormatterCallbackParams } from "echarts";
 
 const makeParam = (
     seriesName: string,
@@ -27,7 +24,7 @@ describe("deviationChartTooltipFormatter", () => {
 
     it("returns empty string when params is not an array", () => {
         const result = deviationChartTooltipFormatter(
-            "not an array" as unknown as TooltipComponentFormatterCallbackParams,
+            makeParam("", {}),
             "day",
             [],
         );
@@ -42,13 +39,12 @@ describe("deviationChartTooltipFormatter", () => {
     // --- Whole returned string ---
 
     it("returns the right string with granularity : day", () => {
-        const params: (DefaultLabelFormatterCallbackParams & {
-            axisIndex: number;
-        })[] = [
+        const params: DefaultLabelFormatterCallbackParams[] = [
             {
                 componentType: "series",
                 componentSubType: "bar",
                 componentIndex: 0,
+                seriesIndex: 0,
                 seriesName: "Ecart positif",
                 name: "",
                 dataIndex: 2,
@@ -66,12 +62,12 @@ describe("deviationChartTooltipFormatter", () => {
                 },
                 $vars: ["seriesName", "name", "value"],
                 marker: "marker-positif",
-                axisIndex: 0,
             },
             {
                 componentType: "series",
                 componentSubType: "bar",
                 componentIndex: 1,
+                seriesIndex: 0,
                 seriesName: "Ecart négatif",
                 name: "",
                 dataIndex: 2,
@@ -89,7 +85,6 @@ describe("deviationChartTooltipFormatter", () => {
                 },
                 $vars: ["seriesName", "name", "value"],
                 marker: "marker-negatif",
-                axisIndex: 0,
             },
         ];
         const result = deviationChartTooltipFormatter(params, "day", ["Lyon"]);
@@ -99,13 +94,12 @@ describe("deviationChartTooltipFormatter", () => {
     });
 
     it("returns the right string with granularity : month", () => {
-        const params: (DefaultLabelFormatterCallbackParams & {
-            axisIndex: number;
-        })[] = [
+        const params: DefaultLabelFormatterCallbackParams[] = [
             {
                 componentType: "series",
                 componentSubType: "bar",
                 componentIndex: 0,
+                seriesIndex: 0,
                 seriesName: "Ecart positif",
                 name: "",
                 dataIndex: 12,
@@ -123,13 +117,13 @@ describe("deviationChartTooltipFormatter", () => {
                 },
                 $vars: ["seriesName", "name", "value"],
                 marker: "marker-positif",
-                axisIndex: 0,
             },
             {
                 componentType: "series",
                 componentSubType: "bar",
                 componentIndex: 1,
                 seriesType: "bar",
+                seriesIndex: 0,
                 seriesName: "Ecart négatif",
                 name: "",
                 dataIndex: 12,
@@ -147,7 +141,6 @@ describe("deviationChartTooltipFormatter", () => {
                 },
                 $vars: ["seriesName", "name", "value"],
                 marker: "marker-negatif",
-                axisIndex: 0,
             },
         ];
         const result = deviationChartTooltipFormatter(params, "month", [
@@ -157,14 +150,13 @@ describe("deviationChartTooltipFormatter", () => {
     });
 
     it("returns the right string with granularity : year", () => {
-        const params: (DefaultLabelFormatterCallbackParams & {
-            axisIndex: number;
-        })[] = [
+        const params: DefaultLabelFormatterCallbackParams[] = [
             {
                 componentType: "series",
                 componentSubType: "bar",
                 componentIndex: 0,
                 seriesType: "bar",
+                seriesIndex: 0,
                 seriesName: "Ecart positif",
                 name: "",
                 dataIndex: 1,
@@ -182,13 +174,13 @@ describe("deviationChartTooltipFormatter", () => {
                 },
                 $vars: ["seriesName", "name", "value"],
                 marker: "marker-positif",
-                axisIndex: 0,
             },
             {
                 componentType: "series",
                 componentSubType: "bar",
                 componentIndex: 1,
                 seriesType: "bar",
+                seriesIndex: 0,
                 seriesName: "Ecart négatif",
                 name: "",
                 dataIndex: 1,
@@ -206,7 +198,6 @@ describe("deviationChartTooltipFormatter", () => {
                 },
                 $vars: ["seriesName", "name", "value"],
                 marker: "marker-negatif",
-                axisIndex: 0,
             },
         ];
         const result = deviationChartTooltipFormatter(params, "year", ["Lyon"]);

@@ -47,9 +47,9 @@ export function deviationChartTooltipFormatter(
         )
             return [];
         const stationName =
-            stationsNames[
-                (serie as typeof serie & { axisIndex: number }).axisIndex
-            ];
+            serie.seriesIndex !== undefined
+                ? stationsNames[serie.seriesIndex]
+                : "";
         const deviation =
             data?.deviation_positive || data?.deviation_negative || 0;
         const plusSign = Math.sign(deviation) === 1 ? "+" : "";
