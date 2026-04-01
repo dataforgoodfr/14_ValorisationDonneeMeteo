@@ -1,42 +1,65 @@
-import type { TooltipComponentFormatterCallbackParams } from "echarts";
+import type {
+    DefaultLabelFormatterCallbackParams,
+    TooltipComponentFormatterCallbackParams,
+} from "echarts";
 import type { GranularityType } from "~/components/ui/commons/selectBar/types";
 
 export function deviationChartTooltipFormatter(
     params: TooltipComponentFormatterCallbackParams,
     granularity: GranularityType,
+    stationsNames: string[],
 ): string {
-    if (!Array.isArray(params)) return "";
-    const [first] = params;
-    if (!first) return "";
+    if (!Array.isArray(params) || params.length === 0) return "";
 
-    const d = first.value as Record<string, number | string>;
-    const fmt = (v: number) => `${v.toFixed(1)}°C`;
-    const find = (name: string) => params.find((p) => p.seriesName === name);
+    const firstParam = params[0]?.value as Record<string, number | string>;
 
-    const dateOptions: Intl.DateTimeFormatOptions =
-        granularity === "month"
-            ? { year: "numeric", month: "long" }
-            : granularity === "year"
-              ? { year: "numeric" }
-              : {
-                    weekday: "short",
-                    day: "numeric",
-                    month: "short",
-                    year: "numeric",
-                };
+    const dateOptions: Intl.DateTimeFormatOptions = (() => {
+        if (granularity === "month") {
+            return { year: "numeric", month: "long" };
+        }
+        if (granularity === "year") {
+            return { year: "numeric" };
+        }
+        return {
+            weekday: "short",
+            day: "numeric",
+            month: "short",
+            year: "numeric",
+        };
+    })();
 
-    const formattedDate = new Date(d.date as string).toLocaleDateString(
-        "fr-FR",
-        dateOptions,
-    );
+    const formattedDate = new Date(
+        firstParam.date as string,
+    ).toLocaleDateString("fr-FR", dateOptions);
 
-    const deviation = (d.deviation_positive ?? d.deviation_negative) as number;
-    const serie =
-        deviation >= 0 ? find("Ecart positif") : find("Ecart négatif");
-    const sign = deviation >= 0 ? "+" : "";
+    const tooltipLabelFormatter = (
+        serie: DefaultLabelFormatterCallbackParams,
+    ) => {
+        const data = serie.data as Record<string, number | null>;
+        if (
+            serie.seriesName === "Ecart positif" &&
+            data?.deviation_positive === null
+        )
+            return [];
+        if (
+            serie.seriesName === "Ecart négatif" &&
+            data?.deviation_negative === null
+        )
+            return [];
+        const stationName =
+            serie.seriesIndex !== undefined
+                ? stationsNames[serie.seriesIndex]
+                : "";
+        const deviation =
+            data?.deviation_positive || data?.deviation_negative || 0;
+        const plusSign = Math.sign(deviation) === 1 ? "+" : "";
+        return [
+            `${serie?.marker ?? ""} ${stationName} : ${plusSign}${deviation?.toFixed(1)}°C`,
+        ];
+    };
 
-    return [
-        formattedDate,
-        `${serie?.marker ?? ""} : ${sign}${fmt(deviation)}`,
-    ].join("<br/>");
+    const tooltipContent = () =>
+        params.flatMap(tooltipLabelFormatter).join("<br/>");
+
+    return [formattedDate, tooltipContent()].join("<br/>");
 }
