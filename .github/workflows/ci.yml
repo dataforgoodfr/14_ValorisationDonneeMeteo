@@ -128,3 +128,51 @@ jobs:
           json-summary-path: coverage/coverage-summary.json
           json-final-path: coverage/coverage-final.json
           working-directory: frontend
+
+  security-backend:
+    runs-on: ubuntu-24.04
+    permissions:
+      security-events: write
+
+    steps:
+      - name: checkout repository
+        uses: actions/checkout@v4
+
+      - name: Run Trivy vulnerability scanner (backend)
+        uses: aquasecurity/trivy-action@master
+        with:
+          scan-type: fs
+          scan-ref: backend
+          format: sarif
+          output: trivy-backend.sarif
+          severity: CRITICAL,HIGH
+
+      - name: Upload Trivy backend results to GitHub Security tab
+        uses: github/codeql-action/upload-sarif@v3
+        with:
+          sarif_file: trivy-backend.sarif
+          category: trivy-backend
+
+  security-frontend:
+    runs-on: ubuntu-24.04
+    permissions:
+      security-events: write
+
+    steps:
+      - name: checkout repository
+        uses: actions/checkout@v4
+
+      - name: Run Trivy vulnerability scanner (frontend)
+        uses: aquasecurity/trivy-action@master
+        with:
+          scan-type: fs
+          scan-ref: frontend
+          format: sarif
+          output: trivy-frontend.sarif
+          severity: CRITICAL,HIGH
+
+      - name: Upload Trivy frontend results to GitHub Security tab
+        uses: github/codeql-action/upload-sarif@v3
+        with:
+          sarif_file: trivy-frontend.sarif
+          category: trivy-frontend
