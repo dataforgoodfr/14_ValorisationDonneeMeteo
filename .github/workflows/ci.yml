@@ -52,7 +52,13 @@ jobs:
 
       - name: Run backend tests
         working-directory: backend
-        run: uv run pytest
+        run: uv run pytest --cov --cov-report=xml --cov-report=term
+
+      - name: Upload coverage artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-backend
+          path: backend/coverage.xml
 
   lint-frontend:
     runs-on: ubuntu-24.04
@@ -128,6 +134,29 @@ jobs:
           json-summary-path: coverage/coverage-summary.json
           json-final-path: coverage/coverage-final.json
           working-directory: frontend
+
+  coverage-backend:
+    runs-on: ubuntu-24.04
+    needs: test-backend
+    permissions:
+      contents: read
+      pull-requests: write
+
+    steps:
+      - name: checkout repository
+        uses: actions/checkout@v4
+
+      - name: Download coverage artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: coverage-backend
+          path: backend/
+
+      - name: Report Coverage
+        uses: orgoro/coverage@v3
+        with:
+          coverageFile: backend/coverage.xml
+          token: ${{ secrets.GITHUB_TOKEN }}
 
   security-backend:
     runs-on: ubuntu-24.04
