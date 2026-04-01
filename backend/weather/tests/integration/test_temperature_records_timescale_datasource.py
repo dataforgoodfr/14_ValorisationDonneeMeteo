@@ -100,9 +100,9 @@ def test_fetch_records_hot_month_happy_path():
     assert len(station_entries) == 2
 
     values = [e.record_value for e in station_entries]
-    assert values == sorted(values), (
-        "Les valeurs doivent être croissantes dans le temps"
-    )
+    assert values == sorted(
+        values
+    ), "Les valeurs doivent être croissantes dans le temps"
     assert station_entries[-1].record_value == 42.6
     assert station_entries[-1].record_date == dt.date(2019, 7, 25)
     assert station_entries[0].station_name == "Station Records Test"
@@ -156,9 +156,9 @@ def test_fetch_records_season_aggregates_across_months():
     assert len(station_entries) == 2
 
     values = [e.record_value for e in station_entries]
-    assert values == sorted(values), (
-        "Les valeurs doivent être croissantes dans le temps"
-    )
+    assert values == sorted(
+        values
+    ), "Les valeurs doivent être croissantes dans le temps"
     assert station_entries[-1].record_value == 44.0
 
 
