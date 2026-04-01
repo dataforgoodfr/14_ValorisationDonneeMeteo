@@ -276,9 +276,7 @@ class TemperatureRecordsQuerySerializer(serializers.Serializer):
         season = attrs.get("season")
 
         if period_type == "month" and month is None:
-            raise serializers.ValidationError(
-                {"month": "Requis si period_type=month."}
-            )
+            raise serializers.ValidationError({"month": "Requis si period_type=month."})
 
         if period_type == "season" and season is None:
             raise serializers.ValidationError(

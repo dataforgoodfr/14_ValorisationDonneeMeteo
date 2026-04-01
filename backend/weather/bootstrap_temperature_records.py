@@ -24,9 +24,7 @@ class TemperatureRecordsDependencyProvider:
     _builder: Callable[[], TemperatureRecordsDataSource] = _default_builder
 
     @classmethod
-    def set_builder(
-        cls, builder: Callable[[], TemperatureRecordsDataSource]
-    ) -> None:
+    def set_builder(cls, builder: Callable[[], TemperatureRecordsDataSource]) -> None:
         cls._builder = builder
 
     @classmethod

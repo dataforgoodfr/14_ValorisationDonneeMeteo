@@ -7,7 +7,6 @@ from weather.services.temperature_records.types import (
     TemperatureRecordsRequest,
 )
 
-
 # Données fake déterministes pour les records progressifs de température.
 # Plusieurs lignes par station : chaque ligne est une fois où la station a
 # battu son propre record précédent.
@@ -23,8 +22,12 @@ _FAKE_HOT_RECORDS: list[TemperatureRecordEntry] = [
     TemperatureRecordEntry("07255", "BOURGES", "18", 33.5, dt.date(1947, 7, 19)),
     TemperatureRecordEntry("07255", "BOURGES", "18", 41.8, dt.date(2019, 7, 25)),
     # TOULOUSE-BLAGNAC : 2 records progressifs de chaud
-    TemperatureRecordEntry("07630", "TOULOUSE-BLAGNAC", "31", 35.0, dt.date(2003, 6, 28)),
-    TemperatureRecordEntry("07630", "TOULOUSE-BLAGNAC", "31", 44.0, dt.date(2019, 6, 28)),
+    TemperatureRecordEntry(
+        "07630", "TOULOUSE-BLAGNAC", "31", 35.0, dt.date(2003, 6, 28)
+    ),
+    TemperatureRecordEntry(
+        "07630", "TOULOUSE-BLAGNAC", "31", 44.0, dt.date(2019, 6, 28)
+    ),
     # LYON-BRON : 2 records progressifs de chaud
     TemperatureRecordEntry("07481", "LYON-BRON", "69", 37.2, dt.date(1947, 8, 5)),
     TemperatureRecordEntry("07481", "LYON-BRON", "69", 40.5, dt.date(2003, 8, 12)),
@@ -39,8 +42,12 @@ _FAKE_COLD_RECORDS: list[TemperatureRecordEntry] = [
     TemperatureRecordEntry("07255", "BOURGES", "18", -10.0, dt.date(1956, 2, 12)),
     TemperatureRecordEntry("07255", "BOURGES", "18", -20.5, dt.date(1985, 1, 16)),
     # TOULOUSE-BLAGNAC : 2 records progressifs de froid
-    TemperatureRecordEntry("07630", "TOULOUSE-BLAGNAC", "31", -8.0, dt.date(1963, 2, 3)),
-    TemperatureRecordEntry("07630", "TOULOUSE-BLAGNAC", "31", -15.0, dt.date(1985, 1, 16)),
+    TemperatureRecordEntry(
+        "07630", "TOULOUSE-BLAGNAC", "31", -8.0, dt.date(1963, 2, 3)
+    ),
+    TemperatureRecordEntry(
+        "07630", "TOULOUSE-BLAGNAC", "31", -15.0, dt.date(1985, 1, 16)
+    ),
 ]
 
 

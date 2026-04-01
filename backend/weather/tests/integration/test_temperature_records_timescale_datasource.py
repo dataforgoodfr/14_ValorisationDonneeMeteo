@@ -10,7 +10,6 @@ from weather.data_sources.timescale import (
 )
 from weather.services.temperature_records.types import TemperatureRecordsRequest
 
-
 # =========================
 # Helpers SQL
 # =========================
@@ -93,9 +92,7 @@ def test_fetch_records_hot_month_happy_path():
     insert_quotidienne_full(dt.date(2020, 7, 10), station_code, tx=35.0, tn=19.0)
 
     ds = TimescaleTemperatureRecordsDataSource()
-    req = TemperatureRecordsRequest(
-        period_type="month", type_records="hot", month=7
-    )
+    req = TemperatureRecordsRequest(period_type="month", type_records="hot", month=7)
     result = ds.fetch_records(req)
 
     station_entries = [e for e in result if e.station_id.strip() == station_code]
@@ -103,7 +100,9 @@ def test_fetch_records_hot_month_happy_path():
     assert len(station_entries) == 2
 
     values = [e.record_value for e in station_entries]
-    assert values == sorted(values), "Les valeurs doivent être croissantes dans le temps"
+    assert values == sorted(values), (
+        "Les valeurs doivent être croissantes dans le temps"
+    )
     assert station_entries[-1].record_value == 42.6
     assert station_entries[-1].record_date == dt.date(2019, 7, 25)
     assert station_entries[0].station_name == "Station Records Test"
@@ -120,9 +119,7 @@ def test_fetch_records_cold_month_happy_path():
     insert_quotidienne_full(dt.date(2010, 1, 7), station_code, tx=2.0, tn=-10.0)
 
     ds = TimescaleTemperatureRecordsDataSource()
-    req = TemperatureRecordsRequest(
-        period_type="month", type_records="cold", month=1
-    )
+    req = TemperatureRecordsRequest(period_type="month", type_records="cold", month=1)
     result = ds.fetch_records(req)
 
     station_entries = [e for e in result if e.station_id.strip() == station_code]
@@ -159,7 +156,9 @@ def test_fetch_records_season_aggregates_across_months():
     assert len(station_entries) == 2
 
     values = [e.record_value for e in station_entries]
-    assert values == sorted(values), "Les valeurs doivent être croissantes dans le temps"
+    assert values == sorted(values), (
+        "Les valeurs doivent être croissantes dans le temps"
+    )
     assert station_entries[-1].record_value == 44.0
 
 
@@ -176,9 +175,7 @@ def test_fetch_records_all_time_returns_entries():
     insert_quotidienne_full(dt.date(2019, 7, 25), station_code, tx=42.6, tn=22.0)
 
     ds = TimescaleTemperatureRecordsDataSource()
-    req = TemperatureRecordsRequest(
-        period_type="all_time", type_records="hot"
-    )
+    req = TemperatureRecordsRequest(period_type="all_time", type_records="hot")
     result = ds.fetch_records(req)
 
     station_entries = [e for e in result if e.station_id.strip() == station_code]
@@ -195,9 +192,7 @@ def test_fetch_records_returns_correct_types():
     insert_quotidienne_full(dt.date(2019, 7, 25), station_code, tx=42.6, tn=22.0)
 
     ds = TimescaleTemperatureRecordsDataSource()
-    req = TemperatureRecordsRequest(
-        period_type="all_time", type_records="hot"
-    )
+    req = TemperatureRecordsRequest(period_type="all_time", type_records="hot")
     result = ds.fetch_records(req)
 
     station_entries = [e for e in result if e.station_id.strip() == station_code]
