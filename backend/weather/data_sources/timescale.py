@@ -16,6 +16,11 @@ from weather.models import (
     RecordAbsolu,
     Station,
 )
+from weather.services.records.types import (
+    RecordsQuery,
+    StationRecords,
+    TemperatureRecord,
+)
 from weather.services.temperature_records.types import (
     SEASON_MONTHS,
     TemperatureRecordEntry,
@@ -516,3 +521,118 @@ class HybridTemperatureRecordsDataSource:
             )
             for row in rows
         ]
+
+
+class TimescaleRecordsDataSource:
+    """
+    Adaptateur qui implémente RecordsDataSource (nouvelle spec) en s'appuyant sur
+    HybridTemperatureRecordsDataSource.
+
+    Mapping :
+      record_scope  → period_type  (all_time, monthly→month, seasonal→season)
+      record_kind   → "absolute" = dernier record par station, "historical" = tous
+      type_records  → "all" déclenche les deux passages hot + cold
+    """
+
+    _SCOPE_TO_PERIOD = {
+        "all_time": "all_time",
+        "monthly": "month",
+        "seasonal": "season",
+    }
+
+    def __init__(self) -> None:
+        self._hybrid = HybridTemperatureRecordsDataSource()
+
+    def fetch_records(self, query: RecordsQuery) -> tuple[StationRecords, ...]:
+        period_type = self._SCOPE_TO_PERIOD[query.record_scope]
+
+        types: list[str] = (
+            ["hot", "cold"] if query.type_records == "all" else [query.type_records]
+        )
+
+        hot_entries: list[TemperatureRecordEntry] = []
+        cold_entries: list[TemperatureRecordEntry] = []
+
+        for type_records in types:
+            req = TemperatureRecordsRequest(
+                period_type=period_type,
+                type_records=type_records,
+            )
+            entries = self._hybrid.fetch_records(req)
+            if type_records == "hot":
+                hot_entries = entries
+            else:
+                cold_entries = entries
+
+        station_hot: dict[str, list[TemperatureRecordEntry]] = defaultdict(list)
+        station_cold: dict[str, list[TemperatureRecordEntry]] = defaultdict(list)
+        station_name: dict[str, str] = {}
+
+        for e in hot_entries:
+            station_hot[e.station_id].append(e)
+            station_name[e.station_id] = e.station_name
+
+        for e in cold_entries:
+            station_cold[e.station_id].append(e)
+            station_name[e.station_id] = e.station_name
+
+        all_ids: set[str] = set(station_hot) | set(station_cold)
+
+        if query.station_ids:
+            all_ids &= set(query.station_ids)
+
+        if query.departments:
+            all_ids = {
+                sid for sid in all_ids
+                if _department_of_station(sid) in query.departments
+            }
+
+        result: list[StationRecords] = []
+        for station_id in sorted(all_ids):
+            hot_recs = station_hot.get(station_id, [])
+            cold_recs = station_cold.get(station_id, [])
+
+            if query.record_kind == "absolute":
+                hot_recs = hot_recs[-1:] if hot_recs else []
+                cold_recs = cold_recs[-1:] if cold_recs else []
+
+            hot_recs = _apply_temperature_filter(hot_recs, query.temperature_min, query.temperature_max)
+            cold_recs = _apply_temperature_filter(cold_recs, query.temperature_min, query.temperature_max)
+
+            if not hot_recs and not cold_recs:
+                continue
+
+            result.append(
+                StationRecords(
+                    id=station_id,
+                    name=station_name.get(station_id, station_id),
+                    hot_records=tuple(
+                        TemperatureRecord(value=e.record_value, date=e.record_date)
+                        for e in hot_recs
+                    ),
+                    cold_records=tuple(
+                        TemperatureRecord(value=e.record_value, date=e.record_date)
+                        for e in cold_recs
+                    ),
+                )
+            )
+
+        return tuple(result)
+
+
+def _department_of_station(station_id: str) -> str:
+    if station_id.startswith(("971", "972", "973", "974", "976")):
+        return station_id[:3]
+    return station_id[:2]
+
+
+def _apply_temperature_filter(
+    entries: list[TemperatureRecordEntry],
+    temperature_min: float | None,
+    temperature_max: float | None,
+) -> list[TemperatureRecordEntry]:
+    return [
+        e for e in entries
+        if (temperature_min is None or e.record_value >= temperature_min)
+        and (temperature_max is None or e.record_value <= temperature_max)
+    ]
