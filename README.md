@@ -1,5 +1,7 @@
 # Valorisation Donnée Météo
 
+[![CI](https://github.com/BotanESGI/14_ValorisationDonneeMeteo/actions/workflows/ci.yml/badge.svg)](https://github.com/BotanESGI/14_ValorisationDonneeMeteo/actions/workflows/ci.yml)
+
 Projet Data For Good - Saison 14
 
 ## Structure du projet

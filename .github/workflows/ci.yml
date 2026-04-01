@@ -1,0 +1,286 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+  security-events: write
+  packages: write
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  backend:
+    name: Backend (tests + lint)
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:17
+        env:
+          POSTGRES_DB: meteodb
+          POSTGRES_USER: infoclimat
+          POSTGRES_PASSWORD: infoclimat2026
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U infoclimat -d meteodb"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 10
+
+    env:
+      DB_HOST: 127.0.0.1
+      DB_PORT: "5432"
+      DB_NAME: meteodb
+      DB_USER: infoclimat
+      DB_PASSWORD: infoclimat2026
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install uv
+        run: python -m pip install --upgrade pip uv
+
+      - name: Install backend dependencies (locked)
+        working-directory: backend
+        run: uv sync --extra dev --locked
+
+      - name: Backend lint (ruff)
+        working-directory: backend
+        run: |
+          uv run ruff check .
+          uv run ruff format --check .
+
+      - name: Backend tests (pytest + JUnit)
+        working-directory: backend
+        run: |
+          mkdir -p ../reports
+          uv run pytest --junitxml=../reports/pytest-junit.xml
+
+      - name: Upload backend test report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: backend-test-report
+          path: reports/pytest-junit.xml
+
+  frontend:
+    name: Frontend (tests + lint)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Install frontend dependencies
+        working-directory: frontend
+        run: npm ci
+
+      - name: Frontend lint (eslint)
+        working-directory: frontend
+        run: npm run lint
+
+      - name: Frontend tests (vitest + JUnit)
+        working-directory: frontend
+        run: |
+          mkdir -p ../reports
+          npm run test:ci -- --reporter=junit --outputFile=../reports/vitest-junit.xml
+
+      - name: Upload frontend test report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: frontend-test-report
+          path: reports/vitest-junit.xml
+
+  security:
+    name: Security (code scan + Trivy FS)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Prepare reports directory
+        run: mkdir -p reports
+
+      - name: Semgrep (code scan) -> SARIF
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install semgrep
+          semgrep ci --config p/ci --sarif --output reports/semgrep.sarif
+
+      - name: Upload Semgrep SARIF to GitHub Security
+        if: always()
+        uses: github/codeql-action/upload-sarif@v3
+        with:
+          sarif_file: reports/semgrep.sarif
+
+      - name: Upload Semgrep report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: scan-code-report-semgrep
+          path: reports/semgrep.sarif
+
+      - name: Trivy FS scan -> SARIF
+        uses: aquasecurity/trivy-action@0.28.0
+        with:
+          scan-type: fs
+          scan-ref: .
+          format: sarif
+          output: reports/trivy-fs.sarif
+          ignore-unfixed: true
+          vuln-type: os,library
+
+      - name: Trivy FS scan -> JSON
+        uses: aquasecurity/trivy-action@0.28.0
+        with:
+          scan-type: fs
+          scan-ref: .
+          format: json
+          output: reports/trivy-fs.json
+          ignore-unfixed: true
+          vuln-type: os,library
+
+      - name: Upload Trivy FS SARIF to GitHub Security
+        if: always()
+        uses: github/codeql-action/upload-sarif@v3
+        with:
+          sarif_file: reports/trivy-fs.sarif
+
+      - name: Upload Trivy FS report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: trivy-fs-report
+          path: |
+            reports/trivy-fs.sarif
+            reports/trivy-fs.json
+
+  docker:
+    name: Docker (build + scan + push on main)
+    runs-on: ubuntu-latest
+    needs: [backend, frontend, security]
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Prepare reports directory
+        run: mkdir -p reports
+
+      - name: Set image names
+        id: images
+        run: |
+          echo "backend=ghcr.io/${{ github.repository }}/backend" >> $GITHUB_OUTPUT
+          echo "frontend=ghcr.io/${{ github.repository }}/frontend" >> $GITHUB_OUTPUT
+
+      - uses: docker/setup-buildx-action@v3
+
+      - name: Login to GHCR (main only)
+        if: github.ref == 'refs/heads/main'
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build backend image (local)
+        uses: docker/build-push-action@v6
+        with:
+          context: backend
+          file: backend/Dockerfile
+          push: false
+          load: true
+          tags: |
+            ${{ steps.images.outputs.backend }}:${{ github.sha }}
+
+      - name: Build frontend image (local)
+        uses: docker/build-push-action@v6
+        with:
+          context: frontend
+          file: frontend/Dockerfile
+          push: false
+          load: true
+          tags: |
+            ${{ steps.images.outputs.frontend }}:${{ github.sha }}
+
+      - name: Install Python (for VEX generator)
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Trivy image scan (backend) -> SARIF
+        uses: aquasecurity/trivy-action@0.28.0
+        with:
+          image-ref: ${{ steps.images.outputs.backend }}:${{ github.sha }}
+          format: sarif
+          output: reports/trivy-backend-image.sarif
+          ignore-unfixed: true
+          vuln-type: os,library
+
+      - name: Trivy image scan (backend) -> JSON
+        uses: aquasecurity/trivy-action@0.28.0
+        with:
+          image-ref: ${{ steps.images.outputs.backend }}:${{ github.sha }}
+          format: json
+          output: reports/trivy-backend-image.json
+          ignore-unfixed: true
+          vuln-type: os,library
+
+      - name: Generate VEX (OpenVEX) from Trivy JSON
+        run: |
+          python scripts/trivy_to_openvex.py \
+            --trivy-json reports/trivy-backend-image.json \
+            --product "${{ steps.images.outputs.backend }}:${{ github.sha }}" \
+            --out reports/trivy-backend-image.openvex.json
+
+      - name: Upload Trivy image SARIF to GitHub Security
+        if: always()
+        uses: github/codeql-action/upload-sarif@v3
+        with:
+          sarif_file: reports/trivy-backend-image.sarif
+
+      - name: Upload Trivy image report + VEX
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: trivy-image-report-and-vex
+          path: |
+            reports/trivy-backend-image.sarif
+            reports/trivy-backend-image.json
+            reports/trivy-backend-image.openvex.json
+
+      - name: Push backend image (main only)
+        if: github.ref == 'refs/heads/main'
+        uses: docker/build-push-action@v6
+        with:
+          context: backend
+          file: backend/Dockerfile
+          push: true
+          tags: |
+            ${{ steps.images.outputs.backend }}:${{ github.sha }}
+            ${{ steps.images.outputs.backend }}:latest
+
+      - name: Push frontend image (main only)
+        if: github.ref == 'refs/heads/main'
+        uses: docker/build-push-action@v6
+        with:
+          context: frontend
+          file: frontend/Dockerfile
+          push: true
+          tags: |
+            ${{ steps.images.outputs.frontend }}:${{ github.sha }}
+            ${{ steps.images.outputs.frontend }}:latest
+
