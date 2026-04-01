@@ -13,11 +13,11 @@ def _default_builder() -> TemperatureRecordsDataSource:
     from weather.data_sources.temperature_records_fake import (
         FakeTemperatureRecordsDataSource,
     )
-    from weather.data_sources.timescale import TimescaleTemperatureRecordsDataSource
+    from weather.data_sources.timescale import MaterializedTemperatureRecordsDataSource
 
     if settings.MOCKED_DATA:
         return FakeTemperatureRecordsDataSource()
-    return TimescaleTemperatureRecordsDataSource()
+    return MaterializedTemperatureRecordsDataSource()
 
 
 class TemperatureRecordsDependencyProvider:
