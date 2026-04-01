@@ -10,11 +10,9 @@ export interface PaginatedResponse<T> {
 // ===== Station types =====
 
 export interface Station {
-    id: number;
     code: string;
     nom: string;
     departement: number;
-    frequence: string;
     poste_ouvert: boolean;
     type_poste: number;
     lon: number;
