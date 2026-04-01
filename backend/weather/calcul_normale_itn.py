@@ -1,3 +1,4 @@
+import calendar
 from collections.abc import Iterable
 
 import numpy as np
@@ -9,6 +10,42 @@ from weather.itn.gateway import ReadTemperaturesGateway
 NAN = float("nan")
 
 
+# --------------------------------------------------------------------
+def add_simulate_29th_february(
+    df: pd.DataFrame, start_year: int = 1991, end_year: int = 2020
+) -> pd.DataFrame:
+    """
+    For the non-leap year, add a simulated 29th February in order to derive
+    the daily normale. This simulated day is the average of 28th February
+    and 1st March.
+
+    Parameters
+    ----------
+    df: pd.DataFrame
+          input data
+    start_year: int
+          beginning of the period to calculate the normale
+    end_year: int
+          end of the period to calculate the normale
+
+    Returns
+    -------
+    pd.DataFrame
+          data with the simulated 29th February
+    """
+    new_df = df.copy()
+    new_df.index = new_df.index.strftime("%Y-%m-%d")
+
+    for year in range(start_year, end_year + 1, 1):
+        if not calendar.isleap(year):
+            new_df.loc[f"{year}-02-29"] = np.mean(
+                [new_df[f"{year}-02-28"], new_df[f"{year}-03-01"]]
+            )
+
+    return new_df
+
+
+# --------------------------------------------------------------------
 def compute_normale_itn(
     read_protocol: ReadTemperaturesGateway,
     stations_itn: Iterable | None = None,
@@ -36,7 +73,7 @@ def compute_normale_itn(
     Returns
     -------
     pd.DataFrame
-          daily or monthly normale of the ITN
+          daily, monthly or yearly normale of the ITN
     """
     start_date = f"{start_year}-01-01"
     end_date = f"{end_year}-12-31"
@@ -44,15 +81,17 @@ def compute_normale_itn(
     itn = compute_itn(read_protocol, stations_itn, start_date, end_date)[1]
 
     if freq == "daily":
-        index = pd.date_range(start="2024-01-01", end="2024-12-31", freq="D").strftime(
-            "%d-%b"
-        )
+        index = pd.date_range(start="2024-01-01", end="2024-12-31", freq="D")
         normale = pd.DataFrame(columns=["normale"], index=index, dtype=float)
+
+        new_itn = add_simulate_29th_february(
+            itn, start_year=start_year, end_year=end_year
+        )
         for date in index:
-            if date == "29-Feb":
-                normale.loc[date] = NAN
-            else:
-                normale.loc[date] = itn[itn.index.strftime("%d-%b") == date].mean()
+            normale.loc[date.strftime("%Y-%m-%d")] = new_itn[
+                new_itn.index.str.contains(date.strftime("-%m-%d"))
+            ].mean()
+        normale.index = normale.index.strftime("%d-%b")
     elif freq == "monthly":
         index = pd.date_range(start="2024-01-01", periods=12, freq="ME").strftime("%b")
         normale = pd.DataFrame(columns=["normale"], index=index, dtype=float)
