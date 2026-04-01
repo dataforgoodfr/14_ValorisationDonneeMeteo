@@ -7,6 +7,9 @@ jobs:
   basic-pipeline:
     runs-on: ubuntu-latest
 
+    permissions:
+      contents: write
+
     steps:
       - name: checkout repository
         uses: actions/checkout@v4
