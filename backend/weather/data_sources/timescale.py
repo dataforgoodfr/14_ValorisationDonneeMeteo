@@ -434,7 +434,7 @@ class HybridTemperatureRecordsDataSource:
             return mv_results
         if cutoff is None:
             return mv_results
-        hot_results = self._fetch_hot_records(request, cutoff)
+        hot_results = self._fetch_records_after_cutoff(request, cutoff)
         return mv_results + hot_results
 
     def _get_cutoff_date(self) -> dt.date | None:
@@ -445,7 +445,7 @@ class HybridTemperatureRecordsDataSource:
             row = cur.fetchone()
         return row[0] if row else None
 
-    def _fetch_hot_records(
+    def _fetch_records_after_cutoff(
         self, request: TemperatureRecordsRequest, cutoff_date: dt.date
     ) -> list[TemperatureRecordEntry]:
         hot = request.type_records == "hot"

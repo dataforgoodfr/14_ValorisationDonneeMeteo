@@ -1,9 +1,65 @@
+import datetime as dt
 import pathlib
 
 import pytest
 from django.db import connection
 
 BASE_DIR = pathlib.Path(__file__).resolve().parents[2]  # ajuste selon ton arbo
+
+
+def insert_station(code: str, name: str = "Station test", department: int = 1) -> None:
+    now = dt.datetime.now()
+    with connection.cursor() as cur:
+        cur.execute(
+            """
+            INSERT INTO public."Station"
+                ("createdAt", "updatedAt", "id", "nom",
+                 "departement", "frequence",
+                 "posteOuvert", "typePoste",
+                 "lon", "lat", "alt", "postePublic")
+            VALUES
+                (%(created)s, %(updated)s, %(id)s, %(name)s,
+                 %(dept)s, 'horaire',
+                 '1', 1,
+                 0.0, 0.0, 0.0, '1')
+            ON CONFLICT ("id", "frequence") DO UPDATE SET "nom" = EXCLUDED."nom"
+            """,
+            {
+                "created": now,
+                "updated": now,
+                "id": code,
+                "name": name,
+                "dept": department,
+            },
+        )
+
+
+def insert_quotidienne(
+    day: dt.date,
+    code: str,
+    *,
+    tx: float | None = None,
+    tn: float | None = None,
+) -> None:
+    with connection.cursor() as cur:
+        cur.execute(
+            """
+            INSERT INTO public."Quotidienne"
+                ("NUM_POSTE", "NOM_USUEL", "LAT", "LON", "ALTI", "AAAAMMJJ", "TX", "TN", "TNTXM")
+            VALUES
+                (%(code)s, %(name)s, 0, 0, 0, %(day)s, %(tx)s, %(tn)s, %(tntxm)s)
+            ON CONFLICT ("NUM_POSTE", "AAAAMMJJ")
+            DO UPDATE SET "TX" = EXCLUDED."TX", "TN" = EXCLUDED."TN", "TNTXM" = EXCLUDED."TNTXM"
+            """,
+            {
+                "code": code,
+                "name": f"ST {code}",
+                "day": day,
+                "tx": tx,
+                "tn": tn,
+                "tntxm": ((tx or 0) + (tn or 0)) / 2 if tx and tn else None,
+            },
+        )
 
 
 @pytest.fixture(scope="session", autouse=True)
