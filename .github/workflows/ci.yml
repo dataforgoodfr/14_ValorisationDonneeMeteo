@@ -183,8 +183,9 @@ jobs:
       - name: Set image names
         id: images
         run: |
-          echo "backend=ghcr.io/${{ github.repository }}/backend" >> $GITHUB_OUTPUT
-          echo "frontend=ghcr.io/${{ github.repository }}/frontend" >> $GITHUB_OUTPUT
+          repo_lc="$(echo "${{ github.repository }}" | tr '[:upper:]' '[:lower:]')"
+          echo "backend=ghcr.io/${repo_lc}/backend" >> $GITHUB_OUTPUT
+          echo "frontend=ghcr.io/${repo_lc}/frontend" >> $GITHUB_OUTPUT
 
       - uses: docker/setup-buildx-action@v3
 
