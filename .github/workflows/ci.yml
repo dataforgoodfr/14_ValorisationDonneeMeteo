@@ -52,7 +52,6 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y postgresql-client
           until pg_isready -h localhost -p 5432 -U infoclimat; do
-            echo "Waiting for database..."
             sleep 2
           done
 
@@ -72,15 +71,17 @@ jobs:
           name: backend-test-report
           path: backend/report.xml
 
-      - name: Auto-fix lint
-        run: |
-          cd backend
-          ruff check . --fix
-
-      - name: Verify lint
+      - name: Lint check (Ruff)
         run: |
           cd backend
           ruff check .
+
+      - name: SonarCloud Scan
+        uses: SonarSource/sonarcloud-github-action@master
+        with:
+          projectBaseDir: .
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
 
   # =========================
   # FRONTEND
@@ -124,7 +125,7 @@ jobs:
       - name: Build Docker image
         run: docker compose -f docker-compose.test.yml build
 
-      - name: Run Trivy scan (filesystem)
+      - name: Run Trivy scan
         uses: aquasecurity/trivy-action@master
         with:
           scan-type: fs
@@ -139,7 +140,7 @@ jobs:
           path: trivy-report.json
 
   # =========================
-  # PUSH DOCKER (OPTIONNEL MAIS +++)
+  # PUSH DOCKER
   # =========================
   push:
     runs-on: ubuntu-latest
