@@ -69,24 +69,6 @@ class QuotidienneITN(models.Model):
         return f"{self.station_code} {self.date}"
 
 
-class RecordAbsolu(models.Model):
-    pk = models.CompositePrimaryKey("station_code", "record_date", "record_type")
-
-    station_code = models.CharField(max_length=8)
-    station_name = models.TextField()
-    department = models.IntegerField(null=True, blank=True)
-    record_type = models.CharField(max_length=2)  # 'TX' or 'TN'
-    record_value = models.FloatField()
-    record_date = TimestampAsDateField()
-
-    class Meta:
-        managed = False
-        db_table = "v_records_absolus"
-
-    def __str__(self) -> str:
-        return f"{self.station_code} {self.record_type} date={self.record_date}"
-
-
 class BaselineStationDailyMean19912020(models.Model):
     pk = models.CompositePrimaryKey("station_code", "month", "day")
 
