@@ -16,6 +16,11 @@ from weather.models import (
     RecordAbsolu,
     Station,
 )
+from weather.services.records.types import (
+    RecordsQuery,
+    StationRecords,
+    TemperatureRecord,
+)
 from weather.services.temperature_records.types import (
     SEASON_MONTHS,
     TemperatureRecordEntry,
