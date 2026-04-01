@@ -74,10 +74,10 @@ jobs:
       - name: Lint check (Ruff)
         run: |
           cd backend
-          ruff check .
+          ruff check . --fix
 
       - name: SonarCloud Scan
-        uses: SonarSource/sonarcloud-github-action@master
+        uses: SonarSource/sonarcloud-github-action@v2
         with:
           projectBaseDir: .
         env:
@@ -126,7 +126,7 @@ jobs:
         run: docker compose -f docker-compose.test.yml build
 
       - name: Run Trivy scan
-        uses: aquasecurity/trivy-action@master
+        uses: aquasecurity/trivy-action@0.20.0
         with:
           scan-type: fs
           scan-ref: .
