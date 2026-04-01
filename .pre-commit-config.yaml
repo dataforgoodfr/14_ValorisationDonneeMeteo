@@ -1,4 +1,12 @@
 repos:
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.4.4
+    hooks:
+      - id: ruff
+        args: [--fix]
+
+      - id: ruff-format
+
   - repo: local
     hooks:
       - id: backend-pre-commit
@@ -7,8 +15,8 @@ repos:
         language: system
         pass_filenames: false
         always_run: true
-        stages: [ pre-commit, pre-push, manual ]
-        verbose: true
+
+  # Frontend hooks
   - repo: local
     hooks:
       - id: frontend-pre-commit
@@ -17,16 +25,16 @@ repos:
         language: system
         pass_filenames: false
         always_run: true
-        stages: [ pre-commit, pre-push, manual ]
-        verbose: true
+
+  # Hooks généraux
   - repo: https://github.com/pre-commit/pre-commit-hooks
     rev: v4.6.0
     hooks:
       - id: check-merge-conflict
       - id: mixed-line-ending
-        args: [ --fix=lf ]
+        args: [--fix=lf]
       - id: trailing-whitespace
-        args: [ --markdown-linebreak-ext=md ]
+        args: [--markdown-linebreak-ext=md]
       - id: end-of-file-fixer
       - id: check-yaml
       - id: check-added-large-files
