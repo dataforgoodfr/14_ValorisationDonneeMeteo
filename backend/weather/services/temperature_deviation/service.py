@@ -4,6 +4,7 @@ import datetime as dt
 from collections import defaultdict
 
 from weather.utils.date_range import (
+    iter_days_intersecting,
     iter_month_starts_intersecting,
     iter_year_starts_intersecting,
     period_start,
@@ -57,19 +58,32 @@ def _requested_bucket_starts(
     granularity: str,
 ) -> set[dt.date]:
     if granularity == "day":
-        cur = date_start
-        out = set()
-        one_day = dt.timedelta(days=1)
-        while cur <= date_end:
-            out.add(cur)
-            cur += one_day
-        return out
+        return set(iter_days_intersecting(date_start, date_end))
 
     if granularity == "month":
         return set(iter_month_starts_intersecting(date_start, date_end))
 
     if granularity == "year":
         return set(iter_year_starts_intersecting(date_start, date_end))
+
+    raise ValueError(f"Granularité non supportée : {granularity}")
+
+
+def _bucket_days(bucket_start: dt.date, granularity: str) -> tuple[dt.date, ...]:
+    if granularity == "day":
+        return (bucket_start,)
+
+    if granularity == "month":
+        if bucket_start.month == 12:
+            next_month = dt.date(bucket_start.year + 1, 1, 1)
+        else:
+            next_month = dt.date(bucket_start.year, bucket_start.month + 1, 1)
+        bucket_end = next_month - dt.timedelta(days=1)
+        return tuple(iter_days_intersecting(bucket_start, bucket_end))
+
+    if granularity == "year":
+        bucket_end = dt.date(bucket_start.year, 12, 31)
+        return tuple(iter_days_intersecting(bucket_start, bucket_end))
 
     raise ValueError(f"Granularité non supportée : {granularity}")
 
@@ -155,57 +169,78 @@ def _aggregate_observed(
 
 
 def _inject_national_baseline(
-    observed: list[ObservedPoint],
+    observed_daily: list[ObservedPoint],
+    observed_aggregated: list[ObservedPoint],
     *,
     granularity: str,
     data_source: TemperatureDeviationDailyDataSource,
 ) -> list[AggregatedDeviationPoint]:
-    if granularity == "day":
-        baseline = {
-            (p.month, p.day_of_month): p.mean
-            for p in data_source.fetch_national_daily_baseline()
-        }
+    daily_baseline = {
+        (p.month, p.day_of_month): p.mean
+        for p in data_source.fetch_national_daily_baseline()
+    }
 
+    if granularity == "day":
         return [
             AggregatedDeviationPoint(
                 date=p.date,
                 temperature=p.temperature,
-                baseline_mean=baseline[(p.date.month, p.date.day)],
+                baseline_mean=daily_baseline[(p.date.month, p.date.day)],
             )
-            for p in observed
-            if (p.date.month, p.date.day) in baseline
+            for p in observed_aggregated
+            if (p.date.month, p.date.day) in daily_baseline
         ]
 
+    observed_days_by_bucket: dict[dt.date, set[dt.date]] = defaultdict(set)
+    for p in observed_daily:
+        observed_days_by_bucket[period_start(p.date, granularity)].add(p.date)
+
+    monthly_baseline = None
+    yearly_baseline = None
+
     if granularity == "month":
-        baseline = {
+        monthly_baseline = {
             p.month: p.mean for p in data_source.fetch_national_monthly_baseline()
         }
 
-        return [
-            AggregatedDeviationPoint(
-                date=p.date,
-                temperature=p.temperature,
-                baseline_mean=baseline[p.date.month],
-            )
-            for p in observed
-            if p.date.month in baseline
-        ]
-
     if granularity == "year":
-        baseline = data_source.fetch_national_yearly_baseline()
-        if baseline is None:
-            return []
+        yearly_baseline = data_source.fetch_national_yearly_baseline()
 
-        return [
+    out: list[AggregatedDeviationPoint] = []
+    for p in observed_aggregated:
+        observed_days = observed_days_by_bucket.get(p.date, set())
+        if not observed_days:
+            continue
+
+        full_bucket_days = set(_bucket_days(p.date, granularity))
+        is_complete_bucket = observed_days == full_bucket_days
+
+        if granularity == "month" and is_complete_bucket:
+            assert monthly_baseline is not None
+            baseline_mean = monthly_baseline[p.date.month]
+        elif granularity == "year" and is_complete_bucket:
+            if yearly_baseline is None:
+                continue
+            baseline_mean = yearly_baseline.mean
+        else:
+            baseline_values = [
+                daily_baseline[(d.month, d.day)]
+                for d in sorted(observed_days)
+                if (d.month, d.day) in daily_baseline
+            ]
+            if not baseline_values:
+                continue
+            baseline_mean = sum(baseline_values) / len(baseline_values)
+
+        out.append(
             AggregatedDeviationPoint(
                 date=p.date,
                 temperature=p.temperature,
-                baseline_mean=baseline.mean,
+                baseline_mean=baseline_mean,
             )
-            for p in observed
-        ]
+        )
 
-    raise ValueError(f"Granularité non supportée : {granularity}")
+    return out
 
 
 def _point_to_payload(p: AggregatedDeviationPoint) -> dict:
@@ -263,14 +298,15 @@ def compute_temperature_deviation_series(
 
     national = None
     if include_national:
-        national_observed = data_source.fetch_national_observed_series(query)
+        national_observed_daily = data_source.fetch_national_observed_series(query)
         national_aggregated_observed = _aggregate_observed(
-            national_observed,
+            national_observed_daily,
             date_start=date_start,
             date_end=date_end,
             granularity=granularity,
         )
         nat_points = _inject_national_baseline(
+            national_observed_daily,
             national_aggregated_observed,
             granularity=granularity,
             data_source=data_source,
