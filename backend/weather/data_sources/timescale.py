@@ -13,18 +13,7 @@ from weather.models import (
     ITNBaselineMonthly19912020,
     ITNBaselineYearly19912020,
     QuotidienneITN,
-    RecordAbsolu,
     Station,
-)
-from weather.services.records.types import (
-    RecordsQuery,
-    StationRecords,
-    TemperatureRecord,
-)
-from weather.services.temperature_records.types import (
-    SEASON_MONTHS,
-    TemperatureRecordEntry,
-    TemperatureRecordsRequest,
 )
 from weather.services.national_indicator.protocols import (
     NationalIndicatorBaselineDataSource,
