@@ -20,5 +20,3 @@ declare module "echarts/types/dist/echarts" {
         axisValueLabel?: string;
     }
 }
-
-export type RecordsChartType = "scatter" | "pyramid";

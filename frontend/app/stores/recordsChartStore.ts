@@ -38,7 +38,7 @@ export const useRecordsChartStore = defineStore("recordChartStore", () => {
     const sliceType: Ref<SliceType> = ref<SliceType>("full");
     const sliceDatepickerDate = ref(new Date(2006, 0, 1));
     const chartTypeSwitchEnabled = ref(false);
-    const chartType: Ref<ChartType> = ref<ChartType>("scatter");
+    const chartType: Ref<ChartType> = ref<ChartType>("pyramid");
 
     // Record filters
     const recordKind: Ref<"historical" | "absolute"> = ref("absolute");
