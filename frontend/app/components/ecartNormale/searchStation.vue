@@ -10,8 +10,12 @@ const page = ref<number>(0);
 const allStations = ref<Station[]>([]);
 const hasMore = ref<boolean>(false);
 
+const debouncedSearch = refDebounced(searchQuery, 300);
+watch(debouncedSearch, () => {
+    page.value = 0;
+});
 const params = computed(() => ({
-    search: searchQuery.value,
+    search: debouncedSearch.value,
     offset: page.value * 100,
 }));
 const { data: stationsData, refresh } = useStations(params);
@@ -50,12 +54,6 @@ const unselectedFilteredStations = computed(() =>
         ? allStations.value
         : allStations.value.filter((s) => !isStationSelected(s)),
 );
-
-const debouncedSearch = refDebounced(searchQuery, 300);
-watch(debouncedSearch, () => {
-    page.value = 0;
-    refresh();
-});
 
 const sentinel = ref<HTMLElement | undefined>(undefined);
 
