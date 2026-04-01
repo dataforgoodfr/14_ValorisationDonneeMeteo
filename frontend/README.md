@@ -8,7 +8,7 @@
 
 ```bash
 cd frontend
-npm install
+npm ci
 ```
 
 #### Mise en place de l'environnement
@@ -31,7 +31,7 @@ L'application est accessible sur `http://localhost:3000`
 
 #### Installation
 
-Les dépendances nécessaires sont installées automatiquement avec `npm install`.
+Les dépendances nécessaires sont installées automatiquement avec `npm ci`.
 
 #### Utilisation
 
@@ -47,16 +47,15 @@ npm run check
 
 #### Résolution des problèmes
 
-Si vous obtenez "eslint: command not found" :
+Si vous avez des problèmes de dépendances, essayez de supprimer le dossier `node_modules` et de réinstaller :
 
 ```bash
 cd frontend
-npm install --legacy-peer-deps
+rm -rf node_modules
+npm ci
 ```
 
-Cela installera toutes les dépendances nécessaires dans `node_modules`.
-
-### Production
+### Test de Production
 
 ```bash
 cd frontend
@@ -164,7 +163,7 @@ Pour ce faire, mettre dans le fichier `.env` du repertoire `/backend`:
 MOCKED_DATA=true
 ```
 
-Si au contraire on souhaite utiliser une vraie base de données, voir la section **Initialiser la base de développement** sur le `README.md` du repertoire `/backend`.
+Si au contraire on souhaite utiliser une vraie base de données, voir la section **Initialiser la base de développement** sur le [../backend/README.md](`README.md`) du repertoire `/backend`.
 
 ## Lancer le serveur
 

@@ -10,7 +10,7 @@ API REST Django/DRF pour les donnees meteorologiques InfoClimat.
 
 ## Installation
 
-```
+```bash
 cd backend
 
 # Installer les dépendances, ainsi que les dépendances optionnelles de dev
@@ -32,9 +32,11 @@ cd ..
 Il est possible de lancer le projet sans utiliser de base de données.
 Les données servies par l'API sont alors des données simulées.
 Pour ce faire, mettre dans .env :
+
 ```
 MOCKED_DATA=true
 ```
+
 Si au contraire on souhaite utiliser une vraie base de données, voir la section Initialiser la base de développement ci-dessous.
 
 *Note* : Même si l'on souhaite utiliser des données simulées, il convient de lancer timescaledb comme indiqué au paragraphe précédent.
@@ -51,7 +53,6 @@ Elle est alimentée par :
 - un export CSV des données quotidiennes (2024–2025)
 - des vues SQL utilisées par Django
 - des baselines climatologiques pré-calculées (1991–2020) importées depuis des CSV
-
 
 ### Fichiers requis
 
@@ -72,10 +73,12 @@ Liste des fichiers attendus :
 ⚠️ Si un de ces fichiers est absent, le seed échouera.
 
 ### Initialisation
-```
+
+```bash
 cd backend/timescaledb-env
 docker compose run --rm db-seed
 ```
+
 Ce que fait le script
 - recrée le schéma public
 - crée les tables sources (Station, Quotidienne)
@@ -125,6 +128,7 @@ Services métier
 
 API REST
 ```
+
 Cela permet :
 
 - de stabiliser l'API
@@ -136,7 +140,7 @@ Cela permet :
 
 Les spécifications de l'API (la cible a atteindre) sont disponibles dans `openapi/target-specs/openapi.yaml`
 
-```
+```bash
 cd backend
 
 npx swagger-ui-watcher openapi/target-specs/openapi.yaml
@@ -149,8 +153,6 @@ La documentation est alors disponible sur `http://localhost:8000`
 | `/api/v1/stations/`       | Liste des stations meteo      |
 | `/api/v1/temperature/national-indicator`    | Indicateur thermique national
 | `/api/v1/temperature/deviation`       | Ecart à la normale      |
-
-
 
 ## Exemples de requetes
 
@@ -261,7 +263,8 @@ SELECT * FROM timescaledb_information.chunks;
 
 ## Notebooks
 
-###ITN
+### ITN
+
 Un notebook est disponible pour visualiser les données générées par le service national-indicator (fake datasource + agrégation).
 
 1️⃣ Installer les dépendances notebook
@@ -270,7 +273,7 @@ Les dépendances notebook ne sont pas installées par défaut.
 
 Depuis le dossier backend/ :
 
-```
+```bash
 uv sync --extra notebook
 ```
 
@@ -278,7 +281,7 @@ uv sync --extra notebook
 
 Toujours depuis backend/ :
 
-```
+```bash
 uv run jupyter lab
 ```
 
