@@ -22,7 +22,7 @@ def _build_station_code_to_fixed_temperature_map(
     always_station_temperature: float = 10.0,
 ) -> dict[str, float]:
     """Construit un mapping complet (30 slots attendus pour ce jour)."""
-    m = {code: always_station_temperature for code in ITN_ALWAYS_STATION_CODES}
+    m = dict.fromkeys(ITN_ALWAYS_STATION_CODES, always_station_temperature)
     m[expected_reims_code(day)] = reims_station_temperature
     return m
 
@@ -63,7 +63,7 @@ def test_compute_itn_drop_if_missing_any_always_station():
 
 def test_compute_itn_drop_if_missing_expected_reims():
     day = dt.date(2025, 1, 1)
-    m = {code: 10.0 for code in ITN_ALWAYS_STATION_CODES}
+    m = dict.fromkeys(ITN_ALWAYS_STATION_CODES, 10.0)
     # pas de Reims attendue => drop
     assert compute_itn_for_day(day, m) is None
 

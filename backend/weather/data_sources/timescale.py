@@ -13,18 +13,7 @@ from weather.models import (
     ITNBaselineMonthly19912020,
     ITNBaselineYearly19912020,
     QuotidienneITN,
-    RecordAbsolu,
     Station,
-)
-from weather.services.records.types import (
-    RecordsQuery,
-    StationRecords,
-    TemperatureRecord,
-)
-from weather.services.temperature_records.types import (
-    SEASON_MONTHS,
-    TemperatureRecordEntry,
-    TemperatureRecordsRequest,
 )
 from weather.services.national_indicator.protocols import (
     NationalIndicatorBaselineDataSource,
@@ -44,6 +33,11 @@ from weather.services.national_indicator.types import (
 from weather.services.national_indicator.types import (
     ObservedPoint as NationalObservedPoint,
 )
+from weather.services.records.types import (
+    RecordsQuery,
+    StationRecords,
+    TemperatureRecord,
+)
 from weather.services.temperature_deviation.protocols import (
     TemperatureDeviationDailyDataSource,
 )
@@ -55,6 +49,11 @@ from weather.services.temperature_deviation.types import (
     ObservedPoint,
     StationDailySeries,
     YearlyBaselinePoint,
+)
+from weather.services.temperature_records.types import (
+    SEASON_MONTHS,
+    TemperatureRecordEntry,
+    TemperatureRecordsRequest,
 )
 
 
@@ -334,7 +333,9 @@ class TimescaleTemperatureRecordsDataSource:
                 station_name=row[1],
                 department=str(row[2]) if row[2] is not None else "",
                 record_value=float(row[3]),
-                record_date=row[4].date() if isinstance(row[4], dt.datetime) else row[4],
+                record_date=row[4].date()
+                if isinstance(row[4], dt.datetime)
+                else row[4],
             )
             for row in rows
         ]
@@ -399,7 +400,9 @@ class MaterializedTemperatureRecordsDataSource:
                 station_name=row[1],
                 department=str(row[2]) if row[2] is not None else "",
                 record_value=float(row[3]),
-                record_date=row[4].date() if isinstance(row[4], dt.datetime) else row[4],
+                record_date=row[4].date()
+                if isinstance(row[4], dt.datetime)
+                else row[4],
             )
             for row in rows
         ]
@@ -450,7 +453,9 @@ class HybridTemperatureRecordsDataSource:
         agg = "MAX" if hot else "MIN"
         cmp = ">" if hot else "<"
         extremum_fn = "GREATEST" if hot else "LEAST"
-        neutral_val = "'-Infinity'::double precision" if hot else "'Infinity'::double precision"
+        neutral_val = (
+            "'-Infinity'::double precision" if hot else "'Infinity'::double precision"
+        )
         record_type = col
 
         if request.period_type == "month":
@@ -505,7 +510,12 @@ class HybridTemperatureRecordsDataSource:
             ORDER BY vs.name, o."AAAAMMJJ"
         """
 
-        params = [record_type, request.period_type, period_value, cutoff_date] + period_params
+        params = [
+            record_type,
+            request.period_type,
+            period_value,
+            cutoff_date,
+        ] + period_params
 
         with connection.cursor() as cur:
             cur.execute(sql, params)
@@ -517,7 +527,9 @@ class HybridTemperatureRecordsDataSource:
                 station_name=row[1],
                 department=str(row[2]) if row[2] is not None else "",
                 record_value=float(row[3]),
-                record_date=row[4].date() if isinstance(row[4], dt.datetime) else row[4],
+                record_date=row[4].date()
+                if isinstance(row[4], dt.datetime)
+                else row[4],
             )
             for row in rows
         ]
@@ -583,7 +595,8 @@ class TimescaleRecordsDataSource:
 
         if query.departments:
             all_ids = {
-                sid for sid in all_ids
+                sid
+                for sid in all_ids
                 if _department_of_station(sid) in query.departments
             }
 
@@ -596,8 +609,12 @@ class TimescaleRecordsDataSource:
                 hot_recs = hot_recs[-1:] if hot_recs else []
                 cold_recs = cold_recs[-1:] if cold_recs else []
 
-            hot_recs = _apply_temperature_filter(hot_recs, query.temperature_min, query.temperature_max)
-            cold_recs = _apply_temperature_filter(cold_recs, query.temperature_min, query.temperature_max)
+            hot_recs = _apply_temperature_filter(
+                hot_recs, query.temperature_min, query.temperature_max
+            )
+            cold_recs = _apply_temperature_filter(
+                cold_recs, query.temperature_min, query.temperature_max
+            )
 
             if not hot_recs and not cold_recs:
                 continue
@@ -632,7 +649,8 @@ def _apply_temperature_filter(
     temperature_max: float | None,
 ) -> list[TemperatureRecordEntry]:
     return [
-        e for e in entries
+        e
+        for e in entries
         if (temperature_min is None or e.record_value >= temperature_min)
         and (temperature_max is None or e.record_value <= temperature_max)
     ]
