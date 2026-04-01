@@ -335,14 +335,20 @@ class TimescaleTemperatureRecordsDataSource:
         ]
 
     def _period_clause(self, request: TemperatureRecordsRequest) -> tuple[str, list]:
-        if request.period_type == "month":
-            return 'EXTRACT(MONTH FROM q."AAAAMMJJ") = %s', [request.month]
-        elif request.period_type == "season":
-            months = list(SEASON_MONTHS[request.season])
-            placeholders = ", ".join(["%s"] * len(months))
-            return f'EXTRACT(MONTH FROM q."AAAAMMJJ") IN ({placeholders})', months
-        else:
-            return "TRUE", []
+        return _temperature_records_period_clause(request)
+
+
+def _temperature_records_period_clause(
+    request: TemperatureRecordsRequest,
+) -> tuple[str, list]:
+    if request.period_type == "month":
+        return 'EXTRACT(MONTH FROM q."AAAAMMJJ") = %s', [request.month]
+    elif request.period_type == "season":
+        months = list(SEASON_MONTHS[request.season])
+        placeholders = ", ".join(["%s"] * len(months))
+        return f'EXTRACT(MONTH FROM q."AAAAMMJJ") IN ({placeholders})', months
+    else:
+        return "TRUE", []
 
 
 class MaterializedTemperatureRecordsDataSource:
@@ -380,6 +386,124 @@ class MaterializedTemperatureRecordsDataSource:
 
         with connection.cursor() as cur:
             cur.execute(sql, [record_type, request.period_type, period_value])
+            rows = cur.fetchall()
+
+        return [
+            TemperatureRecordEntry(
+                station_id=row[0].strip(),
+                station_name=row[1],
+                department=str(row[2]) if row[2] is not None else "",
+                record_value=float(row[3]),
+                record_date=row[4].date() if isinstance(row[4], dt.datetime) else row[4],
+            )
+            for row in rows
+        ]
+
+
+class HybridTemperatureRecordsDataSource:
+    """
+    Data source hybride : lit les records pré-calculés depuis mv_records_absolus
+    (snapshot figé) et complète à chaud les nouvelles données (après cutoff_date)
+    via une window function amorcée par les records actuels de la MV.
+
+    La MV n'est jamais rafraîchie. La cutoff_date est stockée dans
+    mv_records_absolus_meta au moment de la création de la MV.
+
+    Fallback silencieux vers la MV seule si mv_records_absolus_meta est absente
+    ou vide (env de dev sans script de seed exécuté).
+    """
+
+    def __init__(self) -> None:
+        self._mv_source = MaterializedTemperatureRecordsDataSource()
+
+    def fetch_records(
+        self, request: TemperatureRecordsRequest
+    ) -> list[TemperatureRecordEntry]:
+        mv_results = self._mv_source.fetch_records(request)
+        try:
+            cutoff = self._get_cutoff_date()
+        except Exception:
+            return mv_results
+        if cutoff is None:
+            return mv_results
+        hot_results = self._fetch_hot_records(request, cutoff)
+        return mv_results + hot_results
+
+    def _get_cutoff_date(self) -> dt.date | None:
+        with connection.cursor() as cur:
+            cur.execute(
+                "SELECT cutoff_date FROM public.mv_records_absolus_meta LIMIT 1"
+            )
+            row = cur.fetchone()
+        return row[0] if row else None
+
+    def _fetch_hot_records(
+        self, request: TemperatureRecordsRequest, cutoff_date: dt.date
+    ) -> list[TemperatureRecordEntry]:
+        hot = request.type_records == "hot"
+        col = "TX" if hot else "TN"
+        agg = "MAX" if hot else "MIN"
+        cmp = ">" if hot else "<"
+        extremum_fn = "GREATEST" if hot else "LEAST"
+        neutral_val = "'-Infinity'::double precision" if hot else "'Infinity'::double precision"
+        record_type = col
+
+        if request.period_type == "month":
+            period_value: str | None = str(request.month)
+        elif request.period_type == "season":
+            period_value = request.season
+        else:
+            period_value = None
+
+        period_clause, period_params = _temperature_records_period_clause(request)
+
+        sql = f"""
+            WITH mv_seeds AS (
+                SELECT station_code, {agg}(record_value) AS seed_val
+                FROM public.mv_records_absolus
+                WHERE record_type = %s
+                  AND period_type = %s
+                  AND period_value IS NOT DISTINCT FROM %s
+                GROUP BY station_code
+            ),
+            ordered AS (
+                SELECT
+                    q."NUM_POSTE",
+                    q."AAAAMMJJ",
+                    q."{col}",
+                    {extremum_fn}(
+                        COALESCE(s.seed_val, {neutral_val}),
+                        COALESCE(
+                            {agg}(q."{col}") OVER (
+                                PARTITION BY q."NUM_POSTE"
+                                ORDER BY q."AAAAMMJJ"
+                                ROWS BETWEEN UNBOUNDED PRECEDING AND 1 PRECEDING
+                            ),
+                            {neutral_val}
+                        )
+                    ) AS prev_val
+                FROM public."Quotidienne" q
+                LEFT JOIN mv_seeds s ON s.station_code = q."NUM_POSTE"
+                WHERE q."AAAAMMJJ" > %s
+                  AND {period_clause}
+                  AND q."{col}" IS NOT NULL
+            )
+            SELECT
+                o."NUM_POSTE",
+                vs.name,
+                vs.departement,
+                o."{col}",
+                o."AAAAMMJJ"
+            FROM ordered o
+            JOIN public.v_station vs ON vs.station_code = o."NUM_POSTE"
+            WHERE o."{col}" {cmp} o.prev_val
+            ORDER BY vs.name, o."AAAAMMJJ"
+        """
+
+        params = [record_type, request.period_type, period_value, cutoff_date] + period_params
+
+        with connection.cursor() as cur:
+            cur.execute(sql, params)
             rows = cur.fetchall()
 
         return [
