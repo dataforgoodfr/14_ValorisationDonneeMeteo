@@ -16,6 +16,7 @@ dependencies = [
     "whitenoise>=6.7.0",
     "numpy>=1.26.0",
     "django-extensions>=4.1",
+    "django-prometheus>=2.3.0",
 ]
 
 [project.optional-dependencies]
