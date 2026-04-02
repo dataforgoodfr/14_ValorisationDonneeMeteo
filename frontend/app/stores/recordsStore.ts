@@ -35,24 +35,37 @@ export const useRecordsStore = defineStore("recordsStore", () => {
     };
 
     // Computed shapes expected by FilterBar (for active chips / initial state)
-    const stringFilters = computed(() => ({
-        ...(stationIds.value.length && { name: stationIds.value }),
-        ...(departments.value.length && { departement: departments.value }),
-    }));
+    const stringFilters = computed(() => {
+        const filters: Record<string, string[]> = {};
 
-    const rangeFilters = computed(() => ({
-        ...(temperatureMin.value || temperatureMax.value
-            ? {
-                  record: {
-                      min: temperatureMin.value,
-                      max: temperatureMax.value,
-                  },
-              }
-            : {}),
-        ...(dateStart.value || dateEnd.value
-            ? { record_date: { min: dateStart.value, max: dateEnd.value } }
-            : {}),
-    }));
+        if (stationIds.value.length >= 1) {
+            filters.name = stationIds.value;
+        }
+        if (departments.value.length >= 1) {
+            filters.departement = departments.value;
+        }
+
+        return filters;
+    });
+
+    const rangeFilters = computed(() => {
+        const filters: Record<string, { min?: string; max?: string }> = {};
+
+        if (temperatureMin.value || temperatureMax.value) {
+            filters.record = {
+                min: temperatureMin.value,
+                max: temperatureMax.value,
+            };
+        }
+        if (dateStart.value || dateEnd.value) {
+            filters.record_date = {
+                min: dateStart.value,
+                max: dateEnd.value,
+            };
+        }
+
+        return filters;
+    });
 
     // Map FilterBar field IDs to typed store state
     function setStringFilter(id: string, values: string[]) {
@@ -92,28 +105,35 @@ export const useRecordsStore = defineStore("recordsStore", () => {
     const debouncedDateStart = refDebounced(dateStart, debounceDuration);
     const debouncedDateEnd = refDebounced(dateEnd, debounceDuration);
 
-    const params = computed<TemperatureRecordsParams>(() => ({
-        type_records: typeRecords.value,
-        record_kind: recordKind.value,
-        ...(debouncedStationIds.value.length && {
-            station_ids: debouncedStationIds.value,
-        }),
-        ...(debouncedDepartments.value.length && {
-            departments: debouncedDepartments.value,
-        }),
-        ...(debouncedTempMin.value && {
-            temperature_min: Number(debouncedTempMin.value),
-        }),
-        ...(debouncedTempMax.value && {
-            temperature_max: Number(debouncedTempMax.value),
-        }),
-        ...(debouncedDateStart.value && {
-            date_start: debouncedDateStart.value,
-        }),
-        ...(debouncedDateEnd.value && { date_end: debouncedDateEnd.value }),
-        limit: pageSize.value,
-        offset: (page.value - 1) * pageSize.value,
-    }));
+    const params = computed<TemperatureRecordsParams>(() => {
+        const result: TemperatureRecordsParams = {
+            type_records: typeRecords.value,
+            record_kind: recordKind.value,
+            limit: pageSize.value,
+            offset: (page.value - 1) * pageSize.value,
+        };
+
+        if (debouncedStationIds.value.length >= 1) {
+            result.station_ids = debouncedStationIds.value;
+        }
+        if (debouncedDepartments.value.length >= 1) {
+            result.departments = debouncedDepartments.value;
+        }
+        if (debouncedTempMin.value) {
+            result.temperature_min = Number(debouncedTempMin.value);
+        }
+        if (debouncedTempMax.value) {
+            result.temperature_max = Number(debouncedTempMax.value);
+        }
+        if (debouncedDateStart.value) {
+            result.date_start = debouncedDateStart.value;
+        }
+        if (debouncedDateEnd.value) {
+            result.date_end = debouncedDateEnd.value;
+        }
+
+        return result;
+    });
 
     const { data: recordsData, pending, error } = useTemperatureRecords(params);
 
