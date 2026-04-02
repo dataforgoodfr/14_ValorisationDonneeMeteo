@@ -22,6 +22,36 @@ from .types import (
 )
 
 
+def _month_end(first_day_of_month: dt.date) -> dt.date:
+    if first_day_of_month.month == 12:
+        next_month = dt.date(first_day_of_month.year + 1, 1, 1)
+    else:
+        next_month = dt.date(first_day_of_month.year, first_day_of_month.month + 1, 1)
+    return next_month - dt.timedelta(days=1)
+
+
+def _year_end(first_day_of_year: dt.date) -> dt.date:
+    return dt.date(first_day_of_year.year, 12, 31)
+
+
+def _month_source_window(
+    date_start: dt.date, date_end: dt.date
+) -> tuple[dt.date, dt.date]:
+    month_starts = list(iter_month_starts_intersecting(date_start, date_end))
+    start = month_starts[0]
+    end = _month_end(month_starts[-1])
+    return start, end
+
+
+def _year_source_window(
+    date_start: dt.date, date_end: dt.date
+) -> tuple[dt.date, dt.date]:
+    year_starts = list(iter_year_starts_intersecting(date_start, date_end))
+    start = year_starts[0]
+    end = dt.date(year_starts[-1].year, 12, 31)
+    return start, end
+
+
 def _compute_source_window(
     *,
     date_start: dt.date,
@@ -32,21 +62,10 @@ def _compute_source_window(
         return date_start, date_end
 
     if granularity == "month":
-        month_starts = list(iter_month_starts_intersecting(date_start, date_end))
-        start = month_starts[0]
-        last = month_starts[-1]
-        if last.month == 12:
-            next_month = dt.date(last.year + 1, 1, 1)
-        else:
-            next_month = dt.date(last.year, last.month + 1, 1)
-        end = next_month - dt.timedelta(days=1)
-        return start, end
+        return _month_source_window(date_start, date_end)
 
     if granularity == "year":
-        year_starts = list(iter_year_starts_intersecting(date_start, date_end))
-        start = year_starts[0]
-        end = dt.date(year_starts[-1].year, 12, 31)
-        return start, end
+        return _year_source_window(date_start, date_end)
 
     raise ValueError(f"Granularité non supportée : {granularity}")
 
@@ -74,16 +93,10 @@ def _bucket_days(bucket_start: dt.date, granularity: str) -> tuple[dt.date, ...]
         return (bucket_start,)
 
     if granularity == "month":
-        if bucket_start.month == 12:
-            next_month = dt.date(bucket_start.year + 1, 1, 1)
-        else:
-            next_month = dt.date(bucket_start.year, bucket_start.month + 1, 1)
-        bucket_end = next_month - dt.timedelta(days=1)
-        return tuple(iter_days_intersecting(bucket_start, bucket_end))
+        return tuple(iter_days_intersecting(bucket_start, _month_end(bucket_start)))
 
     if granularity == "year":
-        bucket_end = dt.date(bucket_start.year, 12, 31)
-        return tuple(iter_days_intersecting(bucket_start, bucket_end))
+        return tuple(iter_days_intersecting(bucket_start, _year_end(bucket_start)))
 
     raise ValueError(f"Granularité non supportée : {granularity}")
 
