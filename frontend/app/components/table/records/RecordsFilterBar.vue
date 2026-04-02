@@ -31,6 +31,7 @@ const stationHasMore = ref(false);
 const stationFilter = computed<StationFilters>(() => ({
     search: debouncedQuery.value,
     limit: 20,
+    offset: stationPage.value * 20,
 }));
 
 const {
