@@ -1,6 +1,8 @@
 <script setup lang="ts">
 import DayPicker from "./selectBar/dayPicker.vue";
 
+const today = new Date();
+
 defineProps<{
     /** Start of the selected date range. */
     startDate: Date;
@@ -22,6 +24,7 @@ const emit = defineEmits<{
         <DayPicker
             :start-date="startDate"
             :end-date="endDate"
+            :max-date="today"
             @update:start-date="emit('update:startDate', $event)"
             @update:end-date="emit('update:endDate', $event)"
         />
