@@ -1,23 +1,22 @@
-FROM node:24-alpine AS build
+FROM dhi.io/node:24-dev AS builder
 
 WORKDIR /app
 
-COPY package*.json .
-
-RUN npm install
+COPY package*.json ./
+RUN npm ci --frozen-lockfile
 
 COPY . .
-
 RUN npm run build
 
-FROM node:24-alpine AS prod
+
+FROM dhi.io/node:24 AS final
 
 WORKDIR /app
 
-COPY --from=build /app/.output /app/.output
+COPY --from=builder /app/.output /app/.output
 
 ENV NODE_ENV=production
 
 EXPOSE 3000
 
-CMD [ "node", ".output/server/index.mjs" ]
+CMD ["node", ".output/server/index.mjs"]

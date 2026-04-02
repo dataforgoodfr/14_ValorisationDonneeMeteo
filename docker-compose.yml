@@ -1,0 +1,65 @@
+services:
+  timescaledb:
+    image: timescale/timescaledb:2.25.0-pg17
+    container_name: timescaledb
+    environment:
+      POSTGRES_USER: infoclimat
+      POSTGRES_PASSWORD: infoclimat2026
+      POSTGRES_DB: meteodb
+    volumes:
+      - timescaledb-data:/var/lib/postgresql/data
+      - ./timescaledb-env/meteodb_dump.sql:/docker-entrypoint-initdb.d/dump.sql:ro
+    networks:
+      - bd_net
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U infoclimat -d meteodb"]
+      interval: 10s
+      timeout: 20s
+      retries: 10
+      start_period: 40s
+    restart: unless-stopped
+
+  backend:
+    build:
+      context: ./backend
+      target: final
+    env_file:
+      - ./.env
+    depends_on:
+      timescaledb:
+        condition: service_healthy
+    networks:
+      - app_net
+      - bd_net
+    restart: unless-stopped
+
+  frontend:
+    build:
+      context: ./frontend
+      target: final
+    env_file:
+      - ./.env
+    networks:
+      - app_net
+    restart: unless-stopped
+
+  nginx:
+    image: dhi.io/nginx:1.27
+    ports:
+      - "80:80"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/conf.d/default.conf:ro
+    depends_on:
+      - frontend
+      - backend
+    networks:
+      - app_net
+    restart: unless-stopped
+
+volumes:
+  timescaledb-data:
+    driver: local
+
+networks:
+  app_net:
+  bd_net:
