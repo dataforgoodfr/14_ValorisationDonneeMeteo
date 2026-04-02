@@ -152,7 +152,7 @@ def test_temperature_deviation_business_returns_expected_payload_on_simple_input
             ]
 
 
-def test_temperature_deviation_business_national_month_uses_monthly_baseline():
+def test_temperature_deviation_business_national_month_partial_uses_daily_baseline():
     class DS:
         def fetch_national_observed_series(self, query):
             return [
@@ -195,8 +195,250 @@ def test_temperature_deviation_business_national_month_uses_monthly_baseline():
     # moyenne observée : (10 + 14) / 2 = 12
     assert point["temperature"] == 12.0
 
-    # doit utiliser la baseline MONTHLY (20.0), pas la moyenne daily (2.0)
+    # bucket partiel → fallback daily : (1 + 3) / 2 = 2
+    assert point["baseline_mean"] == 2.0
+
+    # deviation = 12 - 2 = 10
+    assert point["deviation"] == 10.0
+
+
+def test_national_month_full_bucket_uses_monthly_baseline():
+    class DS:
+        def fetch_national_observed_series(self, query):
+            # mois complet
+            return [
+                ObservedPoint(date=dt.date(2024, 1, d), temperature=10.0)
+                for d in range(1, 32)
+            ]
+
+        def fetch_national_daily_baseline(self):
+            return [
+                DailyBaselinePoint(month=1, day_of_month=d, mean=1.0)
+                for d in range(1, 32)
+            ]
+
+        def fetch_national_monthly_baseline(self):
+            return [MonthlyBaselinePoint(month=1, mean=20.0)]
+
+        def fetch_national_yearly_baseline(self):
+            return YearlyBaselinePoint(mean=999.0)
+
+        def fetch_stations_daily_series(self, query):
+            return []
+
+    out = get_temperature_deviation(
+        data_source=DS(),
+        date_start=dt.date(2024, 1, 1),
+        date_end=dt.date(2024, 1, 31),
+        granularity="month",
+        station_ids=(),
+        include_national=True,
+    )
+
+    point = out["national"]["data"][0]
+
     assert point["baseline_mean"] == 20.0
 
-    # deviation = 12 - 20 = -8
-    assert point["deviation"] == -8.0
+
+def test_national_month_partial_bucket_uses_daily_baseline():
+    class DS:
+        def fetch_national_observed_series(self, query):
+            return [
+                ObservedPoint(date=dt.date(2024, 1, 1), temperature=10.0),
+                ObservedPoint(date=dt.date(2024, 1, 2), temperature=14.0),
+            ]
+
+        def fetch_national_daily_baseline(self):
+            return [
+                DailyBaselinePoint(month=1, day_of_month=1, mean=1.0),
+                DailyBaselinePoint(month=1, day_of_month=2, mean=3.0),
+            ]
+
+        def fetch_national_monthly_baseline(self):
+            return [MonthlyBaselinePoint(month=1, mean=20.0)]
+
+        def fetch_national_yearly_baseline(self):
+            return YearlyBaselinePoint(mean=999.0)
+
+        def fetch_stations_daily_series(self, query):
+            return []
+
+    out = get_temperature_deviation(
+        data_source=DS(),
+        date_start=dt.date(2024, 1, 1),
+        date_end=dt.date(2024, 1, 2),
+        granularity="month",
+        station_ids=(),
+        include_national=True,
+    )
+
+    point = out["national"]["data"][0]
+
+    assert point["baseline_mean"] == 2.0
+
+
+def test_national_year_full_bucket_uses_yearly_baseline():
+    class DS:
+        def fetch_national_observed_series(self, query):
+            return [
+                ObservedPoint(
+                    date=dt.date(2024, 1, 1) + dt.timedelta(days=i), temperature=10.0
+                )
+                for i in range(366)  # 2024 bissextile
+            ]
+
+        def fetch_national_daily_baseline(self):
+            return [
+                DailyBaselinePoint(
+                    month=(dt.date(2024, 1, 1) + dt.timedelta(days=i)).month,
+                    day_of_month=(dt.date(2024, 1, 1) + dt.timedelta(days=i)).day,
+                    mean=1.0,
+                )
+                for i in range(366)
+            ]
+
+        def fetch_national_monthly_baseline(self):
+            return []
+
+        def fetch_national_yearly_baseline(self):
+            return YearlyBaselinePoint(mean=50.0)
+
+        def fetch_stations_daily_series(self, query):
+            return []
+
+    out = get_temperature_deviation(
+        data_source=DS(),
+        date_start=dt.date(2024, 1, 1),
+        date_end=dt.date(2024, 12, 31),
+        granularity="year",
+        station_ids=(),
+        include_national=True,
+    )
+
+    point = out["national"]["data"][0]
+
+    assert point["baseline_mean"] == 50.0
+
+
+def test_national_year_partial_bucket_uses_daily_baseline():
+    class DS:
+        def fetch_national_observed_series(self, query):
+            return [
+                ObservedPoint(date=dt.date(2024, 1, 1), temperature=10.0),
+                ObservedPoint(date=dt.date(2024, 1, 2), temperature=14.0),
+            ]
+
+        def fetch_national_daily_baseline(self):
+            return [
+                DailyBaselinePoint(month=1, day_of_month=1, mean=1.0),
+                DailyBaselinePoint(month=1, day_of_month=2, mean=3.0),
+            ]
+
+        def fetch_national_monthly_baseline(self):
+            return []
+
+        def fetch_national_yearly_baseline(self):
+            return YearlyBaselinePoint(mean=999.0)
+
+        def fetch_stations_daily_series(self, query):
+            return []
+
+    out = get_temperature_deviation(
+        data_source=DS(),
+        date_start=dt.date(2024, 1, 1),
+        date_end=dt.date(2024, 1, 2),
+        granularity="year",
+        station_ids=(),
+        include_national=True,
+    )
+
+    point = out["national"]["data"][0]
+
+    assert point["baseline_mean"] == 2.0
+
+
+def test_temperature_deviation_business_month_extends_source_window_to_full_month():
+    class DS:
+        def fetch_national_observed_series(self, query):
+            assert query.date_start == dt.date(2024, 1, 1)
+            assert query.date_end == dt.date(2024, 1, 31)
+
+            return [
+                ObservedPoint(date=dt.date(2024, 1, 1), temperature=10.0),
+                ObservedPoint(date=dt.date(2024, 1, 31), temperature=14.0),
+            ]
+
+        def fetch_national_daily_baseline(self):
+            return [
+                DailyBaselinePoint(month=1, day_of_month=1, mean=1.0),
+                DailyBaselinePoint(month=1, day_of_month=31, mean=3.0),
+            ]
+
+        def fetch_national_monthly_baseline(self):
+            return [MonthlyBaselinePoint(month=1, mean=20.0)]
+
+        def fetch_national_yearly_baseline(self):
+            return YearlyBaselinePoint(mean=999.0)
+
+        def fetch_stations_daily_series(self, query):
+            assert query.date_start == dt.date(2024, 1, 1)
+            assert query.date_end == dt.date(2024, 1, 31)
+            return []
+
+    out = get_temperature_deviation(
+        data_source=DS(),
+        date_start=dt.date(2024, 1, 15),
+        date_end=dt.date(2024, 1, 20),
+        granularity="month",
+        station_ids=(),
+        include_national=True,
+    )
+
+    point = out["national"]["data"][0]
+
+    # observé agrégé sur le mois complet fetché
+    assert point["date"] == dt.date(2024, 1, 1)
+    assert point["temperature"] == 12.0
+
+
+def test_temperature_deviation_business_year_extends_source_window_to_full_year():
+    class DS:
+        def fetch_national_observed_series(self, query):
+            assert query.date_start == dt.date(2024, 1, 1)
+            assert query.date_end == dt.date(2024, 12, 31)
+
+            return [
+                ObservedPoint(date=dt.date(2024, 1, 1), temperature=10.0),
+                ObservedPoint(date=dt.date(2024, 12, 31), temperature=14.0),
+            ]
+
+        def fetch_national_daily_baseline(self):
+            return [
+                DailyBaselinePoint(month=1, day_of_month=1, mean=1.0),
+                DailyBaselinePoint(month=12, day_of_month=31, mean=3.0),
+            ]
+
+        def fetch_national_monthly_baseline(self):
+            return []
+
+        def fetch_national_yearly_baseline(self):
+            return YearlyBaselinePoint(mean=50.0)
+
+        def fetch_stations_daily_series(self, query):
+            assert query.date_start == dt.date(2024, 1, 1)
+            assert query.date_end == dt.date(2024, 12, 31)
+            return []
+
+    out = get_temperature_deviation(
+        data_source=DS(),
+        date_start=dt.date(2024, 3, 15),
+        date_end=dt.date(2024, 9, 10),
+        granularity="year",
+        station_ids=(),
+        include_national=True,
+    )
+
+    point = out["national"]["data"][0]
+
+    assert point["date"] == dt.date(2024, 1, 1)
+    assert point["temperature"] == 12.0

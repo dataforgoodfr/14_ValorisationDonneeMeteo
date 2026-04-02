@@ -75,8 +75,8 @@ def test_temperature_deviation_acceptance_month_uses_monthly_baseline_for_nation
 
     assert point["date"] == dt.date(2024, 1, 1)
     assert point["temperature"] == 12.0
-    assert point["baseline_mean"] == 20.0
-    assert point["deviation"] == -8.0
+    assert point["baseline_mean"] == 2.0  # (1 + 3) / 2
+    assert point["deviation"] == 10
 
     station = stations[0]
     assert station["station_id"] == "07149"
