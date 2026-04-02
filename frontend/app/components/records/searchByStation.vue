@@ -1,19 +1,25 @@
 <script setup lang="ts">
-import { useIntersectionObserver } from "@vueuse/core";
+import { refDebounced, useIntersectionObserver } from "@vueuse/core";
 import type { Station } from "~/types/api";
 
-const props = defineProps(["searchQuery"]);
+const props = defineProps({
+    searchQuery: {
+        type: String,
+        default: "",
+    },
+});
 const store = useRecordsGraphStore();
-const { stationNameFilter } = storeToRefs(store);
+const { stationCodeFilter } = storeToRefs(store);
 const { setStationFilter } = store;
 
 const searchQueryRef = toRef(props, "searchQuery");
+const debouncedSearch = refDebounced(searchQueryRef, 200);
 
 const params = computed(() => ({
-    search: searchQueryRef.value,
+    search: debouncedSearch.value,
 }));
 
-const { allStations, onRefresh, hasMore } =
+const { allStations, onLoadMore, hasMore } =
     useStationsWithInfiniteScroll(params);
 
 function onSelectStation(_event: PointerEvent, station: Station) {
@@ -21,15 +27,18 @@ function onSelectStation(_event: PointerEvent, station: Station) {
 }
 
 const unselectedFilteredStations = computed(() => {
-    const stationNamesFilter = stationNameFilter.value;
-    return allStations.value.filter((s) => !stationNamesFilter.includes(s.nom));
+    const stationCodesFilter = stationCodeFilter.value;
+    return (
+        allStations.value.filter((s) => !stationCodesFilter.includes(s.code)) ??
+        []
+    );
 });
 
 const sentinel = ref<HTMLElement | undefined>(undefined);
 
 function loadMore() {
     if (!hasMore.value) return;
-    onRefresh();
+    onLoadMore();
 }
 
 useIntersectionObserver(sentinel, ([entry]) => {
@@ -37,27 +46,29 @@ useIntersectionObserver(sentinel, ([entry]) => {
 });
 </script>
 <template>
-    <div class="overflow-y-auto">
-        <ul>
-            <li
-                v-for="station in unselectedFilteredStations"
-                :key="`filtered-${station.nom}`"
-                :title="`${station.nom} (${station.departement})`"
-                class="cursor-pointer pr-2 py-1 text-sm flex items-center justify-between"
-                @click="onSelectStation($event, station)"
-            >
-                <span class="truncate"
-                    >{{ station.nom }} ({{ station.departement }})</span
+    <ClientOnly>
+        <div class="overflow-y-auto">
+            <ul>
+                <li
+                    v-for="station in unselectedFilteredStations"
+                    :key="`filtered-${station.code}`"
+                    :title="`${station.nom} (${station.departement})`"
+                    class="cursor-pointer pr-2 py-1 text-sm flex items-center justify-between"
+                    @click="onSelectStation($event, station)"
                 >
-                <UIcon name="i-lucide-plus" class="shrink-0" />
-            </li>
-            <li
-                v-if="hasMore"
-                ref="sentinel"
-                class="py-1 text-center text-xs text-gray-400"
-            >
-                <span>Chargement...</span>
-            </li>
-        </ul>
-    </div>
+                    <span class="truncate"
+                        >{{ station.nom }} ({{ station.departement }})</span
+                    >
+                    <UIcon name="i-lucide-plus" class="shrink-0" />
+                </li>
+                <li
+                    v-if="hasMore"
+                    ref="sentinel"
+                    class="py-1 text-center text-xs text-gray-400"
+                >
+                    <span>Chargement...</span>
+                </li>
+            </ul>
+        </div>
+    </ClientOnly>
 </template>

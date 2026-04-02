@@ -1,5 +1,14 @@
 <script setup lang="ts">
-import departments from "./departments.json";
+import { departements } from "~/data/records/departements";
+
+const props = defineProps({
+    searchQuery: {
+        type: String,
+        default: "",
+    },
+});
+
+const searchQueryRef = toRef(props, "searchQuery");
 
 const store = useRecordsGraphStore();
 const { departmentsFilter } = storeToRefs(store);
@@ -14,7 +23,22 @@ function onSelectDepartment(
 
 const unselectedFilteredDepartments = computed(() => {
     const departmentCodesFilter = departmentsFilter.value;
-    return departments.filter((d) => !departmentCodesFilter.includes(d.code));
+    return departements.filter((department) => {
+        if (searchQueryRef.value && searchQueryRef.value.trim() !== "") {
+            const normalizedDepartment = normalizeString(department.name);
+
+            const searchQueryLower = normalizeString(
+                searchQueryRef.value,
+            ).toLowerCase();
+            const departmentNameLower = normalizedDepartment.toLowerCase();
+            return (
+                !departmentCodesFilter.includes(department.code) &&
+                (departmentNameLower.includes(searchQueryLower) ||
+                    department.code.toLowerCase().includes(searchQueryLower))
+            );
+        }
+        return !departmentCodesFilter.includes(department.code);
+    });
 });
 </script>
 <template>

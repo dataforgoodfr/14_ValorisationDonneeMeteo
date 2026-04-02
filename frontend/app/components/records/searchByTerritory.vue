@@ -1,35 +1,35 @@
 <script setup lang="ts">
-import departments from "./departments.json";
-
 const store = useRecordsGraphStore();
-const { departmentsFilter } = storeToRefs(store);
-const { setDepartmentFilter } = store;
+const { territoriesFilter } = storeToRefs(store);
+const { setTerritoryFilter } = store;
 
-function onSelectDepartment(
+function onSelectTerritory(
     _event: PointerEvent,
-    department: { code: string; name: string },
+    territory: { code: string; name: string },
 ) {
-    setDepartmentFilter(department);
+    setTerritoryFilter(territory);
 }
 
-const unselectedFilteredDepartments = computed(() => {
-    const departmentCodesFilter = departmentsFilter.value;
-    return departments.filter((d) => !departmentCodesFilter.includes(d.code));
+const isTerroritorySelected = computed(() => {
+    console.log("territoriesFilter", territoriesFilter.value); // Debug log to check the value of territoriesFilter
+    return territoriesFilter.value.includes("FR");
 });
 </script>
 <template>
-    <div class="overflow-y-auto">
+    <div>
         <ul>
             <li
-                v-for="department in unselectedFilteredDepartments"
-                :key="`filtered-${department.code}`"
-                :title="`${department.name} (${department.code})`"
+                v-if="!isTerroritorySelected"
+                :title="'France métropolitaine'"
                 class="cursor-pointer pr-2 py-1 text-sm flex items-center justify-between"
-                @click="onSelectDepartment($event, department)"
+                @click="
+                    onSelectTerritory($event, {
+                        code: 'FR',
+                        name: 'France métropolitaine',
+                    })
+                "
             >
-                <span class="truncate"
-                    >{{ department.name }} ({{ department.code }})</span
-                >
+                <span class="truncate">France métropolitaine</span>
                 <UIcon name="i-lucide-plus" class="shrink-0" />
             </li>
         </ul>
