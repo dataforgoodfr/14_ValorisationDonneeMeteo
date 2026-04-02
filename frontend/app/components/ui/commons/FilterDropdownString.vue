@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { useIntersectionObserver } from "@vueuse/core";
 import type { FilterField, FilterOption } from "./filterBarTypes";
 
 const props = defineProps<{
@@ -14,6 +15,8 @@ const props = defineProps<{
     searchQuery: string;
     /** When true, shows a loading spinner in the search input. */
     asyncPending?: boolean;
+    /** When true, shows a sentinel at the bottom that triggers load-more on scroll. */
+    hasMore?: boolean;
 }>();
 
 const emit = defineEmits<{
@@ -21,11 +24,16 @@ const emit = defineEmits<{
     search: [query: string];
     toggle: [value: string];
     clear: [];
+    "load-more": [];
 }>();
 
+// Sentinel used to detect when the user scrolled to the bottom of the dropdown.
+const sentinel = ref<HTMLElement | undefined>(undefined);
+useIntersectionObserver(sentinel, ([entry]) => {
+    if (entry?.isIntersecting) emit("load-more");
+});
+
 function getEmptyStateMessage(): string {
-    if (props.field.type === "string-async" && !props.searchQuery)
-        return "Tapez pour rechercher...";
     return "Aucun résultat";
 }
 
@@ -67,6 +75,13 @@ function onInput(query: string) {
         >
             {{ getEmptyStateMessage() }}
         </p>
+        <div
+            v-if="hasMore"
+            ref="sentinel"
+            class="px-3 py-2 text-center text-xs text-muted"
+        >
+            <span>Chargement...</span>
+        </div>
     </div>
     <div
         v-if="selectedValues.length > 0"

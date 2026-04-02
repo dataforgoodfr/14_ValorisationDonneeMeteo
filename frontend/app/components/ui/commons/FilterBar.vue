@@ -21,6 +21,8 @@ const props = defineProps<{
     rangeFilters: Record<string, { min: string; max: string }>;
     /** Loading state per field id, shown as a spinner in the search input. */
     asyncPending?: Record<string, boolean>;
+    /** Whether more pages are available per field id, used to show infinite scroll sentinel. */
+    asyncHasMore?: Record<string, boolean>;
 }>();
 
 const emit = defineEmits<{
@@ -28,6 +30,7 @@ const emit = defineEmits<{
     "update:rangeFilter": [id: string, min: string, max: string];
     clear: [id: string];
     search: [id: string, query: string];
+    "load-more": [id: string];
 }>();
 
 // Only one dropdown can be open at a time — single refs suffice for all local state.
@@ -77,11 +80,7 @@ function toggleDropdown(field: FilterField) {
 }
 
 function getDisplayedOptions(field: FilterField): FilterOption[] {
-    // For async fields the parent fetches results only while a query is active.
-    // When the query is empty the dropdown should be blank so the user sees the
-    // "Tapez pour rechercher…" placeholder, not stale or selected-only options.
-    if (field.type === "string-async")
-        return searchQuery.value ? filterOptionsFor(field.id) : [];
+    if (field.type === "string-async") return filterOptionsFor(field.id);
     const allValues = filterOptionsFor(field.id);
     const search = searchQuery.value.toLowerCase();
     if (!search) return allValues;
@@ -206,10 +205,12 @@ const hasAnyFilter = computed(
                                 :selected-values="stringFilterFor(field.id)"
                                 :search-query="searchQuery"
                                 :async-pending="asyncPending?.[field.id]"
+                                :has-more="asyncHasMore?.[field.id]"
                                 @update:search-query="searchQuery = $event"
                                 @search="emit('search', field.id, $event)"
                                 @toggle="toggleStringValue(field.id, $event)"
                                 @clear="emit('clear', field.id)"
+                                @load-more="emit('load-more', field.id)"
                             />
                             <FilterDropdownRange
                                 v-else-if="field.type === 'number-range'"

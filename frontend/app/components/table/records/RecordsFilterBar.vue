@@ -23,10 +23,14 @@ const { setStringFilter, setRangeFilter, clearFilter } = store;
 
 const searchQuery = ref("");
 const debouncedQuery = refDebounced(searchQuery, 300);
+const stationPage = ref(0);
+const allStationOptions = ref<FilterOption[]>([]);
+const stationHasMore = ref(false);
 
 const stationFilter = computed<StationFilters>(() => ({
     search: debouncedQuery.value,
     limit: 20,
+    offset: stationPage.value * 20,
 }));
 
 const {
@@ -35,19 +39,26 @@ const {
     execute: fetchStations,
 } = useStations(stationFilter, { immediate: false, watch: false });
 
-watch(debouncedQuery, (query) => {
-    if (query) {
-        stationsData.value = undefined;
-        fetchStations();
-    }
-});
-
-const stationOptions = computed<FilterOption[]>(() => {
-    if (!debouncedQuery.value) return [];
-    return (stationsData.value?.results ?? []).map((s) => ({
+watch(stationsData, (newData) => {
+    if (!newData) return;
+    const newOptions = newData.results.map((s) => ({
         value: s.code,
         label: s.nom,
     }));
+    if (stationPage.value === 0) {
+        allStationOptions.value = newOptions;
+    } else {
+        allStationOptions.value = [...allStationOptions.value, ...newOptions];
+    }
+    stationHasMore.value = !!newData.next;
+});
+
+watch(debouncedQuery, () => {
+    stationPage.value = 0;
+    allStationOptions.value = [];
+    stationsData.value = undefined;
+    stationHasMore.value = false;
+    fetchStations();
 });
 
 // Preserve code→name for selected stations so chips resolve labels after
@@ -58,7 +69,7 @@ function onUpdateStringFilter(id: string, values: string[]) {
     if (id === "name") {
         selectedStationOptions.value = values.map(
             (code) =>
-                stationOptions.value.find((o) => o.value === code) ??
+                allStationOptions.value.find((o) => o.value === code) ??
                 selectedStationOptions.value.find((o) => o.value === code) ?? {
                     value: code,
                     label: code,
@@ -71,7 +82,22 @@ function onUpdateStringFilter(id: string, values: string[]) {
 function onSearch(id: string, query: string) {
     if (id === "name") {
         searchQuery.value = query;
-        if (!query) stationsData.value = undefined;
+        // When the dropdown opens with an empty query, debouncedQuery won't
+        // change (it's already ""), so the watcher won't fire — fetch directly.
+        if (!query) {
+            stationPage.value = 0;
+            allStationOptions.value = [];
+            stationsData.value = undefined;
+            stationHasMore.value = false;
+            fetchStations();
+        }
+    }
+}
+
+function onLoadMore(id: string) {
+    if (id === "name" && stationHasMore.value) {
+        stationPage.value++;
+        fetchStations();
     }
 }
 
@@ -79,7 +105,7 @@ function onSearch(id: string, query: string) {
 // Selected options are appended only when not already present in search results,
 // so chips can always resolve code→name even when search results are cleared.
 const filterOptions = computed(() => {
-    const searchResults = stationOptions.value;
+    const searchResults = allStationOptions.value;
     const searchResultCodes = new Set(searchResults.map((o) => o.value));
     const extraSelected = selectedStationOptions.value.filter(
         (o) => !searchResultCodes.has(o.value),
@@ -98,10 +124,12 @@ const filterOptions = computed(() => {
         :string-filters="stringFilters"
         :range-filters="rangeFilters"
         :async-pending="{ name: stationPending }"
+        :async-has-more="{ name: stationHasMore }"
         @update:string-filter="onUpdateStringFilter"
         @update:range-filter="setRangeFilter"
         @clear="clearFilter"
         @search="onSearch"
+        @load-more="onLoadMore"
     >
         <template #actions>
             <UFieldGroup class="ml-auto">
