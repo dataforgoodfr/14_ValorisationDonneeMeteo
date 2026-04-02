@@ -204,11 +204,12 @@ cd frontend && npm run check
 
 #### Problème d'environnement Node.js
 
-Si vous obtenez une erreur "eslint: command not found" :
+Si vous avez des problèmes de dépendances, essayez de supprimer le dossier `node_modules` et de réinstaller :
 
 ```bash
 cd frontend
-npm install --legacy-peer-deps
+rm -rf node_modules
+npm ci
 ```
 
 ### Outils utilisés
