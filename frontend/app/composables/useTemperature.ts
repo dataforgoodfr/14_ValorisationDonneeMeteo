@@ -1,4 +1,9 @@
-import type { DeviationParams, DeviationResponse } from "~/types/api";
+import type {
+    DeviationParams,
+    DeviationResponse,
+    TemperatureRecordsParams,
+    TemperatureRecordsResponse,
+} from "~/types/api";
 
 export function useTemperatureDeviation(
     params: MaybeRef<DeviationParams>,
@@ -37,10 +42,35 @@ export function useTemperatureExtremes(
 }
 
 export function useTemperatureRecords(
-    params?: MaybeRef<Record<string, unknown>>,
+    params?: MaybeRef<TemperatureRecordsParams>,
+    enabled?: MaybeRef<boolean>,
 ) {
     const { useApiFetch } = useApiClient();
-    return useApiFetch("/temperature/records", { query: params });
+
+    if (enabled === undefined) {
+        return useApiFetch<TemperatureRecordsResponse>("/temperature/records", {
+            query: params,
+        });
+    }
+
+    const isEnabled = toRef(enabled);
+
+    const result = useApiFetch<TemperatureRecordsResponse>(
+        "/temperature/records",
+        {
+            query: params,
+            imediate: isEnabled.value,
+            watch: false,
+        },
+    );
+
+    watch([isEnabled, params], () => {
+        if (isEnabled.value) {
+            result.execute();
+        }
+    });
+
+    return result;
 }
 
 export function useCumulativeRecords(
