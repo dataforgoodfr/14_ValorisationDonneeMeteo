@@ -3,6 +3,12 @@ import PagesHero from "~/components/layout/PagesHero.vue";
 import RecordsTable from "~/components/table/records/recordsTable.vue";
 import ChartLayout from "~/components/layout/ChartLayout.vue";
 import SearchByTerritoryType from "~/components/records/SearchByTerritoryType.vue";
+import SearchStation from "~/components/ecartNormale/searchStation.vue";
+import { useRecordsSelectBarAdapter } from "~/adapters/recordsSelectBarAdapter";
+import SelectBar from "~/components/ui/commons/selectBar/selectBar.vue";
+import RecordsChart from "~/components/charts/recordsChart.vue";
+
+const selectBarAdapter = useRecordsSelectBarAdapter();
 
 const heroData = {
     title: "Records",
