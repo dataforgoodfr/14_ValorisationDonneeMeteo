@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import type { ButtonProps } from "@nuxt/ui";
-import ImportantInformationSection from "~/components/home/ImportantInformationSection.vue";
+import KeyPoints from "~/components/home/keyPoints.vue";
 
 const heroLinks = ref<ButtonProps[]>([
     {
@@ -31,6 +31,6 @@ const heroLinks = ref<ButtonProps[]>([
                     'justify-normal text-slate-300 text-5xl sm:text-7xl text-pretty tracking-tight font-medium',
             }"
         />
-        <ImportantInformationSection />
+        <KeyPoints />
     </UContainer>
 </template>
