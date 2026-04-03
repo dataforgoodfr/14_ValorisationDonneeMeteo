@@ -8,8 +8,13 @@ const { includeNational, selectedStations } = storeToRefs(deviationStore);
 const searchQuery = ref<undefined | string>(undefined);
 const debouncedSearch = refDebounced(searchQuery, 300);
 
+const debouncedSearch = refDebounced(searchQuery, 300);
+watch(debouncedSearch, () => {
+    page.value = 0;
+});
 const params = computed(() => ({
     search: debouncedSearch.value,
+    offset: page.value * 100,
 }));
 const { allStations, onLoadMore, hasMore } =
     useStationsWithInfiniteScroll(params);
