@@ -1,12 +1,16 @@
 <script setup lang="ts">
 import { onClickOutside } from "@vueuse/core";
-import { strToDate, dateToStr } from "~/utils/date";
-import type { FilterField, FilterOption } from "./filterBarTypes";
+import type { FilterField, FilterOption, FilterValue } from "./filterBarTypes";
 import FilterDropdownString from "./FilterDropdownString.vue";
 import FilterDropdownRange from "./FilterDropdownRange.vue";
 import FilterDropdownDateRange from "./FilterDropdownDateRange.vue";
 import FilterActiveChips from "./FilterActiveChips.vue";
-export type { FilterType, FilterField, FilterOption } from "./filterBarTypes";
+export type {
+    FilterType,
+    FilterField,
+    FilterOption,
+    FilterValue,
+} from "./filterBarTypes";
 
 const props = defineProps<{
     /** Field definitions that determine which filters are shown and their type. */
@@ -15,10 +19,8 @@ const props = defineProps<{
      *  this should include both live search results and options for already-selected
      *  values so that active chips can always resolve labels. */
     filterOptions: Record<string, FilterOption[]>;
-    /** Currently active string filters, keyed by field id. */
-    stringFilters: Record<string, string[]>;
-    /** Currently active range filters, keyed by field id. */
-    rangeFilters: Record<string, { min: string; max: string }>;
+    /** Currently active filters, keyed by field id. */
+    filters: Record<string, FilterValue>;
     /** Loading state per field id, shown as a spinner in the search input. */
     asyncPending?: Record<string, boolean>;
     /** Whether more pages are available per field id, used to show infinite scroll sentinel. */
@@ -26,8 +28,7 @@ const props = defineProps<{
 }>();
 
 const emit = defineEmits<{
-    "update:stringFilter": [id: string, values: string[]];
-    "update:rangeFilter": [id: string, min: string, max: string];
+    "update:filter": [id: string, value: FilterValue];
     clear: [id: string];
     search: [id: string, query: string];
     "load-more": [id: string];
@@ -43,7 +44,10 @@ const localDateRange = ref<{ start: Date; end: Date }>({
 });
 
 // Prop access helpers — consolidate ?? in one place, not scattered across the template.
-const stringFilterFor = (id: string): string[] => props.stringFilters[id] ?? [];
+const stringValuesFor = (id: string): string[] => {
+    const f = props.filters[id];
+    return f?.type === "string" ? f.values : [];
+};
 const filterOptionsFor = (id: string): FilterOption[] =>
     props.filterOptions[id] ?? [];
 
@@ -53,9 +57,25 @@ onClickOutside(containerRef, () => {
 });
 
 function getFilterCount(id: string): number {
-    if (stringFilterFor(id).length) return stringFilterFor(id).length;
-    if (props.rangeFilters[id]?.min || props.rangeFilters[id]?.max) return 1;
-    return 0;
+    const f = props.filters[id];
+    if (!f) {
+        return 0;
+    }
+    if (f.type === "string") {
+        return f.values.length;
+    }
+    if (f.type === "number-range") {
+        // Beware, min and max can contain 0 which evaluates to false.
+        if (
+            (f.min !== undefined && f.min !== "") ||
+            (f.max !== undefined && f.max !== "")
+        ) {
+            return 1;
+        } else {
+            return 0;
+        }
+    }
+    return f.min !== undefined || f.max !== undefined ? 1 : 0;
 }
 
 function toggleDropdown(field: FilterField) {
@@ -63,13 +83,15 @@ function toggleDropdown(field: FilterField) {
         openField.value = null;
         return;
     }
-    const stored = props.rangeFilters[field.id];
+    const f = props.filters[field.id];
     if (field.type === "date-range") {
+        const stored = f?.type === "date-range" ? f : undefined;
         localDateRange.value = {
-            start: stored?.min ? strToDate(stored.min) : new Date(),
-            end: stored?.max ? strToDate(stored.max) : new Date(),
+            start: stored?.min ?? new Date(),
+            end: stored?.max ?? new Date(),
         };
     } else {
+        const stored = f?.type === "number-range" ? f : undefined;
         localRange.value = { min: stored?.min ?? "", max: stored?.max ?? "" };
     }
     searchQuery.value = "";
@@ -80,67 +102,42 @@ function toggleDropdown(field: FilterField) {
 }
 
 function getDisplayedOptions(field: FilterField): FilterOption[] {
-    if (field.type === "string-async") return filterOptionsFor(field.id);
+    if (field.type === "string-async") {
+        return filterOptionsFor(field.id);
+    }
     const allValues = filterOptionsFor(field.id);
     const search = searchQuery.value.toLowerCase();
-    if (!search) return allValues;
+    if (!search) {
+        return allValues;
+    }
     return allValues.filter((v) => v.label.toLowerCase().includes(search));
 }
 
 function toggleStringValue(id: string, value: string) {
-    const current = stringFilterFor(id);
+    const current = stringValuesFor(id);
     const next = current.includes(value)
         ? current.filter((v) => v !== value)
         : [...current, value];
-    emit("update:stringFilter", id, next);
+    emit("update:filter", id, { type: "string", values: next });
 }
 
 function onUpdateRange(key: "min" | "max", value: string) {
     localRange.value[key] = value;
     const { id } = openField.value!;
-    emit("update:rangeFilter", id, localRange.value.min, localRange.value.max);
+    emit("update:filter", id, { type: "number-range", ...localRange.value });
 }
 
 function onUpdateDateRange(key: "start" | "end", date: Date) {
     localDateRange.value[key] = date;
     const { id } = openField.value!;
-    emit(
-        "update:rangeFilter",
-        id,
-        dateToStr(localDateRange.value.start),
-        dateToStr(localDateRange.value.end),
-    );
+    emit("update:filter", id, {
+        type: "date-range",
+        min: localDateRange.value.start,
+        max: localDateRange.value.end,
+    });
 }
 
-const activeStringFilters = computed(() =>
-    Object.entries(props.stringFilters)
-        .filter(([, values]) => values.length > 0)
-        .map(([id, values]) => ({
-            id,
-            label: props.fields.find((f) => f.id === id)?.label ?? id,
-            values,
-        })),
-);
-
-const activeRangeFilters = computed(() =>
-    Object.entries(props.rangeFilters)
-        .filter(([, range]) => range.min || range.max)
-        .map(([id, range]) => {
-            const field = props.fields.find((f) => f.id === id);
-            return {
-                id,
-                label: field?.label ?? id,
-                type: field?.type ?? "number-range",
-                range,
-            };
-        }),
-);
-
-const hasAnyFilter = computed(
-    () =>
-        activeStringFilters.value.length > 0 ||
-        activeRangeFilters.value.length > 0,
-);
+const hasAnyFilter = computed(() => Object.keys(props.filters).length > 0);
 </script>
 
 <template>
@@ -202,7 +199,7 @@ const hasAnyFilter = computed(
                                 "
                                 :field="field"
                                 :options="getDisplayedOptions(field)"
-                                :selected-values="stringFilterFor(field.id)"
+                                :selected-values="stringValuesFor(field.id)"
                                 :search-query="searchQuery"
                                 :async-pending="asyncPending?.[field.id]"
                                 :has-more="asyncHasMore?.[field.id]"
@@ -216,12 +213,7 @@ const hasAnyFilter = computed(
                                 v-else-if="field.type === 'number-range'"
                                 :min="localRange.min"
                                 :max="localRange.max"
-                                :has-filter="
-                                    !!(
-                                        rangeFilters[field.id]?.min ||
-                                        rangeFilters[field.id]?.max
-                                    )
-                                "
+                                :has-filter="getFilterCount(field.id) > 0"
                                 @update:min="onUpdateRange('min', $event)"
                                 @update:max="onUpdateRange('max', $event)"
                                 @clear="emit('clear', field.id)"
@@ -230,12 +222,7 @@ const hasAnyFilter = computed(
                                 v-else
                                 :start-date="localDateRange.start"
                                 :end-date="localDateRange.end"
-                                :has-filter="
-                                    !!(
-                                        rangeFilters[field.id]?.min ||
-                                        rangeFilters[field.id]?.max
-                                    )
-                                "
+                                :has-filter="getFilterCount(field.id) > 0"
                                 @update:start-date="
                                     onUpdateDateRange('start', $event)
                                 "
@@ -251,8 +238,8 @@ const hasAnyFilter = computed(
                 <!-- Active filter chips -->
                 <FilterActiveChips
                     v-if="hasAnyFilter"
-                    :active-string-filters="activeStringFilters"
-                    :active-range-filters="activeRangeFilters"
+                    :fields="fields"
+                    :filters="filters"
                     :filter-options="filterOptions"
                     @toggle-string-value="toggleStringValue"
                     @clear="emit('clear', $event)"

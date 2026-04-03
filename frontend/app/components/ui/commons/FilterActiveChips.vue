@@ -1,25 +1,35 @@
 <script setup lang="ts">
 import { formatDateForDisplay } from "~/utils/date";
-import type { FilterOption } from "./filterBarTypes";
+import type {
+    FilterField,
+    FilterOption,
+    FilterValue,
+    StringFilterValue,
+    RangeFilterValue,
+    DateFilterValue,
+} from "./filterBarTypes";
 
-interface ActiveStringFilter {
+interface StringChip {
+    kind: "string";
     id: string;
     label: string;
-    values: string[];
+    values: { value: string; label: string }[];
 }
 
-interface ActiveRangeFilter {
+interface RangeChip {
+    kind: "range";
     id: string;
     label: string;
-    type: string;
-    range: { min: string; max: string };
+    display: string;
 }
+
+type ActiveChip = StringChip | RangeChip;
 
 const props = defineProps<{
-    /** String filter groups that have at least one active value. */
-    activeStringFilters: ActiveStringFilter[];
-    /** Range filters that have an active min or max bound. */
-    activeRangeFilters: ActiveRangeFilter[];
+    /** Field definitions — used to resolve display labels. */
+    fields: FilterField[];
+    /** Currently active filters, keyed by field id. */
+    filters: Record<string, FilterValue>;
     /** Options map used to resolve a raw filter value (e.g. a station code)
      *  to its display label inside each chip. */
     filterOptions: Record<string, FilterOption[]>;
@@ -30,77 +40,120 @@ const emit = defineEmits<{
     clear: [id: string];
 }>();
 
-function getValueLabel(fieldId: string, value: string): string {
-    return (
-        props.filterOptions[fieldId]?.find((v) => v.value === value)?.label ??
-        value
-    );
+const labelFor = (id: string) =>
+    props.fields.find((f) => f.id === id)?.label ?? id;
+
+function toStringChip(id: string, f: StringFilterValue): StringChip | null {
+    if (f.values.length === 0) return null;
+    return {
+        kind: "string",
+        id,
+        label: labelFor(id),
+        values: f.values.map((v) => ({
+            value: v,
+            label:
+                props.filterOptions[id]?.find((o) => o.value === v)?.label ?? v,
+        })),
+    };
 }
 
-function getRangeDisplay(filter: ActiveRangeFilter): string {
-    let { min, max } = filter.range;
-    const unit = filter.type === "number-range" ? "°C" : "";
+function toRangeChip(
+    id: string,
+    f: RangeFilterValue | DateFilterValue,
+): RangeChip | null {
+    let min: string | undefined;
+    let max: string | undefined;
+    let unit: string;
+    let display: string;
 
-    if (filter.type === "date-range") {
-        min = min ? formatDateForDisplay(min) : "";
-        max = max ? formatDateForDisplay(max) : "";
+    if (f.type === "number-range") {
+        min = f.min;
+        max = f.max;
+        unit = "°C";
+    } else {
+        min = f.min ? formatDateForDisplay(f.min) : undefined;
+        max = f.max ? formatDateForDisplay(f.max) : undefined;
+        unit = "";
     }
 
-    if (min && max) return `${min}${unit} → ${max}${unit}`;
-    if (min) return `≥ ${min}${unit}`;
-    if (max) return `≤ ${max}${unit}`;
-    return "";
+    if (!min && !max) {
+        return null;
+    } else if (min && max) {
+        display = `${min}${unit} → ${max}${unit}`;
+    } else if (min) {
+        display = `≥ ${min}${unit}`;
+    } else {
+        display = `≤ ${max}${unit}`;
+    }
+
+    return { kind: "range", id, label: labelFor(id), display };
 }
+
+// There are only two types of chips, so we must convert the input filters into one of these two types.
+const activeChips = computed<ActiveChip[]>(() =>
+    // Use flatMap to automatically discard filters that couldn't be converted into chips.
+    Object.entries(props.filters).flatMap(([id, f]) => {
+        let chip: ActiveChip | null;
+        if (f.type === "string") {
+            chip = toStringChip(id, f);
+        } else {
+            chip = toRangeChip(id, f);
+        }
+        return chip ? [chip] : [];
+    }),
+);
 </script>
 
 <template>
     <div class="flex flex-wrap items-center gap-x-4 gap-y-2">
-        <!-- String filter groups -->
-        <div
-            v-for="filter in activeStringFilters"
-            :key="filter.id"
-            class="flex items-center gap-1.5"
-        >
-            <span class="text-xs font-semibold text-muted shrink-0">
-                {{ filter.label }} ({{ filter.values.length }}) :
-            </span>
-            <div class="flex flex-wrap gap-1">
-                <span
-                    v-for="val in filter.values"
-                    :key="val"
-                    class="inline-flex items-center gap-1 pl-2 pr-1 py-0.5 rounded-full bg-primary/10 text-primary text-xs font-medium"
-                >
-                    {{ getValueLabel(filter.id, val) }}
-                    <button
-                        class="hover:bg-primary/20 rounded-full p-0.5 transition-colors"
-                        @click="emit('toggleStringValue', filter.id, val)"
-                    >
-                        <UIcon name="i-lucide-x" class="size-2.5" />
-                    </button>
+        <template v-for="chip in activeChips" :key="chip.id">
+            <!-- String filter group -->
+            <div
+                v-if="chip.kind === 'string'"
+                class="flex items-center gap-1.5"
+            >
+                <span class="text-xs font-semibold text-muted shrink-0">
+                    {{ chip.label }} ({{ chip.values.length }}) :
                 </span>
+                <div class="flex flex-wrap gap-1">
+                    <span
+                        v-for="val in chip.values"
+                        :key="val.value"
+                        class="inline-flex items-center gap-1 pl-2 pr-1 py-0.5 rounded-full bg-primary/10 text-primary text-xs font-medium"
+                    >
+                        {{ val.label }}
+                        <button
+                            class="hover:bg-primary/20 rounded-full p-0.5 transition-colors"
+                            @click="
+                                emit('toggleStringValue', chip.id, val.value)
+                            "
+                        >
+                            <UIcon name="i-lucide-x" class="size-2.5" />
+                        </button>
+                    </span>
+                </div>
+                <button
+                    class="inline-flex items-center justify-center size-4 rounded-full bg-muted/20 hover:bg-error/20 hover:text-error transition-colors"
+                    title="Supprimer tous les filtres pour ce champ"
+                    @click="emit('clear', chip.id)"
+                >
+                    <UIcon name="i-lucide-x" class="size-2.5" />
+                </button>
             </div>
-            <button
-                class="inline-flex items-center justify-center size-4 rounded-full bg-muted/20 hover:bg-error/20 hover:text-error transition-colors"
-                title="Supprimer tous les filtres pour ce champ"
-                @click="emit('clear', filter.id)"
-            >
-                <UIcon name="i-lucide-x" class="size-2.5" />
-            </button>
-        </div>
 
-        <!-- Range filter chips -->
-        <span
-            v-for="filter in activeRangeFilters"
-            :key="filter.id"
-            class="inline-flex items-center gap-1.5 pl-2.5 pr-1 py-0.5 rounded-full bg-primary/10 text-primary text-xs font-medium"
-        >
-            <span>{{ filter.label }} : {{ getRangeDisplay(filter) }}</span>
-            <button
-                class="hover:bg-primary/20 rounded-full p-0.5 transition-colors"
-                @click="emit('clear', filter.id)"
+            <!-- Range/date chip -->
+            <span
+                v-else
+                class="inline-flex items-center gap-1.5 pl-2.5 pr-1 py-0.5 rounded-full bg-primary/10 text-primary text-xs font-medium"
             >
-                <UIcon name="i-lucide-x" class="size-2.5" />
-            </button>
-        </span>
+                <span>{{ chip.label }} : {{ chip.display }}</span>
+                <button
+                    class="hover:bg-primary/20 rounded-full p-0.5 transition-colors"
+                    @click="emit('clear', chip.id)"
+                >
+                    <UIcon name="i-lucide-x" class="size-2.5" />
+                </button>
+            </span>
+        </template>
     </div>
 </template>

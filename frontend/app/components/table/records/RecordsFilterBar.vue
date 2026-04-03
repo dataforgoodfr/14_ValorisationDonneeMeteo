@@ -6,6 +6,7 @@ import FilterBar from "~/components/ui/commons/FilterBar.vue";
 import type {
     FilterField,
     FilterOption,
+    FilterValue,
 } from "~/components/ui/commons/FilterBar.vue";
 import type { StationFilters } from "~/types/api";
 import { useStations } from "~/composables/useStations";
@@ -18,8 +19,8 @@ const filterFields: FilterField[] = [
 ];
 
 const store = useRecordsStore();
-const { stringFilters, rangeFilters, typeRecords } = storeToRefs(store);
-const { setStringFilter, setRangeFilter, clearFilter } = store;
+const { filters, typeRecords } = storeToRefs(store);
+const { setFilter, clearFilter } = store;
 
 const searchQuery = ref("");
 const debouncedQuery = refDebounced(searchQuery, 300);
@@ -65,9 +66,9 @@ watch(debouncedQuery, () => {
 // search results are cleared. Updated at selection time when labels are available.
 const selectedStationOptions = ref<FilterOption[]>([]);
 
-function onUpdateStringFilter(id: string, values: string[]) {
-    if (id === "name") {
-        selectedStationOptions.value = values.map(
+function onUpdateFilter(id: string, value: FilterValue) {
+    if (id === "name" && value.type === "string") {
+        selectedStationOptions.value = value.values.map(
             (code) =>
                 allStationOptions.value.find((o) => o.value === code) ??
                 selectedStationOptions.value.find((o) => o.value === code) ?? {
@@ -76,7 +77,7 @@ function onUpdateStringFilter(id: string, values: string[]) {
                 },
         );
     }
-    setStringFilter(id, values);
+    setFilter(id, value);
 }
 
 function onSearch(id: string, query: string) {
@@ -111,7 +112,7 @@ const filterOptions = computed(() => {
         (o) => !searchResultCodes.has(o.value),
     );
     return {
-        ...store.uniqueValues,
+        ...store.staticOptions,
         name: [...searchResults, ...extraSelected],
     };
 });
@@ -121,12 +122,10 @@ const filterOptions = computed(() => {
     <FilterBar
         :fields="filterFields"
         :filter-options="filterOptions"
-        :string-filters="stringFilters"
-        :range-filters="rangeFilters"
+        :filters="filters"
         :async-pending="{ name: stationPending }"
         :async-has-more="{ name: stationHasMore }"
-        @update:string-filter="onUpdateStringFilter"
-        @update:range-filter="setRangeFilter"
+        @update:filter="onUpdateFilter"
         @clear="clearFilter"
         @search="onSearch"
         @load-more="onLoadMore"

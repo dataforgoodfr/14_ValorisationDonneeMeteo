@@ -1,11 +1,13 @@
 import { refDebounced } from "@vueuse/core";
 import { useTemperatureRecords } from "~/composables/useTemperature";
 import { departements } from "~/data/records/departements";
+import { dateToStr } from "~/utils/date";
 import type {
     RecordKind,
     TypeRecords,
     TemperatureRecordsParams,
 } from "~/types/api";
+import type { FilterValue } from "~/components/ui/commons/filterBarTypes";
 
 const debounceDuration = 300;
 
@@ -18,68 +20,66 @@ export const useRecordsStore = defineStore("recordsStore", () => {
     const typeRecords = ref<TypeRecords>("hot");
     const recordKind = ref<RecordKind>("absolute");
 
-    // Filters — stored as strings to stay compatible with FilterBar's range inputs
+    // Filters
     const stationIds = ref<string[]>([]);
     const departments = ref<string[]>([]);
-    const temperatureMin = ref("");
-    const temperatureMax = ref("");
-    const dateStart = ref("");
-    const dateEnd = ref("");
+    const temperatureMin = ref<string | undefined>(undefined);
+    const temperatureMax = ref<string | undefined>(undefined);
+    const dateStart = ref<Date | undefined>(undefined);
+    const dateEnd = ref<Date | undefined>(undefined);
 
-    // Unique values for the Département dropdown
-    const uniqueValues = {
+    // Static options for the Département dropdown
+    const staticOptions = {
         departement: departements.map((d) => ({
             value: d.code,
             label: `${d.code} - ${d.name}`,
         })),
     };
 
-    // Computed shapes expected by FilterBar (for active chips / initial state)
-    const stringFilters = computed(() => {
-        const filters: Record<string, string[]> = {};
+    const filters = computed<Record<string, FilterValue>>(() => {
+        const result: Record<string, FilterValue> = {};
 
         if (stationIds.value.length >= 1) {
-            filters.name = stationIds.value;
+            result.name = { type: "string", values: stationIds.value };
         }
         if (departments.value.length >= 1) {
-            filters.departement = departments.value;
+            result.departement = { type: "string", values: departments.value };
         }
-
-        return filters;
-    });
-
-    const rangeFilters = computed(() => {
-        const filters: Record<string, { min?: string; max?: string }> = {};
-
         if (temperatureMin.value || temperatureMax.value) {
-            filters.record = {
+            result.record = {
+                type: "number-range",
                 min: temperatureMin.value,
                 max: temperatureMax.value,
             };
         }
         if (dateStart.value || dateEnd.value) {
-            filters.record_date = {
+            result.record_date = {
+                type: "date-range",
                 min: dateStart.value,
                 max: dateEnd.value,
             };
         }
 
-        return filters;
+        return result;
     });
 
-    // Map FilterBar field IDs to typed store state
-    function setStringFilter(id: string, values: string[]) {
-        if (id === "name") stationIds.value = values;
-        else if (id === "departement") departments.value = values;
-    }
-
-    function setRangeFilter(id: string, min: string, max: string) {
-        if (id === "record") {
-            temperatureMin.value = min;
-            temperatureMax.value = max;
-        } else if (id === "record_date") {
-            dateStart.value = min;
-            dateEnd.value = max;
+    function setFilter(id: string, value: FilterValue) {
+        if (value.type === "string") {
+            if (id === "name") {
+                stationIds.value = value.values;
+            } else if (id === "departement") {
+                departments.value = value.values;
+            }
+        } else if (value.type === "number-range") {
+            if (id === "record") {
+                temperatureMin.value = value.min;
+                temperatureMax.value = value.max;
+            }
+        } else if (value.type === "date-range") {
+            if (id === "record_date") {
+                dateStart.value = value.min;
+                dateEnd.value = value.max;
+            }
         }
     }
 
@@ -89,11 +89,11 @@ export const useRecordsStore = defineStore("recordsStore", () => {
         } else if (id === "departement") {
             departments.value = [];
         } else if (id === "record") {
-            temperatureMin.value = "";
-            temperatureMax.value = "";
+            temperatureMin.value = undefined;
+            temperatureMax.value = undefined;
         } else if (id === "record_date") {
-            dateStart.value = "";
-            dateEnd.value = "";
+            dateStart.value = undefined;
+            dateEnd.value = undefined;
         }
     }
 
@@ -126,10 +126,10 @@ export const useRecordsStore = defineStore("recordsStore", () => {
             result.temperature_max = Number(debouncedTempMax.value);
         }
         if (debouncedDateStart.value) {
-            result.date_start = debouncedDateStart.value;
+            result.date_start = dateToStr(debouncedDateStart.value);
         }
         if (debouncedDateEnd.value) {
-            result.date_end = debouncedDateEnd.value;
+            result.date_end = dateToStr(debouncedDateEnd.value);
         }
 
         return result;
@@ -142,11 +142,9 @@ export const useRecordsStore = defineStore("recordsStore", () => {
         pageSize,
         typeRecords,
         recordKind,
-        stringFilters,
-        rangeFilters,
-        uniqueValues,
-        setStringFilter,
-        setRangeFilter,
+        filters,
+        staticOptions,
+        setFilter,
         clearFilter,
         recordsData,
         pending,
