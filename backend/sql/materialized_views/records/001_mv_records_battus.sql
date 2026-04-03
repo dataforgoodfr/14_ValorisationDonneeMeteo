@@ -118,6 +118,10 @@ tn_monthly AS (
 -- SEASONAL : window partitionnée par (station, saison)
 --   winter = 12, 1, 2 | spring = 3, 4, 5
 --   summer = 6, 7, 8  | autumn = 9, 10, 11
+--
+-- Pour l'hiver, on utilise une winter_year cohérente : déc N appartient au
+-- même hiver que jan/fév N+1. winter_year = YEAR si mois=12, sinon YEAR-1.
+-- Cela évite de mélanger déc N avec jan/fév N+1 dans la window function.
 -- -------------------------------------------------------------------------
 
 tx_seasonal AS (
@@ -138,6 +142,13 @@ tx_seasonal AS (
                     WHEN  3 THEN 'spring' WHEN 4 THEN 'spring' WHEN 5 THEN 'spring'
                     WHEN  6 THEN 'summer' WHEN 7 THEN 'summer' WHEN 8 THEN 'summer'
                     WHEN  9 THEN 'autumn' WHEN 10 THEN 'autumn' WHEN 11 THEN 'autumn'
+                END,
+                -- Pour l'hiver uniquement : regroupe déc N avec jan/fév N+1
+                CASE EXTRACT(MONTH FROM q."AAAAMMJJ")::int
+                    WHEN 12 THEN EXTRACT(YEAR FROM q."AAAAMMJJ")::int
+                    WHEN  1 THEN EXTRACT(YEAR FROM q."AAAAMMJJ")::int - 1
+                    WHEN  2 THEN EXTRACT(YEAR FROM q."AAAAMMJJ")::int - 1
+                    ELSE NULL
                 END
             ORDER BY q."AAAAMMJJ"
             ROWS BETWEEN UNBOUNDED PRECEDING AND 1 PRECEDING
@@ -164,6 +175,13 @@ tn_seasonal AS (
                     WHEN  3 THEN 'spring' WHEN 4 THEN 'spring' WHEN 5 THEN 'spring'
                     WHEN  6 THEN 'summer' WHEN 7 THEN 'summer' WHEN 8 THEN 'summer'
                     WHEN  9 THEN 'autumn' WHEN 10 THEN 'autumn' WHEN 11 THEN 'autumn'
+                END,
+                -- Pour l'hiver uniquement : regroupe déc N avec jan/fév N+1
+                CASE EXTRACT(MONTH FROM q."AAAAMMJJ")::int
+                    WHEN 12 THEN EXTRACT(YEAR FROM q."AAAAMMJJ")::int
+                    WHEN  1 THEN EXTRACT(YEAR FROM q."AAAAMMJJ")::int - 1
+                    WHEN  2 THEN EXTRACT(YEAR FROM q."AAAAMMJJ")::int - 1
+                    ELSE NULL
                 END
             ORDER BY q."AAAAMMJJ"
             ROWS BETWEEN UNBOUNDED PRECEDING AND 1 PRECEDING
