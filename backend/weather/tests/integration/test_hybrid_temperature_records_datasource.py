@@ -4,12 +4,10 @@ import datetime as dt
 from unittest.mock import patch
 
 import pytest
-from django.db import connection
 
 from weather.data_sources.timescale import HybridTemperatureRecordsDataSource
 from weather.services.temperature_records.types import TemperatureRecordsRequest
 from weather.tests.conftest import (
-    clear_mv,
     insert_mv_record,
     insert_quotidienne,
     insert_station,
