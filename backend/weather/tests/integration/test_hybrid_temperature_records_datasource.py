@@ -8,58 +8,13 @@ from django.db import connection
 
 from weather.data_sources.timescale import HybridTemperatureRecordsDataSource
 from weather.services.temperature_records.types import TemperatureRecordsRequest
-from weather.tests.conftest import insert_quotidienne, insert_station
-
-# =========================
-# Helpers SQL
-# =========================
-
-
-def insert_mv_record(
-    station_code: str,
-    station_name: str,
-    period_type: str,
-    period_value: str | None,
-    record_type: str,
-    value: float,
-    date: dt.date,
-    department: int = 75,
-) -> None:
-    with connection.cursor() as cur:
-        cur.execute(
-            """
-            INSERT INTO public.mv_records_absolus
-                (period_type, period_value, record_type,
-                 station_code, station_name, department,
-                 record_value, record_date)
-            VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
-            """,
-            [
-                period_type,
-                period_value,
-                record_type,
-                station_code,
-                station_name,
-                department,
-                value,
-                date,
-            ],
-        )
-
-
-def set_cutoff(date: dt.date) -> None:
-    with connection.cursor() as cur:
-        cur.execute("TRUNCATE public.mv_records_absolus_meta;")
-        cur.execute(
-            "INSERT INTO public.mv_records_absolus_meta (cutoff_date) VALUES (%s);",
-            [date],
-        )
-
-
-def clear_mv() -> None:
-    with connection.cursor() as cur:
-        cur.execute("TRUNCATE public.mv_records_absolus;")
-        cur.execute("TRUNCATE public.mv_records_absolus_meta;")
+from weather.tests.conftest import (
+    clear_mv,
+    insert_mv_record,
+    insert_quotidienne,
+    insert_station,
+    set_cutoff,
+)
 
 
 # =========================
