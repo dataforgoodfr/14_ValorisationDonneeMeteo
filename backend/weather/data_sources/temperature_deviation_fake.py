@@ -11,9 +11,13 @@ from weather.services.temperature_deviation.protocols import (
     TemperatureDeviationDailyDataSource,
 )
 from weather.services.temperature_deviation.types import (
+    DailyBaselinePoint,
     DailyDeviationPoint,
     DailyDeviationSeriesQuery,
+    MonthlyBaselinePoint,
+    ObservedPoint,
     StationDailySeries,
+    YearlyBaselinePoint,
 )
 from weather.utils.date_range import iter_days_intersecting
 
@@ -38,18 +42,17 @@ def _stable_int_from_str(value: str) -> int:
     return int(digest[:16], 16)
 
 
-def _generate_national_daily_point(
+def _generate_national_observed_point(
     *,
     day: dt.date,
     rng: random.Random,
-) -> DailyDeviationPoint:
+) -> ObservedPoint:
     baseline_mean, sigma = _climatology_for_date(day)
     temperature = baseline_mean + rng.gauss(0.0, sigma * 0.6)
 
-    return DailyDeviationPoint(
+    return ObservedPoint(
         date=day,
         temperature=temperature,
-        baseline_mean=baseline_mean,
     )
 
 
@@ -90,18 +93,56 @@ def _generate_station_series(
     ]
 
 
+def _fake_daily_baseline() -> list[DailyBaselinePoint]:
+    year = 2000
+    start = dt.date(year, 1, 1)
+    end = dt.date(year, 12, 31)
+
+    out: list[DailyBaselinePoint] = []
+    for day in iter_days_intersecting(start, end):
+        baseline_mean, _ = _climatology_for_date(day)
+        out.append(
+            DailyBaselinePoint(
+                month=day.month,
+                day_of_month=day.day,
+                mean=baseline_mean,
+            )
+        )
+    return out
+
+
+def _fake_monthly_baseline() -> list[MonthlyBaselinePoint]:
+    daily = _fake_daily_baseline()
+    by_month: dict[int, list[float]] = {}
+
+    for p in daily:
+        by_month.setdefault(p.month, []).append(p.mean)
+
+    return [
+        MonthlyBaselinePoint(
+            month=month,
+            mean=sum(values) / len(values),
+        )
+        for month, values in sorted(by_month.items())
+    ]
+
+
+def _fake_yearly_baseline() -> YearlyBaselinePoint:
+    daily = _fake_daily_baseline()
+    return YearlyBaselinePoint(mean=sum(p.mean for p in daily) / len(daily))
+
+
 class FakeTemperatureDeviationDailyDataSource(TemperatureDeviationDailyDataSource):
     def __init__(self) -> None:
         self._seed = 123
 
-    def fetch_national_daily_series(
+    def fetch_national_observed_series(
         self, query: DailyDeviationSeriesQuery
-    ) -> list[DailyDeviationPoint]:
+    ) -> list[ObservedPoint]:
         rng = random.Random(self._seed)
         days = tuple(iter_days_intersecting(query.date_start, query.date_end))
 
-        out = [_generate_national_daily_point(day=d, rng=rng) for d in days]
-        return out
+        return [_generate_national_observed_point(day=d, rng=rng) for d in days]
 
     def fetch_stations_daily_series(
         self, query: DailyDeviationSeriesQuery
@@ -125,3 +166,12 @@ class FakeTemperatureDeviationDailyDataSource(TemperatureDeviationDailyDataSourc
             )
 
         return out
+
+    def fetch_national_daily_baseline(self) -> list[DailyBaselinePoint]:
+        return _fake_daily_baseline()
+
+    def fetch_national_monthly_baseline(self) -> list[MonthlyBaselinePoint]:
+        return _fake_monthly_baseline()
+
+    def fetch_national_yearly_baseline(self) -> YearlyBaselinePoint | None:
+        return _fake_yearly_baseline()

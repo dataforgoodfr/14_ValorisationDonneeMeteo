@@ -34,6 +34,13 @@ export interface SelectBarAdapter<
     setChartType?: (value: ChartType) => void;
     turnOffSliceType?: (value: boolean) => void;
 
+    // Export configuration
+    exportConfig: {
+        chartName: string;
+        csvHeaders: string[];
+        getCsvRows: () => unknown[] | undefined;
+    };
+
     features: {
         hasSliceType: boolean;
         hasChartTypeSelector: boolean;

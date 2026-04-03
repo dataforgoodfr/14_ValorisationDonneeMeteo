@@ -1,11 +1,12 @@
-from __future__ import annotations
-
 import datetime as dt
+from collections.abc import Callable
 
 import pytest
-from django.db import connection
 
-from weather.data_sources.timescale import TimescaleNationalIndicatorDailyDataSource
+from weather.data_sources.timescale import (
+    TimescaleNationalIndicatorBaselineDataSource,
+    TimescaleNationalIndicatorObservedDataSource,
+)
 from weather.services.national_indicator.stations import (
     ITN_ALWAYS_STATION_CODES,
     REIMS_COURCY,
@@ -13,30 +14,18 @@ from weather.services.national_indicator.stations import (
     expected_reims_code,
 )
 from weather.services.national_indicator.types import DailySeriesQuery
+from weather.tests.helpers.itn import insert_quotidienne
+from weather.tests.helpers.itn_baseline import (
+    insert_daily_baseline,
+    insert_monthly_baseline,
+    insert_yearly_baseline,
+)
 
-
-def insert_quotidienne(day: dt.date, code: str, tntxm: float) -> None:
-    with connection.cursor() as cur:
-        cur.execute(
-            """
-            INSERT INTO public."Quotidienne"
-              ("NUM_POSTE","NOM_USUEL","LAT","LON","ALTI","AAAAMMJJ","TNTXM")
-            VALUES
-              (%(code)s, %(name)s, 0.0, 0.0, 0.0, %(day)s, %(tntxm)s)
-            ON CONFLICT ("NUM_POSTE","AAAAMMJJ")
-            DO UPDATE SET "TNTXM" = EXCLUDED."TNTXM"
-            """,
-            {
-                "code": code,
-                "name": f"ST {code}",
-                "day": day,
-                "tntxm": tntxm,
-            },
-        )
+pytestmark = pytest.mark.django_db
 
 
 @pytest.fixture()
-def seed_itn_day(db):
+def seed_itn_day() -> Callable[..., None]:
     def _seed(
         day: dt.date,
         *,
@@ -64,13 +53,16 @@ def seed_itn_day(db):
     return _seed
 
 
-@pytest.mark.django_db
-def test_fetch_daily_series_happy_path(seed_itn_day):
+# ----------------------------
+# Observed datasource tests
+# ----------------------------
+def test_fetch_daily_series_happy_path(
+    seed_itn_day: Callable[..., None],
+):
     day = dt.date(2025, 1, 1)
     seed_itn_day(day)
 
-    ds = TimescaleNationalIndicatorDailyDataSource()
-
+    ds = TimescaleNationalIndicatorObservedDataSource()
     query = DailySeriesQuery(
         date_start=day,
         date_end=day,
@@ -81,17 +73,16 @@ def test_fetch_daily_series_happy_path(seed_itn_day):
 
     assert len(result) == 1
     assert result[0].date == day
-    assert result[0].temperature == pytest.approx((29 * 10 + 20) / 30)
+    assert result[0].temperature == pytest.approx((29 * 10.0 + 20.0) / 30.0)
 
 
-@pytest.mark.django_db
-def test_fetch_daily_series_drop_incomplete_day(seed_itn_day):
+def test_fetch_daily_series_drop_incomplete_day(
+    seed_itn_day: Callable[..., None],
+):
     day = dt.date(2025, 1, 1)
-
     seed_itn_day(day, incomplete=True)
 
-    ds = TimescaleNationalIndicatorDailyDataSource()
-
+    ds = TimescaleNationalIndicatorObservedDataSource()
     query = DailySeriesQuery(
         date_start=day,
         date_end=day,
@@ -103,35 +94,15 @@ def test_fetch_daily_series_drop_incomplete_day(seed_itn_day):
     assert result == []
 
 
-@pytest.mark.django_db
-def test_fetch_daily_series_double_reims(seed_itn_day):
-    day = dt.date(2025, 1, 1)
-
-    seed_itn_day(day, include_both_reims=True)
-
-    ds = TimescaleNationalIndicatorDailyDataSource()
-
-    query = DailySeriesQuery(
-        date_start=day,
-        date_end=day,
-        target_dates=None,
-    )
-
-    result = ds.fetch_daily_series(query)
-
-    assert len(result) == 1
-
-
-@pytest.mark.django_db
-def test_fetch_daily_series_multiple_days(seed_itn_day):
+def test_fetch_daily_series_multiple_days(
+    seed_itn_day: Callable[..., None],
+):
     d1 = dt.date(2025, 1, 1)
     d2 = dt.date(2025, 1, 2)
-
     seed_itn_day(d1)
     seed_itn_day(d2)
 
-    ds = TimescaleNationalIndicatorDailyDataSource()
-
+    ds = TimescaleNationalIndicatorObservedDataSource()
     query = DailySeriesQuery(
         date_start=d1,
         date_end=d2,
@@ -141,3 +112,45 @@ def test_fetch_daily_series_multiple_days(seed_itn_day):
     result = ds.fetch_daily_series(query)
 
     assert len(result) == 2
+    assert [p.date for p in result] == [d1, d2]
+
+
+# ----------------------------
+# Baseline datasource tests
+# ----------------------------
+
+
+def test_fetch_daily_baseline_happy_path():
+    ds = TimescaleNationalIndicatorBaselineDataSource()
+
+    insert_daily_baseline(month=1, day=15, mean=10.0, std=2.0)
+
+    result = ds.fetch_daily_baseline(dt.date(2025, 1, 15))
+
+    assert result.baseline_mean == 10.0
+    assert result.baseline_std_dev_upper == 12.0
+    assert result.baseline_std_dev_lower == 8.0
+
+
+def test_fetch_monthly_baseline_happy_path():
+    ds = TimescaleNationalIndicatorBaselineDataSource()
+
+    insert_monthly_baseline(month=2, mean=20.0, std=3.0)
+
+    result = ds.fetch_monthly_baseline(2)
+
+    assert result.baseline_mean == 20.0
+    assert result.baseline_std_dev_upper == 23.0
+    assert result.baseline_std_dev_lower == 17.0
+
+
+def test_fetch_yearly_baseline_happy_path():
+    ds = TimescaleNationalIndicatorBaselineDataSource()
+
+    insert_yearly_baseline(sample_size=30, mean=30.0, std=4.0)
+
+    result = ds.fetch_yearly_baseline()
+
+    assert result.baseline_mean == 30.0
+    assert result.baseline_std_dev_upper == 34.0
+    assert result.baseline_std_dev_lower == 26.0

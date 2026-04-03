@@ -10,11 +10,9 @@ export interface PaginatedResponse<T> {
 // ===== Station types =====
 
 export interface Station {
-    id: number;
     code: string;
     nom: string;
     departement: number;
-    frequence: string;
     poste_ouvert: boolean;
     type_poste: number;
     lon: number;
@@ -86,7 +84,7 @@ export interface DeviationParams {
     date_start: string;
     date_end: string;
     granularity: "year" | "month" | "day";
-    station_ids?: string[];
+    station_ids?: string;
     include_national: boolean;
 }
 
@@ -97,6 +95,16 @@ export interface DeviationMetadata {
     granularity: "year" | "month" | "day";
 }
 
+export interface DeviationNational {
+    data: DeviationDataPoint[];
+}
+
+export interface DeviationStationSerie {
+    station_id: string;
+    station_name: string;
+    data: DeviationDataPoint[];
+}
+
 export interface DeviationDataPoint {
     date: string;
     deviation: number;
@@ -104,16 +112,10 @@ export interface DeviationDataPoint {
     baseline_mean: number;
 }
 
-export interface DeviationSerie {
-    is_national: boolean;
-    station_id?: string;
-    station_name?: string;
-    data: DeviationDataPoint[];
-}
-
 export interface DeviationResponse {
     metadata: DeviationMetadata;
-    series: DeviationSerie[];
+    national: DeviationNational;
+    stations: DeviationStationSerie[];
 }
 
 // ===== Temperature Records types =====

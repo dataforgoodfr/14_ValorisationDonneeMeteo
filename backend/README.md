@@ -13,10 +13,10 @@ API REST Django/DRF pour les donnees meteorologiques InfoClimat.
 ```bash
 cd backend
 
-# Installer les dependances, ainsi que les dépendances optionnelles de dev
+# Installer les dépendances, ainsi que les dépendances optionnelles de dev
 uv sync --extra dev
 
-# Copier la configuration
+# Copier la configuration (utile pour le backend, pas pour le seed DB)
 cp .env.example .env
 ```
 
@@ -24,7 +24,7 @@ cp .env.example .env
 
 ```bash
 cd timescaledb-env
-docker compose up -d
+docker compose up -d timescaledb
 cd ..
 ```
 
@@ -32,9 +32,11 @@ cd ..
 Il est possible de lancer le projet sans utiliser de base de données.
 Les données servies par l'API sont alors des données simulées.
 Pour ce faire, mettre dans .env :
+
 ```
 MOCKED_DATA=true
 ```
+
 Si au contraire on souhaite utiliser une vraie base de données, voir la section Initialiser la base de développement ci-dessous.
 
 *Note* : Même si l'on souhaite utiliser des données simulées, il convient de lancer timescaledb comme indiqué au paragraphe précédent.
@@ -42,31 +44,51 @@ Si au contraire on souhaite utiliser une vraie base de données, voir la section
 ## Initialiser la base de développement
 
 Contrairement aux premières versions du projet, la base de développement n'est pas générée par Django.
+Elle est initialisée via un conteneur dédié (db-seed) afin de ne pas dépendre d’un psql installé localement.
 
 Elle est alimentée par :
 
 - un schéma SQL
-
 - un dump des stations
-
-- un export CSV des données quotidiennes
-
+- un export CSV des données quotidiennes (2024–2025)
 - des vues SQL utilisées par Django
+- des baselines climatologiques pré-calculées (1991–2020) importées depuis des CSV
 
-Initialisation :
-```
-cd backend/scripts
-bash seed_dev.sh
-```
-Ce script :
+### Fichiers requis
 
+Tous les fichiers doivent être présents dans :
+
+backend/db_data/
+
+Liste des fichiers attendus :
+
+- station.sql
+- quotidienne_2024_2025.csv
+- itn_baseline_9120.csv
+- itn_baseline_monthly_9120.csv
+- itn_baseline_yearly_9120.csv
+- baseline_stations_daily_mean_9120.csv
+-
+
+⚠️ Si un de ces fichiers est absent, le seed échouera.
+
+### Initialisation
+
+```bash
+cd backend/timescaledb-env
+docker compose run --rm db-seed
+```
+
+Ce que fait le script
 - recrée le schéma public
 - crée les tables sources (Station, Quotidienne)
-- importe les données :
-  - stations
-  - données quotidiennes
-  - applique les vues SQL utilisées par l'API
-  - applique les materialized views utilisées par l'API
+- importe les données : stations, données quotidiennes
+- applique les vues SQL utilisées par l’API
+- importe les baselines climatologiques depuis des CSV :
+  - baseline ITN → mv_itn_baseline_1991_2020
+  - baseline ITN par mois → mv_itn_baseline_monthly_1991_2020
+  - baseline ITN par an → mv_itn_baseline_yearly_1991_2020
+  - baseline par station → baseline_station_daily_mean_1991_2020
 
 ## Lancer le serveur
 
@@ -106,6 +128,7 @@ Services métier
 
 API REST
 ```
+
 Cela permet :
 
 - de stabiliser l'API
@@ -117,7 +140,7 @@ Cela permet :
 
 Les spécifications de l'API (la cible a atteindre) sont disponibles dans `openapi/target-specs/openapi.yaml`
 
-```
+```bash
 cd backend
 
 npx swagger-ui-watcher openapi/target-specs/openapi.yaml
@@ -130,8 +153,6 @@ La documentation est alors disponible sur `http://localhost:8000`
 | `/api/v1/stations/`       | Liste des stations meteo      |
 | `/api/v1/temperature/national-indicator`    | Indicateur thermique national
 | `/api/v1/temperature/deviation`       | Ecart à la normale      |
-
-
 
 ## Exemples de requetes
 
@@ -242,7 +263,8 @@ SELECT * FROM timescaledb_information.chunks;
 
 ## Notebooks
 
-###ITN
+### ITN
+
 Un notebook est disponible pour visualiser les données générées par le service national-indicator (fake datasource + agrégation).
 
 1️⃣ Installer les dépendances notebook
@@ -251,7 +273,7 @@ Les dépendances notebook ne sont pas installées par défaut.
 
 Depuis le dossier backend/ :
 
-```
+```bash
 uv sync --extra notebook
 ```
 
@@ -259,7 +281,7 @@ uv sync --extra notebook
 
 Toujours depuis backend/ :
 
-```
+```bash
 uv run jupyter lab
 ```
 

@@ -1,11 +1,10 @@
 <script setup lang="ts">
 import PagesHero from "~/components/layout/PagesHero.vue";
-import Barchart from "~/components/charts/Barchart.vue";
-import LineChart from "~/components/charts/LineChart.vue";
 import ChartLayout from "~/components/layout/ChartLayout.vue";
-import ChartSidebar from "~/components/ui/commons/ChartSidebar.vue";
+import SearchStation from "~/components/ecartNormale/searchStation.vue";
 import { useDeviationSelectBarAdapter } from "~/adapters/deviationSelectBarAdapter";
 import SelectBar from "~/components/ui/commons/selectBar/selectBar.vue";
+import DeviationChart from "~/components/charts/DeviationChart.vue";
 import MapD3 from "~/components/charts/MapD3.vue";
 
 const selectBarAdapter = useDeviationSelectBarAdapter();
@@ -28,13 +27,10 @@ const heroData = {
                 <SelectBar :adapter="selectBarAdapter" />
             </template>
             <template #sidebar>
-                <ChartSidebar />
+                <SearchStation />
             </template>
             <template #chart>
-                <Barchart v-if="selectBarAdapter.chartType?.value === `bar`" />
-                <LineChart
-                    v-if="selectBarAdapter.chartType?.value === `line`"
-                />
+                <DeviationChart :adapter="selectBarAdapter" class="px-3 py-2" />
             </template>
         </ChartLayout>
         <div class="flex justify-center gap-8">

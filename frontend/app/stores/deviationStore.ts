@@ -1,4 +1,4 @@
-import type { DeviationParams } from "~/types/api";
+import type { DeviationParams, Station } from "~/types/api";
 import { useCustomDate } from "#imports";
 import type {
     GranularityType,
@@ -8,7 +8,9 @@ import type {
 
 const dates = useCustomDate();
 
-export const useDeviationStore = defineStore("DeviationStore", () => {
+export const useDeviationStore = defineStore("deviationStore", () => {
+    const deviationChartRef = shallowRef();
+
     const pickedDateStart = ref(dates.lastYear.value);
     const pickedDateEnd = ref(dates.twoDaysAgo.value);
 
@@ -21,15 +23,20 @@ export const useDeviationStore = defineStore("DeviationStore", () => {
     const chartTypeSwitchEnabled = ref(false);
     const chartType: Ref<ChartType> = ref<ChartType>(`bar`);
 
-    const station_ids = ref<undefined | string[]>(undefined);
-    const include_national = ref<boolean>(true);
+    const stationIds = ref<string[]>([]);
+    const selectedStations = ref<Station[]>([]);
+    const includeNational = ref<boolean>(true);
 
     const params = computed<DeviationParams>(() => ({
-        date_start: pickedDateStart.value.toISOString().substring(0, 10),
-        date_end: pickedDateEnd.value.toISOString().substring(0, 10),
+        date_start: pickedDateStart.value
+            .toISOString()
+            .substring(0, "YYYY-MM-DD".length),
+        date_end: pickedDateEnd.value
+            .toISOString()
+            .substring(0, "YYYY-MM-DD".length),
         granularity: granularity.value,
-        station_ids: station_ids.value,
-        include_national: include_national.value,
+        station_ids: stationIds.value.join(","),
+        include_national: includeNational.value,
     }));
 
     const {
@@ -50,7 +57,17 @@ export const useDeviationStore = defineStore("DeviationStore", () => {
         chartType.value = value;
     };
 
+    const setStations = (stations: Station[]) => {
+        stationIds.value = stations.map((station) => station.code);
+        selectedStations.value = stations;
+    };
+    const setIncludeNational = (value: boolean) => {
+        includeNational.value = value;
+    };
+
     return {
+        deviationChartRef,
+        includeNational,
         pickedDateStart,
         pickedDateEnd,
         granularity,
@@ -60,9 +77,11 @@ export const useDeviationStore = defineStore("DeviationStore", () => {
         chartTypeSwitchEnabled,
         chartType,
         setGranularity,
+        setIncludeNational,
         setChartType,
-        station_ids,
-        include_national,
+        setStations,
+        stationIds,
+        selectedStations,
         deviationData,
         pending,
         error,

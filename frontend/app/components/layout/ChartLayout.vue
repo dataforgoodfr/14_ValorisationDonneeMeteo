@@ -22,7 +22,7 @@ const props = withDefaults(defineProps<Props>(), {
                 <slot name="sidebar" />
             </aside>
 
-            <div class="flex-1 px-3 py-2">
+            <div class="flex-1 min-w-0 px-3 py-2">
                 <slot name="chart" />
             </div>
         </div>

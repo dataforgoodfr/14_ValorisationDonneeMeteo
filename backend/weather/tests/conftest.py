@@ -14,13 +14,20 @@ def setup_db_schema_and_views(django_db_setup, django_db_blocker):
     schema_sql = (BASE_DIR / "sql" / "schemas" / "001_source_tables.sql").read_text()
     v_station_sql = (BASE_DIR / "sql" / "views" / "001_v_station.sql").read_text()
     v_quot_sql = (BASE_DIR / "sql" / "views" / "002_v_quotidienne.sql").read_text()
-    baseline_mv_sql = (
-        BASE_DIR / "sql" / "materialized_views" / "baseline-station-daily-mean-9120.sql"
+    baseline_station_table_sql = (
+        BASE_DIR / "sql" / "test_tables" / "baseline_station_daily_mean_9120.sql"
+    ).read_text()
+    itn_baseline_tables_sql = (
+        BASE_DIR / "sql" / "test_tables" / "itn_baseline.sql"
     ).read_text()
 
     with django_db_blocker.unblock():
         with connection.cursor() as cur:
+            cur.execute("DROP SCHEMA IF EXISTS public CASCADE;")
+            cur.execute("CREATE SCHEMA public;")
+
             cur.execute(schema_sql)
             cur.execute(v_station_sql)
             cur.execute(v_quot_sql)
-            cur.execute(baseline_mv_sql)
+            cur.execute(baseline_station_table_sql)
+            cur.execute(itn_baseline_tables_sql)

@@ -1,9 +1,3 @@
-/**
- * Composables for planned temperature endpoints.
- * These endpoints are not yet implemented in the backend.
- * Parameter types will be narrowed when the OpenAPI spec is finalized.
- */
-
 import type { DeviationParams, DeviationResponse } from "~/types/api";
 
 export function useTemperatureDeviation(
@@ -12,25 +6,33 @@ export function useTemperatureDeviation(
 ) {
     const { useApiFetch } = useApiClient();
 
-    if (enabled === undefined) {
-        return useApiFetch<DeviationResponse>("/temperature/deviation", {
-            query: params,
-        });
-    }
+    const hasRequiredParams = computed(() => {
+        const resolved = toValue(params);
+        return (
+            resolved.include_national === true ||
+            (resolved.station_ids !== undefined && resolved.station_ids !== "")
+        );
+    });
 
-    const isEnabled = toRef(enabled);
+    const isEnabled = computed(() =>
+        enabled !== undefined ? toValue(enabled) : true,
+    );
 
     const result = useApiFetch<DeviationResponse>("/temperature/deviation", {
         query: params,
-        imediate: isEnabled.value,
+        immediate: false,
         watch: false,
     });
 
-    watch([isEnabled, params], () => {
-        if (isEnabled.value) {
-            result.execute();
-        }
-    });
+    watch(
+        [isEnabled, hasRequiredParams, params],
+        ([enabled, hasParams]) => {
+            if (enabled && hasParams) {
+                result.execute();
+            }
+        },
+        { immediate: true },
+    );
 
     return result;
 }
