@@ -169,8 +169,8 @@ curl "http://localhost:8000/api/v1/temperature/national-indicator?date_start=202
 curl "http://localhost:8000/api/v1/temperature/deviation?date_start=2024-01-01&date_end=2024-01-31&granularity=day&station_ids=07149,07222"
 
 #Records de température
-curl "http://localhost:8000/api/v1/temperature/records?record_kind=absolute&record_scope=all_time&type_records=all"
-curl "http://localhost:8000/api/v1/temperature/records?record_kind=historical&record_scope=monthly&type_records=hot&departments=13"
+curl "http://localhost:8000/api/v1/temperature/records?period_type=all_time&type_records=hot"
+curl "http://localhost:8000/api/v1/temperature/records?period_type=month&month=7&type_records=hot"
 ```
 ## Structure du projet
 
