@@ -325,17 +325,18 @@ class TimescaleTemperatureRecordsDataSource:
 
         with connection.cursor() as cur:
             cur.execute(sql, params)
-            rows = cur.fetchall()
+            cols = [c.name for c in cur.description]
+            rows = [dict(zip(cols, row)) for row in cur.fetchall()]
 
         return [
             TemperatureRecordEntry(
-                station_id=row[0].strip(),
-                station_name=row[1],
-                department=str(row[2]) if row[2] is not None else "",
-                record_value=float(row[3]),
-                record_date=row[4].date()
-                if isinstance(row[4], dt.datetime)
-                else row[4],
+                station_id=row["NUM_POSTE"].strip(),
+                station_name=row["name"],
+                department=str(row["departement"]) if row["departement"] is not None else "",
+                record_value=float(row[col]),
+                record_date=row["AAAAMMJJ"].date()
+                if isinstance(row["AAAAMMJJ"], dt.datetime)
+                else row["AAAAMMJJ"],
             )
             for row in rows
         ]
@@ -392,17 +393,18 @@ class MaterializedTemperatureRecordsDataSource:
 
         with connection.cursor() as cur:
             cur.execute(sql, [record_type, request.period_type, period_value])
-            rows = cur.fetchall()
+            cols = [c.name for c in cur.description]
+            rows = [dict(zip(cols, row)) for row in cur.fetchall()]
 
         return [
             TemperatureRecordEntry(
-                station_id=row[0].strip(),
-                station_name=row[1],
-                department=str(row[2]) if row[2] is not None else "",
-                record_value=float(row[3]),
-                record_date=row[4].date()
-                if isinstance(row[4], dt.datetime)
-                else row[4],
+                station_id=row["station_code"].strip(),
+                station_name=row["station_name"],
+                department=str(row["department"]) if row["department"] is not None else "",
+                record_value=float(row["record_value"]),
+                record_date=row["record_date"].date()
+                if isinstance(row["record_date"], dt.datetime)
+                else row["record_date"],
             )
             for row in rows
         ]
@@ -519,17 +521,18 @@ class HybridTemperatureRecordsDataSource:
 
         with connection.cursor() as cur:
             cur.execute(sql, params)
-            rows = cur.fetchall()
+            cols = [c.name for c in cur.description]
+            rows = [dict(zip(cols, row)) for row in cur.fetchall()]
 
         return [
             TemperatureRecordEntry(
-                station_id=row[0].strip(),
-                station_name=row[1],
-                department=str(row[2]) if row[2] is not None else "",
-                record_value=float(row[3]),
-                record_date=row[4].date()
-                if isinstance(row[4], dt.datetime)
-                else row[4],
+                station_id=row["NUM_POSTE"].strip(),
+                station_name=row["name"],
+                department=str(row["departement"]) if row["departement"] is not None else "",
+                record_value=float(row[col]),
+                record_date=row["AAAAMMJJ"].date()
+                if isinstance(row["AAAAMMJJ"], dt.datetime)
+                else row["AAAAMMJJ"],
             )
             for row in rows
         ]
