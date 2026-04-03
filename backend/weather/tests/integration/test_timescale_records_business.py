@@ -66,8 +66,7 @@ def test_alltime_hot_records_progression():
     insert_mv_record(code, "Station Canicule", "all_time", None, "TX", 35.0, dt.date(1990, 7, 20), department=13)
     insert_mv_record(code, "Station Canicule", "all_time", None, "TX", 42.5, dt.date(2003, 8, 5), department=13)
     insert_mv_record(code, "Station Canicule", "all_time", None, "TX", 45.1, dt.date(2019, 6, 28), department=13)
-    # Non-record (en dessous du max précédent 42.5 lors de son insertion)
-    insert_mv_record(code, "Station Canicule", "all_time", None, "TX", 38.0, dt.date(2010, 7, 15), department=13)
+    # 38.0 °C (2010-07-15) n'est pas inséré dans la MV : la MV ne contient que les vrais records progressifs
 
     ds = TimescaleRecordsDataSource()
     results = ds.fetch_records(make_query())

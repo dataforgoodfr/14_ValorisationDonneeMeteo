@@ -326,13 +326,15 @@ class TimescaleTemperatureRecordsDataSource:
         with connection.cursor() as cur:
             cur.execute(sql, params)
             cols = [c.name for c in cur.description]
-            rows = [dict(zip(cols, row)) for row in cur.fetchall()]
+            rows = [dict(zip(cols, row, strict=False)) for row in cur.fetchall()]
 
         return [
             TemperatureRecordEntry(
                 station_id=row["NUM_POSTE"].strip(),
                 station_name=row["name"],
-                department=str(row["departement"]) if row["departement"] is not None else "",
+                department=str(row["departement"])
+                if row["departement"] is not None
+                else "",
                 record_value=float(row[col]),
                 record_date=row["AAAAMMJJ"].date()
                 if isinstance(row["AAAAMMJJ"], dt.datetime)
@@ -542,13 +544,15 @@ class HybridTemperatureRecordsDataSource:
         with connection.cursor() as cur:
             cur.execute(sql, params)
             cols = [c.name for c in cur.description]
-            rows = [dict(zip(cols, row)) for row in cur.fetchall()]
+            rows = [dict(zip(cols, row, strict=False)) for row in cur.fetchall()]
 
         return [
             TemperatureRecordEntry(
                 station_id=row["NUM_POSTE"].strip(),
                 station_name=row["name"],
-                department=str(row["departement"]) if row["departement"] is not None else "",
+                department=str(row["departement"])
+                if row["departement"] is not None
+                else "",
                 record_value=float(row[col]),
                 record_date=row["AAAAMMJJ"].date()
                 if isinstance(row["AAAAMMJJ"], dt.datetime)
@@ -592,6 +596,8 @@ class TimescaleRecordsDataSource:
             req = TemperatureRecordsRequest(
                 period_type=period_type,
                 type_records=type_records,
+                month=query.month,
+                season=query.season,
             )
             entries = self._hybrid.fetch_records(req)
             if type_records == "hot":
@@ -602,14 +608,17 @@ class TimescaleRecordsDataSource:
         station_hot: dict[str, list[TemperatureRecordEntry]] = defaultdict(list)
         station_cold: dict[str, list[TemperatureRecordEntry]] = defaultdict(list)
         station_name: dict[str, str] = {}
+        station_department: dict[str, str] = {}
 
         for e in hot_entries:
             station_hot[e.station_id].append(e)
             station_name[e.station_id] = e.station_name
+            station_department[e.station_id] = e.department
 
         for e in cold_entries:
             station_cold[e.station_id].append(e)
             station_name[e.station_id] = e.station_name
+            station_department[e.station_id] = e.department
 
         all_ids: set[str] = set(station_hot) | set(station_cold)
 
@@ -620,7 +629,8 @@ class TimescaleRecordsDataSource:
             all_ids = {
                 sid
                 for sid in all_ids
-                if _department_of_station(sid) in query.departments
+                if station_department.get(sid, _department_of_station(sid))
+                in query.departments
             }
 
         result: list[StationRecords] = []
