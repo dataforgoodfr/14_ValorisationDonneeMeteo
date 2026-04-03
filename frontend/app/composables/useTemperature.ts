@@ -29,6 +29,8 @@ export function useTemperatureDeviation(
         ([enabled, hasParams]) => {
             if (enabled && hasParams) {
                 result.execute();
+            } else if (!hasParams) {
+                result.data.value = undefined;
             }
         },
         { immediate: true },

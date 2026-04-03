@@ -35,15 +35,12 @@ const { selectedStations, includeNational } = storeToRefs(useDeviationStore());
 const props = defineProps<Props>();
 
 const selectedStationsAndNationalNames = computed(() => {
-    const stations =
-        selectedStations.value.length > 0
-            ? selectedStations.value.map(
-                  (station) => `${station.nom} (${station.departement})`,
-              )
-            : [];
-    const national = includeNational.value ? ["France Métropolitaine"] : [];
-
-    return [national, ...stations].flat();
+    const stations = selectedStations.value.map(
+        (station) => `${station.nom} (${station.departement})`,
+    );
+    return includeNational.value
+        ? ["France Métropolitaine", ...stations]
+        : stations;
 });
 
 // provide init-options
@@ -110,43 +107,40 @@ const option = computed<ECOption>(() => {
             axisLabel: { fontSize: 10 },
             splitLine: { lineStyle: { type: "dashed" } },
         })),
-        series:
-            stationsAndNational.flatMap((_, index) => [
-                {
-                    name: "Ecart positif",
-                    type: "bar",
-                    stack: `deviation-${index}`,
-                    datasetIndex: index,
-                    encode: { x: "date", y: "deviation_positive" },
-                    color: "#d32f2f",
-                    tooltip: { show: true },
-                    xAxisIndex: index,
-                    yAxisIndex: index,
-                },
-                {
-                    name: "Ecart négatif",
-                    type: "bar",
-                    stack: `deviation-${index}`,
-                    datasetIndex: index,
-                    encode: { x: "date", y: "deviation_negative" },
-                    color: "#1976d2",
-                    tooltip: { show: true },
-                    xAxisIndex: index,
-                    yAxisIndex: index,
-                },
-            ]) ?? [],
-        title:
-            stationsAndNational.map((stationOrNational, index) => ({
-                text: selectedStationsAndNationalNames.value[index],
-                right: "right",
-                top: `${index * (100 / plotAmountToDisplay)}%`,
-            })) ?? [],
+        series: stationsAndNational.flatMap((_, index) => [
+            {
+                name: "Ecart positif",
+                type: "bar",
+                stack: `deviation-${index}`,
+                datasetIndex: index,
+                encode: { x: "date", y: "deviation_positive" },
+                color: "#d32f2f",
+                tooltip: { show: true },
+                xAxisIndex: index,
+                yAxisIndex: index,
+            },
+            {
+                name: "Ecart négatif",
+                type: "bar",
+                stack: `deviation-${index}`,
+                datasetIndex: index,
+                encode: { x: "date", y: "deviation_negative" },
+                color: "#1976d2",
+                tooltip: { show: true },
+                xAxisIndex: index,
+                yAxisIndex: index,
+            },
+        ]),
+        title: stationsAndNational.map((stationOrNational, index) => ({
+            text: selectedStationsAndNationalNames.value[index],
+            right: "right",
+            top: `${index * (100 / plotAmountToDisplay)}%`,
+        })),
         axisPointer: {
             link: [{ xAxisIndex: "all" }],
             label: { backgroundColor: "#3a5080" },
         },
         legend: {
-            data: ["Ecart positif", "Ecart négatif"],
             bottom: 0,
         },
         tooltip: {
@@ -171,13 +165,26 @@ const option = computed<ECOption>(() => {
 </script>
 
 <template>
-    <VChart
-        :ref="adapter.chartRef"
-        :key="adapter.granularity.value"
-        :option="option"
-        :init-options="initOptions"
-        :loading="adapter.pending.value"
-        :loading-options="{ text: 'Chargement…', color: '#3b82f6' }"
-        autoresize
-    />
+    <div class="h-full">
+        <div
+            v-if="!props.adapter.data.value"
+            class="flex flex-col justify-center h-full items-center text-stone-400"
+        >
+            <p>Selectionnez au moins une station</p>
+            <p>
+                pour afficher ces écarts à la normale, pour la période
+                sélectionnée.
+            </p>
+        </div>
+        <VChart
+            v-else
+            :ref="adapter.chartRef"
+            :key="adapter.granularity.value"
+            :option="option"
+            :init-options="initOptions"
+            :loading="adapter.pending.value"
+            :loading-options="{ text: 'Chargement…', color: '#3b82f6' }"
+            autoresize
+        />
+    </div>
 </template>
