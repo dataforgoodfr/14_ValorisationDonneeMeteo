@@ -38,9 +38,9 @@ const emit = defineEmits<{
 const openField = ref<FilterField | null>(null);
 const searchQuery = ref("");
 const localRange = ref<{ min: string; max: string }>({ min: "", max: "" });
-const localDateRange = ref<{ start: Date; end: Date }>({
-    start: new Date(),
-    end: new Date(),
+const localDateRange = ref<{ start: Date | undefined; end: Date | undefined }>({
+    start: undefined,
+    end: undefined,
 });
 
 // Prop access helpers — consolidate ?? in one place, not scattered across the template.
@@ -87,8 +87,8 @@ function toggleDropdown(field: FilterField) {
     if (field.type === "date-range") {
         const stored = f?.type === "date-range" ? f : undefined;
         localDateRange.value = {
-            start: stored?.min ?? new Date(),
-            end: stored?.max ?? new Date(),
+            start: stored?.min,
+            end: stored?.max,
         };
     } else {
         const stored = f?.type === "number-range" ? f : undefined;
@@ -127,7 +127,7 @@ function onUpdateRange(key: "min" | "max", value: string) {
     emit("update:filter", id, { type: "number-range", ...localRange.value });
 }
 
-function onUpdateDateRange(key: "start" | "end", date: Date) {
+function onUpdateDateRange(key: "start" | "end", date: Date | undefined) {
     localDateRange.value[key] = date;
     const { id } = openField.value!;
     emit("update:filter", id, {
@@ -135,6 +135,14 @@ function onUpdateDateRange(key: "start" | "end", date: Date) {
         min: localDateRange.value.start,
         max: localDateRange.value.end,
     });
+}
+
+function onClear(id: string) {
+    if (openField.value?.id === id) {
+        localRange.value = { min: "", max: "" };
+        localDateRange.value = { start: undefined, end: undefined };
+    }
+    emit("clear", id);
 }
 
 const hasAnyFilter = computed(() => Object.keys(props.filters).length > 0);
@@ -206,7 +214,7 @@ const hasAnyFilter = computed(() => Object.keys(props.filters).length > 0);
                                 @update:search-query="searchQuery = $event"
                                 @search="emit('search', field.id, $event)"
                                 @toggle="toggleStringValue(field.id, $event)"
-                                @clear="emit('clear', field.id)"
+                                @clear="onClear(field.id)"
                                 @load-more="emit('load-more', field.id)"
                             />
                             <FilterDropdownRange
@@ -216,7 +224,7 @@ const hasAnyFilter = computed(() => Object.keys(props.filters).length > 0);
                                 :has-filter="getFilterCount(field.id) > 0"
                                 @update:min="onUpdateRange('min', $event)"
                                 @update:max="onUpdateRange('max', $event)"
-                                @clear="emit('clear', field.id)"
+                                @clear="onClear(field.id)"
                             />
                             <FilterDropdownDateRange
                                 v-else
@@ -229,7 +237,7 @@ const hasAnyFilter = computed(() => Object.keys(props.filters).length > 0);
                                 @update:end-date="
                                     onUpdateDateRange('end', $event)
                                 "
-                                @clear="emit('clear', field.id)"
+                                @clear="onClear(field.id)"
                             />
                         </div>
                     </div>
@@ -242,7 +250,7 @@ const hasAnyFilter = computed(() => Object.keys(props.filters).length > 0);
                     :filters="filters"
                     :filter-options="filterOptions"
                     @toggle-string-value="toggleStringValue"
-                    @clear="emit('clear', $event)"
+                    @clear="onClear($event)"
                 />
             </div>
 

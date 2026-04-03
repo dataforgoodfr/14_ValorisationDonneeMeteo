@@ -5,16 +5,16 @@ const today = new Date();
 
 defineProps<{
     /** Start of the selected date range. */
-    startDate: Date;
+    startDate: Date | undefined;
     /** End of the selected date range. */
-    endDate: Date;
+    endDate: Date | undefined;
     /** When true, shows the "Effacer" button. */
     hasFilter: boolean;
 }>();
 
 const emit = defineEmits<{
-    "update:startDate": [date: Date];
-    "update:endDate": [date: Date];
+    "update:startDate": [date: Date | undefined];
+    "update:endDate": [date: Date | undefined];
     clear: [];
 }>();
 </script>
