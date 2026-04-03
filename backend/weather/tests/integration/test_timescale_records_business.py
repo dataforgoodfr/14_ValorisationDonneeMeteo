@@ -6,7 +6,6 @@ Chaque test suit le schéma :
   WHEN   — on appelle fetch_records avec un scénario métier précis
   THEN   — on obtient exactement les dates et valeurs attendues
 """
-
 from __future__ import annotations
 
 import datetime as dt
