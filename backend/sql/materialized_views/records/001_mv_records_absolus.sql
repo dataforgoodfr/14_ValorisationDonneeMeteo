@@ -174,9 +174,9 @@ tn_seasonal AS (
 
 -- All-time chaud
 SELECT
-    'all_time'::text AS period_type,
-    NULL::text       AS period_value,
-    'TX'::text       AS record_type,
+    'all_time'   AS period_type,
+    NULL::text   AS period_value,
+    'TX'         AS record_type,
     r."NUM_POSTE"    AS station_code,
     s.name           AS station_name,
     s.departement    AS department,
@@ -189,7 +189,7 @@ WHERE r.prev_val IS NULL OR r.val > r.prev_val
 UNION ALL
 
 -- All-time froid
-SELECT 'all_time', NULL, 'TN',
+SELECT 'all_time', NULL::text, 'TN',
     r."NUM_POSTE", s.name, s.departement, r.val, r."AAAAMMJJ"
 FROM tn_all r
 JOIN public.v_station s ON s.station_code = r."NUM_POSTE"
