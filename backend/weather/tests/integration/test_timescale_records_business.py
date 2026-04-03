@@ -223,3 +223,54 @@ def test_department_filter_excludes_other_departments():
     ids = {s.id.strip() for s in results}
     assert code_13 in ids
     assert code_69 not in ids, "Station Lyon (dept 69) ne doit pas apparaître dans dept=13"
+
+
+# ---------------------------------------------------------------------------
+# Scénario 6 — Records saisonniers hiver : cohérence déc N + jan/fév N+1
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.django_db
+def test_winter_season_records_coherent_across_years():
+    """
+    GIVEN  La station 99006001 a les mesures hivernales suivantes :
+             Hiver 2020-2021 :
+               - 2020-12-15 : -3.0 °C  (premier record hiver 2020-2021)
+               - 2021-01-10 : -5.0 °C  (bat -3.0 dans le même hiver)
+               - 2021-02-20 : -4.0 °C  (ne bat pas -5.0)
+             Hiver 2021-2022 :
+               - 2021-12-18 : -6.0 °C  (bat -5.0, nouveau record inter-hivers)
+               - 2022-01-12 : -2.0 °C  (ne bat pas -6.0)
+    WHEN   fetch_records(record_scope=seasonal, season=winter, type_records=cold)
+    THEN   Les records battus sont :
+             - 2020-12-15 (-3.0) : premier record (pas de précédent)
+             - 2021-01-10 (-5.0) : bat -3.0 dans le même hiver 2020-2021
+             - 2021-12-18 (-6.0) : bat -5.0, premier record de l'hiver 2021-2022
+           Et ne contient PAS :
+             - 2021-02-20 : -4.0 ne bat pas -5.0
+             - 2022-01-12 : -2.0 ne bat pas -6.0
+    """
+    code = "99006001"
+    insert_station(code, "Station Hiver", department=25)
+    set_cutoff(PAST_CUTOFF)
+
+    insert_mv_record(code, "Station Hiver", "season", "winter", "TN", -3.0, dt.date(2020, 12, 15), department=25)
+    insert_mv_record(code, "Station Hiver", "season", "winter", "TN", -5.0, dt.date(2021, 1, 10), department=25)
+    # Non-record : -4.0 ne bat pas -5.0
+    insert_mv_record(code, "Station Hiver", "season", "winter", "TN", -6.0, dt.date(2021, 12, 18), department=25)
+    # Non-record : -2.0 ne bat pas -6.0
+
+    ds = TimescaleRecordsDataSource()
+    results = ds.fetch_records(make_query(record_scope="seasonal", season="winter", type_records="cold"))
+
+    station = _station_by_id(results, code)
+    assert station is not None
+
+    cold_dates = {r.date for r in station.cold_records}
+    cold_values = {r.value for r in station.cold_records}
+
+    assert dt.date(2020, 12, 15) in cold_dates, "Premier record hiver 2020-2021"
+    assert dt.date(2021, 1, 10) in cold_dates, "Record battu dans le même hiver 2020-2021"
+    assert dt.date(2021, 12, 18) in cold_dates, "Record battu hiver 2021-2022 (déc N + jan N+1 cohérents)"
+    assert cold_values == {-3.0, -5.0, -6.0}
+    assert len(station.cold_records) == 3, "Exactement 3 records battus"
