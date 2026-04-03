@@ -66,33 +66,40 @@ watch(debouncedQuery, () => {
 // search results are cleared. Updated at selection time when labels are available.
 const selectedStationOptions = ref<FilterOption[]>([]);
 
+function updateSelectedStationOptions(codes: string[]) {
+    const knownLabels = new Map(
+        [...selectedStationOptions.value, ...allStationOptions.value].map(
+            (o) => [o.value, o.label],
+        ),
+    );
+    selectedStationOptions.value = codes.map((code) => ({
+        value: code,
+        label: knownLabels.get(code) ?? code,
+    }));
+}
+
 function onUpdateFilter(id: string, value: FilterValue) {
     if (id === "name" && value.type === "string") {
-        const knownLabels = new Map(
-            [...selectedStationOptions.value, ...allStationOptions.value].map(
-                (o) => [o.value, o.label],
-            ),
-        );
-        selectedStationOptions.value = value.values.map((code) => ({
-            value: code,
-            label: knownLabels.get(code) ?? code,
-        }));
+        updateSelectedStationOptions(value.values);
     }
     setFilter(id, value);
 }
 
 function onSearch(id: string, query: string) {
-    if (id === "name") {
-        searchQuery.value = query;
-        // When the dropdown opens with an empty query, debouncedQuery won't
-        // change (it's already ""), so the watcher won't fire — fetch directly.
-        if (!query) {
-            stationPage.value = 0;
-            allStationOptions.value = [];
-            stationsData.value = undefined;
-            stationHasMore.value = false;
-            fetchStations();
-        }
+    if (id !== "name") {
+        return;
+    }
+
+    searchQuery.value = query;
+
+    // When the dropdown opens with an empty query, debouncedQuery won't
+    // change (it's already ""), so the watcher won't fire — fetch directly.
+    if (!query) {
+        stationPage.value = 0;
+        allStationOptions.value = [];
+        stationsData.value = undefined;
+        stationHasMore.value = false;
+        fetchStations();
     }
 }
 

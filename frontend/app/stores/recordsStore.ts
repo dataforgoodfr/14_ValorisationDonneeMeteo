@@ -7,7 +7,19 @@ import type {
     TypeRecords,
     TemperatureRecordsParams,
 } from "~/types/api";
-import type { FilterValue } from "~/components/ui/commons/filterBarTypes";
+import type {
+    StringFilterValue,
+    RangeFilterValue,
+    DateFilterValue,
+    FilterValue,
+} from "~/components/ui/commons/filterBarTypes";
+
+type RecordsFilters = {
+    name?: StringFilterValue;
+    departement?: StringFilterValue;
+    record?: RangeFilterValue;
+    record_date?: DateFilterValue;
+};
 
 const debounceDuration = 300;
 
@@ -36,8 +48,8 @@ export const useRecordsStore = defineStore("recordsStore", () => {
         })),
     };
 
-    const filters = computed<Record<string, FilterValue>>(() => {
-        const result: Record<string, FilterValue> = {};
+    const filters = computed<RecordsFilters>(() => {
+        const result: RecordsFilters = {};
 
         if (stationIds.value.length >= 1) {
             result.name = { type: "string", values: stationIds.value };
