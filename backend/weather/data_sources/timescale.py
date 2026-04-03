@@ -358,6 +358,23 @@ def _temperature_records_period_clause(
         return "TRUE", []
 
 
+def _temperature_records_period_clause_named(
+    request: TemperatureRecordsRequest,
+) -> tuple[str, dict]:
+    """Variante de _temperature_records_period_clause avec placeholders nommés %(…)s."""
+    if request.period_type == "month":
+        return 'EXTRACT(MONTH FROM q."AAAAMMJJ") = %(period_month)s', {
+            "period_month": request.month
+        }
+    elif request.period_type == "season":
+        months = list(SEASON_MONTHS[request.season])
+        named = {f"period_season_{i}": m for i, m in enumerate(months)}
+        placeholders = ", ".join(f"%(period_season_{i})s" for i in range(len(months)))
+        return f'EXTRACT(MONTH FROM q."AAAAMMJJ") IN ({placeholders})', named
+    else:
+        return "TRUE", {}
+
+
 class MaterializedTemperatureRecordsDataSource:
     """
     Data source optimisée : lit les records pré-calculés depuis la vue
@@ -467,15 +484,17 @@ class HybridTemperatureRecordsDataSource:
         else:
             period_value = None
 
-        period_clause, period_params = _temperature_records_period_clause(request)
+        period_clause, period_named_params = _temperature_records_period_clause_named(
+            request
+        )
 
         sql = f"""
             WITH mv_seeds AS (
                 SELECT station_code, {agg}(record_value) AS seed_val
                 FROM public.mv_records_absolus
-                WHERE record_type = %s
-                  AND period_type = %s
-                  AND period_value IS NOT DISTINCT FROM %s
+                WHERE record_type = %(record_type)s
+                  AND period_type = %(period_type)s
+                  AND period_value IS NOT DISTINCT FROM %(period_value)s
                 GROUP BY station_code
             ),
             ordered AS (
@@ -496,7 +515,7 @@ class HybridTemperatureRecordsDataSource:
                     ) AS prev_val
                 FROM public."Quotidienne" q
                 LEFT JOIN mv_seeds s ON s.station_code = q."NUM_POSTE"
-                WHERE q."AAAAMMJJ" > %s
+                WHERE q."AAAAMMJJ" > %(cutoff_date)s
                   AND {period_clause}
                   AND q."{col}" IS NOT NULL
             )
@@ -512,12 +531,13 @@ class HybridTemperatureRecordsDataSource:
             ORDER BY vs.name, o."AAAAMMJJ"
         """
 
-        params = [
-            record_type,
-            request.period_type,
-            period_value,
-            cutoff_date,
-        ] + period_params
+        params = {
+            "record_type": record_type,
+            "period_type": request.period_type,
+            "period_value": period_value,
+            "cutoff_date": cutoff_date,
+            **period_named_params,
+        }
 
         with connection.cursor() as cur:
             cur.execute(sql, params)
