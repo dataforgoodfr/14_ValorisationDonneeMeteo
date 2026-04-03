@@ -130,7 +130,7 @@ export interface TemperatureRecordsParams {
     type_records?: TypeRecords;
     date_start?: string;
     date_end?: string;
-    station_ids?: string[];
+    station_ids?: string;
     departments?: string[];
     temperature_min?: number;
     temperature_max?: number;

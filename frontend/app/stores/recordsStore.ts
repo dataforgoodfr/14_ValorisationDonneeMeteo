@@ -114,7 +114,7 @@ export const useRecordsStore = defineStore("recordsStore", () => {
         };
 
         if (debouncedStationIds.value.length >= 1) {
-            result.station_ids = debouncedStationIds.value;
+            result.station_ids = debouncedStationIds.value.join(",");
         }
         if (debouncedDepartments.value.length >= 1) {
             result.departments = debouncedDepartments.value;
