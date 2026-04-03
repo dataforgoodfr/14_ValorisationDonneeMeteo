@@ -117,7 +117,7 @@ export const useRecordsStore = defineStore("recordsStore", () => {
             result.station_ids = debouncedStationIds.value.join(",");
         }
         if (debouncedDepartments.value.length >= 1) {
-            result.departments = debouncedDepartments.value;
+            result.departments = debouncedDepartments.value.join(",");
         }
         if (debouncedTempMin.value) {
             result.temperature_min = Number(debouncedTempMin.value);

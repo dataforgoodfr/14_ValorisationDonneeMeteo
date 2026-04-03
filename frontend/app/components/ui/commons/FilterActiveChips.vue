@@ -78,7 +78,9 @@ function toRangeChip(
 
     if (!min && !max) {
         return null;
-    } else if (min && max) {
+    }
+
+    if (min && max) {
         display = `${min}${unit} → ${max}${unit}`;
     } else if (min) {
         display = `≥ ${min}${unit}`;

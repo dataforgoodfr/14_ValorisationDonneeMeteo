@@ -68,14 +68,15 @@ const selectedStationOptions = ref<FilterOption[]>([]);
 
 function onUpdateFilter(id: string, value: FilterValue) {
     if (id === "name" && value.type === "string") {
-        selectedStationOptions.value = value.values.map(
-            (code) =>
-                allStationOptions.value.find((o) => o.value === code) ??
-                selectedStationOptions.value.find((o) => o.value === code) ?? {
-                    value: code,
-                    label: code,
-                },
+        const knownLabels = new Map(
+            [...selectedStationOptions.value, ...allStationOptions.value].map(
+                (o) => [o.value, o.label],
+            ),
         );
+        selectedStationOptions.value = value.values.map((code) => ({
+            value: code,
+            label: knownLabels.get(code) ?? code,
+        }));
     }
     setFilter(id, value);
 }
