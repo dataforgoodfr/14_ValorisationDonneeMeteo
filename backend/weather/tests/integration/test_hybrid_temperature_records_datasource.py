@@ -14,7 +14,6 @@ from weather.tests.conftest import (
     set_cutoff,
 )
 
-
 # =========================
 # Tests
 # =========================

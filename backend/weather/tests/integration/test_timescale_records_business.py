@@ -25,17 +25,17 @@ PAST_CUTOFF = dt.date(2024, 12, 31)
 
 
 def make_query(**kwargs) -> RecordsQuery:
-    defaults = dict(
-        date_start=None,
-        date_end=None,
-        station_ids=(),
-        departments=(),
-        record_kind="historical",
-        record_scope="all_time",
-        type_records="hot",
-        temperature_min=None,
-        temperature_max=None,
-    )
+    defaults = {
+        "date_start": None,
+        "date_end": None,
+        "station_ids": (),
+        "departments": (),
+        "record_kind": "historical",
+        "record_scope": "all_time",
+        "type_records": "hot",
+        "temperature_min": None,
+        "temperature_max": None,
+    }
     return RecordsQuery(**{**defaults, **kwargs})
 
 
@@ -290,7 +290,9 @@ def test_absolute_kind_returns_only_last_record_per_station():
 
     station = _station_by_id(results, code)
     assert station is not None
-    assert len(station.hot_records) == 1, "record_kind=absolute → un seul record par station"
+    assert (
+        len(station.hot_records) == 1
+    ), "record_kind=absolute → un seul record par station"
     assert station.hot_records[0].value == 44.0
     assert station.hot_records[0].date == dt.date(2019, 6, 28)
 
@@ -339,4 +341,6 @@ def test_department_filter_excludes_other_departments():
 
     ids = {s.id.strip() for s in results}
     assert code_13 in ids
-    assert code_69 not in ids, "Station Lyon (dept 69) ne doit pas apparaître dans dept=13"
+    assert (
+        code_69 not in ids
+    ), "Station Lyon (dept 69) ne doit pas apparaître dans dept=13"
