@@ -64,18 +64,7 @@ function getFilterCount(id: string): number {
     if (f.type === "string") {
         return f.values.length;
     }
-    if (f.type === "number-range") {
-        // Beware, min and max can contain 0 which evaluates to false.
-        if (
-            (f.min !== undefined && f.min !== "") ||
-            (f.max !== undefined && f.max !== "")
-        ) {
-            return 1;
-        } else {
-            return 0;
-        }
-    }
-    return f.min !== undefined || f.max !== undefined ? 1 : 0;
+    return f.min || f.max ? 1 : 0;
 }
 
 function toggleDropdown(field: FilterField) {
