@@ -6,6 +6,7 @@ Chaque test suit le schéma :
   WHEN   — on appelle fetch_records avec un scénario métier précis
   THEN   — on obtient exactement les dates et valeurs attendues
 """
+
 from __future__ import annotations
 
 import datetime as dt
@@ -63,9 +64,36 @@ def test_alltime_hot_records_progression():
     insert_station(code, "Station Canicule", department=13)
     set_cutoff(PAST_CUTOFF)
 
-    insert_mv_record(code, "Station Canicule", "all_time", None, "TX", 35.0, dt.date(1990, 7, 20), department=13)
-    insert_mv_record(code, "Station Canicule", "all_time", None, "TX", 42.5, dt.date(2003, 8, 5), department=13)
-    insert_mv_record(code, "Station Canicule", "all_time", None, "TX", 45.1, dt.date(2019, 6, 28), department=13)
+    insert_mv_record(
+        code,
+        "Station Canicule",
+        "all_time",
+        None,
+        "TX",
+        35.0,
+        dt.date(1990, 7, 20),
+        department=13,
+    )
+    insert_mv_record(
+        code,
+        "Station Canicule",
+        "all_time",
+        None,
+        "TX",
+        42.5,
+        dt.date(2003, 8, 5),
+        department=13,
+    )
+    insert_mv_record(
+        code,
+        "Station Canicule",
+        "all_time",
+        None,
+        "TX",
+        45.1,
+        dt.date(2019, 6, 28),
+        department=13,
+    )
     # 38.0 °C (2010-07-15) n'est pas inséré dans la MV : la MV ne contient que les vrais records progressifs
 
     ds = TimescaleRecordsDataSource()
@@ -104,10 +132,37 @@ def test_monthly_hot_records_only_target_month():
     insert_station(code, "Station Juillet", department=69)
     set_cutoff(PAST_CUTOFF)
 
-    insert_mv_record(code, "Station Juillet", "month", "7", "TX", 38.0, dt.date(2000, 7, 15), department=69)
-    insert_mv_record(code, "Station Juillet", "month", "7", "TX", 41.0, dt.date(2022, 7, 3), department=69)
+    insert_mv_record(
+        code,
+        "Station Juillet",
+        "month",
+        "7",
+        "TX",
+        38.0,
+        dt.date(2000, 7, 15),
+        department=69,
+    )
+    insert_mv_record(
+        code,
+        "Station Juillet",
+        "month",
+        "7",
+        "TX",
+        41.0,
+        dt.date(2022, 7, 3),
+        department=69,
+    )
     # Mesure août — ne doit pas apparaître dans les records juillet
-    insert_mv_record(code, "Station Juillet", "month", "8", "TX", 50.0, dt.date(2022, 8, 10), department=69)
+    insert_mv_record(
+        code,
+        "Station Juillet",
+        "month",
+        "8",
+        "TX",
+        50.0,
+        dt.date(2022, 8, 10),
+        department=69,
+    )
 
     ds = TimescaleRecordsDataSource()
     results = ds.fetch_records(make_query(record_scope="monthly", month=7))
@@ -141,8 +196,26 @@ def test_alltime_cold_records_two_stations():
     insert_station(code_b, "Station Grand Froid B", department=57)
     set_cutoff(PAST_CUTOFF)
 
-    insert_mv_record(code_a, "Station Grand Froid A", "all_time", None, "TN", -22.0, dt.date(1985, 1, 16), department=67)
-    insert_mv_record(code_b, "Station Grand Froid B", "all_time", None, "TN", -18.5, dt.date(1963, 2, 11), department=57)
+    insert_mv_record(
+        code_a,
+        "Station Grand Froid A",
+        "all_time",
+        None,
+        "TN",
+        -22.0,
+        dt.date(1985, 1, 16),
+        department=67,
+    )
+    insert_mv_record(
+        code_b,
+        "Station Grand Froid B",
+        "all_time",
+        None,
+        "TN",
+        -18.5,
+        dt.date(1963, 2, 11),
+        department=57,
+    )
 
     ds = TimescaleRecordsDataSource()
     results = ds.fetch_records(make_query(type_records="cold"))
@@ -181,9 +254,36 @@ def test_absolute_kind_returns_only_last_record_per_station():
     insert_station(code, "Station Absolu", department=75)
     set_cutoff(PAST_CUTOFF)
 
-    insert_mv_record(code, "Station Absolu", "all_time", None, "TX", 33.0, dt.date(1990, 7, 20), department=75)
-    insert_mv_record(code, "Station Absolu", "all_time", None, "TX", 40.0, dt.date(2003, 8, 5), department=75)
-    insert_mv_record(code, "Station Absolu", "all_time", None, "TX", 44.0, dt.date(2019, 6, 28), department=75)
+    insert_mv_record(
+        code,
+        "Station Absolu",
+        "all_time",
+        None,
+        "TX",
+        33.0,
+        dt.date(1990, 7, 20),
+        department=75,
+    )
+    insert_mv_record(
+        code,
+        "Station Absolu",
+        "all_time",
+        None,
+        "TX",
+        40.0,
+        dt.date(2003, 8, 5),
+        department=75,
+    )
+    insert_mv_record(
+        code,
+        "Station Absolu",
+        "all_time",
+        None,
+        "TX",
+        44.0,
+        dt.date(2019, 6, 28),
+        department=75,
+    )
 
     ds = TimescaleRecordsDataSource()
     results = ds.fetch_records(make_query(record_kind="absolute"))
@@ -213,8 +313,26 @@ def test_department_filter_excludes_other_departments():
     insert_station(code_69, "Station Lyon", department=69)
     set_cutoff(PAST_CUTOFF)
 
-    insert_mv_record(code_13, "Station Marseille", "all_time", None, "TX", 40.0, dt.date(2019, 7, 28), department=13)
-    insert_mv_record(code_69, "Station Lyon", "all_time", None, "TX", 37.5, dt.date(2019, 7, 25), department=69)
+    insert_mv_record(
+        code_13,
+        "Station Marseille",
+        "all_time",
+        None,
+        "TX",
+        40.0,
+        dt.date(2019, 7, 28),
+        department=13,
+    )
+    insert_mv_record(
+        code_69,
+        "Station Lyon",
+        "all_time",
+        None,
+        "TX",
+        37.5,
+        dt.date(2019, 7, 25),
+        department=69,
+    )
 
     ds = TimescaleRecordsDataSource()
     results = ds.fetch_records(make_query(departments=("13",)))

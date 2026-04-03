@@ -413,13 +413,15 @@ class MaterializedTemperatureRecordsDataSource:
         with connection.cursor() as cur:
             cur.execute(sql, [record_type, request.period_type, period_value])
             cols = [c.name for c in cur.description]
-            rows = [dict(zip(cols, row)) for row in cur.fetchall()]
+            rows = [dict(zip(cols, row, strict=False)) for row in cur.fetchall()]
 
         return [
             TemperatureRecordEntry(
                 station_id=row["station_code"].strip(),
                 station_name=row["station_name"],
-                department=str(row["department"]) if row["department"] is not None else "",
+                department=str(row["department"])
+                if row["department"] is not None
+                else "",
                 record_value=float(row["record_value"]),
                 record_date=row["record_date"].date()
                 if isinstance(row["record_date"], dt.datetime)
@@ -460,9 +462,7 @@ class HybridTemperatureRecordsDataSource:
 
     def _get_cutoff_date(self) -> dt.date | None:
         with connection.cursor() as cur:
-            cur.execute(
-                "SELECT cutoff_date FROM public.mv_records_battus_meta LIMIT 1"
-            )
+            cur.execute("SELECT cutoff_date FROM public.mv_records_battus_meta LIMIT 1")
             row = cur.fetchone()
         return row[0] if row else None
 
