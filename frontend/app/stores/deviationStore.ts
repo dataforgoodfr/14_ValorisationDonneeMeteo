@@ -61,9 +61,13 @@ export const useDeviationStore = defineStore("deviationStore", () => {
         stationIds.value = stations.map((station) => station.code);
         selectedStations.value = stations;
     };
+    const setIncludeNational = (value: boolean) => {
+        includeNational.value = value;
+    };
 
     return {
         deviationChartRef,
+        includeNational,
         pickedDateStart,
         pickedDateEnd,
         granularity,
@@ -73,11 +77,11 @@ export const useDeviationStore = defineStore("deviationStore", () => {
         chartTypeSwitchEnabled,
         chartType,
         setGranularity,
+        setIncludeNational,
         setChartType,
         setStations,
         stationIds,
         selectedStations,
-        includeNational,
         deviationData,
         pending,
         error,
