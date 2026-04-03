@@ -75,7 +75,7 @@ def insert_mv_record(
     with connection.cursor() as cur:
         cur.execute(
             """
-            INSERT INTO public.mv_records_absolus
+            INSERT INTO public.mv_records_battus
                 (period_type, period_value, record_type,
                  station_code, station_name, department,
                  record_value, record_date)
@@ -96,17 +96,17 @@ def insert_mv_record(
 
 def set_cutoff(date: dt.date) -> None:
     with connection.cursor() as cur:
-        cur.execute("TRUNCATE public.mv_records_absolus_meta;")
+        cur.execute("TRUNCATE public.mv_records_battus_meta;")
         cur.execute(
-            "INSERT INTO public.mv_records_absolus_meta (cutoff_date) VALUES (%s);",
+            "INSERT INTO public.mv_records_battus_meta (cutoff_date) VALUES (%s);",
             [date],
         )
 
 
 def clear_mv() -> None:
     with connection.cursor() as cur:
-        cur.execute("TRUNCATE public.mv_records_absolus;")
-        cur.execute("TRUNCATE public.mv_records_absolus_meta;")
+        cur.execute("TRUNCATE public.mv_records_battus;")
+        cur.execute("TRUNCATE public.mv_records_battus_meta;")
 
 
 @pytest.fixture(scope="session", autouse=True)
@@ -129,8 +129,8 @@ def setup_db_schema_and_views(django_db_setup, django_db_blocker):
 
     with django_db_blocker.unblock():
         with connection.cursor() as cur:
-            cur.execute("DROP TABLE IF EXISTS public.mv_records_absolus_meta;")
-            cur.execute("DROP TABLE IF EXISTS public.mv_records_absolus;")
+            cur.execute("DROP TABLE IF EXISTS public.mv_records_battus_meta;")
+            cur.execute("DROP TABLE IF EXISTS public.mv_records_battus;")
             cur.execute("DROP VIEW IF EXISTS public.v_records_absolus CASCADE;")
             cur.execute("DROP VIEW IF EXISTS public.v_quotidienne_itn CASCADE;")
             cur.execute("DROP VIEW IF EXISTS public.v_station CASCADE;")
@@ -144,10 +144,10 @@ def setup_db_schema_and_views(django_db_setup, django_db_blocker):
             cur.execute(baseline_station_table_sql)
             cur.execute(itn_baseline_tables_sql)
             cur.execute(
-                "CREATE TABLE public.mv_records_absolus_meta (cutoff_date DATE NOT NULL);"
+                "CREATE TABLE public.mv_records_battus_meta (cutoff_date DATE NOT NULL);"
             )
             cur.execute("""
-                CREATE TABLE public.mv_records_absolus (
+                CREATE TABLE public.mv_records_battus (
                     period_type   text,
                     period_value  text,
                     record_type   text,

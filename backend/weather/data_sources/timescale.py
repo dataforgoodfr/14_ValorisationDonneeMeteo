@@ -378,10 +378,10 @@ def _temperature_records_period_clause_named(
 class MaterializedTemperatureRecordsDataSource:
     """
     Data source optimisée : lit les records pré-calculés depuis la vue
-    matérialisée mv_records_absolus. Temps de réponse < 10 ms.
+    matérialisée mv_records_battus. Temps de réponse < 10 ms.
 
     Pré-requis : la MV doit exister en base. La créer avec :
-        psql < backend/sql/materialized_views/records/001_mv_records_absolus.sql
+        psql < backend/sql/materialized_views/records/001_mv_records_battus.sql
 
     Rafraîchissement après import de nouvelles données :
         python manage.py refresh_records_mv
@@ -401,7 +401,7 @@ class MaterializedTemperatureRecordsDataSource:
 
         sql = """
             SELECT station_code, station_name, department, record_value, record_date
-            FROM public.mv_records_absolus
+            FROM public.mv_records_battus
             WHERE record_type = %s
               AND period_type = %s
               AND period_value IS NOT DISTINCT FROM %s
@@ -429,14 +429,14 @@ class MaterializedTemperatureRecordsDataSource:
 
 class HybridTemperatureRecordsDataSource:
     """
-    Data source hybride : lit les records pré-calculés depuis mv_records_absolus
+    Data source hybride : lit les records pré-calculés depuis mv_records_battus
     (snapshot figé) et complète à chaud les nouvelles données (après cutoff_date)
     via une window function amorcée par les records actuels de la MV.
 
     La MV n'est jamais rafraîchie. La cutoff_date est stockée dans
-    mv_records_absolus_meta au moment de la création de la MV.
+    mv_records_battus_meta au moment de la création de la MV.
 
-    Fallback silencieux vers la MV seule si mv_records_absolus_meta est absente
+    Fallback silencieux vers la MV seule si mv_records_battus_meta est absente
     ou vide (env de dev sans script de seed exécuté).
     """
 
@@ -459,7 +459,7 @@ class HybridTemperatureRecordsDataSource:
     def _get_cutoff_date(self) -> dt.date | None:
         with connection.cursor() as cur:
             cur.execute(
-                "SELECT cutoff_date FROM public.mv_records_absolus_meta LIMIT 1"
+                "SELECT cutoff_date FROM public.mv_records_battus_meta LIMIT 1"
             )
             row = cur.fetchone()
         return row[0] if row else None
@@ -491,7 +491,7 @@ class HybridTemperatureRecordsDataSource:
         sql = f"""
             WITH mv_seeds AS (
                 SELECT station_code, {agg}(record_value) AS seed_val
-                FROM public.mv_records_absolus
+                FROM public.mv_records_battus
                 WHERE record_type = %(record_type)s
                   AND period_type = %(period_type)s
                   AND period_value IS NOT DISTINCT FROM %(period_value)s

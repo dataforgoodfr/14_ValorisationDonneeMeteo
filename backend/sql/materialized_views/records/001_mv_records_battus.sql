@@ -42,9 +42,9 @@ PERFORMANCE
 ===============================================================================
 */
 
-DROP MATERIALIZED VIEW IF EXISTS public.mv_records_absolus;
+DROP MATERIALIZED VIEW IF EXISTS public.mv_records_battus;
 
-CREATE MATERIALIZED VIEW public.mv_records_absolus AS
+CREATE MATERIALIZED VIEW public.mv_records_battus AS
 
 WITH
 
@@ -236,9 +236,9 @@ WHERE r.prev_val IS NULL OR r.val < r.prev_val;
 -- ============================================================================
 
 -- Index principal utilisé par l'endpoint (filtre sur les 3 colonnes de recherche)
-CREATE INDEX idx_mv_records_absolus_query
-ON public.mv_records_absolus (record_type, period_type, period_value);
+CREATE INDEX idx_mv_records_battus_query
+ON public.mv_records_battus (record_type, period_type, period_value);
 
 -- Index secondaire pour les requêtes par station (diagnostic, admin)
-CREATE INDEX idx_mv_records_absolus_station
-ON public.mv_records_absolus (station_code);
+CREATE INDEX idx_mv_records_battus_station
+ON public.mv_records_battus (station_code);
