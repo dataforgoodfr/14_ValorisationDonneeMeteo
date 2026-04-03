@@ -296,19 +296,6 @@ class TimescaleTemperatureRecordsDataSource:
 
         period_clause, params = self._period_clause(request)
 
-        # Pour l'hiver, on partitionne aussi par winter_year afin de ne pas
-        # mélanger déc N avec jan/fév d'un autre hiver (interp. B cohérente).
-        if request.period_type == "season" and request.season == "winter":
-            winter_year_expr = (
-                "CASE EXTRACT(MONTH FROM q.\"AAAAMMJJ\")::int"
-                " WHEN 12 THEN EXTRACT(YEAR FROM q.\"AAAAMMJJ\")::int"
-                " ELSE EXTRACT(YEAR FROM q.\"AAAAMMJJ\")::int - 1"
-                " END"
-            )
-            partition_by = f'q."NUM_POSTE", {winter_year_expr}'
-        else:
-            partition_by = 'q."NUM_POSTE"'
-
         sql = f"""
             WITH ordered AS (
                 SELECT
@@ -316,7 +303,7 @@ class TimescaleTemperatureRecordsDataSource:
                     q."AAAAMMJJ",
                     q."{col}",
                     {agg}(q."{col}") OVER (
-                        PARTITION BY {partition_by}
+                        PARTITION BY q."NUM_POSTE"
                         ORDER BY q."AAAAMMJJ"
                         ROWS BETWEEN UNBOUNDED PRECEDING AND 1 PRECEDING
                     ) AS prev_val
