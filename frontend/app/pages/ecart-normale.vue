@@ -29,7 +29,12 @@ const heroData = {
                 <SearchStation />
             </template>
             <template #chart>
-                <DeviationChart :adapter="selectBarAdapter" class="px-3 py-2" />
+                <ClientOnly>
+                    <DeviationChart
+                        :adapter="selectBarAdapter"
+                        class="px-3 py-2"
+                    />
+                </ClientOnly>
             </template>
         </ChartLayout>
     </UContainer>

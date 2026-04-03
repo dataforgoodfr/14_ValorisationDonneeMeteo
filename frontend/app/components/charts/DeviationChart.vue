@@ -31,16 +31,17 @@ echarts.use([
 interface Props {
     adapter: SelectBarAdapter<DeviationResponse>;
 }
-const { selectedStations } = storeToRefs(useDeviationStore());
+const { selectedStations, includeNational } = storeToRefs(useDeviationStore());
 const props = defineProps<Props>();
 
-const selectedStationsNames = computed(() =>
-    selectedStations.value.length > 0
-        ? selectedStations.value.map(
-              (station) => `${station.nom} (${station.departement})`,
-          )
-        : ["France Métropolitaine"],
-);
+const selectedStationsAndNationalNames = computed(() => {
+    const stations = selectedStations.value.map(
+        (station) => `${station.nom} (${station.departement})`,
+    );
+    return includeNational.value
+        ? ["France Métropolitaine", ...stations]
+        : stations;
+});
 
 // provide init-options
 const renderer = ref<"svg" | "canvas">("canvas");
@@ -56,19 +57,21 @@ const option = computed<ECOption>(() => {
     if (!data) {
         return {};
     }
-    const stations = data.stations.length > 1 ? data.stations : [data.national];
-    const plotAmountToDisplay = data.stations.length || 1;
+    const stationsAndNational = includeNational.value
+        ? [data.national, ...data.stations]
+        : data.stations;
+    const plotAmountToDisplay = stationsAndNational.length || 1;
 
     return {
         dataset:
-            stations.map((station) => ({
+            stationsAndNational.map((stationOrNational) => ({
                 dimensions: [
                     "date",
                     "deviation_positive",
                     "deviation_negative",
                 ],
                 source:
-                    station?.data?.map((p) => ({
+                    stationOrNational?.data?.map((p) => ({
                         date: p.date,
                         deviation_positive:
                             p.deviation >= 0 ? p.deviation : null,
@@ -76,14 +79,14 @@ const option = computed<ECOption>(() => {
                             p.deviation < 0 ? p.deviation : null,
                     })) ?? [],
             })) ?? [],
-        grid: stations.map((_, index) => ({
+        grid: stationsAndNational.map((_, index) => ({
             top: `${index * (100 / plotAmountToDisplay) + 3}%`,
             height: `${100 / plotAmountToDisplay - 10}%`,
             left: 30,
             right: 10,
             containLabel: true,
         })),
-        xAxis: stations.map((_, index) => ({
+        xAxis: stationsAndNational.map((_, index) => ({
             type: "time",
             gridIndex: index,
             axisTick: { show: false },
@@ -92,7 +95,7 @@ const option = computed<ECOption>(() => {
             nameTextStyle: { fontSize: 11, fontWeight: "bold" },
             axisPointer: { type: "line", label: { show: false } },
         })),
-        yAxis: stations.map((_, index) => ({
+        yAxis: stationsAndNational.map((_, index) => ({
             type: "value",
             gridIndex: index,
             splitNumber: 3,
@@ -104,7 +107,7 @@ const option = computed<ECOption>(() => {
             axisLabel: { fontSize: 10 },
             splitLine: { lineStyle: { type: "dashed" } },
         })),
-        series: stations.flatMap((_, index) => [
+        series: stationsAndNational.flatMap((_, index) => [
             {
                 name: "Ecart positif",
                 type: "bar",
@@ -128,8 +131,8 @@ const option = computed<ECOption>(() => {
                 yAxisIndex: index,
             },
         ]),
-        title: stations.map((station, index) => ({
-            text: selectedStationsNames.value[index],
+        title: stationsAndNational.map((stationOrNational, index) => ({
+            text: selectedStationsAndNationalNames.value[index],
             right: "right",
             top: `${index * (100 / plotAmountToDisplay)}%`,
         })),
@@ -138,7 +141,6 @@ const option = computed<ECOption>(() => {
             label: { backgroundColor: "#3a5080" },
         },
         legend: {
-            data: ["Ecart positif", "Ecart négatif"],
             bottom: 0,
         },
         tooltip: {
@@ -148,7 +150,7 @@ const option = computed<ECOption>(() => {
                 deviationChartTooltipFormatter(
                     params,
                     props.adapter.granularity.value,
-                    selectedStationsNames.value,
+                    selectedStationsAndNationalNames.value,
                 ),
         },
         dataZoom: [
@@ -163,13 +165,26 @@ const option = computed<ECOption>(() => {
 </script>
 
 <template>
-    <VChart
-        :ref="adapter.chartRef"
-        :key="adapter.granularity.value"
-        :option="option"
-        :init-options="initOptions"
-        :loading="adapter.pending.value"
-        :loading-options="{ text: 'Chargement…', color: '#3b82f6' }"
-        autoresize
-    />
+    <div class="h-full">
+        <div
+            v-if="!props.adapter.data.value"
+            class="flex flex-col justify-center h-full items-center text-stone-400"
+        >
+            <p>Selectionnez au moins une station</p>
+            <p>
+                pour afficher ces écarts à la normale, pour la période
+                sélectionnée.
+            </p>
+        </div>
+        <VChart
+            v-else
+            :ref="adapter.chartRef"
+            :key="adapter.granularity.value"
+            :option="option"
+            :init-options="initOptions"
+            :loading="adapter.pending.value"
+            :loading-options="{ text: 'Chargement…', color: '#3b82f6' }"
+            autoresize
+        />
+    </div>
 </template>
