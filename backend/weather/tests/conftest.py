@@ -62,6 +62,53 @@ def insert_quotidienne(
         )
 
 
+def insert_mv_record(
+    station_code: str,
+    station_name: str,
+    period_type: str,
+    period_value: str | None,
+    record_type: str,
+    value: float,
+    date: dt.date,
+    department: int = 75,
+) -> None:
+    with connection.cursor() as cur:
+        cur.execute(
+            """
+            INSERT INTO public.mv_records_absolus
+                (period_type, period_value, record_type,
+                 station_code, station_name, department,
+                 record_value, record_date)
+            VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
+            """,
+            [
+                period_type,
+                period_value,
+                record_type,
+                station_code,
+                station_name,
+                department,
+                value,
+                date,
+            ],
+        )
+
+
+def set_cutoff(date: dt.date) -> None:
+    with connection.cursor() as cur:
+        cur.execute("TRUNCATE public.mv_records_absolus_meta;")
+        cur.execute(
+            "INSERT INTO public.mv_records_absolus_meta (cutoff_date) VALUES (%s);",
+            [date],
+        )
+
+
+def clear_mv() -> None:
+    with connection.cursor() as cur:
+        cur.execute("TRUNCATE public.mv_records_absolus;")
+        cur.execute("TRUNCATE public.mv_records_absolus_meta;")
+
+
 @pytest.fixture(scope="session", autouse=True)
 def setup_db_schema_and_views(django_db_setup, django_db_blocker):
     """
