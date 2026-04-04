@@ -197,6 +197,20 @@ class FakeTemperatureRecordsDataSource:
     def fetch_records(
         self, request: TemperatureRecordsRequest
     ) -> list[TemperatureRecordEntry]:
-        if request.type_records == "hot":
-            return list(_FAKE_HOT_RECORDS)
-        return list(_FAKE_COLD_RECORDS)
+        results = list(_FAKE_HOT_RECORDS if request.type_records == "hot" else _FAKE_COLD_RECORDS)
+
+        if request.date_start:
+            results = [e for e in results if e.record_date >= request.date_start]
+        if request.date_end:
+            results = [e for e in results if e.record_date <= request.date_end]
+
+        if request.territoire == "department":
+            results = [e for e in results if e.department == request.territoire_id]
+        elif request.territoire == "station":
+            results = [e for e in results if e.station_id == request.territoire_id]
+        elif request.territoire == "region":
+            from weather.regions import departments_for_region
+            depts = set(departments_for_region(request.territoire_id or ""))
+            results = [e for e in results if e.department in depts]
+
+        return results

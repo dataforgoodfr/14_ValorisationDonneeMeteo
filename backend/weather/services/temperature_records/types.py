@@ -17,6 +17,10 @@ class TemperatureRecordsRequest:
     type_records: str  # "hot" | "cold"
     month: int | None = None
     season: str | None = None
+    date_start: dt.date | None = None
+    date_end: dt.date | None = None
+    territoire: str | None = None  # "france" | "region" | "department" | "station"
+    territoire_id: str | None = None
 
 
 @dataclass(frozen=True)

@@ -269,11 +269,23 @@ class TemperatureRecordsQuerySerializer(serializers.Serializer):
         required=False,
         default="hot",
     )
+    date_start = serializers.DateField(required=False)
+    date_end = serializers.DateField(required=False)
+    territoire = serializers.ChoiceField(
+        choices=["france", "region", "department", "station"],
+        required=False,
+        default="france",
+    )
+    territoire_id = serializers.CharField(required=False)
 
     def validate(self, attrs):
         period_type = attrs.get("period_type", "all_time")
         month = attrs.get("month")
         season = attrs.get("season")
+        date_start = attrs.get("date_start")
+        date_end = attrs.get("date_end")
+        territoire = attrs.get("territoire", "france")
+        territoire_id = attrs.get("territoire_id")
 
         if period_type == "month" and month is None:
             raise serializers.ValidationError({"month": "Requis si period_type=month."})
@@ -281,6 +293,16 @@ class TemperatureRecordsQuerySerializer(serializers.Serializer):
         if period_type == "season" and season is None:
             raise serializers.ValidationError(
                 {"season": "Requis si period_type=season."}
+            )
+
+        if (date_start is None) != (date_end is None):
+            raise serializers.ValidationError(
+                {"date_start": "date_start et date_end doivent être fournis ensemble."}
+            )
+
+        if territoire != "france" and not territoire_id:
+            raise serializers.ValidationError(
+                {"territoire_id": f"Requis si territoire={territoire}."}
             )
 
         return attrs
@@ -458,3 +480,54 @@ class NationalIndicatorKpiDaySerializer(serializers.Serializer):
 class NationalIndicatorKpiResponseSerializer(serializers.Serializer):
     count = serializers.IntegerField()
     days = NationalIndicatorKpiDaySerializer(many=True)
+
+
+class RecordsGraphQuerySerializer(serializers.Serializer):
+    date_start = serializers.DateField()
+    date_end = serializers.DateField()
+    granularity = serializers.ChoiceField(choices=["day", "month", "year"])
+    period_type = serializers.ChoiceField(
+        choices=["all_time", "month", "season"],
+        required=False,
+        default="all_time",
+    )
+    type_records = serializers.ChoiceField(
+        choices=["hot", "cold"],
+        required=False,
+        default="hot",
+    )
+    month = serializers.IntegerField(required=False, min_value=1, max_value=12)
+    season = serializers.ChoiceField(
+        choices=["spring", "summer", "autumn", "winter"],
+        required=False,
+    )
+    territoire = serializers.ChoiceField(
+        choices=["france", "region", "department", "station"],
+        required=False,
+        default="france",
+    )
+    territoire_id = serializers.CharField(required=False)
+
+    def validate(self, attrs):
+        period_type = attrs.get("period_type", "all_time")
+        territoire = attrs.get("territoire", "france")
+
+        if period_type == "month" and attrs.get("month") is None:
+            raise serializers.ValidationError({"month": "Requis si period_type=month."})
+
+        if period_type == "season" and attrs.get("season") is None:
+            raise serializers.ValidationError(
+                {"season": "Requis si period_type=season."}
+            )
+
+        if territoire != "france" and not attrs.get("territoire_id"):
+            raise serializers.ValidationError(
+                {"territoire_id": f"Requis si territoire={territoire}."}
+            )
+
+        return attrs
+
+
+class RecordsGraphBucketSerializer(serializers.Serializer):
+    bucket = serializers.CharField()
+    nb_records_battus = serializers.IntegerField()
