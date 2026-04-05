@@ -425,6 +425,8 @@ class TemperatureDeviationOverviewStationSerializer(serializers.Serializer):
     temperature_mean = serializers.FloatField()
     baseline_mean = serializers.FloatField()
     deviation = serializers.FloatField()
+    lat = serializers.FloatField(allow_null=True)
+    lon = serializers.FloatField(allow_null=True)
 
 
 class TemperatureDeviationOverviewMetadataSerializer(serializers.Serializer):

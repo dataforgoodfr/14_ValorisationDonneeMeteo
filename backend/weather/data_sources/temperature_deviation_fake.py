@@ -200,6 +200,8 @@ class FakeTemperatureDeviationOverviewDataSource(
                 TemperatureDeviationOverviewStation(
                     station_id=station_id,
                     station_name=f"Station {station_id}",
+                    lat=40.0 + (i % 50) * 0.1,
+                    lon=-5.0 + (i % 80) * 0.1,
                     temperature_mean=temperature_mean,
                     baseline_mean=baseline_mean,
                     deviation=deviation,

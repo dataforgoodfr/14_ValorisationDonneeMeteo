@@ -2,7 +2,6 @@ from __future__ import annotations
 
 import datetime as dt
 import math
-import time
 from collections import defaultdict
 
 from django.db import connection
@@ -413,6 +412,8 @@ class TimescaleTemperatureDeviationDailyDataSource(
                 SELECT
                     a.station_id,
                     COALESCE(s.name, a.station_id) AS station_name,
+                    s.lat AS lat,
+                    s.lon AS lon,
                     a.temperature_mean,
                     a.baseline_mean,
                     (a.temperature_mean - a.baseline_mean) AS deviation
@@ -440,6 +441,8 @@ class TimescaleTemperatureDeviationDailyDataSource(
             SELECT
                 station_id,
                 station_name,
+                lat,
+                lon,
                 temperature_mean,
                 baseline_mean,
                 deviation
@@ -451,15 +454,11 @@ class TimescaleTemperatureDeviationDailyDataSource(
         )
 
         with connection.cursor() as cur:
-            t0 = time.perf_counter()
             cur.execute(count_sql, params)
             total_count = cur.fetchone()[0]
-            print("overview count:", time.perf_counter() - t0)
 
-            t1 = time.perf_counter()
             cur.execute(page_sql, page_params)
             rows = cur.fetchall()
-            print("overview page:", time.perf_counter() - t1)
 
         total_pages = math.ceil(total_count / query.page_size) if total_count > 0 else 0
 
@@ -467,9 +466,11 @@ class TimescaleTemperatureDeviationDailyDataSource(
             TemperatureDeviationOverviewStation(
                 station_id=row[0],
                 station_name=row[1],
-                temperature_mean=float(row[2]),
-                baseline_mean=float(row[3]),
-                deviation=float(row[4]),
+                lat=float(row[2]) if row[2] is not None else None,
+                lon=float(row[3]) if row[3] is not None else None,
+                temperature_mean=float(row[4]),
+                baseline_mean=float(row[5]),
+                deviation=float(row[6]),
             )
             for row in rows
         ]
