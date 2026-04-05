@@ -10,7 +10,10 @@ from weather.utils.date_range import (
     period_start,
 )
 
-from .protocols import TemperatureDeviationDailyDataSource
+from .protocols import (
+    TemperatureDeviationDailyDataSource,
+    TemperatureDeviationOverviewDataSource,
+)
 from .types import (
     AggregatedDeviationPoint,
     DailyDeviationPoint,
@@ -18,6 +21,7 @@ from .types import (
     NationalDeviationSeries,
     ObservedPoint,
     StationDeviationSeries,
+    TemperatureDeviationOverviewQuery,
     TemperatureDeviationResult,
 )
 
@@ -365,3 +369,59 @@ def compute_temperature_deviation(
         include_national=include_national,
     )
     return serialize_temperature_deviation_result(result)
+
+
+def compute_temperature_deviation_overview(
+    *,
+    data_source: TemperatureDeviationOverviewDataSource,
+    date_start: dt.date,
+    date_end: dt.date,
+    station_search: str | None = None,
+    temperature_mean_min: float | None = None,
+    temperature_mean_max: float | None = None,
+    deviation_min: float | None = None,
+    deviation_max: float | None = None,
+    ordering: str = "-deviation",
+    page: int = 1,
+    page_size: int = 50,
+) -> dict:
+    query = TemperatureDeviationOverviewQuery(
+        date_start=date_start,
+        date_end=date_end,
+        station_search=station_search,
+        temperature_mean_min=temperature_mean_min,
+        temperature_mean_max=temperature_mean_max,
+        deviation_min=deviation_min,
+        deviation_max=deviation_max,
+        ordering=ordering,
+        page=page,
+        page_size=page_size,
+    )
+
+    national = data_source.fetch_national_mean_deviation(
+        date_start=date_start,
+        date_end=date_end,
+    )
+    result = data_source.fetch_station_overview(query)
+
+    return {
+        "national": {
+            "deviation_mean": round(national, 2),
+        },
+        "pagination": {
+            "total_count": result.pagination.total_count,
+            "page": result.pagination.page,
+            "page_size": result.pagination.page_size,
+            "total_pages": result.pagination.total_pages,
+        },
+        "stations": [
+            {
+                "station_id": s.station_id,
+                "station_name": s.station_name,
+                "temperature_mean": round(s.temperature_mean, 2),
+                "baseline_mean": round(s.baseline_mean, 2),
+                "deviation": round(s.deviation, 2),
+            }
+            for s in result.stations
+        ],
+    }

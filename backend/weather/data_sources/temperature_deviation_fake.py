@@ -9,6 +9,7 @@ from datetime import date
 
 from weather.services.temperature_deviation.protocols import (
     TemperatureDeviationDailyDataSource,
+    TemperatureDeviationOverviewDataSource,
 )
 from weather.services.temperature_deviation.types import (
     DailyBaselinePoint,
@@ -16,7 +17,11 @@ from weather.services.temperature_deviation.types import (
     DailyDeviationSeriesQuery,
     MonthlyBaselinePoint,
     ObservedPoint,
+    Pagination,
     StationDailySeries,
+    TemperatureDeviationOverviewQuery,
+    TemperatureDeviationOverviewResult,
+    TemperatureDeviationOverviewStation,
     YearlyBaselinePoint,
 )
 from weather.utils.date_range import iter_days_intersecting
@@ -175,3 +180,87 @@ class FakeTemperatureDeviationDailyDataSource(TemperatureDeviationDailyDataSourc
 
     def fetch_national_yearly_baseline(self) -> YearlyBaselinePoint | None:
         return _fake_yearly_baseline()
+
+
+class FakeTemperatureDeviationOverviewDataSource(
+    TemperatureDeviationOverviewDataSource
+):
+    def __init__(self) -> None:
+        self._stations = self._build_dataset()
+
+    def _build_dataset(self) -> list[TemperatureDeviationOverviewStation]:
+        out = []
+        for i in range(1, 501):  # 500 stations
+            station_id = f"{70000 + i:05d}"
+            temperature_mean = 10 + (i % 20) + (i % 3) * 0.3
+            baseline_mean = 9 + (i % 15) * 0.5
+            deviation = temperature_mean - baseline_mean
+
+            out.append(
+                TemperatureDeviationOverviewStation(
+                    station_id=station_id,
+                    station_name=f"Station {station_id}",
+                    temperature_mean=temperature_mean,
+                    baseline_mean=baseline_mean,
+                    deviation=deviation,
+                )
+            )
+        return out
+
+    def fetch_national_mean_deviation(
+        self,
+        *,
+        date_start,
+        date_end,
+    ) -> float:
+        # valeur fixe simple
+        return 1.5
+
+    def fetch_station_overview(
+        self,
+        query: TemperatureDeviationOverviewQuery,
+    ) -> TemperatureDeviationOverviewResult:
+        data = self._stations
+        if query.station_search:
+            s = query.station_search.lower()
+            data = [x for x in data if s in x.station_name.lower()]
+        if query.temperature_mean_min is not None:
+            data = [x for x in data if x.temperature_mean >= query.temperature_mean_min]
+
+        if query.temperature_mean_max is not None:
+            data = [x for x in data if x.temperature_mean <= query.temperature_mean_max]
+
+        if query.deviation_min is not None:
+            data = [x for x in data if x.deviation >= query.deviation_min]
+
+        if query.deviation_max is not None:
+            data = [x for x in data if x.deviation <= query.deviation_max]
+        reverse = query.ordering.startswith("-")
+        field = query.ordering.lstrip("-")
+
+        def key(x):
+            return getattr(x, field)
+
+        data = sorted(data, key=key, reverse=reverse)
+        total_count = len(data)
+
+        start = (query.page - 1) * query.page_size
+        end = start + query.page_size
+
+        page_items = data[start:end]
+
+        total_pages = (
+            (total_count + query.page_size - 1) // query.page_size
+            if total_count > 0
+            else 0
+        )
+        return TemperatureDeviationOverviewResult(
+            national_deviation_mean=1.5,  # ignoré ici
+            pagination=Pagination(
+                total_count=total_count,
+                page=query.page,
+                page_size=query.page_size,
+                total_pages=total_pages,
+            ),
+            stations=page_items,
+        )

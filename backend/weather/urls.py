@@ -10,6 +10,7 @@ from .views import (
     RecordsAPIView,
     StationViewSet,
     TemperatureDeviationGraphAPIView,
+    TemperatureDeviationOverviewAPIView,
 )
 
 router = DefaultRouter()
@@ -30,6 +31,11 @@ urlpatterns = [
     path(
         "temperature/deviation/graph",
         TemperatureDeviationGraphAPIView.as_view(),
-        name="temperature-deviation",
+        name="temperature-deviation-graph",
+    ),
+    path(
+        "temperature/deviation",
+        TemperatureDeviationOverviewAPIView.as_view(),
+        name="temperature-deviation-overview",
     ),
 ]

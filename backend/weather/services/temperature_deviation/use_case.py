@@ -2,8 +2,14 @@ from __future__ import annotations
 
 import datetime as dt
 
-from .protocols import TemperatureDeviationDailyDataSource
-from .service import compute_temperature_deviation
+from .protocols import (
+    TemperatureDeviationDailyDataSource,
+    TemperatureDeviationOverviewDataSource,
+)
+from .service import (
+    compute_temperature_deviation,
+    compute_temperature_deviation_overview,
+)
 
 
 def get_temperature_deviation(
@@ -22,4 +28,33 @@ def get_temperature_deviation(
         granularity=granularity,
         station_ids=station_ids,
         include_national=include_national,
+    )
+
+
+def get_temperature_deviation_overview(
+    *,
+    data_source: TemperatureDeviationOverviewDataSource,
+    date_start: dt.date,
+    date_end: dt.date,
+    station_search: str | None = None,
+    temperature_mean_min: float | None = None,
+    temperature_mean_max: float | None = None,
+    deviation_min: float | None = None,
+    deviation_max: float | None = None,
+    ordering: str = "-deviation",
+    page: int = 1,
+    page_size: int = 50,
+) -> dict:
+    return compute_temperature_deviation_overview(
+        data_source=data_source,
+        date_start=date_start,
+        date_end=date_end,
+        station_search=station_search,
+        temperature_mean_min=temperature_mean_min,
+        temperature_mean_max=temperature_mean_max,
+        deviation_min=deviation_min,
+        deviation_max=deviation_max,
+        ordering=ordering,
+        page=page,
+        page_size=page_size,
     )
