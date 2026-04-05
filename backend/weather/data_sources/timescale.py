@@ -1,8 +1,11 @@
 from __future__ import annotations
 
 import datetime as dt
+import math
+import time
 from collections import defaultdict
 
+from django.db import connection
 from django.db.models import OuterRef, Subquery
 from django.db.models.functions import ExtractDay, ExtractMonth
 
@@ -34,6 +37,7 @@ from weather.services.national_indicator.types import (
 )
 from weather.services.temperature_deviation.protocols import (
     TemperatureDeviationDailyDataSource,
+    TemperatureDeviationOverviewDataSource,
 )
 from weather.services.temperature_deviation.types import (
     DailyBaselinePoint,
@@ -41,7 +45,11 @@ from weather.services.temperature_deviation.types import (
     DailyDeviationSeriesQuery,
     MonthlyBaselinePoint,
     ObservedPoint,
+    Pagination,
     StationDailySeries,
+    TemperatureDeviationOverviewQuery,
+    TemperatureDeviationOverviewResult,
+    TemperatureDeviationOverviewStation,
     YearlyBaselinePoint,
 )
 
@@ -58,6 +66,42 @@ def _normalize_reims(
     m = dict(station_code_to_temp_map)
     m.pop(reims_other, None)
     return m
+
+
+def _station_daily_baseline_subquery():
+    return BaselineStationDailyMean19912020.objects.filter(
+        station_code=OuterRef("station_code"),
+        month=OuterRef("month"),
+        day=OuterRef("day"),
+    ).values("baseline_mean_tntxm")[:1]
+
+
+def _station_name_subquery():
+    return Station.objects.filter(station_code=OuterRef("station_code")).values("name")[
+        :1
+    ]
+
+
+def _daily_station_queryset(
+    date_start: dt.date,
+    date_end: dt.date,
+):
+    baseline_sq = _station_daily_baseline_subquery()
+
+    return (
+        QuotidienneITN.objects.filter(
+            date__gte=date_start,
+            date__lte=date_end,
+        )
+        .annotate(
+            month=ExtractMonth("date"),
+            day=ExtractDay("date"),
+        )
+        .annotate(
+            baseline_mean_day=Subquery(baseline_sq),
+        )
+        .filter(baseline_mean_day__isnull=False)
+    )
 
 
 def compute_itn_for_day(
@@ -156,7 +200,10 @@ class TimescaleNationalIndicatorBaselineDataSource(NationalIndicatorBaselineData
         )
 
 
-class TimescaleTemperatureDeviationDailyDataSource(TemperatureDeviationDailyDataSource):
+class TimescaleTemperatureDeviationDailyDataSource(
+    TemperatureDeviationDailyDataSource,
+    TemperatureDeviationOverviewDataSource,
+):
     def _baseline_subquery(self):
         return BaselineStationDailyMean19912020.objects.filter(
             station_code=OuterRef("station_code"),
@@ -268,3 +315,172 @@ class TimescaleTemperatureDeviationDailyDataSource(TemperatureDeviationDailyData
             return None
 
         return YearlyBaselinePoint(mean=float(row.itn_mean))
+
+    def fetch_national_mean_deviation(
+        self,
+        *,
+        date_start: dt.date,
+        date_end: dt.date,
+    ) -> float:
+        observed_points = (
+            TimescaleNationalIndicatorObservedDataSource().fetch_daily_series(
+                DailySeriesQuery(
+                    date_start=date_start,
+                    date_end=date_end,
+                    target_dates=None,
+                )
+            )
+        )
+
+        if not observed_points:
+            return 0.0
+
+        baseline_by_day = {
+            (row.month, row.day_of_month): float(row.itn_mean)
+            for row in ITNBaselineDaily19912020.objects.all()
+        }
+
+        deviations = []
+        for point in observed_points:
+            baseline_mean = baseline_by_day.get((point.date.month, point.date.day))
+            if baseline_mean is None:
+                continue
+            deviations.append(float(point.temperature) - baseline_mean)
+
+        if not deviations:
+            return 0.0
+
+        return sum(deviations) / len(deviations)
+
+    def fetch_station_overview(
+        self,
+        query: TemperatureDeviationOverviewQuery,
+    ) -> TemperatureDeviationOverviewResult:
+        ordering_map = {
+            "station_name": "station_name ASC, station_id ASC",
+            "-station_name": "station_name DESC, station_id ASC",
+            "temperature_mean": "temperature_mean ASC, station_id ASC",
+            "-temperature_mean": "temperature_mean DESC, station_id ASC",
+            "deviation": "deviation ASC, station_id ASC",
+            "-deviation": "deviation DESC, station_id ASC",
+        }
+
+        order_sql = ordering_map[query.ordering]
+
+        where_clauses = []
+        params: list = [query.date_start, query.date_end]
+
+        if query.station_search:
+            where_clauses.append("station_name ILIKE %s")
+            params.append(f"%{query.station_search}%")
+
+        if query.temperature_mean_min is not None:
+            where_clauses.append("temperature_mean >= %s")
+            params.append(query.temperature_mean_min)
+
+        if query.temperature_mean_max is not None:
+            where_clauses.append("temperature_mean <= %s")
+            params.append(query.temperature_mean_max)
+
+        if query.deviation_min is not None:
+            where_clauses.append("deviation >= %s")
+            params.append(query.deviation_min)
+
+        if query.deviation_max is not None:
+            where_clauses.append("deviation <= %s")
+            params.append(query.deviation_max)
+
+        filtered_where_sql = ""
+        if where_clauses:
+            filtered_where_sql = "WHERE " + " AND ".join(where_clauses)
+
+        base_cte = """
+            WITH station_agg AS (
+                SELECT
+                    q.station_code AS station_id,
+                    AVG(q.tntxm)::double precision AS temperature_mean,
+                    AVG(b.baseline_mean_tntxm)::double precision AS baseline_mean
+                FROM v_quotidienne_itn q
+                JOIN baseline_station_daily_mean_1991_2020 b
+                  ON b.station_code = q.station_code
+                 AND b.month = EXTRACT(MONTH FROM q.date)::int
+                 AND b.day = EXTRACT(DAY FROM q.date)::int
+                WHERE q.date >= %s
+                  AND q.date <= %s
+                GROUP BY q.station_code
+            ),
+            station_enriched AS (
+                SELECT
+                    a.station_id,
+                    COALESCE(s.name, a.station_id) AS station_name,
+                    a.temperature_mean,
+                    a.baseline_mean,
+                    (a.temperature_mean - a.baseline_mean) AS deviation
+                FROM station_agg a
+                LEFT JOIN v_station s
+                  ON s.station_code = a.station_id
+            )
+        """
+
+        count_sql = (
+            base_cte
+            + f"""
+            SELECT COUNT(*)
+            FROM station_enriched
+            {filtered_where_sql}
+            """
+        )
+
+        offset = (query.page - 1) * query.page_size
+        page_params = [*params, query.page_size, offset]
+
+        page_sql = (
+            base_cte
+            + f"""
+            SELECT
+                station_id,
+                station_name,
+                temperature_mean,
+                baseline_mean,
+                deviation
+            FROM station_enriched
+            {filtered_where_sql}
+            ORDER BY {order_sql}
+            LIMIT %s OFFSET %s
+            """
+        )
+
+        with connection.cursor() as cur:
+            t0 = time.perf_counter()
+            cur.execute(count_sql, params)
+            total_count = cur.fetchone()[0]
+            print("overview count:", time.perf_counter() - t0)
+
+            t1 = time.perf_counter()
+            cur.execute(page_sql, page_params)
+            rows = cur.fetchall()
+            print("overview page:", time.perf_counter() - t1)
+
+        total_pages = math.ceil(total_count / query.page_size) if total_count > 0 else 0
+
+        stations = [
+            TemperatureDeviationOverviewStation(
+                station_id=row[0],
+                station_name=row[1],
+                temperature_mean=float(row[2]),
+                baseline_mean=float(row[3]),
+                deviation=float(row[4]),
+            )
+            for row in rows
+        ]
+
+        return TemperatureDeviationOverviewResult(
+            national_deviation_mean=0.0,  # ignoré par le service
+            pagination=Pagination(
+                total_count=total_count,
+                page=query.page,
+                page_size=query.page_size,
+                total_pages=total_pages,
+            ),
+            stations=stations,
+        )
