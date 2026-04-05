@@ -25,7 +25,7 @@ from .serializers import (
     NationalIndicatorResponseSerializer,
     StationDetailSerializer,
     StationSerializer,
-    TemperatureDeviationQuerySerializer,
+    TemperatureDeviationGraphQuerySerializer,
     TemperatureDeviationResponseSerializer,
     TemperatureRecordEntrySerializer,
     TemperatureRecordsQuerySerializer,
@@ -115,9 +115,9 @@ class NationalIndicatorAPIView(APIView):
         return Response(out.data, status=status.HTTP_200_OK)
 
 
-class TemperatureDeviationAPIView(APIView):
+class TemperatureDeviationGraphAPIView(APIView):
     """
-    GET /api/v1/temperature/deviation
+    GET /api/v1/temperature/deviation/graph
     Implémentation mock, alignée sur le pattern ITN.
     """
 
@@ -125,7 +125,7 @@ class TemperatureDeviationAPIView(APIView):
     permission_classes = []
 
     def get(self, request):
-        q = TemperatureDeviationQuerySerializer(data=request.query_params)
+        q = TemperatureDeviationGraphQuerySerializer(data=request.query_params)
         if not q.is_valid():
             return Response(
                 ErrorSerializer.build(
