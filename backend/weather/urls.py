@@ -9,7 +9,7 @@ from .views import (
     NationalIndicatorAPIView,
     RecordsAPIView,
     StationViewSet,
-    TemperatureDeviationAPIView,
+    TemperatureDeviationGraphAPIView,
 )
 
 router = DefaultRouter()
@@ -28,8 +28,8 @@ urlpatterns = [
         name="records",
     ),
     path(
-        "temperature/deviation",
-        TemperatureDeviationAPIView.as_view(),
+        "temperature/deviation/graph",
+        TemperatureDeviationGraphAPIView.as_view(),
         name="temperature-deviation",
     ),
 ]

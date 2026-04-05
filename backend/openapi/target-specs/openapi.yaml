@@ -31,14 +31,14 @@ tags:
     description: Métadonnées des stations météorologiques
 
 paths:
-  /temperature/deviation:
+  /temperature/deviation/graph:
     get:
-      summary: Écart de température à la normale
+      summary: Données d'écart de température à la normale pour les graphes
       description: >
         Récupère les données d'écart de température par rapport à la normale (baseline fixe 1991-2020).
         Permet de comparer l'écart à la normale moyen en France avec celui de stations spécifiques.
         La granularité temporelle est ajustable (jour, mois, année) pour s'adapter à l'axe des abscisses.
-      operationId: getTemperatureDeviation
+      operationId: getTemperatureDeviationGraph
       tags:
         - Temperature
       parameters:
@@ -104,14 +104,14 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/TemperatureDeviationResponse"
+                $ref: "#/components/schemas/TemperatureDeviationGraphResponse"
               examples:
                 national_and_stations:
-                  summary: Moyenne nationale et deux stations
+                  summary: Moyenne nationale et deux stations (granularité journalière)
                   value:
                     metadata:
                       date_start: "2025-02-01"
-                      date_end: "2025-02-28"
+                      date_end: "2025-02-02"
                       baseline: "1991-2020"
                       granularity: "day"
                     national:
@@ -120,6 +120,10 @@ paths:
                           deviation: 1.2
                           temperature: 8.4
                           baseline_mean: 7.2
+                        - date: "2025-02-02"
+                          deviation: 0.5
+                          temperature: 7.8
+                          baseline_mean: 7.3
                     stations:
                       - station_id: "07149"
                         station_name: "Orly"
@@ -128,6 +132,10 @@ paths:
                             deviation: 0.8
                             temperature: 7.9
                             baseline_mean: 7.1
+                          - date: "2025-02-02"
+                            deviation: 0.2
+                            temperature: 7.5
+                            baseline_mean: 7.3
                       - station_id: "07255"
                         station_name: "Marseille-Marignane"
                         data:
@@ -135,6 +143,10 @@ paths:
                             deviation: 1.5
                             temperature: 10.3
                             baseline_mean: 8.8
+                          - date: "2025-02-02"
+                            deviation: 0.9
+                            temperature: 9.6
+                            baseline_mean: 8.7
                 stations_only:
                   summary: Stations uniquement
                   value:
@@ -760,7 +772,7 @@ components:
                     maximum: 1
                     description: Pourcentage de données disponibles
 
-    TemperatureDeviationPoint:
+    TemperatureDeviationGraphPoint:
       type: object
       required:
         - date
@@ -793,7 +805,7 @@ components:
           type: array
           description: "Série agrégée au niveau national"
           items:
-            $ref: "#/components/schemas/TemperatureDeviationPoint"
+            $ref: "#/components/schemas/TemperatureDeviationGraphPoint"
 
     StationTemperatureDeviationSeries:
       type: object
@@ -812,9 +824,9 @@ components:
           type: array
           description: "Série agrégée pour cette station"
           items:
-            $ref: "#/components/schemas/TemperatureDeviationPoint"
+            $ref: "#/components/schemas/TemperatureDeviationGraphPoint"
 
-    TemperatureDeviationResponse:
+    TemperatureDeviationGraphResponse:
       type: object
       required:
         - metadata

@@ -194,7 +194,7 @@ class CommaSeparatedStringListField(serializers.Field):
         )
 
 
-class TemperatureDeviationQuerySerializer(serializers.Serializer):
+class TemperatureDeviationGraphQuerySerializer(serializers.Serializer):
     date_start = serializers.DateField(required=True)
     date_end = serializers.DateField(required=True)
     granularity = serializers.ChoiceField(
