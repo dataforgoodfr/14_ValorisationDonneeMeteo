@@ -72,18 +72,6 @@ paths:
           description: Filtre textuel sur le nom de station.
           example: "Montsouris"
 
-        - name: station_classes
-          in: query
-          required: false
-          schema:
-            type: array
-            items:
-              type: integer
-          style: form
-          explode: false
-          description: Liste des classes de station à inclure.
-          example: "1,2"
-
         - name: temperature_mean_min
           in: query
           required: false
@@ -128,8 +116,6 @@ paths:
             enum:
               - station_name
               - -station_name
-              - station_class
-              - -station_class
               - temperature_mean
               - -temperature_mean
               - deviation
@@ -1033,10 +1019,6 @@ components:
             station_search:
               type: string
               nullable: true
-            station_classes:
-              type: array
-              items:
-                type: integer
             temperature_mean_min:
               type: number
               nullable: true
@@ -1084,7 +1066,6 @@ components:
       required:
         - station_id
         - station_name
-        - station_class
         - temperature_mean
         - baseline_mean
         - deviation
@@ -1093,9 +1074,6 @@ components:
           type: string
         station_name:
           type: string
-        station_class:
-          type: integer
-          nullable: true
         temperature_mean:
           type: number
           format: float
