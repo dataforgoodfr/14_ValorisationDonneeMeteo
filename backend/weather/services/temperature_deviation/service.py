@@ -418,6 +418,8 @@ def compute_temperature_deviation_overview(
             {
                 "station_id": s.station_id,
                 "station_name": s.station_name,
+                "lat": s.lat,
+                "lon": s.lon,
                 "temperature_mean": round(s.temperature_mean, 2),
                 "baseline_mean": round(s.baseline_mean, 2),
                 "deviation": round(s.deviation, 2),

@@ -100,6 +100,8 @@ class TemperatureDeviationOverviewStation:
     temperature_mean: float
     baseline_mean: float
     deviation: float
+    lat: float | None
+    lon: float | None
 
 
 @dataclass(frozen=True)

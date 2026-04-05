@@ -1069,6 +1069,8 @@ components:
         - temperature_mean
         - baseline_mean
         - deviation
+        - lat
+        - lon
       properties:
         station_id:
           type: string
@@ -1083,6 +1085,14 @@ components:
         deviation:
           type: number
           format: float
+        lat:
+          type: number
+          format: double
+          nullable: true
+        lon:
+          type: number
+          format: double
+          nullable: true
 
   responses:
     BadRequest:
