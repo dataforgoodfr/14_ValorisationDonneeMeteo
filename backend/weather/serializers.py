@@ -292,3 +292,113 @@ class TemperatureRecordEntrySerializer(serializers.Serializer):
     department = serializers.CharField()
     record_value = serializers.FloatField()
     record_date = serializers.DateField()
+
+
+class TemperatureDeviationOverviewQuerySerializer(serializers.Serializer):
+    date_start = serializers.DateField(required=True)
+    date_end = serializers.DateField(required=True)
+
+    station_search = serializers.CharField(required=False, allow_blank=True)
+
+    temperature_mean_min = serializers.FloatField(required=False, allow_null=True)
+    temperature_mean_max = serializers.FloatField(required=False, allow_null=True)
+
+    deviation_min = serializers.FloatField(required=False, allow_null=True)
+    deviation_max = serializers.FloatField(required=False, allow_null=True)
+
+    ordering = serializers.ChoiceField(
+        choices=[
+            "station_name",
+            "-station_name",
+            "temperature_mean",
+            "-temperature_mean",
+            "deviation",
+            "-deviation",
+        ],
+        required=False,
+        default="-deviation",
+    )
+
+    page = serializers.IntegerField(required=False, min_value=1, default=1)
+    page_size = serializers.IntegerField(
+        required=False,
+        min_value=1,
+        max_value=500,
+        default=50,
+    )
+
+    def validate(self, attrs):
+        ds = attrs["date_start"]
+        de = attrs["date_end"]
+        if ds > de:
+            raise serializers.ValidationError(
+                {"date_end": "date_end doit être >= date_start."}
+            )
+
+        tmin = attrs.get("temperature_mean_min")
+        tmax = attrs.get("temperature_mean_max")
+        if tmin is not None and tmax is not None and tmin > tmax:
+            raise serializers.ValidationError(
+                {
+                    "temperature_mean_max": (
+                        "temperature_mean_max doit être >= temperature_mean_min."
+                    )
+                }
+            )
+
+        dmin = attrs.get("deviation_min")
+        dmax = attrs.get("deviation_max")
+        if dmin is not None and dmax is not None and dmin > dmax:
+            raise serializers.ValidationError(
+                {"deviation_max": "deviation_max doit être >= deviation_min."}
+            )
+
+        station_search = attrs.get("station_search")
+        if station_search is not None:
+            attrs["station_search"] = station_search.strip()
+
+        attrs["temperature_mean_min"] = (
+            tmin if "temperature_mean_min" in attrs else None
+        )
+        attrs["temperature_mean_max"] = (
+            tmax if "temperature_mean_max" in attrs else None
+        )
+        attrs["deviation_min"] = dmin if "deviation_min" in attrs else None
+        attrs["deviation_max"] = dmax if "deviation_max" in attrs else None
+        attrs["station_search"] = attrs.get("station_search") or None
+
+        return attrs
+
+
+class PaginationMetadataSerializer(serializers.Serializer):
+    total_count = serializers.IntegerField()
+    page = serializers.IntegerField()
+    page_size = serializers.IntegerField()
+    total_pages = serializers.IntegerField()
+
+
+class TemperatureDeviationOverviewNationalSerializer(serializers.Serializer):
+    deviation_mean = serializers.FloatField()
+
+
+class TemperatureDeviationOverviewStationSerializer(serializers.Serializer):
+    station_id = serializers.CharField()
+    station_name = serializers.CharField()
+    temperature_mean = serializers.FloatField()
+    baseline_mean = serializers.FloatField()
+    deviation = serializers.FloatField()
+
+
+class TemperatureDeviationOverviewMetadataSerializer(serializers.Serializer):
+    date_start = serializers.DateField()
+    date_end = serializers.DateField()
+    baseline = serializers.CharField()
+    filters = serializers.DictField()
+    ordering = serializers.CharField()
+
+
+class TemperatureDeviationOverviewResponseSerializer(serializers.Serializer):
+    metadata = TemperatureDeviationOverviewMetadataSerializer()
+    national = TemperatureDeviationOverviewNationalSerializer()
+    pagination = PaginationMetadataSerializer()
+    stations = TemperatureDeviationOverviewStationSerializer(many=True)

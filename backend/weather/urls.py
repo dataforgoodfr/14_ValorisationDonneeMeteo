@@ -9,6 +9,7 @@ from .views import (
     NationalIndicatorAPIView,
     StationViewSet,
     TemperatureDeviationGraphAPIView,
+    TemperatureDeviationOverviewAPIView,
     TemperatureRecordsAPIView,
 )
 
@@ -30,6 +31,11 @@ urlpatterns = [
     path(
         "temperature/deviation/graph",
         TemperatureDeviationGraphAPIView.as_view(),
-        name="temperature-deviation",
+        name="temperature-deviation-graph",
+    ),
+    path(
+        "temperature/deviation",
+        TemperatureDeviationOverviewAPIView.as_view(),
+        name="temperature-deviation-overview",
     ),
 ]

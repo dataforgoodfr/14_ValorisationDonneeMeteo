@@ -10,13 +10,16 @@ from rest_framework.views import APIView
 from weather.bootstrap_itn import ITNDependencyProvider
 from weather.bootstrap_temperature_deviation import (
     TemperatureDeviationDependencyProvider,
+    TemperatureDeviationOverviewDependencyProvider,
 )
 from weather.bootstrap_temperature_records import TemperatureRecordsDependencyProvider
 from weather.services.national_indicator.use_case import get_national_indicator
-from weather.services.temperature_deviation.use_case import get_temperature_deviation
+from weather.services.temperature_deviation.use_case import (
+    get_temperature_deviation,
+    get_temperature_deviation_overview,
+)
 from weather.services.temperature_records.types import TemperatureRecordsRequest
 from weather.services.temperature_records.use_case import get_temperature_records
-
 from .filters import StationFilter
 from .models import Station
 from .serializers import (
@@ -26,6 +29,8 @@ from .serializers import (
     StationDetailSerializer,
     StationSerializer,
     TemperatureDeviationGraphQuerySerializer,
+    TemperatureDeviationOverviewQuerySerializer,
+    TemperatureDeviationOverviewResponseSerializer,
     TemperatureDeviationResponseSerializer,
     TemperatureRecordEntrySerializer,
     TemperatureRecordsQuerySerializer,
@@ -221,3 +226,55 @@ class TemperatureRecordsAPIView(APIView):
         )
 
         return Response(serializer.data, status=status.HTTP_200_OK)
+
+
+class TemperatureDeviationOverviewAPIView(APIView):
+    """
+    GET /api/v1/temperature/deviation
+    """
+
+    authentication_classes = []
+    permission_classes = []
+
+    def get(self, request):
+        q = TemperatureDeviationOverviewQuerySerializer(data=request.query_params)
+        if not q.is_valid():
+            return Response(
+                ErrorSerializer.build(
+                    code="INVALID_PARAMETER",
+                    message="Paramètre invalide ou manquant",
+                    details=q.errors,
+                ),
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        params = q.validated_data
+
+        ds = TemperatureDeviationOverviewDependencyProvider.get_dep()
+
+        data = get_temperature_deviation_overview(
+            data_source=ds,
+            **params,
+        )
+
+        full_payload = {
+            "metadata": {
+                "date_start": params["date_start"],
+                "date_end": params["date_end"],
+                "baseline": "1991-2020",
+                "filters": {
+                    "station_search": params.get("station_search"),
+                    "temperature_mean_min": params.get("temperature_mean_min"),
+                    "temperature_mean_max": params.get("temperature_mean_max"),
+                    "deviation_min": params.get("deviation_min"),
+                    "deviation_max": params.get("deviation_max"),
+                },
+                "ordering": params.get("ordering", "-deviation"),
+            },
+            **data,
+        }
+
+        out = TemperatureDeviationOverviewResponseSerializer(data=full_payload)
+        out.is_valid(raise_exception=True)
+
+        return Response(out.data, status=status.HTTP_200_OK)
