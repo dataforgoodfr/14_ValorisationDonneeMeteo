@@ -144,3 +144,65 @@ def test_overview_endpoint_empty_result(client: APIClient):
 
     assert data["stations"] == []
     assert data["pagination"]["total_count"] == 0
+
+
+def test_overview_endpoint_returns_added_station_fields(client: APIClient):
+    resp = client.get(
+        _url(),
+        {
+            "date_start": "2025-03-01",
+            "date_end": "2025-03-31",
+        },
+    )
+
+    assert resp.status_code == 200
+    station = resp.json()["stations"][0]
+
+    assert "lat" in station
+    assert "lon" in station
+    assert "department" in station
+    assert "alt" in station
+    assert "region" in station
+
+
+def test_overview_endpoint_filters_by_department(client: APIClient):
+    resp = client.get(
+        _url(),
+        {
+            "date_start": "2025-03-01",
+            "date_end": "2025-03-31",
+            "departments": "13",
+        },
+    )
+
+    assert resp.status_code == 200
+    stations = resp.json()["stations"]
+
+    assert all(s["department"] == "13" for s in stations)
+
+
+def test_overview_endpoint_national_is_independent_from_station_filters(
+    client: APIClient,
+):
+    resp_all = client.get(
+        _url(),
+        {
+            "date_start": "2025-03-01",
+            "date_end": "2025-03-31",
+        },
+    )
+    resp_filtered = client.get(
+        _url(),
+        {
+            "date_start": "2025-03-01",
+            "date_end": "2025-03-31",
+            "departments": "13",
+        },
+    )
+
+    assert resp_all.status_code == 200
+    assert resp_filtered.status_code == 200
+    assert (
+        resp_all.json()["national"]["deviation_mean"]
+        == resp_filtered.json()["national"]["deviation_mean"]
+    )

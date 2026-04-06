@@ -115,3 +115,36 @@ def test_temperature_deviation_overview_query_serializer_whitespace_station_sear
 
     assert s.is_valid(), s.errors
     assert s.validated_data["station_search"] is None
+
+
+def test_temperature_deviation_overview_query_serializer_parses_departments_regions_and_alt():
+    s = TemperatureDeviationOverviewQuerySerializer(
+        data={
+            "date_start": "2025-03-01",
+            "date_end": "2025-03-31",
+            "departments": "13,75",
+            "regions": "Occitanie,Île-de-France",
+            "alt_min": 100,
+            "alt_max": 500,
+        }
+    )
+
+    assert s.is_valid(), s.errors
+    assert s.validated_data["departments"] == ("13", "75")
+    assert s.validated_data["regions"] == ("Occitanie", "Île-de-France")
+    assert s.validated_data["alt_min"] == 100.0
+    assert s.validated_data["alt_max"] == 500.0
+
+
+def test_temperature_deviation_overview_query_serializer_rejects_alt_bounds():
+    s = TemperatureDeviationOverviewQuerySerializer(
+        data={
+            "date_start": "2025-03-01",
+            "date_end": "2025-03-31",
+            "alt_min": 500,
+            "alt_max": 100,
+        }
+    )
+
+    assert not s.is_valid()
+    assert "alt_max" in s.errors

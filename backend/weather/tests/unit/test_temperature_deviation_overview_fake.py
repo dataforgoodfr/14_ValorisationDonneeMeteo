@@ -40,6 +40,14 @@ def test_fake_overview_returns_first_page_with_default_ordering():
 
     assert result.stations[0].deviation >= result.stations[1].deviation
 
+    station = result.stations[0]
+
+    assert station.lat is not None
+    assert station.lon is not None
+    assert station.department is not None
+    assert station.alt is not None
+    assert station.region is not None
+
 
 def test_fake_overview_pagination_returns_second_page():
     ds = FakeTemperatureDeviationOverviewDataSource()

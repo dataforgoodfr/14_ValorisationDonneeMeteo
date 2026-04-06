@@ -344,6 +344,12 @@ class TemperatureDeviationOverviewQuerySerializer(serializers.Serializer):
     deviation_min = serializers.FloatField(required=False, allow_null=True)
     deviation_max = serializers.FloatField(required=False, allow_null=True)
 
+    alt_min = serializers.FloatField(required=False, allow_null=True)
+    alt_max = serializers.FloatField(required=False, allow_null=True)
+
+    departments = CommaSeparatedStringListField(required=False)
+    regions = CommaSeparatedStringListField(required=False)
+
     ordering = serializers.ChoiceField(
         choices=[
             "station_name",
@@ -391,6 +397,13 @@ class TemperatureDeviationOverviewQuerySerializer(serializers.Serializer):
                 {"deviation_max": "deviation_max doit être >= deviation_min."}
             )
 
+        alt_min = attrs.get("alt_min")
+        alt_max = attrs.get("alt_max")
+        if alt_min is not None and alt_max is not None and alt_min > alt_max:
+            raise serializers.ValidationError(
+                {"alt_max": "alt_max doit être >= alt_min."}
+            )
+
         station_search = attrs.get("station_search")
         if station_search is not None:
             attrs["station_search"] = station_search.strip()
@@ -403,6 +416,12 @@ class TemperatureDeviationOverviewQuerySerializer(serializers.Serializer):
         )
         attrs["deviation_min"] = dmin if "deviation_min" in attrs else None
         attrs["deviation_max"] = dmax if "deviation_max" in attrs else None
+        attrs["alt_min"] = alt_min if "alt_min" in attrs else None
+        attrs["alt_max"] = alt_max if "alt_max" in attrs else None
+
+        attrs["departments"] = attrs.get("departments", ())
+        attrs["regions"] = attrs.get("regions", ())
+
         attrs["station_search"] = attrs.get("station_search") or None
 
         return attrs
@@ -427,6 +446,9 @@ class TemperatureDeviationOverviewStationSerializer(serializers.Serializer):
     deviation = serializers.FloatField()
     lat = serializers.FloatField(allow_null=True)
     lon = serializers.FloatField(allow_null=True)
+    department = serializers.CharField(allow_null=True)
+    alt = serializers.FloatField(allow_null=True)
+    region = serializers.CharField(allow_null=True)
 
 
 class TemperatureDeviationOverviewMetadataSerializer(serializers.Serializer):

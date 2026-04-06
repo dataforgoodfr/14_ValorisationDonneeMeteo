@@ -91,6 +91,10 @@ class TemperatureDeviationOverviewQuery:
     ordering: str = "-deviation"
     page: int = 1
     page_size: int = 50
+    alt_min: float | None = None
+    alt_max: float | None = None
+    departments: tuple[str, ...] = ()
+    regions: tuple[str, ...] = ()
 
 
 @dataclass(frozen=True)
@@ -102,6 +106,9 @@ class TemperatureDeviationOverviewStation:
     deviation: float
     lat: float | None
     lon: float | None
+    alt: float | None
+    department: str | None
+    region: str | None
 
 
 @dataclass(frozen=True)
