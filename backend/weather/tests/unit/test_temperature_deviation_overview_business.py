@@ -34,6 +34,11 @@ class DummyDataSource:
                 TemperatureDeviationOverviewStation(
                     station_id="07156",
                     station_name="Station A",
+                    lat=48.8,
+                    lon=2.3,
+                    department="75",
+                    alt=42.0,
+                    region="Île-de-France",
                     temperature_mean=10.1234,
                     baseline_mean=8.9876,
                     deviation=1.1358,
@@ -41,6 +46,11 @@ class DummyDataSource:
                 TemperatureDeviationOverviewStation(
                     station_id="07157",
                     station_name="Station B",
+                    lat=43.3,
+                    lon=5.4,
+                    department="13",
+                    alt=15.0,
+                    region="Provence-Alpes-Côte d'Azur",
                     temperature_mean=20.5678,
                     baseline_mean=19.1234,
                     deviation=1.4444,
@@ -156,3 +166,42 @@ def test_compute_overview_national_independent_from_station_result():
 
     # on vérifie qu'on utilise bien la valeur de fetch_national_mean_deviation
     assert out["national"]["deviation_mean"] == 1.23
+
+
+def test_compute_overview_propagates_added_station_fields():
+    ds = DummyDataSource()
+
+    out = compute_temperature_deviation_overview(
+        data_source=ds,
+        date_start=dt.date(2025, 3, 1),
+        date_end=dt.date(2025, 3, 31),
+    )
+
+    s = out["stations"][0]
+
+    assert s["lat"] == 48.8
+    assert s["lon"] == 2.3
+    assert s["department"] == "75"
+    assert s["alt"] == 42.0
+    assert s["region"] == "Île-de-France"
+
+
+def test_compute_overview_passes_added_query_parameters():
+    ds = DummyDataSource()
+
+    compute_temperature_deviation_overview(
+        data_source=ds,
+        date_start=dt.date(2025, 3, 1),
+        date_end=dt.date(2025, 3, 31),
+        alt_min=100,
+        alt_max=500,
+        departments=("13", "75"),
+        regions=("Occitanie",),
+    )
+
+    q = ds.query_received
+
+    assert q.alt_min == 100
+    assert q.alt_max == 500
+    assert q.departments == ("13", "75")
+    assert q.regions == ("Occitanie",)

@@ -56,6 +56,7 @@ from weather.services.temperature_deviation.types import (
     TemperatureDeviationOverviewStation,
     YearlyBaselinePoint,
 )
+from weather.utils.geography import REGION_BY_DEPARTMENT
 from weather.services.temperature_records.types import (
     SEASON_MONTHS,
     TemperatureRecordEntry,
@@ -111,6 +112,22 @@ def _daily_station_queryset(
         )
         .filter(baseline_mean_day__isnull=False)
     )
+
+
+def _region_case_sql() -> str:
+    parts = []
+
+    regions: dict[str, list[int]] = {}
+
+    for dep, region in REGION_BY_DEPARTMENT.items():
+        regions.setdefault(region, []).append(dep)
+
+    for region, deps in regions.items():
+        deps_sql = ", ".join(str(d) for d in deps)
+        region_sql = region.replace("'", "''")
+        parts.append(f"WHEN s.departement IN ({deps_sql}) THEN '{region_sql}'")
+
+    return "CASE " + " ".join(parts) + " ELSE 'Autre' END"
 
 
 def compute_itn_for_day(
@@ -365,6 +382,8 @@ class TimescaleTemperatureDeviationDailyDataSource(
         self,
         query: TemperatureDeviationOverviewQuery,
     ) -> TemperatureDeviationOverviewResult:
+        region_case = _region_case_sql()
+
         ordering_map = {
             "station_name": "station_name ASC, station_id ASC",
             "-station_name": "station_name DESC, station_id ASC",
@@ -399,11 +418,27 @@ class TimescaleTemperatureDeviationDailyDataSource(
             where_clauses.append("deviation <= %s")
             params.append(query.deviation_max)
 
+        if query.alt_min is not None:
+            where_clauses.append("alt >= %s")
+            params.append(query.alt_min)
+
+        if query.alt_max is not None:
+            where_clauses.append("alt <= %s")
+            params.append(query.alt_max)
+
+        if query.departments:
+            where_clauses.append("department = ANY(%s)")
+            params.append(list(query.departments))
+
+        if query.regions:
+            where_clauses.append("region = ANY(%s)")
+            params.append(list(query.regions))
+
         filtered_where_sql = ""
         if where_clauses:
             filtered_where_sql = "WHERE " + " AND ".join(where_clauses)
 
-        base_cte = """
+        base_cte = f"""
             WITH station_agg AS (
                 SELECT
                     q.station_code AS station_id,
@@ -424,6 +459,9 @@ class TimescaleTemperatureDeviationDailyDataSource(
                     COALESCE(s.name, a.station_id) AS station_name,
                     s.lat AS lat,
                     s.lon AS lon,
+                    s.departement AS department,
+                    s.alt AS alt,
+                    {region_case} AS region,
                     a.temperature_mean,
                     a.baseline_mean,
                     (a.temperature_mean - a.baseline_mean) AS deviation
@@ -453,6 +491,9 @@ class TimescaleTemperatureDeviationDailyDataSource(
                 station_name,
                 lat,
                 lon,
+                department,
+                alt,
+                region,
                 temperature_mean,
                 baseline_mean,
                 deviation
@@ -478,9 +519,12 @@ class TimescaleTemperatureDeviationDailyDataSource(
                 station_name=row[1],
                 lat=float(row[2]) if row[2] is not None else None,
                 lon=float(row[3]) if row[3] is not None else None,
-                temperature_mean=float(row[4]),
-                baseline_mean=float(row[5]),
-                deviation=float(row[6]),
+                department=str(row[4]) if row[4] is not None else None,
+                alt=float(row[5]) if row[5] is not None else None,
+                region=row[6],
+                temperature_mean=float(row[7]),
+                baseline_mean=float(row[8]),
+                deviation=float(row[9]),
             )
             for row in rows
         ]
