@@ -143,6 +143,32 @@ paths:
             default: 50
           description: Nombre d'éléments par page.
 
+        - name: altitude_min
+          in: query
+          schema:
+            type: number
+          required: false
+
+        - name: altitude_max
+          in: query
+          schema:
+            type: number
+          required: false
+
+        - name: departments
+          in: query
+          schema:
+            type: string
+          description: |
+            Liste de départements séparés par des virgules (ex: "13,75,2A")
+
+        - name: regions
+          in: query
+          schema:
+            type: string
+          description: |
+            Liste de régions séparées par des virgules (ex: "Île-de-France,Provence-Alpes-Côte d'Azur")
+
       responses:
         "200":
           description: Indicateur national et tableau paginé des stations.
@@ -174,18 +200,26 @@ paths:
                       page_size: 50
                       total_pages: 27
                     stations:
-                      - station_id: "07650"
+                      - station_id: "013001650"
                         station_name: "Marseille-Marignane"
-                        station_class: 1
                         temperature_mean: 28.5
                         baseline_mean: 25.2
                         deviation: 3.3
-                      - station_id: "07156"
+                        alt: 10
+                        lat: 44
+                        lon: 5.3
+                        department: "13"
+                        region: "Provence-Alpes-Côte d'Azur"
+                      - station_id: "7501111156"
                         station_name: "Paris-Montsouris"
-                        station_class: 1
                         temperature_mean: 28.5
                         baseline_mean: 26.5
                         deviation: 2.0
+                        lat: 46
+                        lon : 2
+                        alt: 40
+                        department: "75"
+                        region: "Ile de France"
         "400":
           $ref: "#/components/responses/BadRequest"
 
@@ -1232,6 +1266,9 @@ components:
         - deviation
         - lat
         - lon
+        - alt
+        - department
+        - region
       properties:
         station_id:
           type: string
@@ -1253,6 +1290,16 @@ components:
         lon:
           type: number
           format: double
+          nullable: true
+        alt:
+          type: number
+          format: double
+          nullable: true
+        department:
+          type: string
+          nullable: true
+        region:
+          type: string
           nullable: true
 
   responses:
