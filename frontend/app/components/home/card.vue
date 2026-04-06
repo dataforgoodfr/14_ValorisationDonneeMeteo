@@ -7,42 +7,40 @@ interface Props {
 const props = defineProps<Props>();
 </script>
 <template>
-    <div>
-        <UCard class="max-w-220">
-            <header>
+    <UCard class="w-55 border border-[#82C4E8]">
+        <template #header>
+            <div class="flex items-center justify-between">
                 <h1 class="text-sm font-semibold">
                     {{ props.title }}
                 </h1>
-                <UTooltip :text="props.tooltipText">
+                <UTooltip v-if="props.tooltipText" :text="props.tooltipText">
                     <UIcon name="i-lucide-circle-question-mark" />
                 </UTooltip>
-            </header>
+            </div>
+        </template>
+        <template #default>
             <slot />
-            <div class="context-content py-1 px-2 rounded-lg">
-                <span class="text-sm text-gray-500">
-                    <slot name="context-content" />
+            <div class="kpi-context py-1 px-2 rounded-lg">
+                <span class="text-xs font-medium text-gray-500 leading-none">
+                    <slot name="kpi-context" />
                 </span>
             </div>
-            <div>
-                <slot name="footer" />
-            </div>
-        </UCard>
-    </div>
+
+            <slot name="footer" />
+        </template>
+    </UCard>
 </template>
 
 <style lang="css" scoped>
-header {
-    align-items: center;
-    display: flex;
-    justify-content: space-between;
-
-    h1 {
+[data-slot="header"] {
+    h1,
+    span {
         color: #82c4e8;
     }
 }
-.context-content {
-    background-color: rgba(137, 75, 0, 0.4);
-    border-color: #efb100;
+.kpi-context {
+    background-color: #894b00;
+    border: 1px solid #efb100;
     > span {
         color: #efb100;
     }
