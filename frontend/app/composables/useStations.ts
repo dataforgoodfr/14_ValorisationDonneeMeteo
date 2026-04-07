@@ -5,11 +5,15 @@ import type {
     StationFilters,
 } from "~/types/api";
 
-export function useStations(filters?: MaybeRef<StationFilters>) {
+export function useStations(
+    filters?: MaybeRef<StationFilters>,
+    options?: Record<string, unknown>,
+) {
     const { useApiFetch } = useApiClient();
 
     return useApiFetch<PaginatedResponse<Station>>("/stations/", {
         query: filters,
+        ...options,
     });
 }
 

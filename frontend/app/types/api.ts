@@ -130,8 +130,8 @@ export interface TemperatureRecordsParams {
     type_records?: TypeRecords;
     date_start?: string;
     date_end?: string;
-    station_ids?: string[];
-    departments?: string[];
+    station_ids?: string;
+    departments?: string;
     temperature_min?: number;
     temperature_max?: number;
     limit?: number;
@@ -160,6 +160,8 @@ export interface TemperatureRecordsMetadata {
     departments: string[];
     temperature_min: number | null;
     temperature_max: number | null;
+    hot_records: TemperatureRecordEntry[];
+    cold_records: TemperatureRecordEntry[];
 }
 
 export interface TemperatureRecordsResponse {

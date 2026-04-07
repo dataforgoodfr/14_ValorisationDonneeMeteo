@@ -53,34 +53,11 @@ export function useTemperatureExtremes(
 
 export function useTemperatureRecords(
     params?: MaybeRef<TemperatureRecordsParams>,
-    enabled?: MaybeRef<boolean>,
-): ReturnType<typeof useFetch<TemperatureRecordsResponse | undefined>> {
+) {
     const { useApiFetch } = useApiClient();
-
-    if (enabled === undefined) {
-        return useApiFetch<TemperatureRecordsResponse>("/temperature/records", {
-            query: params,
-        });
-    }
-
-    const isEnabled = toRef(enabled);
-
-    const result = useApiFetch<TemperatureRecordsResponse>(
-        "/temperature/records",
-        {
-            query: params,
-            imediate: isEnabled.value,
-            watch: false,
-        },
-    );
-
-    watch([isEnabled, params], () => {
-        if (isEnabled.value) {
-            result.execute();
-        }
+    return useApiFetch<TemperatureRecordsResponse>("/temperature/records", {
+        query: params,
     });
-
-    return result;
 }
 
 export function useCumulativeRecords(

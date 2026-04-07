@@ -1,8 +1,8 @@
 <script setup lang="ts">
 import DatePicker from "primevue/datepicker";
 
-const localStartDate = defineModel<Date>("startDate", { required: true });
-const localEndDate = defineModel<Date>("endDate", { required: true });
+const localStartDate = defineModel<Date | undefined>("startDate");
+const localEndDate = defineModel<Date | undefined>("endDate");
 
 const props = defineProps<{
     minDate?: Date;
