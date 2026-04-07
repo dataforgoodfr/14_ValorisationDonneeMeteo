@@ -375,3 +375,66 @@ def test_fetch_station_overview_combines_station_ids_and_department_filters():
     assert result.pagination.total_count == 1
     assert len(result.stations) == 1
     assert result.stations[0].station_id == s1
+
+
+@pytest.mark.django_db
+def test_fetch_station_overview_orders_by_department():
+    s1 = "01269001"
+    s2 = "01333001"
+
+    insert_station(s1, "Station 1", departement=75, lat=48.8, lon=2.3, alt=60.0)
+    insert_station(s2, "Station 2", departement=13, lat=43.3, lon=5.4, alt=50.0)
+
+    insert_station_daily_baseline(s1, 1, 1, 10.0)
+    insert_station_daily_baseline(s2, 1, 1, 10.0)
+
+    insert_quotidienne(dt.date(2024, 1, 1), s1, 12.0)
+    insert_quotidienne(dt.date(2024, 1, 1), s2, 12.0)
+
+    ds = TimescaleTemperatureDeviationDailyDataSource()
+
+    query = TemperatureDeviationOverviewQuery(
+        date_start=dt.date(2024, 1, 1),
+        date_end=dt.date(2024, 1, 1),
+        ordering="department",
+        offset=0,
+        limit=10,
+    )
+
+    result = ds.fetch_station_overview(query)
+
+    assert len(result.stations) == 2
+    assert [s.department for s in result.stations] == ["13", "75"]
+
+
+@pytest.mark.django_db
+def test_fetch_station_overview_orders_by_region():
+    s1 = "01269001"
+    s2 = "01333001"
+
+    insert_station(s1, "Station 1", departement=75, lat=48.8, lon=2.3, alt=60.0)
+    insert_station(s2, "Station 2", departement=13, lat=43.3, lon=5.4, alt=50.0)
+
+    insert_station_daily_baseline(s1, 1, 1, 10.0)
+    insert_station_daily_baseline(s2, 1, 1, 10.0)
+
+    insert_quotidienne(dt.date(2024, 1, 1), s1, 12.0)
+    insert_quotidienne(dt.date(2024, 1, 1), s2, 12.0)
+
+    ds = TimescaleTemperatureDeviationDailyDataSource()
+
+    query = TemperatureDeviationOverviewQuery(
+        date_start=dt.date(2024, 1, 1),
+        date_end=dt.date(2024, 1, 1),
+        ordering="region",
+        offset=0,
+        limit=10,
+    )
+
+    result = ds.fetch_station_overview(query)
+
+    assert len(result.stations) == 2
+    assert [s.region for s in result.stations] == [
+        "Provence-Alpes-Côte d'Azur",
+        "Île-de-France",
+    ]
