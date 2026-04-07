@@ -401,7 +401,10 @@ class RecordsGraphAPIView(APIView):
             )
 
         serializer = RecordsGraphBucketSerializer(
-            [{"bucket": b.bucket, "nb_records_battus": b.nb_records_battus} for b in buckets],
+            [
+                {"bucket": b.bucket, "nb_records_battus": b.nb_records_battus}
+                for b in buckets
+            ],
             many=True,
         )
         return Response(serializer.data, status=status.HTTP_200_OK)

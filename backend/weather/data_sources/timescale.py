@@ -1127,12 +1127,18 @@ class TimescaleRecordsGraphDataSource:
             cur.execute(sql, params)
             rows = {
                 row[0].strftime(
-                    "%Y-%m-%d" if trunc == "day" else "%Y-%m" if trunc == "month" else "%Y"
+                    "%Y-%m-%d"
+                    if trunc == "day"
+                    else "%Y-%m"
+                    if trunc == "month"
+                    else "%Y"
                 ): row[1]
                 for row in cur.fetchall()
             }
 
-        all_buckets = _generate_buckets(request.date_start, request.date_end, request.granularity)
+        all_buckets = _generate_buckets(
+            request.date_start, request.date_end, request.granularity
+        )
         return [
             RecordsGraphBucket(bucket=b, nb_records_battus=rows.get(b, 0))
             for b in all_buckets

@@ -16,11 +16,12 @@ class FakeRecordsGraphDataSource:
     """
 
     def fetch_graph(self, request: RecordsGraphRequest) -> list[RecordsGraphBucket]:
-        base = list(_FAKE_HOT_RECORDS if request.type_records == "hot" else _FAKE_COLD_RECORDS)
+        base = list(
+            _FAKE_HOT_RECORDS if request.type_records == "hot" else _FAKE_COLD_RECORDS
+        )
 
         entries = [
-            e for e in base
-            if request.date_start <= e.record_date <= request.date_end
+            e for e in base if request.date_start <= e.record_date <= request.date_end
         ]
 
         if request.territoire == "department":
@@ -41,7 +42,9 @@ class FakeRecordsGraphDataSource:
                 key = str(e.record_date.year)
             counts[key] = counts.get(key, 0) + 1
 
-        all_buckets = _generate_buckets(request.date_start, request.date_end, request.granularity)
+        all_buckets = _generate_buckets(
+            request.date_start, request.date_end, request.granularity
+        )
         return [
             RecordsGraphBucket(bucket=b, nb_records_battus=counts.get(b, 0))
             for b in all_buckets
