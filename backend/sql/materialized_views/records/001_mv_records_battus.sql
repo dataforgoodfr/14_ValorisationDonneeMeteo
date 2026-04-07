@@ -189,8 +189,15 @@ WHERE r.prev_val IS NULL OR r.val > r.prev_val
 UNION ALL
 
 -- All-time froid
-SELECT 'all_time', NULL::text, 'TN',
-    r."NUM_POSTE", s.name, s.departement, r.val, r."AAAAMMJJ"
+SELECT
+    'all_time'       AS period_type,
+    NULL::text       AS period_value,
+    'TN'             AS record_type,
+    r."NUM_POSTE"    AS station_code,
+    s.name           AS station_name,
+    s.departement    AS department,
+    r.val            AS record_value,
+    r."AAAAMMJJ"     AS record_date
 FROM tn_all r
 JOIN public.v_station s ON s.station_code = r."NUM_POSTE"
 WHERE r.prev_val IS NULL OR r.val < r.prev_val
@@ -198,8 +205,15 @@ WHERE r.prev_val IS NULL OR r.val < r.prev_val
 UNION ALL
 
 -- Monthly chaud
-SELECT 'month', r.month_num::text, 'TX',
-    r."NUM_POSTE", s.name, s.departement, r.val, r."AAAAMMJJ"
+SELECT
+    'month'              AS period_type,
+    r.month_num::text    AS period_value,
+    'TX'                 AS record_type,
+    r."NUM_POSTE"        AS station_code,
+    s.name               AS station_name,
+    s.departement        AS department,
+    r.val                AS record_value,
+    r."AAAAMMJJ"         AS record_date
 FROM tx_monthly r
 JOIN public.v_station s ON s.station_code = r."NUM_POSTE"
 WHERE r.prev_val IS NULL OR r.val > r.prev_val
@@ -207,8 +221,15 @@ WHERE r.prev_val IS NULL OR r.val > r.prev_val
 UNION ALL
 
 -- Monthly froid
-SELECT 'month', r.month_num::text, 'TN',
-    r."NUM_POSTE", s.name, s.departement, r.val, r."AAAAMMJJ"
+SELECT
+    'month'              AS period_type,
+    r.month_num::text    AS period_value,
+    'TN'                 AS record_type,
+    r."NUM_POSTE"        AS station_code,
+    s.name               AS station_name,
+    s.departement        AS department,
+    r.val                AS record_value,
+    r."AAAAMMJJ"         AS record_date
 FROM tn_monthly r
 JOIN public.v_station s ON s.station_code = r."NUM_POSTE"
 WHERE r.prev_val IS NULL OR r.val < r.prev_val
@@ -216,8 +237,15 @@ WHERE r.prev_val IS NULL OR r.val < r.prev_val
 UNION ALL
 
 -- Seasonal chaud
-SELECT 'season', r.season_val, 'TX',
-    r."NUM_POSTE", s.name, s.departement, r.val, r."AAAAMMJJ"
+SELECT
+    'season'         AS period_type,
+    r.season_val     AS period_value,
+    'TX'             AS record_type,
+    r."NUM_POSTE"    AS station_code,
+    s.name           AS station_name,
+    s.departement    AS department,
+    r.val            AS record_value,
+    r."AAAAMMJJ"     AS record_date
 FROM tx_seasonal r
 JOIN public.v_station s ON s.station_code = r."NUM_POSTE"
 WHERE r.prev_val IS NULL OR r.val > r.prev_val
@@ -225,8 +253,15 @@ WHERE r.prev_val IS NULL OR r.val > r.prev_val
 UNION ALL
 
 -- Seasonal froid
-SELECT 'season', r.season_val, 'TN',
-    r."NUM_POSTE", s.name, s.departement, r.val, r."AAAAMMJJ"
+SELECT
+    'season'         AS period_type,
+    r.season_val     AS period_value,
+    'TN'             AS record_type,
+    r."NUM_POSTE"    AS station_code,
+    s.name           AS station_name,
+    s.departement    AS department,
+    r.val            AS record_value,
+    r."AAAAMMJJ"     AS record_date
 FROM tn_seasonal r
 JOIN public.v_station s ON s.station_code = r."NUM_POSTE"
 WHERE r.prev_val IS NULL OR r.val < r.prev_val;
