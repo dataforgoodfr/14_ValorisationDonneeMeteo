@@ -445,12 +445,11 @@ class TimescaleTemperatureDeviationDailyDataSource(
                     AVG(q.tntxm)::double precision AS temperature_mean,
                     AVG(b.baseline_mean_tntxm)::double precision AS baseline_mean
                 FROM v_quotidienne_itn q
-                JOIN baseline_station_daily_mean_1991_2020 b
-                  ON b.station_code = q.station_code
-                 AND b.month = EXTRACT(MONTH FROM q.date)::int
-                 AND b.day = EXTRACT(DAY FROM q.date)::int
-                WHERE q.date >= %s
-                  AND q.date <= %s
+                    JOIN baseline_station_daily_mean_1991_2020 b
+                        ON b.station_code = q.station_code
+                            AND b.month = EXTRACT(MONTH FROM q.date)::int
+                            AND b.day = EXTRACT(DAY FROM q.date)::int
+                WHERE %s <= q.date AND q.date <= %s
                 GROUP BY q.station_code
             ),
             station_enriched AS (
@@ -466,8 +465,8 @@ class TimescaleTemperatureDeviationDailyDataSource(
                     a.baseline_mean,
                     (a.temperature_mean - a.baseline_mean) AS deviation
                 FROM station_agg a
-                LEFT JOIN v_station s
-                  ON s.station_code = a.station_id
+                    LEFT JOIN v_station s
+                        ON s.station_code = a.station_id
             )
         """
 
