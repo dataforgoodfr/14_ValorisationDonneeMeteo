@@ -1,4 +1,9 @@
-import type { DeviationParams, DeviationResponse } from "~/types/api";
+import type {
+    DeviationParams,
+    DeviationResponse,
+    TemperatureRecordsParams,
+    TemperatureRecordsResponse,
+} from "~/types/api";
 
 export function useTemperatureDeviation(
     params: MaybeRef<DeviationParams>,
@@ -47,10 +52,12 @@ export function useTemperatureExtremes(
 }
 
 export function useTemperatureRecords(
-    params?: MaybeRef<Record<string, unknown>>,
+    params?: MaybeRef<TemperatureRecordsParams>,
 ) {
     const { useApiFetch } = useApiClient();
-    return useApiFetch("/temperature/records", { query: params });
+    return useApiFetch<TemperatureRecordsResponse>("/temperature/records", {
+        query: params,
+    });
 }
 
 export function useCumulativeRecords(

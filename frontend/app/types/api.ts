@@ -120,17 +120,52 @@ export interface DeviationResponse {
 
 // ===== Temperature Records types =====
 
-export interface TemperatureRecord {
+export type RecordKind = "historical" | "absolute";
+export type RecordScope = "monthly" | "seasonal" | "all_time";
+export type TypeRecords = "hot" | "cold" | "all";
+
+export interface TemperatureRecordsParams {
+    record_kind?: RecordKind;
+    record_scope?: RecordScope;
+    type_records?: TypeRecords;
+    date_start?: string;
+    date_end?: string;
+    station_ids?: string;
+    departments?: string;
+    temperature_min?: number;
+    temperature_max?: number;
+    limit?: number;
+    offset?: number;
+}
+
+export interface TemperatureRecordEntry {
+    value: number;
+    date: string;
+}
+
+export interface TemperatureRecordStation {
     id: string;
     name: string;
-    departement: string;
-    record: number;
-    record_date: string;
+    hot_records: TemperatureRecordEntry[];
+    cold_records: TemperatureRecordEntry[];
+}
+
+export interface TemperatureRecordsMetadata {
+    date_start: string | null;
+    date_end: string | null;
+    record_kind: RecordKind;
+    record_scope: RecordScope;
+    type_records: TypeRecords;
+    station_ids: string[];
+    departments: string[];
+    temperature_min: number | null;
+    temperature_max: number | null;
 }
 
 export interface TemperatureRecordsResponse {
     count: number;
-    stations: TemperatureRecord[];
+    metadata: TemperatureRecordsMetadata;
+    stations: TemperatureRecordStation[];
 }
 
 // ===== API Error type =====
