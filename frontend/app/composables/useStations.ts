@@ -13,8 +13,6 @@ export function useStations(
 
     return useApiFetch<PaginatedResponse<Station>>("/stations/", {
         query: filters,
-        watch: [filters],
-        immediate: true,
         ...options,
     });
 }

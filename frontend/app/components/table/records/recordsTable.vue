@@ -3,10 +3,10 @@ import type { TableColumn } from "@nuxt/ui";
 import { h } from "vue";
 import { UBadge } from "#components";
 import { storeToRefs } from "pinia";
-import { useRecordsTableStore } from "~/stores/recordsTableStore";
+import { useRecordsStore } from "~/stores/recordsStore";
 import RecordsFilterBar from "~/components/table/records/RecordsFilterBar.vue";
 
-const store = useRecordsTableStore();
+const store = useRecordsStore();
 const { page, pageSize, typeRecords, recordsData, pending, error } =
     storeToRefs(store);
 
