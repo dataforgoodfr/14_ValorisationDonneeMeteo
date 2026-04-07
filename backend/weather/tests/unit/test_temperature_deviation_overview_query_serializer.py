@@ -14,8 +14,8 @@ def test_temperature_deviation_overview_query_serializer_happy_path():
             "deviation_min": -1.5,
             "deviation_max": 3.5,
             "ordering": "station_name",
-            "page": 2,
-            "page_size": 25,
+            "offset": 25,
+            "limit": 25,
         }
     )
 
@@ -28,8 +28,8 @@ def test_temperature_deviation_overview_query_serializer_happy_path():
     assert s.validated_data["deviation_min"] == -1.5
     assert s.validated_data["deviation_max"] == 3.5
     assert s.validated_data["ordering"] == "station_name"
-    assert s.validated_data["page"] == 2
-    assert s.validated_data["page_size"] == 25
+    assert s.validated_data["offset"] == 25
+    assert s.validated_data["limit"] == 25
 
 
 def test_temperature_deviation_overview_query_serializer_defaults():
@@ -47,8 +47,8 @@ def test_temperature_deviation_overview_query_serializer_defaults():
     assert s.validated_data["deviation_min"] is None
     assert s.validated_data["deviation_max"] is None
     assert s.validated_data["ordering"] == "-deviation"
-    assert s.validated_data["page"] == 1
-    assert s.validated_data["page_size"] == 50
+    assert s.validated_data["offset"] == 0
+    assert s.validated_data["limit"] == 50
 
 
 def test_temperature_deviation_overview_query_serializer_rejects_date_start_gt_date_end():
@@ -148,3 +148,29 @@ def test_temperature_deviation_overview_query_serializer_rejects_alt_bounds():
 
     assert not s.is_valid()
     assert "alt_max" in s.errors
+
+
+def test_temperature_deviation_overview_query_serializer_rejects_negative_offset():
+    s = TemperatureDeviationOverviewQuerySerializer(
+        data={
+            "date_start": "2025-03-01",
+            "date_end": "2025-03-31",
+            "offset": -1,
+        }
+    )
+
+    assert not s.is_valid()
+    assert "offset" in s.errors
+
+
+def test_temperature_deviation_overview_query_serializer_rejects_limit_too_large():
+    s = TemperatureDeviationOverviewQuerySerializer(
+        data={
+            "date_start": "2025-03-01",
+            "date_end": "2025-03-31",
+            "limit": 1000,
+        }
+    )
+
+    assert not s.is_valid()
+    assert "limit" in s.errors

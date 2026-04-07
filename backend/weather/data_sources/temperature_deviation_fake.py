@@ -283,24 +283,17 @@ class FakeTemperatureDeviationOverviewDataSource(
         data = sorted(data, key=key, reverse=reverse)
         total_count = len(data)
 
-        start = (query.page - 1) * query.page_size
-        end = start + query.page_size
+        start = query.offset
+        end = start + query.limit
 
         page_items = data[start:end]
-
-        total_pages = (
-            (total_count + query.page_size - 1) // query.page_size
-            if total_count > 0
-            else 0
-        )
 
         return TemperatureDeviationOverviewResult(
             national_deviation_mean=1.5,  # ignoré ici
             pagination=Pagination(
                 total_count=total_count,
-                page=query.page,
-                page_size=query.page_size,
-                total_pages=total_pages,
+                limit=query.limit,
+                offset=query.offset,
             ),
             stations=page_items,
         )

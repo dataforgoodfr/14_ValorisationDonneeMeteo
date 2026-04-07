@@ -161,8 +161,8 @@ def test_fetch_station_overview_happy_path():
     query = TemperatureDeviationOverviewQuery(
         date_start=dt.date(2024, 1, 1),
         date_end=dt.date(2024, 1, 2),
-        page=1,
-        page_size=10,
+        offset=0,
+        limit=10,
     )
 
     result = ds.fetch_station_overview(query)
@@ -205,8 +205,8 @@ def test_fetch_station_overview_filters_by_department():
         date_start=dt.date(2024, 1, 1),
         date_end=dt.date(2024, 1, 1),
         departments=("13",),
-        page=1,
-        page_size=10,
+        offset=0,
+        limit=10,
     )
 
     result = ds.fetch_station_overview(query)
@@ -237,8 +237,8 @@ def test_fetch_station_overview_filters_by_region():
         date_start=dt.date(2024, 1, 1),
         date_end=dt.date(2024, 1, 1),
         regions=("Île-de-France",),
-        page=1,
-        page_size=10,
+        offset=0,
+        limit=10,
     )
 
     result = ds.fetch_station_overview(query)
@@ -269,8 +269,8 @@ def test_fetch_station_overview_filters_by_altitude():
         date_start=dt.date(2024, 1, 1),
         date_end=dt.date(2024, 1, 1),
         alt_min=100.0,
-        page=1,
-        page_size=10,
+        offset=0,
+        limit=10,
     )
 
     result = ds.fetch_station_overview(query)
@@ -279,3 +279,36 @@ def test_fetch_station_overview_filters_by_altitude():
     assert len(result.stations) == 1
     assert result.stations[0].station_id == s2
     assert result.stations[0].alt == pytest.approx(200.0)
+
+
+@pytest.mark.django_db
+def test_fetch_station_overview_applies_limit_and_offset():
+    s1 = "01269001"
+    s2 = "01333001"
+
+    insert_station(s1, "Station A", departement=13, lat=43.3, lon=5.4, alt=50.0)
+    insert_station(s2, "Station B", departement=75, lat=48.8, lon=2.3, alt=60.0)
+
+    insert_station_daily_baseline(s1, 1, 1, 10.0)
+    insert_station_daily_baseline(s2, 1, 1, 10.0)
+
+    insert_quotidienne(dt.date(2024, 1, 1), s1, 12.0)
+    insert_quotidienne(dt.date(2024, 1, 1), s2, 11.0)
+
+    ds = TimescaleTemperatureDeviationDailyDataSource()
+
+    result = ds.fetch_station_overview(
+        TemperatureDeviationOverviewQuery(
+            date_start=dt.date(2024, 1, 1),
+            date_end=dt.date(2024, 1, 1),
+            ordering="station_name",
+            offset=1,
+            limit=1,
+        )
+    )
+
+    assert result.pagination.total_count == 2
+    assert result.pagination.offset == 1
+    assert result.pagination.limit == 1
+    assert len(result.stations) == 1
+    assert result.stations[0].station_name == "Station B"
