@@ -232,3 +232,55 @@ def test_overview_endpoint_returns_400_on_limit_too_large(client: APIClient):
     )
 
     assert resp.status_code == 400
+
+
+def test_overview_endpoint_filters_by_station_ids(client: APIClient):
+    resp = client.get(
+        _url(),
+        {
+            "date_start": "2025-03-01",
+            "date_end": "2025-03-31",
+            "station_ids": "70000,70001",
+            "limit": 50,
+            "offset": 0,
+        },
+    )
+
+    assert resp.status_code == 200
+    stations = resp.json()["stations"]
+
+    assert {s["station_id"] for s in stations} == {"70000", "70001"}
+
+
+def test_overview_endpoint_combines_station_ids_and_station_search(client: APIClient):
+    resp = client.get(
+        _url(),
+        {
+            "date_start": "2025-03-01",
+            "date_end": "2025-03-31",
+            "station_ids": "70010,70011",
+            "station_search": "70010",
+            "limit": 50,
+            "offset": 0,
+        },
+    )
+
+    assert resp.status_code == 200
+    stations = resp.json()["stations"]
+
+    assert len(stations) == 1
+    assert stations[0]["station_id"] == "70010"
+
+
+def test_overview_endpoint_echoes_station_ids_in_metadata_filters(client: APIClient):
+    resp = client.get(
+        _url(),
+        {
+            "date_start": "2025-03-01",
+            "date_end": "2025-03-31",
+            "station_ids": "70000,70001",
+        },
+    )
+
+    assert resp.status_code == 200
+    assert resp.json()["metadata"]["filters"]["station_ids"] == ["70000", "70001"]

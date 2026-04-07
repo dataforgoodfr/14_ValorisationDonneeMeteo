@@ -376,6 +376,7 @@ def compute_temperature_deviation_overview(
     data_source: TemperatureDeviationOverviewDataSource,
     date_start: dt.date,
     date_end: dt.date,
+    station_ids: tuple[str, ...] = (),
     station_search: str | None = None,
     temperature_mean_min: float | None = None,
     temperature_mean_max: float | None = None,
@@ -392,6 +393,7 @@ def compute_temperature_deviation_overview(
     query = TemperatureDeviationOverviewQuery(
         date_start=date_start,
         date_end=date_end,
+        station_ids=station_ids,
         station_search=station_search,
         temperature_mean_min=temperature_mean_min,
         temperature_mean_max=temperature_mean_max,

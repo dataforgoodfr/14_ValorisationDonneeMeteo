@@ -236,3 +236,40 @@ def test_fake_overview_offset_changes_returned_slice():
     assert len(result_1.stations) == 10
     assert len(result_2.stations) == 10
     assert result_1.stations != result_2.stations
+
+
+def test_fake_overview_station_ids_filters_results():
+    ds = FakeTemperatureDeviationOverviewDataSource()
+
+    query = TemperatureDeviationOverviewQuery(
+        date_start=dt.date(2025, 3, 1),
+        date_end=dt.date(2025, 3, 31),
+        station_ids=("70000", "70001"),
+        offset=0,
+        limit=50,
+    )
+
+    result = ds.fetch_station_overview(query)
+
+    assert result.pagination.total_count == 2
+    assert len(result.stations) == 2
+    assert {s.station_id for s in result.stations} == {"70000", "70001"}
+
+
+def test_fake_overview_station_ids_and_station_search_are_combined():
+    ds = FakeTemperatureDeviationOverviewDataSource()
+
+    query = TemperatureDeviationOverviewQuery(
+        date_start=dt.date(2025, 3, 1),
+        date_end=dt.date(2025, 3, 31),
+        station_ids=("70010", "70011"),
+        station_search="70010",
+        offset=0,
+        limit=50,
+    )
+
+    result = ds.fetch_station_overview(query)
+
+    assert result.pagination.total_count == 1
+    assert len(result.stations) == 1
+    assert result.stations[0].station_id == "70010"

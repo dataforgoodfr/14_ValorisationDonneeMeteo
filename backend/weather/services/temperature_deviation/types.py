@@ -83,6 +83,7 @@ class YearlyBaselinePoint:
 class TemperatureDeviationOverviewQuery:
     date_start: dt.date
     date_end: dt.date
+    station_ids: tuple[str, ...] = ()
     station_search: str | None = None
     temperature_mean_min: float | None = None
     temperature_mean_max: float | None = None

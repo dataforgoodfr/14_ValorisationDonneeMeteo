@@ -8,6 +8,7 @@ def test_temperature_deviation_overview_query_serializer_happy_path():
         data={
             "date_start": "2025-03-01",
             "date_end": "2025-03-31",
+            "station_ids": "07149,07255",
             "station_search": "Montsouris",
             "temperature_mean_min": 10.0,
             "temperature_mean_max": 20.0,
@@ -30,6 +31,7 @@ def test_temperature_deviation_overview_query_serializer_happy_path():
     assert s.validated_data["ordering"] == "station_name"
     assert s.validated_data["offset"] == 25
     assert s.validated_data["limit"] == 25
+    assert s.validated_data["station_ids"] == ("07149", "07255")
 
 
 def test_temperature_deviation_overview_query_serializer_defaults():
@@ -49,6 +51,7 @@ def test_temperature_deviation_overview_query_serializer_defaults():
     assert s.validated_data["ordering"] == "-deviation"
     assert s.validated_data["offset"] == 0
     assert s.validated_data["limit"] == 50
+    assert s.validated_data["station_ids"] == ()
 
 
 def test_temperature_deviation_overview_query_serializer_rejects_date_start_gt_date_end():
@@ -174,3 +177,16 @@ def test_temperature_deviation_overview_query_serializer_rejects_limit_too_large
 
     assert not s.is_valid()
     assert "limit" in s.errors
+
+
+def test_temperature_deviation_overview_query_serializer_parses_station_ids():
+    s = TemperatureDeviationOverviewQuerySerializer(
+        data={
+            "date_start": "2025-03-01",
+            "date_end": "2025-03-31",
+            "station_ids": "07149,07255",
+        }
+    )
+
+    assert s.is_valid(), s.errors
+    assert s.validated_data["station_ids"] == ("07149", "07255")

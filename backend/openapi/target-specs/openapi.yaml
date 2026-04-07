@@ -40,6 +40,9 @@ paths:
         un indicateur national moyen et une liste paginée de stations agrégées
         sur la période.
 
+        Le tableau des stations peut être filtré par recherche textuelle, critères
+          numériques, zone géographique ou liste explicite d'identifiants de stations.
+
         L'indicateur national est calculé à l'échelle de la France métropolitaine
         et n'est pas affecté par les filtres appliqués au tableau des stations.
       operationId: getTemperatureDeviationOverview
@@ -63,6 +66,20 @@ paths:
             format: date
           description: Date de fin incluse (YYYY-MM-DD).
           example: "2025-03-31"
+
+        - name: station_ids
+          in: query
+          required: false
+          schema:
+            type: array
+            items:
+              type: string
+          style: form
+          explode: false
+          description: >
+            Liste d'identifiants de stations à inclure dans la réponse.
+            Permet de restreindre explicitement le tableau à une sélection de stations.
+          example: "07149,07255"
 
         - name: station_search
           in: query
@@ -186,6 +203,7 @@ paths:
                       baseline: "1991-2020"
                       filters:
                         station_search: null
+                        station_ids: ["07149", "07255"]
                         temperature_mean_min: null
                         temperature_mean_max: null
                         deviation_min: null
@@ -1048,6 +1066,10 @@ components:
         filters:
           type: object
           properties:
+            station_ids:
+              type: array
+              items:
+                type: string
             station_search:
               type: string
               nullable: true
