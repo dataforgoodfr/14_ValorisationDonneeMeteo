@@ -89,7 +89,11 @@ def test_alltime_hot_records_progression():
         TemperatureRecord(value=42.5, date=dt.date(2003, 8, 5)),
         TemperatureRecord(value=45.1, date=dt.date(2019, 6, 28)),
     )
-    preset = (StationRecords(id="99001001", name="Station Canicule", hot_records=hot, cold_records=()),)
+    preset = (
+        StationRecords(
+            id="99001001", name="Station Canicule", hot_records=hot, cold_records=()
+        ),
+    )
     ds = ConfigurableRecordsDataSource(preset)
 
     results = get_records(
@@ -126,7 +130,11 @@ def test_monthly_hot_records_passes_scope_to_datasource():
         TemperatureRecord(value=38.0, date=dt.date(2000, 7, 15)),
         TemperatureRecord(value=41.0, date=dt.date(2022, 7, 3)),
     )
-    preset = (StationRecords(id="99002001", name="Station Juillet", hot_records=hot, cold_records=()),)
+    preset = (
+        StationRecords(
+            id="99002001", name="Station Juillet", hot_records=hot, cold_records=()
+        ),
+    )
     ds = ConfigurableRecordsDataSource(preset)
 
     results = get_records(
@@ -170,7 +178,12 @@ def test_alltime_cold_records_two_stations():
     )
     ds = ConfigurableRecordsDataSource(preset)
 
-    results = get_records(data_source=ds, record_scope="all_time", type_records="cold", record_kind="historical")
+    results = get_records(
+        data_source=ds,
+        record_scope="all_time",
+        type_records="cold",
+        record_kind="historical",
+    )
 
     assert len(results) == 2
     by_id = {s.id: s for s in results}
@@ -203,7 +216,12 @@ def test_absolute_kind_passes_record_kind_to_datasource():
     )
     ds = ConfigurableRecordsDataSource(preset)
 
-    results = get_records(data_source=ds, record_scope="all_time", type_records="hot", record_kind="absolute")
+    results = get_records(
+        data_source=ds,
+        record_scope="all_time",
+        type_records="hot",
+        record_kind="absolute",
+    )
 
     assert ds.last_query.record_kind == "absolute"
     assert len(results[0].hot_records) == 1
