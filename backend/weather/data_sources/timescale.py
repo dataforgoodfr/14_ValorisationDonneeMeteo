@@ -129,6 +129,12 @@ def _region_case_sql() -> str:
     return "CASE " + " ".join(parts) + " ELSE 'Autre' END"
 
 
+def _mean(values: list[float]) -> float:
+    if not values:
+        return 0.0
+    return sum(values) / len(values)
+
+
 def compute_itn_for_day(
     day: dt.date, station_code_to_temp_map: dict[str, float]
 ) -> float | None:
@@ -375,7 +381,7 @@ class TimescaleTemperatureDeviationDailyDataSource(
         if not deviations:
             return 0.0
 
-        return sum(deviations) / len(deviations)
+        return _mean(deviations)
 
     def fetch_station_overview(
         self,
@@ -514,20 +520,23 @@ class TimescaleTemperatureDeviationDailyDataSource(
             total_count = cur.fetchone()[0]
 
             cur.execute(page_sql, page_params)
-            rows = cur.fetchall()
+            columns = [col[0] for col in cur.description]
+            rows = [dict(zip(columns, row, strict=False)) for row in cur.fetchall()]
 
         stations = [
             TemperatureDeviationOverviewStation(
-                station_id=row[0],
-                station_name=row[1],
-                lat=float(row[2]) if row[2] is not None else None,
-                lon=float(row[3]) if row[3] is not None else None,
-                department=str(row[4]) if row[4] is not None else None,
-                alt=float(row[5]) if row[5] is not None else None,
-                region=row[6],
-                temperature_mean=float(row[7]),
-                baseline_mean=float(row[8]),
-                deviation=float(row[9]),
+                station_id=row["station_id"],
+                station_name=row["station_name"],
+                lat=float(row["lat"]) if row["lat"] is not None else None,
+                lon=float(row["lon"]) if row["lon"] is not None else None,
+                department=str(row["department"])
+                if row["department"] is not None
+                else None,
+                alt=float(row["alt"]) if row["alt"] is not None else None,
+                region=row["region"],
+                temperature_mean=float(row["temperature_mean"]),
+                baseline_mean=float(row["baseline_mean"]),
+                deviation=float(row["deviation"]),
             )
             for row in rows
         ]
