@@ -312,3 +312,66 @@ def test_fetch_station_overview_applies_limit_and_offset():
     assert result.pagination.limit == 1
     assert len(result.stations) == 1
     assert result.stations[0].station_name == "Station B"
+
+
+@pytest.mark.django_db
+def test_fetch_station_overview_filters_by_station_ids():
+    s1 = "01269001"
+    s2 = "01333001"
+
+    insert_station(s1, "Station 1", departement=13, lat=43.3, lon=5.4, alt=50.0)
+    insert_station(s2, "Station 2", departement=75, lat=48.8, lon=2.3, alt=60.0)
+
+    insert_station_daily_baseline(s1, 1, 1, 10.0)
+    insert_station_daily_baseline(s2, 1, 1, 10.0)
+
+    insert_quotidienne(dt.date(2024, 1, 1), s1, 12.0)
+    insert_quotidienne(dt.date(2024, 1, 1), s2, 12.0)
+
+    ds = TimescaleTemperatureDeviationDailyDataSource()
+
+    query = TemperatureDeviationOverviewQuery(
+        date_start=dt.date(2024, 1, 1),
+        date_end=dt.date(2024, 1, 1),
+        station_ids=(s2,),
+        offset=0,
+        limit=10,
+    )
+
+    result = ds.fetch_station_overview(query)
+
+    assert result.pagination.total_count == 1
+    assert len(result.stations) == 1
+    assert result.stations[0].station_id == s2
+
+
+@pytest.mark.django_db
+def test_fetch_station_overview_combines_station_ids_and_department_filters():
+    s1 = "01269001"
+    s2 = "01333001"
+
+    insert_station(s1, "Station 1", departement=13, lat=43.3, lon=5.4, alt=50.0)
+    insert_station(s2, "Station 2", departement=75, lat=48.8, lon=2.3, alt=60.0)
+
+    insert_station_daily_baseline(s1, 1, 1, 10.0)
+    insert_station_daily_baseline(s2, 1, 1, 10.0)
+
+    insert_quotidienne(dt.date(2024, 1, 1), s1, 12.0)
+    insert_quotidienne(dt.date(2024, 1, 1), s2, 12.0)
+
+    ds = TimescaleTemperatureDeviationDailyDataSource()
+
+    query = TemperatureDeviationOverviewQuery(
+        date_start=dt.date(2024, 1, 1),
+        date_end=dt.date(2024, 1, 1),
+        station_ids=(s1, s2),
+        departments=("13",),
+        offset=0,
+        limit=10,
+    )
+
+    result = ds.fetch_station_overview(query)
+
+    assert result.pagination.total_count == 1
+    assert len(result.stations) == 1
+    assert result.stations[0].station_id == s1

@@ -131,6 +131,7 @@ def test_compute_overview_passes_query_parameters():
         data_source=ds,
         date_start=dt.date(2025, 3, 1),
         date_end=dt.date(2025, 3, 31),
+        station_ids=("07149", "07255"),
         station_search="foo",
         temperature_mean_min=10,
         temperature_mean_max=20,
@@ -151,6 +152,7 @@ def test_compute_overview_passes_query_parameters():
     assert q.ordering == "station_name"
     assert q.offset == 50
     assert q.limit == 25
+    assert q.station_ids == ("07149", "07255")
 
 
 def test_compute_overview_national_independent_from_station_result():

@@ -336,6 +336,7 @@ class TemperatureDeviationOverviewQuerySerializer(serializers.Serializer):
     date_start = serializers.DateField(required=True)
     date_end = serializers.DateField(required=True)
 
+    station_ids = CommaSeparatedStringListField(required=False)
     station_search = serializers.CharField(required=False, allow_blank=True)
 
     temperature_mean_min = serializers.FloatField(required=False, allow_null=True)
@@ -421,6 +422,7 @@ class TemperatureDeviationOverviewQuerySerializer(serializers.Serializer):
 
         attrs["departments"] = attrs.get("departments", ())
         attrs["regions"] = attrs.get("regions", ())
+        attrs["station_ids"] = attrs.get("station_ids", ())
 
         attrs["station_search"] = attrs.get("station_search") or None
 

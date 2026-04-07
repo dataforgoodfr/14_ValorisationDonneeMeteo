@@ -244,6 +244,10 @@ class FakeTemperatureDeviationOverviewDataSource(
     ) -> TemperatureDeviationOverviewResult:
         data = self._stations
 
+        if query.station_ids:
+            allowed = set(query.station_ids)
+            data = [x for x in data if x.station_id in allowed]
+
         if query.station_search:
             s = query.station_search.lower()
             data = [x for x in data if s in x.station_name.lower()]

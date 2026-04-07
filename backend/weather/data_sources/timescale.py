@@ -391,6 +391,10 @@ class TimescaleTemperatureDeviationDailyDataSource(
             where_clauses.append("station_name ILIKE %s")
             params.append(f"%{query.station_search}%")
 
+        if query.station_ids:
+            where_clauses.append("station_id = ANY(%s)")
+            params.append(list(query.station_ids))
+
         if query.temperature_mean_min is not None:
             where_clauses.append("temperature_mean >= %s")
             params.append(query.temperature_mean_min)
