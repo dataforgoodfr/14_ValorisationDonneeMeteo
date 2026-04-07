@@ -135,6 +135,10 @@ def _mean(values: list[float]) -> float:
     return sum(values) / len(values)
 
 
+def _float_or_none(x):
+    return float(x) if x is not None else None
+
+
 def compute_itn_for_day(
     day: dt.date, station_code_to_temp_map: dict[str, float]
 ) -> float | None:
@@ -527,12 +531,12 @@ class TimescaleTemperatureDeviationDailyDataSource(
             TemperatureDeviationOverviewStation(
                 station_id=row["station_id"],
                 station_name=row["station_name"],
-                lat=float(row["lat"]) if row["lat"] is not None else None,
-                lon=float(row["lon"]) if row["lon"] is not None else None,
+                lat=row["lat"],
+                lon=row["lon"],
                 department=str(row["department"])
                 if row["department"] is not None
                 else None,
-                alt=float(row["alt"]) if row["alt"] is not None else None,
+                alt=row["alt"],
                 region=row["region"],
                 temperature_mean=float(row["temperature_mean"]),
                 baseline_mean=float(row["baseline_mean"]),
