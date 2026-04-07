@@ -25,17 +25,16 @@ def test_fake_overview_returns_first_page_with_default_ordering():
     query = TemperatureDeviationOverviewQuery(
         date_start=dt.date(2025, 3, 1),
         date_end=dt.date(2025, 3, 31),
-        page=1,
-        page_size=10,
+        offset=0,
+        limit=10,
         ordering="-deviation",
     )
 
     result = ds.fetch_station_overview(query)
 
     assert result.pagination.total_count == 500
-    assert result.pagination.page == 1
-    assert result.pagination.page_size == 10
-    assert result.pagination.total_pages == 50
+    assert result.pagination.offset == 0
+    assert result.pagination.limit == 10
     assert len(result.stations) == 10
 
     assert result.stations[0].deviation >= result.stations[1].deviation
@@ -55,15 +54,15 @@ def test_fake_overview_pagination_returns_second_page():
     query_page_1 = TemperatureDeviationOverviewQuery(
         date_start=dt.date(2025, 3, 1),
         date_end=dt.date(2025, 3, 31),
-        page=1,
-        page_size=10,
+        offset=0,
+        limit=10,
         ordering="-deviation",
     )
     query_page_2 = TemperatureDeviationOverviewQuery(
         date_start=dt.date(2025, 3, 1),
         date_end=dt.date(2025, 3, 31),
-        page=2,
-        page_size=10,
+        offset=10,
+        limit=10,
         ordering="-deviation",
     )
 
@@ -82,8 +81,8 @@ def test_fake_overview_station_search_filters_results():
         date_start=dt.date(2025, 3, 1),
         date_end=dt.date(2025, 3, 31),
         station_search="70010",
-        page=1,
-        page_size=50,
+        offset=0,
+        limit=50,
     )
 
     result = ds.fetch_station_overview(query)
@@ -99,8 +98,8 @@ def test_fake_overview_temperature_mean_min_filters_results():
         date_start=dt.date(2025, 3, 1),
         date_end=dt.date(2025, 3, 31),
         temperature_mean_min=25.0,
-        page=1,
-        page_size=50,
+        offset=0,
+        limit=50,
     )
 
     result = ds.fetch_station_overview(query)
@@ -116,8 +115,8 @@ def test_fake_overview_temperature_mean_max_filters_results():
         date_start=dt.date(2025, 3, 1),
         date_end=dt.date(2025, 3, 31),
         temperature_mean_max=12.0,
-        page=1,
-        page_size=50,
+        offset=0,
+        limit=50,
     )
 
     result = ds.fetch_station_overview(query)
@@ -133,8 +132,8 @@ def test_fake_overview_deviation_min_filters_results():
         date_start=dt.date(2025, 3, 1),
         date_end=dt.date(2025, 3, 31),
         deviation_min=2.0,
-        page=1,
-        page_size=50,
+        offset=0,
+        limit=50,
     )
 
     result = ds.fetch_station_overview(query)
@@ -150,8 +149,8 @@ def test_fake_overview_deviation_max_filters_results():
         date_start=dt.date(2025, 3, 1),
         date_end=dt.date(2025, 3, 31),
         deviation_max=0.0,
-        page=1,
-        page_size=50,
+        offset=0,
+        limit=50,
     )
 
     result = ds.fetch_station_overview(query)
@@ -167,8 +166,8 @@ def test_fake_overview_ordering_by_deviation_ascending():
         date_start=dt.date(2025, 3, 1),
         date_end=dt.date(2025, 3, 31),
         ordering="deviation",
-        page=1,
-        page_size=20,
+        offset=0,
+        limit=50,
     )
 
     result = ds.fetch_station_overview(query)
@@ -184,8 +183,8 @@ def test_fake_overview_ordering_by_station_name_ascending():
         date_start=dt.date(2025, 3, 1),
         date_end=dt.date(2025, 3, 31),
         ordering="station_name",
-        page=1,
-        page_size=20,
+        offset=0,
+        limit=50,
     )
 
     result = ds.fetch_station_overview(query)
@@ -201,14 +200,39 @@ def test_fake_overview_returns_empty_page_when_filters_match_nothing():
         date_start=dt.date(2025, 3, 1),
         date_end=dt.date(2025, 3, 31),
         deviation_min=999.0,
-        page=1,
-        page_size=50,
+        offset=0,
+        limit=50,
     )
 
     result = ds.fetch_station_overview(query)
 
-    assert result.pagination.total_count == 0
-    assert result.pagination.page == 1
-    assert result.pagination.page_size == 50
-    assert result.pagination.total_pages == 0
+    assert result.pagination.offset == 0
+    assert result.pagination.limit == 50
     assert result.stations == []
+
+
+def test_fake_overview_offset_changes_returned_slice():
+    ds = FakeTemperatureDeviationOverviewDataSource()
+
+    result_1 = ds.fetch_station_overview(
+        TemperatureDeviationOverviewQuery(
+            date_start=dt.date(2025, 3, 1),
+            date_end=dt.date(2025, 3, 31),
+            ordering="-deviation",
+            offset=0,
+            limit=10,
+        )
+    )
+    result_2 = ds.fetch_station_overview(
+        TemperatureDeviationOverviewQuery(
+            date_start=dt.date(2025, 3, 1),
+            date_end=dt.date(2025, 3, 31),
+            ordering="-deviation",
+            offset=10,
+            limit=10,
+        )
+    )
+
+    assert len(result_1.stations) == 10
+    assert len(result_2.stations) == 10
+    assert result_1.stations != result_2.stations

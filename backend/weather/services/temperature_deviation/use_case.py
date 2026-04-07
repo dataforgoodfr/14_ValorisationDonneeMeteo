@@ -46,8 +46,8 @@ def get_temperature_deviation_overview(
     departments: tuple[str, ...] = (),
     regions: tuple[str, ...] = (),
     ordering: str = "-deviation",
-    page: int = 1,
-    page_size: int = 50,
+    limit: int = 50,
+    offset: int = 0,
 ) -> dict:
     return compute_temperature_deviation_overview(
         data_source=data_source,
@@ -63,6 +63,6 @@ def get_temperature_deviation_overview(
         departments=departments,
         regions=regions,
         ordering=ordering,
-        page=page,
-        page_size=page_size,
+        limit=limit,
+        offset=offset,
     )

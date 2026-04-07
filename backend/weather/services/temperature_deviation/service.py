@@ -386,8 +386,8 @@ def compute_temperature_deviation_overview(
     departments: tuple[str, ...] = (),
     regions: tuple[str, ...] = (),
     ordering: str = "-deviation",
-    page: int = 1,
-    page_size: int = 50,
+    limit: int = 50,
+    offset: int = 0,
 ) -> dict:
     query = TemperatureDeviationOverviewQuery(
         date_start=date_start,
@@ -402,8 +402,8 @@ def compute_temperature_deviation_overview(
         departments=departments,
         regions=regions,
         ordering=ordering,
-        page=page,
-        page_size=page_size,
+        limit=limit,
+        offset=offset,
     )
 
     national = data_source.fetch_national_mean_deviation(
@@ -418,9 +418,8 @@ def compute_temperature_deviation_overview(
         },
         "pagination": {
             "total_count": result.pagination.total_count,
-            "page": result.pagination.page,
-            "page_size": result.pagination.page_size,
-            "total_pages": result.pagination.total_pages,
+            "limit": result.pagination.limit,
+            "offset": result.pagination.offset,
         },
         "stations": [
             {

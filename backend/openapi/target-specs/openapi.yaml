@@ -124,16 +124,7 @@ paths:
           description: >
             Champ de tri du tableau. Le préfixe '-' indique un tri décroissant.
 
-        - name: page
-          in: query
-          required: false
-          schema:
-            type: integer
-            minimum: 1
-            default: 1
-          description: Numéro de page.
-
-        - name: page_size
+        - name: limit
           in: query
           required: false
           schema:
@@ -141,15 +132,24 @@ paths:
             minimum: 1
             maximum: 500
             default: 50
-          description: Nombre d'éléments par page.
+          description: Nombre maximal d'éléments retournés.
 
-        - name: altitude_min
+        - name: offset
+          in: query
+          required: false
+          schema:
+            type: integer
+            minimum: 0
+            default: 0
+          description: Nombre d'éléments à ignorer avant de commencer la page.
+
+        - name: alt_min
           in: query
           schema:
             type: number
           required: false
 
-        - name: altitude_max
+        - name: alt_max
           in: query
           schema:
             type: number
@@ -186,7 +186,6 @@ paths:
                       baseline: "1991-2020"
                       filters:
                         station_search: null
-                        station_classes: [ 1 ]
                         temperature_mean_min: null
                         temperature_mean_max: null
                         deviation_min: null
@@ -196,9 +195,8 @@ paths:
                       deviation_mean: 2.1
                     pagination:
                       total_count: 1320
-                      page: 1
-                      page_size: 50
-                      total_pages: 27
+                      limit: 50
+                      offset: 0
                     stations:
                       - station_id: "013001650"
                         station_name: "Marseille-Marignane"
@@ -216,7 +214,7 @@ paths:
                         baseline_mean: 26.5
                         deviation: 2.0
                         lat: 46
-                        lon : 2
+                        lon: 2
                         alt: 40
                         department: "75"
                         region: "Ile de France"
@@ -1065,6 +1063,20 @@ components:
             deviation_max:
               type: number
               nullable: true
+            alt_min:
+              type: number
+              nullable: true
+            alt_max:
+              type: number
+              nullable: true
+            departments:
+              type: array
+              items:
+                type: string
+            regions:
+              type: array
+              items:
+                type: string
         ordering:
           type: string
 
@@ -1082,17 +1094,14 @@ components:
       type: object
       required:
         - total_count
-        - page
-        - page_size
-        - total_pages
+        - limit
+        - offset
       properties:
         total_count:
           type: integer
-        page:
+        limit:
           type: integer
-        page_size:
-          type: integer
-        total_pages:
+        offset:
           type: integer
 
     TemperatureDeviationOverviewStation:

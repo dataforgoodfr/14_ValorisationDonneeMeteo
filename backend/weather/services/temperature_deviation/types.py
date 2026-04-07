@@ -89,8 +89,8 @@ class TemperatureDeviationOverviewQuery:
     deviation_min: float | None = None
     deviation_max: float | None = None
     ordering: str = "-deviation"
-    page: int = 1
-    page_size: int = 50
+    limit: int = 50
+    offset: int = 0
     alt_min: float | None = None
     alt_max: float | None = None
     departments: tuple[str, ...] = ()
@@ -114,9 +114,8 @@ class TemperatureDeviationOverviewStation:
 @dataclass(frozen=True)
 class Pagination:
     total_count: int
-    page: int
-    page_size: int
-    total_pages: int
+    limit: int
+    offset: int
 
 
 @dataclass(frozen=True)

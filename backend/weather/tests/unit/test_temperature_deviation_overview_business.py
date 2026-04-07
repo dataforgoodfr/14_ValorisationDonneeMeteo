@@ -26,9 +26,8 @@ class DummyDataSource:
             national_deviation_mean=999.0,  # ignoré volontairement
             pagination=Pagination(
                 total_count=2,
-                page=1,
-                page_size=50,
-                total_pages=1,
+                limit=50,
+                offset=0,
             ),
             stations=[
                 TemperatureDeviationOverviewStation(
@@ -106,9 +105,8 @@ def test_compute_overview_propagates_pagination():
     p = out["pagination"]
 
     assert p["total_count"] == 2
-    assert p["page"] == 1
-    assert p["page_size"] == 50
-    assert p["total_pages"] == 1
+    assert p["limit"] == 50
+    assert p["offset"] == 0
 
 
 def test_compute_overview_calls_datasource_with_correct_dates():
@@ -139,8 +137,8 @@ def test_compute_overview_passes_query_parameters():
         deviation_min=1,
         deviation_max=5,
         ordering="station_name",
-        page=3,
-        page_size=25,
+        offset=50,
+        limit=25,
     )
 
     q = ds.query_received
@@ -151,8 +149,8 @@ def test_compute_overview_passes_query_parameters():
     assert q.deviation_min == 1
     assert q.deviation_max == 5
     assert q.ordering == "station_name"
-    assert q.page == 3
-    assert q.page_size == 25
+    assert q.offset == 50
+    assert q.limit == 25
 
 
 def test_compute_overview_national_independent_from_station_result():

@@ -325,13 +325,13 @@ class TemperatureDeviationOverviewQuerySerializer(serializers.Serializer):
         default="-deviation",
     )
 
-    page = serializers.IntegerField(required=False, min_value=1, default=1)
-    page_size = serializers.IntegerField(
+    limit = serializers.IntegerField(
         required=False,
         min_value=1,
         max_value=500,
         default=50,
     )
+    offset = serializers.IntegerField(required=False, min_value=0, default=0)
 
     def validate(self, attrs):
         ds = attrs["date_start"]
@@ -391,9 +391,8 @@ class TemperatureDeviationOverviewQuerySerializer(serializers.Serializer):
 
 class PaginationMetadataSerializer(serializers.Serializer):
     total_count = serializers.IntegerField()
-    page = serializers.IntegerField()
-    page_size = serializers.IntegerField()
-    total_pages = serializers.IntegerField()
+    limit = serializers.IntegerField()
+    offset = serializers.IntegerField()
 
 
 class TemperatureDeviationOverviewNationalSerializer(serializers.Serializer):

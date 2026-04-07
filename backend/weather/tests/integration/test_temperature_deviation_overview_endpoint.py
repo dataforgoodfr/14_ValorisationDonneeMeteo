@@ -83,16 +83,16 @@ def test_overview_endpoint_pagination(client: APIClient):
         {
             "date_start": "2025-03-01",
             "date_end": "2025-03-31",
-            "page": 2,
-            "page_size": 10,
+            "offset": 10,
+            "limit": 10,
         },
     )
 
     assert resp.status_code == 200
     data = resp.json()
 
-    assert data["pagination"]["page"] == 2
-    assert data["pagination"]["page_size"] == 10
+    assert data["pagination"]["offset"] == 10
+    assert data["pagination"]["limit"] == 10
     assert len(data["stations"]) <= 10
 
 
@@ -206,3 +206,29 @@ def test_overview_endpoint_national_is_independent_from_station_filters(
         resp_all.json()["national"]["deviation_mean"]
         == resp_filtered.json()["national"]["deviation_mean"]
     )
+
+
+def test_overview_endpoint_returns_400_on_negative_offset(client: APIClient):
+    resp = client.get(
+        _url(),
+        {
+            "date_start": "2025-03-01",
+            "date_end": "2025-03-31",
+            "offset": -1,
+        },
+    )
+
+    assert resp.status_code == 400
+
+
+def test_overview_endpoint_returns_400_on_limit_too_large(client: APIClient):
+    resp = client.get(
+        _url(),
+        {
+            "date_start": "2025-03-01",
+            "date_end": "2025-03-31",
+            "limit": 1000,
+        },
+    )
+
+    assert resp.status_code == 400

@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import datetime as dt
-import math
 from collections import defaultdict
 
 from django.db import connection
@@ -479,8 +478,7 @@ class TimescaleTemperatureDeviationDailyDataSource(
             """
         )
 
-        offset = (query.page - 1) * query.page_size
-        page_params = [*params, query.page_size, offset]
+        page_params = [*params, query.limit, query.offset]
 
         page_sql = (
             base_cte
@@ -510,8 +508,6 @@ class TimescaleTemperatureDeviationDailyDataSource(
             cur.execute(page_sql, page_params)
             rows = cur.fetchall()
 
-        total_pages = math.ceil(total_count / query.page_size) if total_count > 0 else 0
-
         stations = [
             TemperatureDeviationOverviewStation(
                 station_id=row[0],
@@ -532,9 +528,8 @@ class TimescaleTemperatureDeviationDailyDataSource(
             national_deviation_mean=0.0,  # ignoré par le service
             pagination=Pagination(
                 total_count=total_count,
-                page=query.page,
-                page_size=query.page_size,
-                total_pages=total_pages,
+                limit=query.limit,
+                offset=query.offset,
             ),
             stations=stations,
         )
