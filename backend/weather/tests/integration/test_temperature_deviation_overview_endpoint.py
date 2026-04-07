@@ -284,3 +284,37 @@ def test_overview_endpoint_echoes_station_ids_in_metadata_filters(client: APICli
 
     assert resp.status_code == 200
     assert resp.json()["metadata"]["filters"]["station_ids"] == ["70000", "70001"]
+
+
+def test_overview_endpoint_ordering_by_department(client: APIClient):
+    resp = client.get(
+        _url(),
+        {
+            "date_start": "2025-03-01",
+            "date_end": "2025-03-31",
+            "ordering": "department",
+        },
+    )
+
+    assert resp.status_code == 200
+    stations = resp.json()["stations"]
+
+    assert len(stations) >= 2
+    assert stations[0]["department"] <= stations[1]["department"]
+
+
+def test_overview_endpoint_ordering_by_region(client: APIClient):
+    resp = client.get(
+        _url(),
+        {
+            "date_start": "2025-03-01",
+            "date_end": "2025-03-31",
+            "ordering": "region",
+        },
+    )
+
+    assert resp.status_code == 200
+    stations = resp.json()["stations"]
+
+    assert len(stations) >= 2
+    assert stations[0]["region"] <= stations[1]["region"]

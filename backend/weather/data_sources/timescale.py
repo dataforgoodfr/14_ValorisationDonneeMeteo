@@ -390,6 +390,10 @@ class TimescaleTemperatureDeviationDailyDataSource(
             "-temperature_mean": "temperature_mean DESC, station_id ASC",
             "deviation": "deviation ASC, station_id ASC",
             "-deviation": "deviation DESC, station_id ASC",
+            "department": "department ASC NULLS LAST, station_id ASC",
+            "-department": "department DESC NULLS LAST, station_id ASC",
+            "region": "region ASC NULLS LAST, station_id ASC",
+            "-region": "region DESC NULLS LAST, station_id ASC",
         }
 
         order_sql = ordering_map[query.ordering]

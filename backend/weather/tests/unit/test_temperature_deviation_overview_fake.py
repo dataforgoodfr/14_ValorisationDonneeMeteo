@@ -273,3 +273,37 @@ def test_fake_overview_station_ids_and_station_search_are_combined():
     assert result.pagination.total_count == 1
     assert len(result.stations) == 1
     assert result.stations[0].station_id == "70010"
+
+
+def test_fake_overview_ordering_by_department_ascending():
+    ds = FakeTemperatureDeviationOverviewDataSource()
+
+    query = TemperatureDeviationOverviewQuery(
+        date_start=dt.date(2025, 3, 1),
+        date_end=dt.date(2025, 3, 31),
+        ordering="department",
+        offset=0,
+        limit=20,
+    )
+
+    result = ds.fetch_station_overview(query)
+
+    assert len(result.stations) >= 2
+    assert result.stations[0].department <= result.stations[1].department
+
+
+def test_fake_overview_ordering_by_region_ascending():
+    ds = FakeTemperatureDeviationOverviewDataSource()
+
+    query = TemperatureDeviationOverviewQuery(
+        date_start=dt.date(2025, 3, 1),
+        date_end=dt.date(2025, 3, 31),
+        ordering="region",
+        offset=0,
+        limit=20,
+    )
+
+    result = ds.fetch_station_overview(query)
+
+    assert len(result.stations) >= 2
+    assert result.stations[0].region <= result.stations[1].region

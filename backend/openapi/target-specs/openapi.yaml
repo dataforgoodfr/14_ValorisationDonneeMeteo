@@ -137,6 +137,10 @@ paths:
               - -temperature_mean
               - deviation
               - -deviation
+              - department
+              - -department
+              - region
+              - -region
             default: -deviation
           description: >
             Champ de tri du tableau. Le préfixe '-' indique un tri décroissant.

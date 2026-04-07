@@ -190,3 +190,17 @@ def test_temperature_deviation_overview_query_serializer_parses_station_ids():
 
     assert s.is_valid(), s.errors
     assert s.validated_data["station_ids"] == ("07149", "07255")
+
+
+def test_temperature_deviation_overview_query_serializer_accepts_department_and_region_ordering():
+    for ordering in ("department", "-department", "region", "-region"):
+        s = TemperatureDeviationOverviewQuerySerializer(
+            data={
+                "date_start": "2025-03-01",
+                "date_end": "2025-03-31",
+                "ordering": ordering,
+            }
+        )
+
+        assert s.is_valid(), s.errors
+        assert s.validated_data["ordering"] == ordering
