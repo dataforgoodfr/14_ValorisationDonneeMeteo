@@ -1,65 +1,62 @@
 <script setup lang="ts">
 import type { TableColumn } from "@nuxt/ui";
 import { h } from "vue";
-import type { TemperatureRecord } from "~/types/api";
-import { UBadge, UInput } from "#components";
+import { UBadge } from "#components";
 import { storeToRefs } from "pinia";
 import { useRecordsStore } from "~/stores/recordsStore";
-import DayPicker from "~/components/ui/commons/selectBar/dayPicker.vue";
+import RecordsFilterBar from "~/components/table/records/RecordsFilterBar.vue";
 
 const store = useRecordsStore();
-const {
-    recordType,
-    startDate,
-    endDate,
-    page,
-    pageSize,
-    recordsData,
-    pending,
-    error,
-} = storeToRefs(store);
-const { getFilter, setFilter } = store;
+const { page, pageSize, typeRecords, recordsData, pending, error } =
+    storeToRefs(store);
 
-const today = new Date();
+// Track the record type that corresponds to the data currently displayed,
+// so the badge color only flips once the new data has arrived.
+const displayedTypeRecords = ref(typeRecords.value);
+watch(recordsData, () => {
+    displayedTypeRecords.value = typeRecords.value;
+});
 
 const temperatureBadgeColor = computed(() =>
-    recordType.value === "Chaud" ? "error" : "info",
+    displayedTypeRecords.value === "hot" ? "error" : "info",
 );
 
-function filterInput(id: string) {
-    return h(UInput, {
-        modelValue: getFilter(id),
-        "onUpdate:modelValue": (v: string) => setFilter(id, v),
-        placeholder: "Filtrer...",
-        size: "xs",
-    });
+// station_ids and departments in the metadata are parallel arrays
+// zip them to derive the department for each station.
+const stationDeptMap = computed(() => {
+    const { station_ids = [], departments = [] } =
+        recordsData.value?.metadata ?? {};
+    return new Map(station_ids.map((id, i) => [id, departments[i]]));
+});
+
+interface TableRow {
+    name: string;
+    departement: string | undefined;
+    record: number | undefined;
+    recordDate: string | undefined;
 }
 
-// Column definitions
-const columns = computed<TableColumn<TemperatureRecord>[]>(() => [
-    {
-        accessorKey: "name",
-        header: () =>
-            h("div", { class: "flex flex-col gap-1" }, [
-                h("span", "Station"),
-                filterInput("name"),
-            ]),
-    },
-    {
-        accessorKey: "departement",
-        header: () =>
-            h("div", { class: "flex flex-col gap-1" }, [
-                h("span", "Département"),
-                filterInput("departement"),
-            ]),
-    },
+const tableData = computed<TableRow[]>(() =>
+    (recordsData.value?.stations ?? []).map((s) => {
+        const record =
+            displayedTypeRecords.value === "cold"
+                ? s.cold_records[0]
+                : s.hot_records[0];
+        return {
+            name: s.name,
+            departement: stationDeptMap.value.get(s.id),
+            record: record?.value,
+            recordDate: record?.date,
+        };
+    }),
+);
+
+const columns = computed<TableColumn<TableRow>[]>(() => [
+    { accessorKey: "name", header: "Station" },
+    { accessorKey: "departement", header: "Département" },
     {
         accessorKey: "record",
-        header: () =>
-            h("div", { class: "flex flex-col gap-1" }, [
-                h("span", "Record"),
-                filterInput("record"),
-            ]),
+        header: "Record",
         cell: ({ row }) =>
             h(
                 UBadge,
@@ -71,44 +68,14 @@ const columns = computed<TableColumn<TemperatureRecord>[]>(() => [
                 () => row.getValue("record"),
             ),
     },
-    {
-        accessorKey: "record_date",
-        header: () =>
-            h("div", { class: "flex flex-col gap-1" }, [
-                h("span", "Date du record"),
-                filterInput("record_date"),
-            ]),
-    },
+    { accessorKey: "recordDate", header: "Date du record" },
 ]);
 </script>
 
 <template>
     <div class="flex flex-col gap-4">
-        <!-- Filters -->
-        <div class="flex justify-between px-4 py-3.5 border-b border-accented">
-            <DayPicker
-                v-model:start-date="startDate"
-                v-model:end-date="endDate"
-                :max-date="today"
-            />
-
-            <UFieldGroup>
-                <UButton
-                    class="cursor-pointer"
-                    color="neutral"
-                    :variant="recordType == 'Chaud' ? 'subtle' : 'outline'"
-                    label="Chaud"
-                    @click="recordType = 'Chaud'"
-                />
-                <UButton
-                    class="cursor-pointer"
-                    color="neutral"
-                    :variant="recordType == 'Froid' ? 'subtle' : 'outline'"
-                    label="Froid"
-                    @click="recordType = 'Froid'"
-                />
-            </UFieldGroup>
-        </div>
+        <!-- Filter bar -->
+        <RecordsFilterBar />
 
         <!-- Error message -->
         <div v-if="error" class="px-4 py-3 bg-error/10 text-error rounded">
@@ -117,7 +84,7 @@ const columns = computed<TableColumn<TemperatureRecord>[]>(() => [
 
         <!-- Table -->
         <UTable
-            :data="recordsData?.stations || []"
+            :data="tableData"
             :columns="columns"
             :loading="pending"
             class="flex-1"
