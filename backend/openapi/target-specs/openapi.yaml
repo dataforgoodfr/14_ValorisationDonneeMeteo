@@ -901,15 +901,15 @@ components:
                 type: string
               lat:
                 type: number
-                format: float
+                format: double
                 nullable: true
               lon:
                 type: number
-                format: float
+                format: double
                 nullable: true
               alt:
                 type: number
-                format: float
+                format: double
                 nullable: true
               hot_records:
                 type: array
