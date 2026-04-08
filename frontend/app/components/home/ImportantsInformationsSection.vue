@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import Card from "./card.vue";
+import Card from "./Card.vue";
 
 const store = useHomeStore();
 const {
@@ -11,7 +11,7 @@ const {
 } = storeToRefs(store);
 </script>
 <template>
-    <h1>LES INFORMATIONS À RETENIR</h1>
+    <h3>LES INFORMATIONS À RETENIR</h3>
 
     <Card
         :title="`ITN Hier -  ${yesterday?.toLocaleDateString('fr-FR', { dateStyle: 'long' })}`"
