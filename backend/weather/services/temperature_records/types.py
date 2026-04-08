@@ -26,3 +26,6 @@ class TemperatureRecordEntry:
     department: str
     record_value: float
     record_date: dt.date
+    lat: float | None = None
+    lon: float | None = None
+    alt: float | None = None
