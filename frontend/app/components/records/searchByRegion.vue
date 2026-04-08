@@ -25,17 +25,17 @@ const unselectedFilteredRegions = computed(() => {
     const regionCodesFilter = regionsFilter.value;
 
     return regions.filter((region) => {
-        if (searchQueryRef.value && searchQueryRef.value.trim() !== "") {
-            const normalizedRegion = normalizeString(region.name);
-
-            const searchQueryLower = normalizeString(
-                searchQueryRef.value,
-            ).toLowerCase();
-            const regionNameLower = normalizedRegion.toLowerCase();
-            return regionNameLower.includes(searchQueryLower);
+        if (!searchQueryRef.value || searchQueryRef.value.trim() === "") {
+            return !regionCodesFilter.includes(region.code);
         }
 
-        return !regionCodesFilter.includes(region.code);
+        const normalizedRegion = normalizeString(region.name);
+        const searchQueryLower = normalizeString(
+            searchQueryRef.value,
+        ).toLowerCase();
+        const regionNameLower = normalizedRegion.toLowerCase();
+
+        return regionNameLower.includes(searchQueryLower);
     });
 });
 </script>

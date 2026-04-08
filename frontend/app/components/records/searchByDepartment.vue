@@ -23,21 +23,22 @@ function onSelectDepartment(
 
 const unselectedFilteredDepartments = computed(() => {
     const departmentCodesFilter = departmentsFilter.value;
-    return departements.filter((department) => {
-        if (searchQueryRef.value && searchQueryRef.value.trim() !== "") {
-            const normalizedDepartment = normalizeString(department.name);
 
-            const searchQueryLower = normalizeString(
-                searchQueryRef.value,
-            ).toLowerCase();
-            const departmentNameLower = normalizedDepartment.toLowerCase();
-            return (
-                !departmentCodesFilter.includes(department.code) &&
-                (departmentNameLower.includes(searchQueryLower) ||
-                    department.code.toLowerCase().includes(searchQueryLower))
-            );
+    return departements.filter((department) => {
+        if (!searchQueryRef.value || searchQueryRef.value.trim() === "") {
+            return !departmentCodesFilter.includes(department.code);
         }
-        return !departmentCodesFilter.includes(department.code);
+
+        const normalizedDepartment = normalizeString(department.name);
+        const searchQueryLower = normalizeString(
+            searchQueryRef.value,
+        ).toLowerCase();
+        const departmentNameLower = normalizedDepartment.toLowerCase();
+        return (
+            !departmentCodesFilter.includes(department.code) &&
+            (departmentNameLower.includes(searchQueryLower) ||
+                department.code.toLowerCase().includes(searchQueryLower))
+        );
     });
 });
 </script>

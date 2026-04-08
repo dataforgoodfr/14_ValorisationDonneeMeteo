@@ -1,6 +1,6 @@
 import { refDebounced } from "@vueuse/core";
-// TODO: Replace with the real API call when the endpoint is implemented.
-import { useTemperatureRecordsFake } from "~/composables/useTemperature.fake";
+import { useTemperatureRecords } from "~/composables/useTemperature";
+import { dateToStr } from "~/utils/date";
 import type { Station } from "~/types/api";
 
 const debounceDuration = 300;
@@ -27,8 +27,14 @@ export const useRecordsGraphStore = defineStore("recordsGraphStore", () => {
     const departmentsFilter = ref<string[]>([]);
     const stationCodeFilter = ref<string[]>([]);
     const regionsFilter = ref<string[]>([]);
-    const territoriesFilter = ref<string[]>([]);
-    const selectedElements = ref<SelectedItem[]>([]);
+    const territoriesFilter = ref<string[]>(["FR"]);
+    const selectedElements = ref<SelectedItem[]>([
+        {
+            id: "FR",
+            value: "France Métropolitaine",
+            type: TerritoryFilterType.TERRITORY,
+        },
+    ]);
 
     // Pagination
     const page = ref(1);
@@ -47,8 +53,8 @@ export const useRecordsGraphStore = defineStore("recordsGraphStore", () => {
     );
 
     const params = computed(() => ({
-        date_start: debouncedStartDate.value.toISOString().split("T")[0],
-        date_end: debouncedEndDate.value.toISOString().split("T")[0],
+        date_start: dateToStr(debouncedStartDate.value),
+        date_end: dateToStr(debouncedEndDate.value),
         limit: pageSize.value,
         offset: (page.value - 1) * pageSize.value,
         departement_filter: debouncedDepartmentsFilter.value.join(","),
@@ -130,11 +136,7 @@ export const useRecordsGraphStore = defineStore("recordsGraphStore", () => {
                 break;
         }
     }
-    const {
-        data: recordsData,
-        pending,
-        error,
-    } = useTemperatureRecordsFake(params);
+    const { data: recordsData, pending, error } = useTemperatureRecords(params);
 
     return {
         startDate,

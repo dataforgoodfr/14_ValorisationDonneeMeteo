@@ -13,7 +13,7 @@ const { stationCodeFilter } = storeToRefs(store);
 const { setStationFilter } = store;
 
 const searchQueryRef = toRef(props, "searchQuery");
-const debouncedSearch = refDebounced(searchQueryRef, 200);
+const debouncedSearch = refDebounced(searchQueryRef, 300);
 
 const params = computed(() => ({
     search: debouncedSearch.value,
@@ -28,9 +28,8 @@ function onSelectStation(_event: PointerEvent, station: Station) {
 
 const unselectedFilteredStations = computed(() => {
     const stationCodesFilter = stationCodeFilter.value;
-    return (
-        allStations.value.filter((s) => !stationCodesFilter.includes(s.code)) ??
-        []
+    return allStations.value.filter(
+        (station) => !stationCodesFilter.includes(station.code),
     );
 });
 

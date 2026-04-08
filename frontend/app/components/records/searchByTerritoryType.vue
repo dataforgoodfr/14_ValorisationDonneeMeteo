@@ -1,10 +1,10 @@
 <script setup lang="ts">
 import type { SelectItem } from "@nuxt/ui";
 
-import SearchByDepartment from "./searchByDepartment.vue";
-import SearchByStation from "./searchByStation.vue";
-import SearchByTerritory from "./searchByTerritory.vue";
-import SearchByRegion from "./searchByRegion.vue";
+import SearchByDepartment from "./SearchByDepartment.vue";
+import SearchByRegion from "./SearchByRegion.vue";
+import SearchByTerritory from "./SearchByTerritory.vue";
+import SearchByStation from "./SearchByStation.vue";
 
 const store = useRecordsGraphStore();
 const { selectedElements } = storeToRefs(store);

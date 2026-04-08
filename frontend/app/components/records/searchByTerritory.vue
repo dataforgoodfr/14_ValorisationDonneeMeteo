@@ -11,7 +11,6 @@ function onSelectTerritory(
 }
 
 const isTerroritorySelected = computed(() => {
-    console.log("territoriesFilter", territoriesFilter.value); // Debug log to check the value of territoriesFilter
     return territoriesFilter.value.includes("FR");
 });
 </script>

@@ -2,7 +2,7 @@
 import PagesHero from "~/components/layout/PagesHero.vue";
 import RecordsTable from "~/components/table/records/recordsTable.vue";
 import ChartLayout from "~/components/layout/ChartLayout.vue";
-import SearchByTerritoryType from "~/components/records/searchByTerritoryType.vue";
+import SearchByTerritoryType from "~/components/records/SearchByTerritoryType.vue";
 
 const heroData = {
     title: "Records",
