@@ -3,6 +3,7 @@ import * as echarts from "echarts/core";
 import langFR from "~/i18n/langFR.js";
 import type { SelectBarAdapter } from "../ui/commons/selectBar/types";
 import type { TemperatureRecordsResponse } from "~/types/api";
+import type { RecordsChartType } from "~/types/echarts.d";
 import {
     DataZoomComponent,
     GridComponent,
@@ -10,7 +11,7 @@ import {
     TitleComponent,
     TooltipComponent,
 } from "echarts/components";
-import { ScatterChart } from "echarts/charts";
+import { ScatterChart, BarChart } from "echarts/charts";
 import { UniversalTransition } from "echarts/features";
 import { CanvasRenderer } from "echarts/renderers";
 import { recordsChartTooltipFormatter } from "./tooltipFormatters/recordsChartTooltipFormatter";
@@ -21,6 +22,7 @@ echarts.use([
     TooltipComponent,
     GridComponent,
     ScatterChart,
+    BarChart,
     LegendComponent,
     DataZoomComponent,
     UniversalTransition,
@@ -29,6 +31,7 @@ echarts.use([
 
 interface Props {
     adapter: SelectBarAdapter<TemperatureRecordsResponse>;
+    chartType: RecordsChartType;
 }
 
 const props = defineProps<Props>();
@@ -42,7 +45,8 @@ const initOptions = computed(() => ({
 }));
 provide(INIT_OPTIONS_KEY, initOptions);
 
-const option = computed<ECOption>(() => {
+// ── Option scatter (ton code existant, inchangé) ─────────────────────────────
+const scatterOption = computed<ECOption>(() => {
     const data = props.adapter.data.value;
     if (!data) return {};
 
@@ -150,12 +154,27 @@ const option = computed<ECOption>(() => {
         ],
     };
 });
+
+// ── Option pyramide ──────────────────────────────────────────────────────────
+const pyramidOption = computed<ECOption>(() => {
+    const data = props.adapter.data.value;
+    if (!data) return {};
+    return useRecordsPyramidOption(
+        data,
+        props.adapter.granularity.value,
+    ) as ECOption;
+});
+
+// ── Switch final ─────────────────────────────────────────────────────────────
+const option = computed<ECOption>(() =>
+    props.chartType === "pyramid" ? pyramidOption.value : scatterOption.value,
+);
 </script>
 
 <template>
     <VChart
         :ref="adapter.chartRef"
-        :key="adapter.granularity.value"
+        :key="`${adapter.granularity.value}-${chartType}`"
         :option="option"
         :init-options="initOptions"
         :loading="adapter.pending.value"
