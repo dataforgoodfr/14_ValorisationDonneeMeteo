@@ -32,6 +32,7 @@ export interface SelectBarAdapter<
 
     // Chart type
     chartTypeSwitchEnabled?: Ref<boolean>;
+    chartType?: Ref<ChartType>;
     chartTypes?: { label: string; value: ChartType; icon: string }[];
 
     pending: Ref<boolean>;

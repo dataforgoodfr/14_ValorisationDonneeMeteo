@@ -10,7 +10,7 @@ import type { ChartType } from "~/components/ui/commons/selectBar/types";
 
 const selectBarAdapter = useRecordsSelectBarAdapter();
 const chartType = computed<ChartType>(
-    () => selectBarAdapter.chartType?.value ?? "scatter",
+    () => selectBarAdapter.chartType?.value ?? "pyramid",
 );
 
 const heroData = {
@@ -30,32 +30,6 @@ const heroData = {
         <ChartLayout :has-sidebar="true">
             <template #select-bar>
                 <SelectBar :adapter="selectBarAdapter" />
-                <div
-                    class="flex rounded-md overflow-hidden border border-gray-600"
-                >
-                    <button
-                        class="px-3 py-1 text-sm transition-colors"
-                        :class="
-                            chartType === 'scatter'
-                                ? 'bg-blue-600 text-white'
-                                : 'bg-transparent text-gray-400 hover:text-white'
-                        "
-                        @click="chartType = 'scatter'"
-                    >
-                        Nuage de points
-                    </button>
-                    <button
-                        class="px-3 py-1 text-sm transition-colors"
-                        :class="
-                            chartType === 'pyramid'
-                                ? 'bg-blue-600 text-white'
-                                : 'bg-transparent text-gray-400 hover:text-white'
-                        "
-                        @click="chartType = 'pyramid'"
-                    >
-                        Pyramide
-                    </button>
-                </div>
             </template>
             <template #sidebar>
                 <SearchStation />
