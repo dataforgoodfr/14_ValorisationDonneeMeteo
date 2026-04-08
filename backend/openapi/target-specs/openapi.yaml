@@ -899,6 +899,18 @@ components:
                 description: Identifiant unique de la station (ex "'01071001")
               name:
                 type: string
+              lat:
+                type: number
+                format: float
+                nullable: true
+              lon:
+                type: number
+                format: float
+                nullable: true
+              alt:
+                type: number
+                format: float
+                nullable: true
               hot_records:
                 type: array
                 items:
