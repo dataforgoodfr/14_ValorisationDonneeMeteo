@@ -11,10 +11,13 @@ import {
     LegendComponent,
     TitleComponent,
     TooltipComponent,
+    VisualMapComponent,
 } from "echarts/components";
-import { BarChart } from "echarts/charts";
+import { BarChart, HeatmapChart } from "echarts/charts";
 import { UniversalTransition } from "echarts/features";
 import { CanvasRenderer } from "echarts/renderers";
+import type { ChartType } from "~/components/ui/commons/selectBar/types";
+import { useDeviationCalendarOption } from "~/composables/useDeviationCalendarOption";
 
 echarts.registerLocale("FR", langFR);
 echarts.use([
@@ -22,14 +25,17 @@ echarts.use([
     TooltipComponent,
     GridComponent,
     BarChart,
+    HeatmapChart,
     LegendComponent,
     DataZoomComponent,
+    VisualMapComponent,
     UniversalTransition,
     CanvasRenderer,
 ]);
 
 interface Props {
     adapter: SelectBarAdapter<DeviationResponse>;
+    chartType: ChartType;
 }
 const { selectedStations, includeNational } = storeToRefs(useDeviationStore());
 const props = defineProps<Props>();
@@ -52,7 +58,8 @@ const initOptions = computed(() => ({
 }));
 provide(INIT_OPTIONS_KEY, initOptions);
 
-const option = computed<ECOption>(() => {
+// Option bar plot
+const barOption = computed<ECOption>(() => {
     const data = props.adapter.data.value;
     if (!data) {
         return {};
@@ -162,6 +169,23 @@ const option = computed<ECOption>(() => {
         ],
     };
 });
+
+// Option calendar
+const calendarOption = computed<ECOption>(() => {
+    const data = props.adapter.data.value;
+    if (!data) return {};
+    return useDeviationCalendarOption(
+        data,
+        props.adapter.granularity.value,
+        selectedStationsAndNationalNames.value,
+        includeNational.value,
+    ) as unknown as ECOption; // ← double cast
+});
+
+// Switch
+const option = computed<ECOption>(() =>
+    props.chartType === "calendar" ? calendarOption.value : barOption.value,
+);
 </script>
 
 <template>
@@ -179,8 +203,9 @@ const option = computed<ECOption>(() => {
         <VChart
             v-else
             :ref="adapter.chartRef"
-            :key="adapter.granularity.value"
+            :key="`${adapter.granularity.value}-${chartType}`"
             :option="option"
+            :not-merge="true"
             :init-options="initOptions"
             :loading="adapter.pending.value"
             :loading-options="{ text: 'Chargement…', color: '#3b82f6' }"

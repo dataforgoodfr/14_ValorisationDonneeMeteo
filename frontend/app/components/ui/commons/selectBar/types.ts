@@ -5,7 +5,7 @@ export type GranularityType = "year" | "month" | "day";
 
 export type SliceType = "full" | "month_of_year" | "day_of_month";
 
-export type ChartType = "line" | "bar";
+export type ChartType = "line" | "bar" | "scatter" | "pyramid" | "calendar"; // scatter et pyramid seront nécessaire pour records
 
 export interface SelectBarAdapter<
     T = NationalIndicatorResponse | DeviationResponse,
@@ -26,6 +26,7 @@ export interface SelectBarAdapter<
     // Chart type
     chartTypeSwitchEnabled?: Ref<boolean>;
     chartType?: Ref<ChartType>;
+    chartTypes?: { label: string; value: ChartType; icon: string }[];
 
     pending: Ref<boolean>;
 

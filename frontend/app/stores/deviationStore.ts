@@ -34,7 +34,12 @@ export const useDeviationStore = defineStore("deviationStore", () => {
         date_end: pickedDateEnd.value
             .toISOString()
             .substring(0, "YYYY-MM-DD".length),
-        granularity: granularity.value,
+        granularity:
+            chartType.value === "calendar"
+                ? granularity.value === "month"
+                    ? "day"
+                    : "month" // ← month→day, year→month
+                : granularity.value,
         station_ids: stationIds.value.join(","),
         include_national: includeNational.value,
     }));
