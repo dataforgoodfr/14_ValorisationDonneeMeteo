@@ -1,3 +1,5 @@
+import { dateToStringYMD } from "#imports";
+
 function nowDateFormatted() {
     // Helper function to pad numbers with a leading zero
     const nowDate = new Date();
@@ -14,8 +16,7 @@ function nowDateFormatted() {
     return `${year}${month}${day}_${hours}${minutes}${seconds}`;
 }
 
-const toISODate = (date: Date) =>
-    date.toISOString().substring(0, "YYYY-MM-DD".length);
+const toISODate = (date: Date) => dateToStringYMD(date);
 
 export function useFormatFileName(
     chartName: string,

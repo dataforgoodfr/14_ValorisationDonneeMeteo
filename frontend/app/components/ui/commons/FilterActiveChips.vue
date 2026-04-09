@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { formatDateForDisplay } from "~/utils/date";
+import { dateToStringDMY } from "~/utils/date";
 import type {
     FilterField,
     FilterOption,
@@ -71,8 +71,8 @@ function toRangeChip(
         max = f.max;
         unit = "°C";
     } else {
-        min = f.min ? formatDateForDisplay(f.min) : undefined;
-        max = f.max ? formatDateForDisplay(f.max) : undefined;
+        min = f.min ? dateToStringDMY(f.min) : undefined;
+        max = f.max ? dateToStringDMY(f.max) : undefined;
         unit = "";
     }
 
