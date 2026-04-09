@@ -2,7 +2,7 @@
 import { useIntersectionObserver } from "@vueuse/core";
 import type { Station } from "~/types/api";
 
-const props = defineProps(["searchQuery"]);
+const props = defineProps<{ searchQuery?: string }>();
 const store = useRecordsGraphStore();
 const { stationNameFilter } = storeToRefs(store);
 const { setStationFilter } = store;

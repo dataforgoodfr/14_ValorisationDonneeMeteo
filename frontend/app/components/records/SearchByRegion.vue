@@ -1,5 +1,7 @@
 <script setup lang="ts">
 import { regions } from "~/data/records/regions";
+import { normalizeString } from "~/utils/string";
+import { useRecordsGraphStore } from "~/stores/recordsChartStore";
 
 const props = defineProps({
     searchQuery: {
