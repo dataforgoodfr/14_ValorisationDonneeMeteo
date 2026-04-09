@@ -1,7 +1,7 @@
 import { refDebounced } from "@vueuse/core";
 import { useTemperatureRecords } from "~/composables/useTemperature";
 import { departements } from "~/data/records/departements";
-import { dateToStr } from "~/utils/date";
+import { dateToStringYMD } from "~/utils/date";
 import type {
     RecordKind,
     TypeRecords,
@@ -138,10 +138,10 @@ export const useRecordsStore = defineStore("recordsStore", () => {
             result.temperature_max = Number(debouncedTempMax.value);
         }
         if (debouncedDateStart.value) {
-            result.date_start = dateToStr(debouncedDateStart.value);
+            result.date_start = dateToStringYMD(debouncedDateStart.value);
         }
         if (debouncedDateEnd.value) {
-            result.date_end = dateToStr(debouncedDateEnd.value);
+            result.date_end = dateToStringYMD(debouncedDateEnd.value);
         }
 
         return result;
