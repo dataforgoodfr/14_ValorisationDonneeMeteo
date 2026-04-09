@@ -1,5 +1,5 @@
 import type { NationalIndicatorParams } from "~/types/api";
-import { useCustomDate } from "#imports";
+import { useCustomDate, dateToStringYMD } from "#imports";
 import type {
     GranularityType,
     SliceType,
@@ -47,12 +47,8 @@ export const useItnStore = defineStore("itnStore", () => {
     };
 
     const params = computed<NationalIndicatorParams>(() => ({
-        date_start: pickedDateStart.value
-            .toISOString()
-            .substring(0, "YYYY-MM-DD".length),
-        date_end: pickedDateEnd.value
-            .toISOString()
-            .substring(0, "YYYY-MM-DD".length),
+        date_start: dateToStringYMD(pickedDateStart.value),
+        date_end: dateToStringYMD(pickedDateEnd.value),
         granularity: granularity.value,
         slice_type: sliceType.value,
         month_of_year: month_of_year.value,
