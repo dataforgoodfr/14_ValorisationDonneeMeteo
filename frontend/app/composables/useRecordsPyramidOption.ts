@@ -1,6 +1,13 @@
 import type { TemperatureRecordsResponse } from "~/types/api";
 import { recordsPyramidTooltipFormatter } from "~/components/charts/tooltipFormatters/recordsPyramidTooltipFormatter";
 import type { TooltipComponentFormatterCallbackParams } from "echarts";
+import type {
+    XAXisOption,
+    YAXisOption,
+    GridOption,
+    BarSeriesOption,
+    TitleOption,
+} from "echarts/types/dist/shared";
 
 type Granularity = "year" | "month" | "day";
 
@@ -36,11 +43,11 @@ export function useRecordsPyramidOption(
     const blockH = (totalPct - (n - 1) * gapPct) / n;
     const topOff = 6;
 
-    const grids: object[] = [];
-    const xAxes: object[] = [];
-    const yAxes: object[] = [];
-    const series: object[] = [];
-    const titles: object[] = [];
+    const grids: GridOption[] = [];
+    const xAxes: XAXisOption[] = [];
+    const yAxes: YAXisOption[] = [];
+    const series: BarSeriesOption[] = [];
+    const titles: TitleOption[] = [];
 
     const labelInterval = granularity === "year" ? 0 : 0;
     const labelFontSize = granularity === "year" ? 12 : 12;
@@ -91,7 +98,7 @@ export function useRecordsPyramidOption(
         );
 
         // 5. Axes X (valeurs, un par grille)
-        const xAxisBase = {
+        const xAxisBase: XAXisOption = {
             type: "value",
             min: 0,
             minInterval: 1,
