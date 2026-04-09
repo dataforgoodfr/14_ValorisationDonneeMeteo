@@ -1,10 +1,6 @@
 import type { TemperatureRecordsResponse } from "~/types/api";
 import { recordsPyramidTooltipFormatter } from "~/components/charts/tooltipFormatters/recordsPyramidTooltipFormatter";
-import type { CallbackDataParams } from "echarts/types/dist/shared";
-
-type AxisCallbackParams = CallbackDataParams & {
-    axisValue?: string | number;
-};
+import type { TooltipComponentFormatterCallbackParams } from "echarts";
 
 type Granularity = "year" | "month" | "day";
 
@@ -210,7 +206,7 @@ export function useRecordsPyramidOption(
         yAxis: yAxes,
         series,
         formatter: recordsPyramidTooltipFormatter as (
-            params: AxisCallbackParams[],
+            params: TooltipComponentFormatterCallbackParams,
         ) => string,
     };
 }

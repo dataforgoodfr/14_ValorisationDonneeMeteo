@@ -1,16 +1,12 @@
-import type { CallbackDataParams } from "echarts/types/dist/shared";
-
-type AxisCallbackParams = CallbackDataParams & {
-    axisValue?: string | number;
-};
+import type { TooltipComponentFormatterCallbackParams } from "echarts";
 
 const COLOR_HOT = "#d32f2f";
 const COLOR_COLD = "#1976d2";
 
 export function recordsPyramidTooltipFormatter(
-    params: AxisCallbackParams[],
+    params: TooltipComponentFormatterCallbackParams,
 ): string {
-    if (!params.length) return "";
+    if (!Array.isArray(params) || !params.length) return "";
 
     const label = String(params[0]?.axisValue ?? "");
     let html = `<b style="color:#fff">${label}</b><br/>`;
