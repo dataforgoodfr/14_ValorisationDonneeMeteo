@@ -1,6 +1,5 @@
 import type { DeviationResponse } from "~/types/api";
 import type { GranularityType } from "~/components/ui/commons/selectBar/types";
-import { deviationCalendarTooltipFormatter } from "../components/charts/tooltipFormatters/deviationCalendarTooltipFormatter";
 import type { AxisCallbackParams } from "../components/charts/tooltipFormatters/deviationCalendarTooltipFormatter";
 
 const moisFR = [
@@ -180,12 +179,33 @@ export function useDeviationCalendarOption(
     return {
         title: titles,
         tooltip: {
-            formatter: (params: unknown) =>
-                deviationCalendarTooltipFormatter(
-                    [params as AxisCallbackParams],
-                    granularity,
-                    stationsNames,
-                ),
+            fformatter: (params: unknown) => {
+                const p = params as AxisCallbackParams;
+                if (!p || !Array.isArray(p.data) || p.data[2] == null)
+                    return "";
+
+                const xIdx = p.data[0] as number;
+                const yIdx = p.data[1] as number;
+                const val = p.data[2] as number;
+                const col = val >= 0 ? "#d32f2f" : "#1976d2";
+                const plusSign = val >= 0 ? "+" : "";
+
+                const xLabel = xCategories[xIdx] ?? String(xIdx);
+                const yLabel = yCategories[yIdx] ?? String(yIdx);
+
+                const dateStr =
+                    granularity === "year"
+                        ? `${xLabel} · ${yLabel}`
+                        : `${yLabel}/${xLabel}`;
+
+                const station = stationsNames[p.seriesIndex ?? 0] ?? "";
+
+                return (
+                    `<b style="color:#fff">${station}</b><br/>` +
+                    `<span style="color:#aaa">${dateStr}</span><br/>` +
+                    `<span style="color:${col}">● ${plusSign}${val.toFixed(1)} °C</span>`
+                );
+            },
         },
         visualMap: stationsAndNational.map((_, i) => ({
             min: VM_MIN,
