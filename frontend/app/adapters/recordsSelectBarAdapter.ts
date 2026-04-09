@@ -13,6 +13,7 @@ export const useRecordsSelectBarAdapter =
             sliceTypeSwitchEnabled, // Will be enabled in futur version
             sliceType, // Will be enabled in futur version
             sliceDatepickerDate, // Will be enabled in futur version
+            selectedElements,
             recordsData,
             pending,
         } = storeToRefs(store);
@@ -24,6 +25,7 @@ export const useRecordsSelectBarAdapter =
             sliceTypeSwitchEnabled, // Will be enabled in futur version
             sliceType, // Will be enabled in futur version
             sliceDatepickerDate, // Will be enabled in futur version
+            selectedElements,
             chartRef: recordsChartRef,
             data: recordsData,
             pending,
