@@ -1,5 +1,5 @@
 import type { DeviationParams, Station } from "~/types/api";
-import { useCustomDate } from "#imports";
+import { useCustomDate, dateToStringYMD } from "#imports";
 import type {
     GranularityType,
     SliceType,
@@ -28,12 +28,8 @@ export const useDeviationStore = defineStore("deviationStore", () => {
     const includeNational = ref<boolean>(true);
 
     const params = computed<DeviationParams>(() => ({
-        date_start: pickedDateStart.value
-            .toISOString()
-            .substring(0, "YYYY-MM-DD".length),
-        date_end: pickedDateEnd.value
-            .toISOString()
-            .substring(0, "YYYY-MM-DD".length),
+        date_start: dateToStringYMD(pickedDateStart.value),
+        date_end: dateToStringYMD(pickedDateEnd.value),
         granularity: granularity.value,
         station_ids: stationIds.value.join(","),
         include_national: includeNational.value,
