@@ -1,6 +1,7 @@
 import { refDebounced } from "@vueuse/core";
 import type { Station, TemperatureRecordsParams } from "~/types/api";
 import { useCustomDate } from "#imports";
+import { toISODate } from "~/composables/useFormatFileName";
 import type {
     GranularityType,
     SliceType,
@@ -64,12 +65,8 @@ export const useRecordsChartStore = defineStore("recordChartStore", () => {
     );
 
     const params = computed<TemperatureRecordsParams>(() => ({
-        date_start: debouncedDateStart.value
-            .toISOString()
-            .substring(0, "YYYY-MM-DD".length),
-        date_end: debouncedDateEnd.value
-            .toISOString()
-            .substring(0, "YYYY-MM-DD".length),
+        date_start: toISODate(debouncedDateStart.value),
+        date_end: toISODate(debouncedDateEnd.value),
         record_kind: recordKind.value,
         record_scope: recordScope.value,
         type_records: typeRecords.value,
