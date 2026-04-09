@@ -9,8 +9,11 @@
         "Noto Color Emoji";
     --font-title: "Inter";
 }
-
 /* This p styling below is meant to get the font "DM Sans" detected by NuxtFonts module */
 p {
     font-family: "DM Sans";
 }
+
+/* inside-component : #232C42 */
+/* app background : #1A2130  #202D43 */
+/* header-footer : #12161F */
