@@ -2,7 +2,6 @@ import { refDebounced } from "@vueuse/core";
 import { useTemperatureRecords } from "~/composables/useTemperature";
 import { dateToStringYMD } from "~/utils/date";
 import type { Station } from "~/types/api";
-import { useCustomDate } from "#imports";
 
 const debounceDuration = 300;
 
