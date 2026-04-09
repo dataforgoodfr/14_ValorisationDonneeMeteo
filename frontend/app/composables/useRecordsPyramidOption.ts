@@ -48,8 +48,8 @@ export function useRecordsPyramidOption(
     data.stations.forEach((station, i) => {
         const top = topOff + i * (blockH + gapPct);
         const bottom = 100 - top - blockH;
-        const gridL = i * 2; // grille gauche = froids
-        const gridR = i * 2 + 1; // grille droite = chauds
+        const leftGridIndex = i * 2; // grille gauche = froids
+        const rightGridIndex = i * 2 + 1; // grille droite = chauds
 
         // 3. Comptages réels par catégorie
         const hotCounts = categories.map(
@@ -71,8 +71,8 @@ export function useRecordsPyramidOption(
         const marginWidth =
             granularity === "year" ? 27 : granularity === "month" ? 31 : 35; // en %
 
-        const leftGridRight = `${labelColWidth}%`; // ex: 48% / 46.5% / 45%
-        const rightGridLeft = `${50}%`; // ex: 48% / 46.5% / 45%
+        const leftrightGridIndexight = `${labelColWidth}%`; // ex: 48% / 46.5% / 45%
+        const rightleftGridIndexeft = `${50}%`; // ex: 48% / 46.5% / 45%
 
         // Dans le forEach :
         grids.push(
@@ -80,12 +80,12 @@ export function useRecordsPyramidOption(
                 top: `${top}%`,
                 bottom: `${bottom}%`,
                 left: "5%",
-                right: leftGridRight,
+                right: leftrightGridIndexight,
             },
             {
                 top: `${top}%`,
                 bottom: `${bottom}%`,
-                left: rightGridLeft,
+                left: rightleftGridIndexeft,
                 right: "4%",
             },
         );
@@ -105,8 +105,8 @@ export function useRecordsPyramidOption(
             splitLine: { lineStyle: { color: "#b4b4b4", type: "dashed" } },
         };
         xAxes.push(
-            { ...xAxisBase, gridIndex: gridL, inverse: true },
-            { ...xAxisBase, gridIndex: gridR, inverse: false },
+            { ...xAxisBase, gridIndex: leftGridIndex, inverse: true },
+            { ...xAxisBase, gridIndex: rightGridIndex, inverse: false },
         );
 
         // 6. Axes Y (catégories, un par grille)
@@ -114,7 +114,7 @@ export function useRecordsPyramidOption(
             // Gauche : labels cachés (l'axe du milieu sert de séparateur visuel)
             {
                 type: "category",
-                gridIndex: gridL,
+                gridIndex: leftGridIndex,
                 data: categories,
                 position: "right",
                 axisPointer: { type: "shadow" },
@@ -126,7 +126,7 @@ export function useRecordsPyramidOption(
             // Droite : labels visibles (position centrale entre les deux grilles)
             {
                 type: "category",
-                gridIndex: gridR,
+                gridIndex: rightGridIndex,
                 data: categories,
                 position: "left",
                 axisPointer: { type: "shadow" },
@@ -169,8 +169,8 @@ export function useRecordsPyramidOption(
             {
                 name: `Froids · ${station.name}`,
                 type: "bar",
-                xAxisIndex: gridL,
-                yAxisIndex: gridL,
+                xAxisIndex: leftGridIndex,
+                yAxisIndex: leftGridIndex,
                 barMaxWidth: 12,
                 data: coldCounts,
                 itemStyle: { color: "#1976d2", opacity: 0.85 },
@@ -178,8 +178,8 @@ export function useRecordsPyramidOption(
             {
                 name: `Chauds · ${station.name}`,
                 type: "bar",
-                xAxisIndex: gridR,
-                yAxisIndex: gridR,
+                xAxisIndex: rightGridIndex,
+                yAxisIndex: rightGridIndex,
                 barMaxWidth: 12,
                 data: hotCounts,
                 itemStyle: { color: "#d32f2f", opacity: 0.85 },
