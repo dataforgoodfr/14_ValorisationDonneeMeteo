@@ -37,11 +37,12 @@ export function useRecordsPyramidOption(
     ].sort();
 
     // 2. Layout dynamique selon le nombre de stations
-    const n = data.stations.length;
-    const totalPct = 88;
-    const gapPct = n === 1 ? 0 : 6;
-    const blockH = (totalPct - (n - 1) * gapPct) / n;
-    const topOff = 6;
+    const stationCount = data.stations.length;
+    const totalHeightPct = 88;
+    const gapBetweenPct = stationCount === 1 ? 0 : 6;
+    const blockHeightPct =
+        (totalHeightPct - (stationCount - 1) * gapBetweenPct) / stationCount;
+    const topOffsetPct = 6;
 
     const grids: GridOption[] = [];
     const xAxes: XAXisOption[] = [];
@@ -53,8 +54,8 @@ export function useRecordsPyramidOption(
     const labelFontSize = granularity === "year" ? 12 : 12;
 
     data.stations.forEach((station, i) => {
-        const top = topOff + i * (blockH + gapPct);
-        const bottom = 100 - top - blockH;
+        const top = topOffsetPct + i * (blockHeightPct + gapBetweenPct);
+        const bottom = 100 - top - blockHeightPct;
         const leftGridIndex = i * 2; // grille gauche = froids
         const rightGridIndex = i * 2 + 1; // grille droite = chauds
 
@@ -164,7 +165,7 @@ export function useRecordsPyramidOption(
             },
             {
                 text: "Nombre de records", // ← nouveau
-                top: `${top + blockH + 3}%`, // bas du bloc
+                top: `${top + blockHeightPct + 3}%`, // bas du bloc
                 left: "46%", // centré entre les deux grilles
                 textAlign: "center",
                 textStyle: { fontSize: labelFontSize, color: "#000000" },
