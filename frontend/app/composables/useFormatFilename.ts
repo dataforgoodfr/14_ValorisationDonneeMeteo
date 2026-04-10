@@ -16,7 +16,7 @@ function nowDateFormatted() {
     return `${year}${month}${day}_${hours}${minutes}${seconds}`;
 }
 
-const toISODate = (date: Date) => dateToStringYMD(date);
+export const toISODate = (date: Date) => dateToStringYMD(date);
 
 export function useFormatFileName(
     chartName: string,
