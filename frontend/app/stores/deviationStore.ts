@@ -30,7 +30,12 @@ export const useDeviationStore = defineStore("deviationStore", () => {
     const params = computed<DeviationParams>(() => ({
         date_start: dateToStringYMD(pickedDateStart.value),
         date_end: dateToStringYMD(pickedDateEnd.value),
-        granularity: granularity.value,
+        granularity:
+            chartType.value === "calendar"
+                ? granularity.value === "month"
+                    ? "day"
+                    : "month" // gère l'exception du calendrier pour granularité
+                : granularity.value,
         station_ids: stationIds.value.join(","),
         include_national: includeNational.value,
     }));
