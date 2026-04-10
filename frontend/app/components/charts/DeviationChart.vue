@@ -33,7 +33,7 @@ echarts.use([
 ]);
 
 interface Props {
-    adapter: SelectBarAdapter<DeviationResponse>; // ← plus de chartType
+    adapter: SelectBarAdapter<DeviationResponse>;
 }
 
 const props = defineProps<Props>();
@@ -162,7 +162,7 @@ const calendarOption = computed<ECOption>(() => {
 });
 
 const option = computed<ECOption>(() =>
-    props.adapter.chartType?.value === "calendar" // ← depuis l'adapter
+    props.adapter.chartType?.value === "calendar"
         ? calendarOption.value
         : barOption.value,
 );

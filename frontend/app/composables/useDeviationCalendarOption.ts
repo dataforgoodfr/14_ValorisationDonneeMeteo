@@ -1,16 +1,19 @@
-import type { EChartsOption } from "echarts";
-import type { VisualMapComponentOption } from "echarts/components";
 import type {
+    EChartsOption,
+    SeriesOption,
+    VisualMapComponentOption,
+} from "echarts";
+import type {
+    TopLevelFormatterParams,
     XAXisOption,
     YAXisOption,
     GridOption,
-    SeriesOption,
     TitleOption,
 } from "echarts/types/dist/shared";
 import type { DeviationResponse } from "~/types/api";
 import type { GranularityType } from "~/components/ui/commons/selectBar/types";
 
-const moisFR = [
+const SHORT_FRENCH_MONTHS = [
     "Jan",
     "Fév",
     "Mar",
@@ -25,6 +28,20 @@ const moisFR = [
     "Déc",
 ];
 
+// transforme "Jan-2024" en nombre comparable
+function toMonthNumber(monthLabel: string): number {
+    const [monthShortName, year] = monthLabel.split("-");
+
+    if (!monthShortName || !year) {
+        throw new Error(`Invalid month label: ${monthLabel}`);
+    }
+
+    const monthIndex = SHORT_FRENCH_MONTHS.indexOf(monthShortName);
+    const fullYear = parseInt(year, 10);
+
+    return fullYear * 12 + monthIndex;
+}
+
 function buildCategories(
     data: DeviationResponse,
     granularity: GranularityType,
@@ -36,27 +53,55 @@ function buildCategories(
 
     if (granularity === "year") {
         const years = [...new Set(allDates.map((d) => d.slice(0, 4)))].sort();
-        return { xCategories: years, yCategories: moisFR };
-    } else {
-        const monthSet = [
-            ...new Set(
-                allDates.map((d) => {
-                    const [y, m] = d.split("-");
-                    return `${moisFR[parseInt(m!) - 1]}-${y!.slice(2)}`;
-                }),
-            ),
-        ].sort((a, b) => {
-            const [mA, yA] = a.split("-");
-            const [mB, yB] = b.split("-");
-            const idxA = moisFR.indexOf(mA!) + parseInt(`20${yA}`) * 12;
-            const idxB = moisFR.indexOf(mB!) + parseInt(`20${yB}`) * 12;
-            return idxA - idxB;
-        });
+
         return {
-            xCategories: monthSet,
-            yCategories: Array.from({ length: 31 }, (_, i) => String(i + 1)),
+            xCategories: years,
+            yCategories: SHORT_FRENCH_MONTHS,
         };
     }
+
+    const monthLabels = [
+        ...new Set(
+            allDates.map((isoDate) => {
+                const [year, month] = isoDate.split("-");
+
+                if (!month) {
+                    throw new Error(`Invalid month value: ${month}`);
+                }
+                const monthIndex = parseInt(month, 10) - 1;
+
+                return `${SHORT_FRENCH_MONTHS[monthIndex]}-${year}`;
+            }),
+        ),
+    ].sort((monthLabelA, monthLabelB) => {
+        const totalMonthsA = toMonthNumber(monthLabelA);
+        const totalMonthsB = toMonthNumber(monthLabelB);
+
+        return totalMonthsA - totalMonthsB;
+    });
+
+    return {
+        xCategories: monthLabels,
+        yCategories: Array.from({ length: 31 }, (_, i) => String(i + 1)),
+    };
+}
+
+function splitIsoDate(isoDate: string): [string, string, string] {
+    const parts = isoDate.split("-");
+
+    if (parts.length !== 3) {
+        throw new Error(`Invalid ISO date: ${isoDate}`);
+    }
+
+    return parts as [string, string, string];
+}
+
+function getMonthIndex(month: string): number {
+    return parseInt(month, 10) - 1;
+}
+
+function buildMonthLabel(year: string, monthIndex: number): string {
+    return `${SHORT_FRENCH_MONTHS[monthIndex]}-${year}`;
 }
 
 function dateToXY(
@@ -64,18 +109,22 @@ function dateToXY(
     granularity: GranularityType,
     xCategories: string[],
 ): [number, number] | null {
-    const [y, m, d] = isoDate.split("-");
+    const [year, month, day] = splitIsoDate(isoDate);
+
+    const monthIndex = getMonthIndex(month);
 
     if (granularity === "year") {
-        const xi = xCategories.indexOf(y!);
-        const yi = parseInt(m!) - 1;
-        return xi === -1 ? null : [xi, yi];
-    } else {
-        const xLabel = `${moisFR[parseInt(m!) - 1]}-${y!.slice(2)}`;
-        const xi = xCategories.indexOf(xLabel);
-        const yi = parseInt(d!) - 1;
-        return xi === -1 ? null : [xi, yi];
+        const xIndex = xCategories.indexOf(year);
+        const yIndex = monthIndex;
+
+        return xIndex === -1 ? null : [xIndex, yIndex];
     }
+
+    const xLabel = buildMonthLabel(year, monthIndex);
+    const xIndex = xCategories.indexOf(xLabel);
+    const yIndex = parseInt(day, 10) - 1;
+
+    return xIndex === -1 ? null : [xIndex, yIndex];
 }
 
 export function useDeviationCalendarOption(
@@ -91,8 +140,8 @@ export function useDeviationCalendarOption(
     const stationCount = stationsAndNational.length || 1;
     const { xCategories, yCategories } = buildCategories(data, granularity);
 
-    const VM_MIN = -4;
-    const VM_MAX = 5;
+    const VISUAL_MAP_MIN = -4;
+    const VISUAL_MAP_MAX = 5;
 
     const totalHeightPct = 92;
     const gapBetweenPct = stationCount === 1 ? 0 : 8;
@@ -112,15 +161,24 @@ export function useDeviationCalendarOption(
     const xAxisName = "Mois";
     const yAxisName = granularity === "year" ? "Année" : "Jour";
 
-    stationsAndNational.forEach((stationOrNational, i) => {
-        const top = topOffsetPct + i * (blockHeightPct + gapBetweenPct);
+    stationsAndNational.forEach((stationOrNational, index) => {
+        const top = topOffsetPct + index * (blockHeightPct + gapBetweenPct);
         const bottom = 100 - top - blockHeightPct;
 
-        const heatData = (stationOrNational?.data ?? [])
-            .map((p) => {
-                const xy = dateToXY(p.date, granularity, xCategories);
-                if (!xy) return null;
-                return [...xy, p.deviation] as [number, number, number];
+        const heatmapData = (stationOrNational?.data ?? [])
+            .map((point) => {
+                const coordinates = dateToXY(
+                    point.date,
+                    granularity,
+                    xCategories,
+                );
+                if (!coordinates) return null;
+
+                return [...coordinates, point.deviation] as [
+                    number,
+                    number,
+                    number,
+                ];
             })
             .filter(Boolean) as [number, number, number][];
 
@@ -133,7 +191,7 @@ export function useDeviationCalendarOption(
 
         xAxes.push({
             type: "category",
-            gridIndex: i,
+            gridIndex: index,
             data: xCategories,
             splitArea: { show: true },
             axisTick: { show: false },
@@ -144,15 +202,19 @@ export function useDeviationCalendarOption(
                 interval: labelInterval,
                 rotate: labelRotate,
             },
-            name: i === stationCount - 1 ? xAxisName : "",
+            name: index === stationCount - 1 ? xAxisName : "",
             nameLocation: "middle",
             nameGap: granularity === "year" ? 25 : 38,
-            nameTextStyle: { color: "#000", fontSize: 12, fontWeight: "bold" },
+            nameTextStyle: {
+                color: "#000",
+                fontSize: 12,
+                fontWeight: "bold",
+            },
         });
 
         yAxes.push({
             type: "category",
-            gridIndex: i,
+            gridIndex: index,
             data: yCategories,
             splitArea: { show: true },
             axisTick: { show: false },
@@ -161,74 +223,95 @@ export function useDeviationCalendarOption(
             name: yAxisName,
             nameLocation: "middle",
             nameGap: 35,
-            nameTextStyle: { color: "#000", fontSize: 12, fontWeight: "bold" },
+            nameTextStyle: {
+                color: "#000",
+                fontSize: 12,
+                fontWeight: "bold",
+            },
         });
 
         titles.push({
-            text: stationsNames[i] ?? "",
+            text: stationsNames[index] ?? "",
             top: `${top - 4}%`,
             left: "7%",
-            textStyle: { fontSize: 12, fontWeight: "bold", color: "#000" },
+            textStyle: {
+                fontSize: 12,
+                fontWeight: "bold",
+                color: "#000",
+            },
         });
 
         series.push({
-            name: stationsNames[i] ?? "",
+            name: stationsNames[index] ?? "",
             type: "heatmap",
-            xAxisIndex: i,
-            yAxisIndex: i,
-            data: heatData,
+            xAxisIndex: index,
+            yAxisIndex: index,
+            data: heatmapData,
             label: { show: false },
             emphasis: {
-                itemStyle: { shadowBlur: 10, shadowColor: "rgba(0,0,0,0.5)" },
+                itemStyle: {
+                    shadowBlur: 10,
+                    shadowColor: "rgba(0,0,0,0.5)",
+                },
             },
         });
 
         visualMaps.push({
-            min: VM_MIN,
-            max: VM_MAX,
-            calculable: i === 0,
-            show: i === 0,
+            min: VISUAL_MAP_MIN,
+            max: VISUAL_MAP_MAX,
+            calculable: index === 0,
+            show: index === 0,
             orient: "vertical",
             right: "0%",
             bottom: "center",
             inRange: { color: ["#1976d2", "#ffffff", "#d32f2f"] },
             textStyle: { color: "#000" },
             handleStyle: { borderColor: "#3a5080" },
-            seriesIndex: i,
-            text: i === 0 ? ["+ chaud", "+ froid"] : ["", ""],
-            formatter: ((val: number) =>
-                `${val >= 0 ? "+" : ""}${val} °C`) as unknown as string,
+            seriesIndex: index,
+            text: index === 0 ? ["+ chaud", "+ froid"] : ["", ""],
+            formatter: (val: unknown): string => {
+                if (typeof val !== "number" && typeof val !== "string") {
+                    return "";
+                }
+
+                const num = Number(val);
+
+                return `${num >= 0 ? "+" : ""}${num} °C`;
+            },
         });
     });
 
     return {
         title: titles,
         tooltip: {
-            formatter: (params: unknown) => {
-                const p = params as { data: unknown[]; seriesIndex?: number };
-                if (!p || !Array.isArray(p.data) || p.data[2] == null)
+            formatter: (params: TopLevelFormatterParams) => {
+                if (!("data" in params) || !Array.isArray(params.data)) {
                     return "";
+                }
 
-                const xIdx = p.data[0] as number;
-                const yIdx = p.data[1] as number;
-                const val = p.data[2] as number;
-                const col = val >= 0 ? "#d32f2f" : "#1976d2";
-                const plusSign = val >= 0 ? "+" : "";
+                const data = params.data as [number, number, number];
 
-                const xLabel = xCategories[xIdx] ?? String(xIdx);
-                const yLabel = yCategories[yIdx] ?? String(yIdx);
+                const [xIndex, yIndex, value] = data;
+
+                const color = value >= 0 ? "#d32f2f" : "#1976d2";
+                const sign = value >= 0 ? "+" : "";
+
+                const xLabel = xCategories[xIndex] ?? String(xIndex);
+                const yLabel = yCategories[yIndex] ?? String(yIndex);
 
                 const dateStr =
                     granularity === "year"
                         ? `${xLabel} · ${yLabel}`
                         : `${yLabel}/${xLabel}`;
 
-                const station = stationsNames[p.seriesIndex ?? 0] ?? "";
+                const station = stationsNames[params.seriesIndex ?? 0] ?? "";
 
                 return (
                     `<b style="color:#fff">${station}</b><br/>` +
                     `<span style="color:#aaa">${dateStr}</span><br/>` +
-                    `<span style="color:${col}">● ${plusSign}${val.toFixed(1)} °C</span>`
+                    `<span style="color:${color}">● ${sign}${value.toFixed(
+                        1,
+                    )} °C</span>`
                 );
             },
         },
@@ -237,5 +320,5 @@ export function useDeviationCalendarOption(
         xAxis: xAxes,
         yAxis: yAxes,
         series,
-    } as EChartsOption;
+    };
 }
