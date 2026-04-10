@@ -1,19 +1,15 @@
-import type { CallbackDataParams } from "echarts/types/dist/shared";
+import type { TooltipComponentFormatterCallbackParams } from "echarts";
 import type { GranularityType } from "~/components/ui/commons/selectBar/types";
-export type AxisCallbackParams = CallbackDataParams & {
-    axisValue?: string | number;
-};
 
 const COLOR_POS = "#d32f2f";
 const COLOR_NEG = "#1976d2";
 
 export function deviationCalendarTooltipFormatter(
-    params: AxisCallbackParams[],
+    params: TooltipComponentFormatterCallbackParams,
     granularity: GranularityType,
     stationsNames: string[],
 ): string {
-    if (!params.length) return "";
-
+    if (!Array.isArray(params) || !params.length) return "";
     const p = params[0];
     if (!p || !Array.isArray(p.data) || p.data[2] == null) return "";
 

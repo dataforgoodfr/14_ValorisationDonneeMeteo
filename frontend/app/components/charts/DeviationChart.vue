@@ -16,7 +16,6 @@ import {
 import { BarChart, HeatmapChart } from "echarts/charts";
 import { UniversalTransition } from "echarts/features";
 import { CanvasRenderer } from "echarts/renderers";
-import type { ChartType } from "~/components/ui/commons/selectBar/types";
 import { useDeviationCalendarOption } from "~/composables/useDeviationCalendarOption";
 
 echarts.registerLocale("FR", langFR);
@@ -34,11 +33,11 @@ echarts.use([
 ]);
 
 interface Props {
-    adapter: SelectBarAdapter<DeviationResponse>;
-    chartType: ChartType;
+    adapter: SelectBarAdapter<DeviationResponse>; // ← plus de chartType
 }
-const { selectedStations, includeNational } = storeToRefs(useDeviationStore());
+
 const props = defineProps<Props>();
+const { selectedStations, includeNational } = storeToRefs(useDeviationStore());
 
 const selectedStationsAndNationalNames = computed(() => {
     const stations = selectedStations.value.map(
@@ -49,7 +48,6 @@ const selectedStationsAndNationalNames = computed(() => {
         : stations;
 });
 
-// provide init-options
 const renderer = ref<"svg" | "canvas">("canvas");
 const initOptions = computed(() => ({
     height: 600,
@@ -58,34 +56,24 @@ const initOptions = computed(() => ({
 }));
 provide(INIT_OPTIONS_KEY, initOptions);
 
-// Option bar plot
 const barOption = computed<ECOption>(() => {
     const data = props.adapter.data.value;
-    if (!data) {
-        return {};
-    }
+    if (!data) return {};
     const stationsAndNational = includeNational.value
         ? [data.national, ...data.stations]
         : data.stations;
     const plotAmountToDisplay = stationsAndNational.length || 1;
 
     return {
-        dataset:
-            stationsAndNational.map((stationOrNational) => ({
-                dimensions: [
-                    "date",
-                    "deviation_positive",
-                    "deviation_negative",
-                ],
-                source:
-                    stationOrNational?.data?.map((p) => ({
-                        date: p.date,
-                        deviation_positive:
-                            p.deviation >= 0 ? p.deviation : null,
-                        deviation_negative:
-                            p.deviation < 0 ? p.deviation : null,
-                    })) ?? [],
-            })) ?? [],
+        dataset: stationsAndNational.map((stationOrNational) => ({
+            dimensions: ["date", "deviation_positive", "deviation_negative"],
+            source:
+                stationOrNational?.data?.map((p) => ({
+                    date: p.date,
+                    deviation_positive: p.deviation >= 0 ? p.deviation : null,
+                    deviation_negative: p.deviation < 0 ? p.deviation : null,
+                })) ?? [],
+        })),
         grid: stationsAndNational.map((_, index) => ({
             top: `${index * (100 / plotAmountToDisplay) + 3}%`,
             height: `${100 / plotAmountToDisplay - 10}%`,
@@ -138,7 +126,7 @@ const barOption = computed<ECOption>(() => {
                 yAxisIndex: index,
             },
         ]),
-        title: stationsAndNational.map((stationOrNational, index) => ({
+        title: stationsAndNational.map((_, index) => ({
             text: selectedStationsAndNationalNames.value[index],
             right: "right",
             top: `${index * (100 / plotAmountToDisplay)}%`,
@@ -147,9 +135,7 @@ const barOption = computed<ECOption>(() => {
             link: [{ xAxisIndex: "all" }],
             label: { backgroundColor: "#3a5080" },
         },
-        legend: {
-            bottom: 0,
-        },
+        legend: { bottom: 0 },
         tooltip: {
             trigger: "axis",
             axisPointer: { type: "line" },
@@ -160,17 +146,10 @@ const barOption = computed<ECOption>(() => {
                     selectedStationsAndNationalNames.value,
                 ),
         },
-        dataZoom: [
-            {
-                xAxisIndex: "all",
-                type: "inside",
-                minSpan: 20,
-            },
-        ],
+        dataZoom: [{ xAxisIndex: "all", type: "inside", minSpan: 20 }],
     };
 });
 
-// Option calendar
 const calendarOption = computed<ECOption>(() => {
     const data = props.adapter.data.value;
     if (!data) return {};
@@ -179,12 +158,25 @@ const calendarOption = computed<ECOption>(() => {
         props.adapter.granularity.value,
         selectedStationsAndNationalNames.value,
         includeNational.value,
-    ) as unknown as ECOption; // ← double cast
+    ) as unknown as ECOption;
 });
 
-// Switch
 const option = computed<ECOption>(() =>
-    props.chartType === "calendar" ? calendarOption.value : barOption.value,
+    props.adapter.chartType?.value === "calendar" // ← depuis l'adapter
+        ? calendarOption.value
+        : barOption.value,
+);
+
+const isChartMounted = ref(true);
+
+watch(
+    () => selectedStationsAndNationalNames.value.length,
+    async () => {
+        isChartMounted.value = false;
+        await nextTick();
+        await new Promise((resolve) => setTimeout(resolve, 50));
+        isChartMounted.value = true;
+    },
 );
 </script>
 
@@ -200,16 +192,29 @@ const option = computed<ECOption>(() =>
                 sélectionnée.
             </p>
         </div>
-        <VChart
-            v-else
-            :ref="adapter.chartRef"
-            :key="`${adapter.granularity.value}-${chartType}`"
-            :option="option"
-            :not-merge="true"
-            :init-options="initOptions"
-            :loading="adapter.pending.value"
-            :loading-options="{ text: 'Chargement…', color: '#3b82f6' }"
-            autoresize
-        />
+        <div
+            v-else-if="
+                props.adapter.chartType?.value === 'calendar' &&
+                props.adapter.granularity.value === 'day'
+            "
+            class="flex justify-center items-center h-full text-stone-400"
+        >
+            <p>
+                Le calendrier n'est pas disponible en granularité journalière.
+            </p>
+        </div>
+        <template v-else>
+            <VChart
+                v-if="isChartMounted"
+                :ref="adapter.chartRef"
+                :key="`${adapter.granularity.value}-${adapter.chartType?.value}`"
+                :option="option"
+                :not-merge="true"
+                :init-options="initOptions"
+                :loading="adapter.pending.value"
+                :loading-options="{ text: 'Chargement…', color: '#3b82f6' }"
+                autoresize
+            />
+        </template>
     </div>
 </template>

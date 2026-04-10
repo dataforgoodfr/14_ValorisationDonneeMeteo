@@ -8,7 +8,7 @@ import type {
 export function useTemperatureDeviation(
     params: MaybeRef<DeviationParams>,
     enabled?: MaybeRef<boolean>,
-) {
+): ReturnType<typeof useFetch<DeviationResponse | undefined>> {
     const { useApiFetch } = useApiClient();
 
     const hasRequiredParams = computed(() => {
