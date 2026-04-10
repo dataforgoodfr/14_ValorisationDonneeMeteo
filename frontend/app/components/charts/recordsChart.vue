@@ -165,7 +165,7 @@ const pyramidOption = computed<ECOption>(() => {
 
 // ── Switch final ─────────────────────────────────────────────────────────────
 const option = computed<ECOption>(() =>
-    props.chartType === "pyramid" ? pyramidOption.value : scatterOption.value,
+    props.adapter.chartType?.value === "pyramid" ? pyramidOption.value : scatterOption.value,
 );
 </script>
 
