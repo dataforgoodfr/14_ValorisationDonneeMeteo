@@ -30,7 +30,6 @@ echarts.use([
 
 interface Props {
     adapter: SelectBarAdapter<TemperatureRecordsResponse>;
-    chartType: RecordsChartType;
 }
 
 const props = defineProps<Props>();
