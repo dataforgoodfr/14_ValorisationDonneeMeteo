@@ -165,14 +165,16 @@ const pyramidOption = computed<ECOption>(() => {
 
 // ── Switch final ─────────────────────────────────────────────────────────────
 const option = computed<ECOption>(() =>
-    props.adapter.chartType?.value === "pyramid" ? pyramidOption.value : scatterOption.value,
+    props.adapter.chartType?.value === "pyramid"
+        ? pyramidOption.value
+        : scatterOption.value,
 );
 </script>
 
 <template>
     <VChart
         :ref="adapter.chartRef"
-        :key="`${adapter.granularity.value}-${chartType}`"
+        :key="`${adapter.granularity.value}-${adapter.chartType?.value}`"
         :option="option"
         :init-options="initOptions"
         :loading="adapter.pending.value"

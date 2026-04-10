@@ -1,7 +1,6 @@
 import { refDebounced } from "@vueuse/core";
 import type { Station, TemperatureRecordsParams } from "~/types/api";
 import { useCustomDate } from "#imports";
-import { toISODate } from "~/composables/useFormatFileName";
 import type {
     GranularityType,
     SliceType,

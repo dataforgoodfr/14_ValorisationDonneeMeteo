@@ -9,6 +9,7 @@ import type {
     TitleOption,
 } from "echarts/types/dist/shared";
 
+type Granularity = "year" | "month" | "day";
 
 // ── Formatage de la clé de regroupement selon la granularité ─────────────────
 function dateToCategory(isoDate: string, granularity: Granularity): string {

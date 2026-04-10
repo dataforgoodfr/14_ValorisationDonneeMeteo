@@ -6,12 +6,8 @@ import SearchStation from "~/components/ecartNormale/searchStation.vue";
 import { useRecordsSelectBarAdapter } from "~/adapters/recordsSelectBarAdapter";
 import SelectBar from "~/components/ui/commons/selectBar/selectBar.vue";
 import RecordsChart from "~/components/charts/recordsChart.vue";
-import type { ChartType } from "~/components/ui/commons/selectBar/types";
 
 const selectBarAdapter = useRecordsSelectBarAdapter();
-const chartType = computed<ChartType>(
-    () => selectBarAdapter.chartType?.value ?? "pyramid",
-);
 
 const heroData = {
     title: "Records",
@@ -35,11 +31,7 @@ const heroData = {
                 <SearchStation />
             </template>
             <template #chart>
-                <RecordsChart
-                    :adapter="selectBarAdapter"
-                    :chart-type="chartType"
-                    class="px-3 py-2"
-                />
+                <RecordsChart :adapter="selectBarAdapter" class="px-3 py-2" />
             </template>
         </ChartLayout>
     </UContainer>
