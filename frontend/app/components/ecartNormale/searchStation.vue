@@ -1,39 +1,18 @@
 <script setup lang="ts">
 import { refDebounced, useIntersectionObserver } from "@vueuse/core";
-import type { PaginatedResponse, Station } from "~/types/api";
+import type { Station } from "~/types/api";
 
 const deviationStore = useDeviationStore();
 const { includeNational, selectedStations } = storeToRefs(deviationStore);
 
 const searchQuery = ref<undefined | string>(undefined);
-const page = ref<number>(0);
-const allStations = ref<Station[]>([]);
-const hasMore = ref<boolean>(false);
-
 const debouncedSearch = refDebounced(searchQuery, 300);
-watch(debouncedSearch, () => {
-    page.value = 0;
-});
+
 const params = computed(() => ({
     search: debouncedSearch.value,
-    offset: page.value * 100,
 }));
-const { data: stationsData, refresh } = useStations(params);
-
-function processStations(newData: PaginatedResponse<Station> | undefined) {
-    if (!newData) return;
-    if (page.value === 0) {
-        allStations.value = newData.results;
-    } else {
-        allStations.value = [...allStations.value, ...newData.results];
-    }
-    hasMore.value = !!newData.next;
-}
-
-watch(stationsData, processStations);
-onMounted(() => {
-    processStations(stationsData.value);
-});
+const { allStations, onLoadMore, hasMore } =
+    useStationsWithInfiniteScroll(params);
 
 function onSelectStation(_event: PointerEvent, station: Station) {
     deviationStore.setStations([...deviationStore.selectedStations, station]);
@@ -59,8 +38,7 @@ const sentinel = ref<HTMLElement | undefined>(undefined);
 
 function loadMore() {
     if (!hasMore.value) return;
-    page.value++;
-    refresh();
+    onLoadMore();
 }
 
 useIntersectionObserver(sentinel, ([entry]) => {

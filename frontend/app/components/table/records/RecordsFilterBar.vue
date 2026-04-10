@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { refDebounced } from "@vueuse/core";
 import { storeToRefs } from "pinia";
-import { useRecordsStore } from "~/stores/recordsStore";
+import { useRecordsTableStore } from "~/stores/recordsTableStore";
 import FilterBar from "~/components/ui/commons/FilterBar.vue";
 import type {
     FilterField,
@@ -18,7 +18,7 @@ const filterFields: FilterField[] = [
     { id: "record_date", label: "Date du record", type: "date-range" },
 ];
 
-const store = useRecordsStore();
+const store = useRecordsTableStore();
 const { filters, typeRecords } = storeToRefs(store);
 const { setFilter, clearFilter } = store;
 
