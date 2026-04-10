@@ -118,6 +118,30 @@ export interface DeviationResponse {
     stations: DeviationStationSerie[];
 }
 
+export interface DeviationTableParams {
+    date_start?: string;
+    date_end?: string;
+    granularity?: "year" | "month" | "day";
+    station_ids?: string;
+    departments?: string;
+    deviation_min?: number;
+    deviation_max?: number;
+    limit?: number;
+    offset?: number;
+}
+
+export interface DeviationTableRow {
+    station_id: string;
+    station_name: string;
+    departement: string;
+    deviation: number;
+}
+
+export interface DeviationTableResponse {
+    count: number;
+    results: DeviationTableRow[];
+}
+
 // ===== Temperature Records types =====
 
 export type RecordKind = "historical" | "absolute";
