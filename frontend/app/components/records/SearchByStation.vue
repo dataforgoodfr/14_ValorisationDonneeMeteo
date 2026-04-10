@@ -1,5 +1,7 @@
 <script setup lang="ts">
 import { refDebounced, useIntersectionObserver } from "@vueuse/core";
+import { useStationsWithInfiniteScroll } from "~/composables/useStations";
+import { useRecordsChartStore } from "#imports";
 import type { Station } from "~/types/api";
 
 const props = defineProps({
@@ -8,7 +10,7 @@ const props = defineProps({
         default: "",
     },
 });
-const store = useRecordsGraphStore();
+const store = useRecordsChartStore();
 const { stationCodeFilter } = storeToRefs(store);
 const { setStationFilter } = store;
 

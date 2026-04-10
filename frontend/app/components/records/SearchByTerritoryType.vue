@@ -5,8 +5,9 @@ import SearchByDepartment from "./SearchByDepartment.vue";
 import SearchByRegion from "./SearchByRegion.vue";
 import SearchByTerritory from "./SearchByTerritory.vue";
 import SearchByStation from "./SearchByStation.vue";
+import { useRecordsChartStore } from "#imports";
 
-const store = useRecordsGraphStore();
+const store = useRecordsChartStore();
 const { selectedElements } = storeToRefs(store);
 const { removeItemFromFilter } = store;
 

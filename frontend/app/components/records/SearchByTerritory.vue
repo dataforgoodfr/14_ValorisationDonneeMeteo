@@ -1,5 +1,7 @@
 <script setup lang="ts">
-const store = useRecordsGraphStore();
+import { useRecordsChartStore } from "#imports";
+
+const store = useRecordsChartStore();
 const { territoriesFilter } = storeToRefs(store);
 const { setTerritoryFilter } = store;
 
@@ -10,7 +12,7 @@ function onSelectTerritory(
     setTerritoryFilter(territory);
 }
 
-const isTerroritorySelected = computed(() => {
+const isTerritorySelected = computed(() => {
     return territoriesFilter.value.includes("FR");
 });
 </script>
@@ -18,7 +20,7 @@ const isTerroritorySelected = computed(() => {
     <div>
         <ul>
             <li
-                v-if="!isTerroritorySelected"
+                v-if="!isTerritorySelected"
                 :title="'France métropolitaine'"
                 class="cursor-pointer pr-2 py-1 text-sm flex items-center justify-between"
                 @click="

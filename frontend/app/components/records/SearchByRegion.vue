@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { regions } from "~/data/records/regions";
 import { normalizeString } from "~/utils/string";
-import { useRecordsGraphStore } from "~/stores/recordsChartStore";
+import { useRecordsChartStore } from "#imports";
 
 const props = defineProps({
     searchQuery: {
@@ -12,7 +12,7 @@ const props = defineProps({
 
 const searchQueryRef = toRef(props, "searchQuery");
 
-const store = useRecordsGraphStore();
+const store = useRecordsChartStore();
 const { regionsFilter } = storeToRefs(store);
 const { setRegionFilter } = store;
 

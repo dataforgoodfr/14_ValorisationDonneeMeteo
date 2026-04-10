@@ -1,6 +1,6 @@
 import { refDebounced } from "@vueuse/core";
 import { useTemperatureRecords } from "~/composables/useTemperature";
-import { dateToStr } from "~/utils/date";
+import { dateToStringYMD } from "~/utils/date";
 import type { Station } from "~/types/api";
 
 const debounceDuration = 300;
@@ -18,7 +18,7 @@ type SelectedItem = {
     type: TerritoryFilterType;
 };
 
-export const useRecordsGraphStore = defineStore("recordsGraphStore", () => {
+export const useRecordsChartStore = defineStore("recordsChartStore", () => {
     // Date range — default to the past year
     const defaultStartDate = new Date();
     defaultStartDate.setFullYear(defaultStartDate.getFullYear() - 1);
@@ -53,8 +53,8 @@ export const useRecordsGraphStore = defineStore("recordsGraphStore", () => {
     );
 
     const params = computed(() => ({
-        date_start: dateToStr(debouncedStartDate.value),
-        date_end: dateToStr(debouncedEndDate.value),
+        date_start: dateToStringYMD(debouncedStartDate.value),
+        date_end: dateToStringYMD(debouncedEndDate.value),
         limit: pageSize.value,
         offset: (page.value - 1) * pageSize.value,
         departement_filter: debouncedDepartmentsFilter.value.join(","),
