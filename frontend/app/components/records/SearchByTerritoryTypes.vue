@@ -4,7 +4,7 @@ import type { SelectItem } from "@nuxt/ui";
 import SearchByDepartment from "./SearchByDepartment.vue";
 import SearchByRegion from "./SearchByRegion.vue";
 import SearchByTerritory from "./SearchByTerritory.vue";
-import SearchByStation from "./SearchByStation.vue";
+import SearchByStation from "./SearchByStations.vue";
 import { useRecordsChartStore } from "#imports";
 
 const store = useRecordsChartStore();
