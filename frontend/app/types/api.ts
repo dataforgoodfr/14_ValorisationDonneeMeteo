@@ -160,8 +160,6 @@ export interface TemperatureRecordsMetadata {
     departments: string[];
     temperature_min: number | null;
     temperature_max: number | null;
-    hot_records: TemperatureRecordEntry[];
-    cold_records: TemperatureRecordEntry[];
 }
 
 export interface TemperatureRecordsResponse {
