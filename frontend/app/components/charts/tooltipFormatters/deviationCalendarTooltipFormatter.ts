@@ -13,6 +13,7 @@ export function deviationCalendarTooltipFormatter(
     const p = params[0];
     if (!p || !Array.isArray(p.data) || p.data[2] == null) return "";
 
+    // (x,y) = (année,mois) ou (mois,jour) selon granularité choisie
     const xIdx = p.data[0] as number;
     const yIdx = p.data[1] as number;
     const val = p.data[2] as number;

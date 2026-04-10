@@ -104,6 +104,34 @@ function buildMonthLabel(year: string, monthIndex: number): string {
     return `${SHORT_FRENCH_MONTHS[monthIndex]}-${year}`;
 }
 
+function dateToXYYearMode(
+    year: string,
+    month: string,
+    xCategories: string[],
+): [number, number] | null {
+    const monthIndex = getMonthIndex(month);
+
+    const xIndex = xCategories.indexOf(year);
+    const yIndex = monthIndex;
+
+    return xIndex === -1 ? null : [xIndex, yIndex];
+}
+
+function dateToXYMonthMode(
+    year: string,
+    month: string,
+    day: string,
+    xCategories: string[],
+): [number, number] | null {
+    const monthIndex = getMonthIndex(month);
+
+    const xLabel = buildMonthLabel(year, monthIndex);
+    const xIndex = xCategories.indexOf(xLabel);
+    const yIndex = parseInt(day, 10) - 1;
+
+    return xIndex === -1 ? null : [xIndex, yIndex];
+}
+
 function dateToXY(
     isoDate: string,
     granularity: GranularityType,
@@ -111,20 +139,11 @@ function dateToXY(
 ): [number, number] | null {
     const [year, month, day] = splitIsoDate(isoDate);
 
-    const monthIndex = getMonthIndex(month);
-
     if (granularity === "year") {
-        const xIndex = xCategories.indexOf(year);
-        const yIndex = monthIndex;
-
-        return xIndex === -1 ? null : [xIndex, yIndex];
+        return dateToXYYearMode(year, month, xCategories);
     }
 
-    const xLabel = buildMonthLabel(year, monthIndex);
-    const xIndex = xCategories.indexOf(xLabel);
-    const yIndex = parseInt(day, 10) - 1;
-
-    return xIndex === -1 ? null : [xIndex, yIndex];
+    return dateToXYMonthMode(year, month, day, xCategories);
 }
 
 export function useDeviationCalendarOption(

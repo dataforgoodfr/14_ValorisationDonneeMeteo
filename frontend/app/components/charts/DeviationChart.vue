@@ -152,13 +152,15 @@ const barOption = computed<ECOption>(() => {
 
 const calendarOption = computed<ECOption>(() => {
     const data = props.adapter.data.value;
-    if (!data) return {};
+
+    if (!data) return {} as ECOption;
+
     return useDeviationCalendarOption(
         data,
         props.adapter.granularity.value,
         selectedStationsAndNationalNames.value,
         includeNational.value,
-    ) as unknown as ECOption;
+    );
 });
 
 const option = computed<ECOption>(() =>
