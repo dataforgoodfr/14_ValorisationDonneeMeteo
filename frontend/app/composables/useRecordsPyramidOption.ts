@@ -1,6 +1,9 @@
+import type {
+    EChartsOption,
+    TooltipComponentFormatterCallbackParams,
+} from "echarts";
 import type { TemperatureRecordsResponse } from "~/types/api";
 import { recordsPyramidTooltipFormatter } from "~/components/charts/tooltipFormatters/recordsPyramidTooltipFormatter";
-import type { TooltipComponentFormatterCallbackParams } from "echarts";
 import type {
     XAXisOption,
     YAXisOption,
@@ -26,7 +29,7 @@ function dateToCategory(isoDate: string, granularity: Granularity): string {
 export function useRecordsPyramidOption(
     data: TemperatureRecordsResponse,
     granularity: Granularity,
-) {
+): EChartsOption {
     // 1. Catégories triées sans doublons
     const allDates = data.stations.flatMap((s) => [
         ...s.hot_records.map((r) => r.date),

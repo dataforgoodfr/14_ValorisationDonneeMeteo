@@ -8,7 +8,7 @@ import type {
 export function useTemperatureDeviation(
     params: MaybeRef<DeviationParams>,
     enabled?: MaybeRef<boolean>,
-) {
+): ReturnType<typeof useFetch<DeviationResponse | undefined>> {
     const { useApiFetch } = useApiClient();
 
     if (enabled === undefined) {
@@ -44,7 +44,7 @@ export function useTemperatureExtremes(
 export function useTemperatureRecords(
     params?: MaybeRef<TemperatureRecordsParams>,
     enabled?: MaybeRef<boolean>,
-) {
+): ReturnType<typeof useFetch<TemperatureRecordsResponse | undefined>> {
     const { useApiFetch } = useApiClient();
 
     if (enabled === undefined) {

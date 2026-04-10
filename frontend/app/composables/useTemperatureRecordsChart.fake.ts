@@ -1,3 +1,4 @@
+import type { Ref } from "vue";
 import type {
     TemperatureRecordsParams,
     TemperatureRecordsResponse,
@@ -90,7 +91,11 @@ const fakeResponse: TemperatureRecordsResponse = {
 
 export function useTemperatureRecordsChartFake(
     params?: MaybeRef<TemperatureRecordsParams>,
-) {
+): {
+    data: Ref<TemperatureRecordsResponse>;
+    pending: Ref<boolean>;
+    error: Ref<null>;
+} {
     const data = computed((): TemperatureRecordsResponse => {
         const p = isRef(params) ? params.value : (params ?? {});
         const date_start = p.date_start;
