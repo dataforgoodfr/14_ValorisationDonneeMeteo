@@ -18,6 +18,7 @@ import { UniversalTransition } from "echarts/features";
 import { CanvasRenderer } from "echarts/renderers";
 import { useDeviationCalendarOption } from "~/composables/useDeviationCalendarOption";
 import { COLORS } from "~/constants/colors";
+import type { EChartsOption } from "echarts";
 
 echarts.registerLocale("FR", langFR);
 echarts.use([
@@ -151,7 +152,7 @@ const barOption = computed<ECOption>(() => {
     };
 });
 
-const calendarOption = computed<ECOption>(() => {
+const calendarOption = computed<ECOption | EChartsOption>(() => {
     const data = props.adapter.data.value;
 
     if (!data) return {} as ECOption;
@@ -164,7 +165,7 @@ const calendarOption = computed<ECOption>(() => {
     );
 });
 
-const option = computed<ECOption>(() =>
+const option = computed<ECOption | EChartsOption>(() =>
     props.adapter.chartType?.value === "calendar"
         ? calendarOption.value
         : barOption.value,
