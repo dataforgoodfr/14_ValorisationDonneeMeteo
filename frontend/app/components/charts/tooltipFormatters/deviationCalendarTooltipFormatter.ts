@@ -6,19 +6,20 @@ export function deviationCalendarTooltipFormatter(
     params: TooltipComponentFormatterCallbackParams,
     granularity: GranularityType,
     stationsNames: string[],
+    categories: Record<"xAxis" | "yAxis", string[]>,
 ): string {
-    if (!Array.isArray(params) || !params.length) return "";
-    const p = params[0];
-    if (!p || !Array.isArray(p.data) || p.data[2] == null) return "";
+    if (!("data" in params) || !Array.isArray(params.data)) {
+        return "";
+    }
+
+    const data = params.data as [number, number, number];
 
     // (x,y) = (année,mois) ou (mois,jour) selon granularité choisie
-    const xIdx = p.data[0] as number;
-    const yIdx = p.data[1] as number;
-    const val = p.data[2] as number;
+    const [xIndex, yIndex, val] = data;
 
     // Reconstitue la date depuis les index d'axes
-    const xLabel = String(xIdx);
-    const yLabel = String(yIdx);
+    const xLabel = categories.xAxis[xIndex] ?? String(xIndex);
+    const yLabel = categories.yAxis[yIndex] ?? String(yIndex);
     const dateStr =
         granularity === "year"
             ? `${xLabel} · ${yLabel}`
@@ -26,7 +27,7 @@ export function deviationCalendarTooltipFormatter(
 
     const col = val >= 0 ? COLORS.positive : COLORS.negative;
     const plusSign = val >= 0 ? "+" : "";
-    const station = stationsNames[p.seriesIndex ?? 0] ?? "";
+    const station = stationsNames[params.seriesIndex ?? 0] ?? "";
 
     return (
         `<b style="color:#fff">${station}</b><br/>` +

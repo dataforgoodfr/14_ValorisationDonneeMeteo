@@ -1,3 +1,4 @@
+import { deviationCalendarTooltipFormatter } from "~/components/charts/tooltipFormatters/deviationCalendarTooltipFormatter";
 import { COLORS } from "~/constants/colors";
 import type {
     EChartsOption,
@@ -306,36 +307,13 @@ export function useDeviationCalendarOption(
     return {
         title: titles,
         tooltip: {
-            formatter: (params: TopLevelFormatterParams) => {
-                if (!("data" in params) || !Array.isArray(params.data)) {
-                    return "";
-                }
-
-                const data = params.data as [number, number, number];
-
-                const [xIndex, yIndex, value] = data;
-
-                const color = value >= 0 ? COLORS.positive : COLORS.negative;
-                const sign = value >= 0 ? "+" : "";
-
-                const xLabel = xCategories[xIndex] ?? String(xIndex);
-                const yLabel = yCategories[yIndex] ?? String(yIndex);
-
-                const dateStr =
-                    granularity === "year"
-                        ? `${xLabel} · ${yLabel}`
-                        : `${yLabel}/${xLabel}`;
-
-                const station = stationsNames[params.seriesIndex ?? 0] ?? "";
-
-                return (
-                    `<b style="color:#fff">${station}</b><br/>` +
-                    `<span style="color:#aaa">${dateStr}</span><br/>` +
-                    `<span style="color:${color}">● ${sign}${value.toFixed(
-                        1,
-                    )} °C</span>`
-                );
-            },
+            formatter: (params: TopLevelFormatterParams) =>
+                deviationCalendarTooltipFormatter(
+                    params,
+                    granularity,
+                    stationsNames,
+                    { xAxis: xCategories, yAxis: yCategories },
+                ),
         },
         visualMap: visualMaps,
         grid: grids,
