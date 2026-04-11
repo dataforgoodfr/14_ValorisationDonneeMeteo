@@ -78,7 +78,8 @@ const scatterOption = computed<ECOption>(() => {
         grid: { left: 30, right: 10, containLabel: true },
         xAxis: {
             type: "time",
-            axisTick: { show: false },
+            min: props.adapter.pickedDateStart?.value,
+            max: props.adapter.pickedDateEnd?.value,
             nameLocation: "middle",
             nameGap: 25,
             nameTextStyle: { fontSize: 11, fontWeight: "bold" },
