@@ -168,8 +168,6 @@ export interface TemperatureRecordsResponse {
     count: number;
     metadata: TemperatureRecordsMetadata;
     stations: TemperatureRecordStation[];
-    metadata: TemperatureRecordsMetadata;
-    stations: TemperatureRecordStation[];
 }
 
 // ===== API Error type =====

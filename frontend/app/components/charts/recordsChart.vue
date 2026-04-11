@@ -3,7 +3,6 @@ import * as echarts from "echarts/core";
 import langFR from "~/i18n/langFR.js";
 import type { SelectBarAdapter } from "~/components/ui/commons/selectBar/types";
 import type { TemperatureRecordsResponse } from "~/types/api";
-import type { RecordsChartType } from "~/types/echarts.d";
 import {
     DataZoomComponent,
     GridComponent,
@@ -31,7 +30,6 @@ echarts.use([
 
 interface Props {
     adapter: SelectBarAdapter<TemperatureRecordsResponse>;
-    chartType: RecordsChartType;
 }
 
 const props = defineProps<Props>();
