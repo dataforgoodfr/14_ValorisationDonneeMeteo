@@ -50,7 +50,6 @@ from weather.services.temperature_deviation.types import (
     TemperatureDeviationOverviewStation,
     YearlyBaselinePoint,
 )
-from weather.utils.geography import REGION_BY_DEPARTMENT
 
 
 def _normalize_reims(
@@ -103,30 +102,10 @@ def _daily_station_queryset(
     )
 
 
-def _region_case_sql() -> str:
-    parts = []
-
-    regions: dict[str, list[int]] = {}
-
-    for dep, region in REGION_BY_DEPARTMENT.items():
-        regions.setdefault(region, []).append(dep)
-
-    for region, deps in regions.items():
-        deps_sql = ", ".join(str(d) for d in deps)
-        region_sql = region.replace("'", "''")
-        parts.append(f"WHEN s.departement IN ({deps_sql}) THEN '{region_sql}'")
-
-    return "CASE " + " ".join(parts) + " ELSE 'Autre' END"
-
-
 def _mean(values: list[float]) -> float:
     if not values:
         return 0.0
     return sum(values) / len(values)
-
-
-def _float_or_none(x):
-    return float(x) if x is not None else None
 
 
 def compute_itn_for_day(
@@ -381,8 +360,6 @@ class TimescaleTemperatureDeviationDailyDataSource(
         self,
         query: TemperatureDeviationOverviewQuery,
     ) -> TemperatureDeviationOverviewResult:
-        region_case = _region_case_sql()
-
         ordering_map = {
             "station_name": "station_name ASC, station_id ASC",
             "-station_name": "station_name DESC, station_id ASC",
@@ -445,7 +422,7 @@ class TimescaleTemperatureDeviationDailyDataSource(
         if where_clauses:
             filtered_where_sql = "WHERE " + " AND ".join(where_clauses)
 
-        base_cte = f"""
+        base_cte = """
             WITH station_agg AS (
                 SELECT
                     q.station_code AS station_id,
@@ -467,13 +444,15 @@ class TimescaleTemperatureDeviationDailyDataSource(
                     s.lon AS lon,
                     s.departement AS department,
                     s.alt AS alt,
-                    {region_case} AS region,
+                    COALESCE(r.region, 'Autre') AS region,
                     a.temperature_mean,
                     a.baseline_mean,
                     (a.temperature_mean - a.baseline_mean) AS deviation
                 FROM station_agg a
                     LEFT JOIN v_station s
                         ON s.station_code = a.station_id
+                    LEFT JOIN ref_department_region r
+                        ON r.departement = s.departement
             )
         """
 
