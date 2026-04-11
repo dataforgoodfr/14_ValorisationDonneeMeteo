@@ -17,6 +17,7 @@ import { BarChart, HeatmapChart } from "echarts/charts";
 import { UniversalTransition } from "echarts/features";
 import { CanvasRenderer } from "echarts/renderers";
 import { useDeviationCalendarOption } from "~/composables/useDeviationCalendarOption";
+import { COLORS } from "~/constants/colors";
 
 echarts.registerLocale("FR", langFR);
 echarts.use([
@@ -109,7 +110,7 @@ const barOption = computed<ECOption>(() => {
                 stack: `deviation-${index}`,
                 datasetIndex: index,
                 encode: { x: "date", y: "deviation_positive" },
-                color: "#d32f2f",
+                color: COLORS.positive,
                 tooltip: { show: true },
                 xAxisIndex: index,
                 yAxisIndex: index,
@@ -120,7 +121,7 @@ const barOption = computed<ECOption>(() => {
                 stack: `deviation-${index}`,
                 datasetIndex: index,
                 encode: { x: "date", y: "deviation_negative" },
-                color: "#1976d2",
+                color: COLORS.negative,
                 tooltip: { show: true },
                 xAxisIndex: index,
                 yAxisIndex: index,

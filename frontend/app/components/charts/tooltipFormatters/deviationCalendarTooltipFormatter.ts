@@ -1,8 +1,6 @@
+import { COLORS } from "~/constants/colors";
 import type { TooltipComponentFormatterCallbackParams } from "echarts";
 import type { GranularityType } from "~/components/ui/commons/selectBar/types";
-
-const COLOR_POS = "#d32f2f";
-const COLOR_NEG = "#1976d2";
 
 export function deviationCalendarTooltipFormatter(
     params: TooltipComponentFormatterCallbackParams,
@@ -26,7 +24,7 @@ export function deviationCalendarTooltipFormatter(
             ? `${xLabel} · ${yLabel}`
             : `${yLabel}/${xLabel}`;
 
-    const col = val >= 0 ? COLOR_POS : COLOR_NEG;
+    const col = val >= 0 ? COLORS.positive : COLORS.negative;
     const plusSign = val >= 0 ? "+" : "";
     const station = stationsNames[p.seriesIndex ?? 0] ?? "";
 

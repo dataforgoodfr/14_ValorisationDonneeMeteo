@@ -1,3 +1,4 @@
+import { COLORS } from "~/constants/colors";
 import type {
     EChartsOption,
     SeriesOption,
@@ -216,7 +217,7 @@ export function useDeviationCalendarOption(
             axisTick: { show: false },
             axisLine: { lineStyle: { color: "#3a5080" } },
             axisLabel: {
-                color: "#000",
+                color: COLORS.black,
                 fontSize: 11,
                 interval: labelInterval,
                 rotate: labelRotate,
@@ -225,7 +226,7 @@ export function useDeviationCalendarOption(
             nameLocation: "middle",
             nameGap: granularity === "year" ? 25 : 38,
             nameTextStyle: {
-                color: "#000",
+                color: COLORS.black,
                 fontSize: 12,
                 fontWeight: "bold",
             },
@@ -238,12 +239,12 @@ export function useDeviationCalendarOption(
             splitArea: { show: true },
             axisTick: { show: false },
             axisLine: { lineStyle: { color: "#3a5080" } },
-            axisLabel: { color: "#000", fontSize: 11 },
+            axisLabel: { color: COLORS.black, fontSize: 11 },
             name: yAxisName,
             nameLocation: "middle",
             nameGap: 35,
             nameTextStyle: {
-                color: "#000",
+                color: COLORS.black,
                 fontSize: 12,
                 fontWeight: "bold",
             },
@@ -256,7 +257,7 @@ export function useDeviationCalendarOption(
             textStyle: {
                 fontSize: 12,
                 fontWeight: "bold",
-                color: "#000",
+                color: COLORS.black,
             },
         });
 
@@ -283,8 +284,10 @@ export function useDeviationCalendarOption(
             orient: "vertical",
             right: "0%",
             bottom: "center",
-            inRange: { color: ["#1976d2", "#ffffff", "#d32f2f"] },
-            textStyle: { color: "#000" },
+            inRange: {
+                color: [COLORS.negative, COLORS.white, COLORS.positive],
+            },
+            textStyle: { color: COLORS.black },
             handleStyle: { borderColor: "#3a5080" },
             seriesIndex: index,
             text: index === 0 ? ["+ chaud", "+ froid"] : ["", ""],
@@ -312,7 +315,7 @@ export function useDeviationCalendarOption(
 
                 const [xIndex, yIndex, value] = data;
 
-                const color = value >= 0 ? "#d32f2f" : "#1976d2";
+                const color = value >= 0 ? COLORS.positive : COLORS.negative;
                 const sign = value >= 0 ? "+" : "";
 
                 const xLabel = xCategories[xIndex] ?? String(xIndex);
