@@ -99,7 +99,7 @@ CREATE TABLE "public"."Station_classe" (
     "station_code" character(8) NOT NULL,
     "classe" integer NOT NULL,
     "date_debut" timestamp(3) NOT NULL,
-    "date_fin" timestamp(3) NOT NULL,
+    "date_fin" timestamp(3),
     CONSTRAINT "Station_classe_pkey" PRIMARY KEY ("station_code", "date_debut")
 )
 WITH (oids = false);
