@@ -127,7 +127,27 @@ def setup_db_schema_and_views(django_db_setup, django_db_blocker):
     with django_db_blocker.unblock():
         with connection.cursor() as cur:
             cur.execute("DROP TABLE IF EXISTS public.mv_records_battus_meta;")
-            cur.execute("DROP TABLE IF EXISTS public.mv_records_battus;")
+            # mv_records_battus est une vraie vue matérialisée en prod/dev, mais ici
+            # le conftest la recrée comme TABLE ordinaire pour pouvoir y insérer des
+            # données de test. Son type dépend donc de ce que la session précédente a
+            # laissé : DROP TABLE échoue sur une MV et DROP MATERIALIZED VIEW échoue
+            # sur une table. Le DO $$ consulte pg_matviews / pg_tables pour choisir
+            # la bonne commande avant d'exécuter.
+            cur.execute("""
+                DO $$ BEGIN
+                    IF EXISTS (
+                        SELECT 1 FROM pg_matviews
+                        WHERE schemaname = 'public' AND matviewname = 'mv_records_battus'
+                    ) THEN
+                        DROP MATERIALIZED VIEW public.mv_records_battus;
+                    ELSIF EXISTS (
+                        SELECT 1 FROM pg_tables
+                        WHERE schemaname = 'public' AND tablename = 'mv_records_battus'
+                    ) THEN
+                        DROP TABLE public.mv_records_battus;
+                    END IF;
+                END $$;
+            """)
             cur.execute("DROP VIEW IF EXISTS public.v_quotidienne_itn CASCADE;")
             cur.execute("DROP VIEW IF EXISTS public.v_station CASCADE;")
             cur.execute(
