@@ -27,3 +27,5 @@ class RecordsQuery:
     type_records: str  # "hot" | "cold" | "all"
     temperature_min: float | None
     temperature_max: float | None
+    month: int | None = None
+    season: str | None = None

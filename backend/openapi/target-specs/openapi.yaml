@@ -179,189 +179,93 @@ paths:
     get:
       summary: Records de température
       description: |
-        Liste les records de température pour un ensemble de stations sur une période donnée.
+        Liste les records de température par station.
 
         L'endpoint permet de filtrer :
-        - la nature du record (`historical` ou `absolute`)
+        - le découpage temporel (`period_type`) : tous les temps, par mois ou par saison
 
-        - la portée temporelle (`monthly`, `seasonal`, `all_time`)
-
-        - le type de record (`hot`, `cold`, `all`)
-
-        - les stations (`station_ids`)
-
-        - les départements (`departments`)
-
-        `date_start` et `date_end` sont optionnels.
-        - si `date_start` est fourni, seuls les records à partir de cette date sont pris en compte ;
-        - si `date_end` est fourni, seuls les records jusqu'à cette date sont pris en compte ;
-        - si les deux sont fournis, l'intervalle `[date_start, date_end]` est appliqué ;
-        - si `date_start` est supérieur à `date_end`, une erreur 400 est retournée.
-
-        Si `station_ids` et `departments` sont fournis, seules les stations présentes dans `station_ids` et appartenant aux `departments` sont retournées
-
-        Un filtrage sur la valeur des records peut être appliqué via `temperature_min` et `temperature_max`.
-        Seuls les records dont la valeur est comprise dans cet intervalle sont retournés. Si `temperature_min` est supérieur à `temperature_max`, une erreur 400 est retournée.
+        - le type de record (`hot` ou `cold`)
 
         Exemples de requêtes :
 
-        - `record_kind=absolute&record_scope=all_time&type_records=all`
+        - `period_type=all_time&type_records=hot`
 
-        - `record_kind=historical&record_scope=monthly&type_records=hot`
+        - `period_type=month&month=7&type_records=hot`
 
-        - `record_kind=absolute&record_scope=seasonal&type_records=cold`
-
-        - `record_kind=historical&record_scope=monthly&type_records=hot&departments=13,83`
-
-        - `record_kind=historical&record_scope=monthly&type_records=hot&station_ids=01014002,01071001`
+        - `period_type=season&season=summer&type_records=cold`
 
       operationId: getTemperatureRecords
       tags:
         - Temperature
       parameters:
-        - name: record_kind
+        - name: period_type
           in: query
           required: false
           description: |
-            Nature des records à retourner :
-            - `historical` : historique des records battus
-            - `absolute` : records en vigueur à date
+            Découpage temporel des records :
+            - `all_time` : records sans découpage temporel (défaut)
+            - `month` : records pour un mois donné (paramètre `month` requis)
+            - `season` : records pour une saison donnée (paramètre `season` requis)
           schema:
             type: string
-            enum: [ historical, absolute ]
-            default: absolute
-        - name: record_scope
-          in: query
-          required: false
-          description: |
-            Portée temporelle des records :
-            - `monthly` : records calculés mois par mois
-
-            - `seasonal` : records calculés saison par saison
-
-            - `all_time` : records sans découpage temporel
-          schema:
-            type: string
-            enum: [ monthly, seasonal, all_time ]
+            enum: [ all_time, month, season ]
             default: all_time
-        - name: date_start
-          in: query
-          required: false
-          schema:
-            type: string
-            format: date
-          description: Date de début incluse (YYYY-MM-DD).
-          example: "1990-01-01"
-        - name: date_end
-          in: query
-          required: false
-          schema:
-            type: string
-            format: date
-          description: Date de fin incluse (YYYY-MM-DD).
-          example: "2024-12-31"
-        - name: station_ids
+        - name: month
           in: query
           required: false
           description: |
-            Liste d'identifiants de stations à inclure dans la réponse.
-            Si `departments` est également fourni, seules les stations présentes dans `station_ids` et appartenant aux `departments` sont retournées
+            Numéro du mois (1-12). Requis si `period_type=month`.
           schema:
-            type: array
-            items:
-              type: string
-          style: form
-          explode: false
-          example: "07149,07255"
-        - name: departments
+            type: integer
+            minimum: 1
+            maximum: 12
+          example: 7
+        - name: season
           in: query
           required: false
           description: |
-            Liste de codes de départements à inclure dans la réponse.
-            Si `station_ids` et `departments` sont fournis, seules les stations présentes dans `station_ids` et appartenant aux `departments` sont retournées.
+            Saison. Requis si `period_type=season`.
+            - `spring` : printemps (mars–mai)
+            - `summer` : été (juin–août)
+            - `autumn` : automne (septembre–novembre)
+            - `winter` : hiver (décembre–février)
           schema:
-            type: array
-            items:
-              type: string
-          style: form
-          explode: false
-          example: "13,75"
+            type: string
+            enum: [ spring, summer, autumn, winter ]
         - name: type_records
+          in: query
+          required: false
           description: |
             Type de records à retourner :
-            - `hot` : retourne uniquement les records chauds ; `cold_records` est présent mais vide.
-
-            - `cold` : retourne uniquement les records froids ; `hot_records` est présent mais vide.
-
-            - `all` : retourne les deux types de records.
-          in: query
-          required: false
+            - `hot` : records chauds (défaut)
+            - `cold` : records froids
           schema:
             type: string
-            enum: [hot, cold, all]
-            default: all
-        - name: temperature_min
-          in: query
-          required: false
-          description: |
-            Filtre les records dont la valeur est supérieure ou égale à cette température.
-          schema:
-            type: number
-            format: float
-          example: 25.0
-
-        - name: temperature_max
-          in: query
-          required: false
-          description: |
-            Filtre les records dont la valeur est inférieure ou égale à cette température.
-          schema:
-            type: number
-            format: float
-          example: 35.0
+            enum: [ hot, cold ]
+            default: hot
       responses:
         "200":
-          description: |
-            Liste des stations correspondant aux filtres. Les champs `hot_records` et
-            `cold_records` sont toujours présents. Selon la valeur de `type_records`,
-            l'un des deux tableaux peut être vide.
-
-            Le contenu des tableaux est interprété selon les paramètres `record_kind`
-            et `record_scope` de la requête.
+          description: Liste des records de température par station.
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/TemperatureRecordsResponse"
+                type: array
+                items:
+                  $ref: "#/components/schemas/TemperatureRecordEntry"
               examples:
                 sample:
                   summary: Exemple de réponse
                   value:
-                    metadata:
-                      date_start: "1990-01-01"
-                      date_end: "2024-12-31"
-                      record_kind: "historical"
-                      record_scope: "monthly"
-                      type_records: "hot"
-                      station_ids:
-                        - "07149"
-                        - "07156"
-                      departments:
-                        - "13"
-                        - "75"
-                      temperature_min: null
-                      temperature_max: null
-                    stations:
-                      - id: "07149"
-                        name: "Orly"
-                        hot_records:
-                          - value: 32.1
-                            date: "2025-07-25"
-                        cold_records: [ ]
-
-                      - id: "07156"
-                        name: "Paris-Montsouris"
-                        hot_records: [ ]
-                        cold_records: [ ]
+                    - station_id: "07149"
+                      station_name: "Orly"
+                      department: "94"
+                      record_value: 40.4
+                      record_date: "2019-07-25"
+                    - station_id: "07156"
+                      station_name: "Paris-Montsouris"
+                      department: "75"
+                      record_value: 39.7
+                      record_date: "2019-07-25"
 
         "400":
           $ref: "#/components/responses/BadRequest"
@@ -876,96 +780,31 @@ components:
               type: object
               additionalProperties: true
 
-    TemperatureRecordsResponse:
+    TemperatureRecordEntry:
       type: object
       required:
-        - metadata
-        - stations
+        - station_id
+        - station_name
+        - department
+        - record_value
+        - record_date
       properties:
-        metadata:
-          $ref: "#/components/schemas/TemperatureRecordsMetadata"
-        stations:
-          type: array
-          items:
-            type: object
-            required:
-              - id
-              - name
-              - hot_records
-              - cold_records
-            properties:
-              id:
-                type: string
-                description: Identifiant unique de la station (ex "'01071001")
-              name:
-                type: string
-              hot_records:
-                type: array
-                items:
-                  $ref: "#/components/schemas/TemperatureRecord"
-              cold_records:
-                type: array
-                items:
-                  $ref: "#/components/schemas/TemperatureRecord"
-
-    TemperatureRecordsMetadata:
-      type: object
-      required:
-        - date_start
-        - date_end
-        - record_kind
-        - record_scope
-        - type_records
-        - station_ids
-        - departments
-        - temperature_min
-        - temperature_max
-      properties:
-        date_start:
+        station_id:
+          type: string
+          description: Identifiant unique de la station (ex. "07149")
+        station_name:
+          type: string
+          description: Nom de la station
+        department:
+          type: string
+          description: Code du département de la station
+        record_value:
+          type: number
+          description: Valeur de la température pour ce record (°C)
+        record_date:
           type: string
           format: date
-          nullable: true
-        date_end:
-          type: string
-          format: date
-          nullable: true
-        record_kind:
-          type: string
-          enum: [ historical, absolute ]
-        record_scope:
-          type: string
-          enum: [ monthly, seasonal, all_time ]
-        type_records:
-          type: string
-          enum: [ hot, cold, all ]
-        station_ids:
-          type: array
-          items:
-            type: string
-        departments:
-          type: array
-          items:
-            type: string
-        temperature_min:
-          type: number
-          nullable: true
-        temperature_max:
-          type: number
-          nullable: true
-
-    TemperatureRecord:
-      type: object
-      required:
-        - value
-        - date
-      properties:
-        value:
-          type: number
-          description: valeur de la température pour ce record
-        date:
-          type: string
-          format: date
-          description: date à laquelle le record a été enregistré
+          description: Date à laquelle le record a été enregistré
 
   responses:
     BadRequest:
