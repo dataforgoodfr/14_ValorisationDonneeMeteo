@@ -104,6 +104,6 @@ CREATE TABLE "public"."Station_classe" (
 )
 WITH (oids = false);
 
-CREATE INDEX "Station_date_debut_idx" ON public."Station" USING btree (date_debut);
+CREATE INDEX "Station_date_debut_idx" ON public."Station_classe" USING btree (date_debut);
 
-CREATE INDEX "Station_date_fin_idx" ON public."Station" USING btree (date_fin);
+CREATE INDEX "Station_date_fin_idx" ON public."Station_classe" USING btree (date_fin);
