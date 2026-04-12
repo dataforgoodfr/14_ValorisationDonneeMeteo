@@ -55,7 +55,6 @@ from weather.services.temperature_deviation.types import (
     TemperatureDeviationOverviewStation,
     YearlyBaselinePoint,
 )
-from weather.utils.geography import REGION_BY_DEPARTMENT
 from weather.services.temperature_records.types import (
     SEASON_MONTHS,
     TemperatureRecordEntry,
@@ -534,6 +533,7 @@ class TimescaleTemperatureDeviationDailyDataSource(
             ),
             stations=stations,
         )
+
 
 class TimescaleTemperatureRecordsDataSource:
     """
