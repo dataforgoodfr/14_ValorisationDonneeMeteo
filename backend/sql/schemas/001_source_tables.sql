@@ -90,16 +90,18 @@ CREATE INDEX "Station_lon_idx" ON public."Station" USING btree (lon);
 CREATE INDEX "Station_lat_idx" ON public."Station" USING btree (lat);
 
 
-DROP TABLE IF EXISTS "Station_info";
-CREATE TABLE "public"."Station_info" (
-    "createdAt" timestamp(3) DEFAULT CURRENT_TIMESTAMP NOT NULL,
-    "updatedAt" timestamp(3) NOT NULL,
-    "id" character(8) NOT NULL,
-    "departement" integer NOT NULL,
-    "creation_year" timestamp(3) NOT NULL,
+/*
+La table station_classe contient les évolutions des classes des stations
+au cours de leur vie.
+*/
+DROP TABLE IF EXISTS "Station_classe";
+CREATE TABLE "public"."Station_classe" (
+    "station_code" character(8) NOT NULL,
     "classe" integer NOT NULL,
     "date_debut" timestamp(3) NOT NULL,
     "date_fin" timestamp(3) NOT NULL,
-    CONSTRAINT "Station_info_pkey" PRIMARY KEY ("id")
+    CONSTRAINT "Station_classe_pkey" PRIMARY KEY ("station_code", "date_debut")
 )
 WITH (oids = false);
+
+CREATE INDEX "Station_date_fin_idx" ON public."Station" USING btree (date_fin);
