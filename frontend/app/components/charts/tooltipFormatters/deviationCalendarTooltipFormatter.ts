@@ -5,7 +5,6 @@ import type { GranularityType } from "~/components/ui/commons/selectBar/types";
 export function deviationCalendarTooltipFormatter(
     params: TooltipComponentFormatterCallbackParams,
     granularity: GranularityType,
-    stationsNames: string[],
     categories: Record<"xAxis" | "yAxis", string[]>,
 ): string {
     if (!("data" in params) || !Array.isArray(params.data)) {
@@ -27,10 +26,10 @@ export function deviationCalendarTooltipFormatter(
 
     const col = val >= 0 ? COLORS.positive : COLORS.negative;
     const plusSign = val >= 0 ? "+" : "";
-    const station = stationsNames[params.seriesIndex ?? 0] ?? "";
+    const station = params.seriesName;
 
     return (
-        `<b style="color:#fff">${station}</b><br/>` +
+        `<b style="color:#000">${station}</b><br/>` +
         `<span style="color:#aaa">${dateStr}</span><br/>` +
         `<span style="color:${col}">● ${plusSign}${val.toFixed(1)} °C</span>`
     );

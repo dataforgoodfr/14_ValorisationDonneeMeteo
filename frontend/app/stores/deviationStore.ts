@@ -1,4 +1,9 @@
-import type { DeviationParams, Station } from "~/types/api";
+import type {
+    DeviationParams,
+    DeviationResponse,
+    DeviationStationSerie,
+    Station,
+} from "~/types/api";
 import {
     useCustomDate,
     dateToFirstDayOfYearYMD,
@@ -9,6 +14,7 @@ import type {
     SliceType,
     ChartType,
 } from "~/components/ui/commons/selectBar/types";
+import type { DeviationStationIdAndName } from "~/types/common";
 
 const dates = useCustomDate();
 
@@ -31,20 +37,6 @@ export const useDeviationStore = defineStore("deviationStore", () => {
     const selectedStations = ref<Station[]>([]);
     const includeNational = ref<boolean>(true);
 
-    const rangeDatesByGranularity = computed<{
-        date_start: string;
-        date_end: string;
-    }>(() => {
-        return {
-            date_start: isGranularityYear.value
-                ? dateToFirstDayOfYearYMD(pickedDateStart.value)
-                : dateToStringYMD(pickedDateStart.value),
-            date_end: isGranularityYear.value
-                ? dateToLastDayOfYearYMD(pickedDateEnd.value)
-                : dateToStringYMD(pickedDateEnd.value),
-        };
-    });
-
     const isGranularityYear = computed<boolean>(
         () => granularity.value === "year",
     );
@@ -63,6 +55,41 @@ export const useDeviationStore = defineStore("deviationStore", () => {
             include_national: includeNational.value,
         };
     });
+
+    const rangeDatesByGranularity = computed<{
+        date_start: string;
+        date_end: string;
+    }>(() => {
+        return {
+            date_start: isGranularityYear.value
+                ? dateToFirstDayOfYearYMD(pickedDateStart.value)
+                : dateToStringYMD(pickedDateStart.value),
+            date_end: isGranularityYear.value
+                ? dateToLastDayOfYearYMD(pickedDateEnd.value)
+                : dateToStringYMD(pickedDateEnd.value),
+        };
+    });
+
+    const selectedStationsAndNational = computed<DeviationStationIdAndName[]>(
+        () => {
+            const stations = selectedStations.value.map((station) => {
+                return {
+                    station_id: station.code,
+                    station_name: `${station.nom} (${station.departement})`,
+                };
+            });
+
+            return includeNational.value
+                ? [
+                      {
+                          station_id: "national",
+                          station_name: "France Métropolitaine",
+                      },
+                      ...stations,
+                  ]
+                : stations;
+        },
+    );
 
     const {
         data: deviationData,
@@ -91,6 +118,21 @@ export const useDeviationStore = defineStore("deviationStore", () => {
         includeNational.value = value;
     };
 
+    const stationsAndNationalFormatted = (
+        chartData: DeviationResponse,
+    ): DeviationStationSerie[] => {
+        return includeNational.value
+            ? [
+                  {
+                      station_id: "national",
+                      station_name: "France Métropolitaine",
+                      ...chartData.national,
+                  },
+                  ...chartData.stations,
+              ]
+            : chartData.stations;
+    };
+
     watch(isGranularityYear, (value) => {
         if (value) {
             pickedDateStart.value = new Date(
@@ -117,8 +159,10 @@ export const useDeviationStore = defineStore("deviationStore", () => {
         setIncludeNational,
         setChartType,
         setStations,
+        stationsAndNationalFormatted,
         stationIds,
         selectedStations,
+        selectedStationsAndNational,
         deviationData,
         pending,
         error,

@@ -12,8 +12,9 @@ import type {
     GridOption,
     TitleOption,
 } from "echarts/types/dist/shared";
-import type { DeviationResponse } from "~/types/api";
+import type { DeviationResponse, DeviationStationSerie } from "~/types/api";
 import type { GranularityType } from "~/components/ui/commons/selectBar/types";
+import type { DeviationStationIdAndName } from "~/types/common";
 
 const SHORT_FRENCH_MONTHS = [
     "Jan",
@@ -151,12 +152,12 @@ function dateToXY(
 export function useDeviationCalendarOption(
     data: DeviationResponse,
     granularity: GranularityType,
-    stationsNames: string[],
-    includeNational: boolean,
+    stationsIdAndNames: DeviationStationIdAndName[],
 ): EChartsOption {
-    const stationsAndNational = includeNational
-        ? [data.national, ...data.stations]
-        : data.stations;
+    const deviationStore = useDeviationStore();
+
+    const stationsAndNational: DeviationStationSerie[] =
+        deviationStore.stationsAndNationalFormatted(data);
 
     const stationCount = stationsAndNational.length || 1;
     const { xCategories, yCategories } = buildCategories(data, granularity);
@@ -185,6 +186,11 @@ export function useDeviationCalendarOption(
     stationsAndNational.forEach((stationOrNational, index) => {
         const top = topOffsetPct + index * (blockHeightPct + gapBetweenPct);
         const bottom = 100 - top - blockHeightPct;
+
+        const stationName = getStationById(
+            stationsIdAndNames,
+            stationOrNational.station_id,
+        )?.station_name;
 
         const heatmapData = (stationOrNational?.data ?? [])
             .map((point) => {
@@ -252,7 +258,7 @@ export function useDeviationCalendarOption(
         });
 
         titles.push({
-            text: stationsNames[index] ?? "",
+            text: stationName,
             top: `${top - 4}%`,
             left: "7%",
             textStyle: {
@@ -263,7 +269,7 @@ export function useDeviationCalendarOption(
         });
 
         series.push({
-            name: stationsNames[index] ?? "",
+            name: stationName,
             type: "heatmap",
             xAxisIndex: index,
             yAxisIndex: index,
@@ -308,12 +314,10 @@ export function useDeviationCalendarOption(
         title: titles,
         tooltip: {
             formatter: (params: TopLevelFormatterParams) =>
-                deviationCalendarTooltipFormatter(
-                    params,
-                    granularity,
-                    stationsNames,
-                    { xAxis: xCategories, yAxis: yCategories },
-                ),
+                deviationCalendarTooltipFormatter(params, granularity, {
+                    xAxis: xCategories,
+                    yAxis: yCategories,
+                }),
         },
         visualMap: visualMaps,
         grid: grids,

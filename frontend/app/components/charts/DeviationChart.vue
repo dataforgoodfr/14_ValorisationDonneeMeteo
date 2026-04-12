@@ -40,9 +40,11 @@ interface Props {
 
 const props = defineProps<Props>();
 
-const { selectedStations, includeNational } = storeToRefs(useDeviationStore());
+const deviationStore = useDeviationStore();
+const { selectedStationsAndNational } = storeToRefs(useDeviationStore());
 
 const isChartMounted = ref<boolean>(true);
+
 const renderer = ref<"svg" | "canvas">("canvas");
 
 const initOptions = computed(() => ({
@@ -53,20 +55,27 @@ const initOptions = computed(() => ({
 
 const barOption = computed<ECOption>(() => {
     const data = props.adapter.data.value;
+
     if (!data) return {};
-    const stationsAndNational = includeNational.value
-        ? [data.national, ...data.stations]
-        : data.stations;
+
+    const stationsAndNational =
+        deviationStore.stationsAndNationalFormatted(data);
     const plotAmountToDisplay = stationsAndNational.length || 1;
 
     return {
         dataset: stationsAndNational.map((stationOrNational) => ({
-            dimensions: ["date", "deviation_positive", "deviation_negative"],
+            dimensions: [
+                "date",
+                "deviation_positive",
+                "deviation_negative",
+                "station_id",
+            ],
             source:
                 stationOrNational?.data?.map((p) => ({
                     date: p.date,
                     deviation_positive: p.deviation >= 0 ? p.deviation : null,
                     deviation_negative: p.deviation < 0 ? p.deviation : null,
+                    station_id: stationOrNational.station_id,
                 })) ?? [],
         })),
         grid: stationsAndNational.map((_, index) => ({
@@ -121,8 +130,11 @@ const barOption = computed<ECOption>(() => {
                 yAxisIndex: index,
             },
         ]),
-        title: stationsAndNational.map((_, index) => ({
-            text: selectedStationsAndNationalNames.value[index],
+        title: stationsAndNational.map((station, index) => ({
+            text: getStationById(
+                selectedStationsAndNational.value,
+                station.station_id,
+            )?.station_name,
             right: "right",
             top: `${index * (100 / plotAmountToDisplay)}%`,
         })),
@@ -134,12 +146,13 @@ const barOption = computed<ECOption>(() => {
         tooltip: {
             trigger: "axis",
             axisPointer: { type: "line" },
-            formatter: (params) =>
-                deviationChartTooltipFormatter(
+            formatter: (params) => {
+                return deviationChartTooltipFormatter(
                     params,
                     props.adapter.granularity.value,
-                    selectedStationsAndNationalNames.value,
-                ),
+                    selectedStationsAndNational.value,
+                );
+            },
         },
         dataZoom: [{ xAxisIndex: "all", type: "inside", minSpan: 20 }],
     };
@@ -153,8 +166,7 @@ const calendarOption = computed<ECOption | EChartsOption>(() => {
     return useDeviationCalendarOption(
         data,
         props.adapter.granularity.value,
-        selectedStationsAndNationalNames.value,
-        includeNational.value,
+        selectedStationsAndNational.value,
     );
 });
 
@@ -164,26 +176,7 @@ const option = computed<ECOption | EChartsOption>(() =>
         : barOption.value,
 );
 
-const selectedStationsAndNationalNames = computed(() => {
-    const stations = selectedStations.value.map(
-        (station) => `${station.nom} (${station.departement})`,
-    );
-    return includeNational.value
-        ? ["France Métropolitaine", ...stations]
-        : stations;
-});
-
 provide(INIT_OPTIONS_KEY, initOptions);
-
-watch(
-    () => selectedStationsAndNationalNames.value.length,
-    async () => {
-        isChartMounted.value = false;
-        await nextTick();
-        await new Promise((resolve) => setTimeout(resolve, 50));
-        isChartMounted.value = true;
-    },
-);
 </script>
 
 <template>
