@@ -39,24 +39,17 @@ interface Props {
 }
 
 const props = defineProps<Props>();
+
 const { selectedStations, includeNational } = storeToRefs(useDeviationStore());
 
-const selectedStationsAndNationalNames = computed(() => {
-    const stations = selectedStations.value.map(
-        (station) => `${station.nom} (${station.departement})`,
-    );
-    return includeNational.value
-        ? ["France Métropolitaine", ...stations]
-        : stations;
-});
-
+const isChartMounted = ref<boolean>(true);
 const renderer = ref<"svg" | "canvas">("canvas");
+
 const initOptions = computed(() => ({
     height: 600,
     locale: "FR",
     renderer: renderer.value,
 }));
-provide(INIT_OPTIONS_KEY, initOptions);
 
 const barOption = computed<ECOption>(() => {
     const data = props.adapter.data.value;
@@ -171,7 +164,16 @@ const option = computed<ECOption | EChartsOption>(() =>
         : barOption.value,
 );
 
-const isChartMounted = ref(true);
+const selectedStationsAndNationalNames = computed(() => {
+    const stations = selectedStations.value.map(
+        (station) => `${station.nom} (${station.departement})`,
+    );
+    return includeNational.value
+        ? ["France Métropolitaine", ...stations]
+        : stations;
+});
+
+provide(INIT_OPTIONS_KEY, initOptions);
 
 watch(
     () => selectedStationsAndNationalNames.value.length,
