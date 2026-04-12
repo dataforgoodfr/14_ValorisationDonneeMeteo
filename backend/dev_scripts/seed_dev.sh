@@ -66,6 +66,9 @@ bash "${ROOT_DIR}/dev_scripts/seed_itn_baseline_monthly.sh"
 echo "== Seed ITN yearly baseline (dev CSV) =="
 bash "${ROOT_DIR}/dev_scripts/seed_itn_baseline_yearly.sh"
 
+echo "== Create records materialized view =="
+bash "${ROOT_DIR}/dev_scripts/seed_records_mv.sh"
+
 echo "== Sanity checks =="
 "${psql_base[@]}" -c 'SELECT COUNT(*) AS station_count FROM public."Station";'
 "${psql_base[@]}" -c 'SELECT COUNT(*) AS quotidienne_count FROM public."Quotidienne";'
@@ -79,5 +82,6 @@ echo "== Sanity checks =="
 "${psql_base[@]}" -c 'SELECT COUNT(*) AS itn_baseline_yearly_count FROM public.mv_itn_baseline_yearly_1991_2020;'
 "${psql_base[@]}" -c 'SELECT * FROM public.mv_itn_baseline_monthly_1991_2020 ORDER BY month LIMIT 5;'
 "${psql_base[@]}" -c 'SELECT * FROM public.mv_itn_baseline_yearly_1991_2020;'
+"${psql_base[@]}" -c 'SELECT period_type, record_type, COUNT(*) FROM public.mv_records_battus GROUP BY period_type, record_type ORDER BY period_type, record_type;'
 
 echo "Seed done."

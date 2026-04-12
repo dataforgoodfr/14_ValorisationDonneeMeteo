@@ -3,6 +3,7 @@ from __future__ import annotations
 import datetime as dt
 from collections import defaultdict
 
+from django.db import connection
 from django.db.models import OuterRef, Subquery
 from django.db.models.functions import ExtractDay, ExtractMonth
 
@@ -32,6 +33,11 @@ from weather.services.national_indicator.types import (
 from weather.services.national_indicator.types import (
     ObservedPoint as NationalObservedPoint,
 )
+from weather.services.records.types import (
+    RecordsQuery,
+    StationRecords,
+    TemperatureRecord,
+)
 from weather.services.temperature_deviation.protocols import (
     TemperatureDeviationDailyDataSource,
 )
@@ -43,6 +49,11 @@ from weather.services.temperature_deviation.types import (
     ObservedPoint,
     StationDailySeries,
     YearlyBaselinePoint,
+)
+from weather.services.temperature_records.types import (
+    SEASON_MONTHS,
+    TemperatureRecordEntry,
+    TemperatureRecordsRequest,
 )
 
 
@@ -268,3 +279,411 @@ class TimescaleTemperatureDeviationDailyDataSource(TemperatureDeviationDailyData
             return None
 
         return YearlyBaselinePoint(mean=float(row.itn_mean))
+
+
+class TimescaleTemperatureRecordsDataSource:
+    """
+    Data source réelle : calcule les records progressifs via window function SQL.
+    Retourne N lignes par station (une par fois que la station a battu son propre record).
+    """
+
+    def fetch_records(
+        self, request: TemperatureRecordsRequest
+    ) -> list[TemperatureRecordEntry]:
+        col = "TX" if request.type_records == "hot" else "TN"
+        agg = "MAX" if request.type_records == "hot" else "MIN"
+        cmp = ">" if request.type_records == "hot" else "<"
+
+        period_clause, params = self._period_clause(request)
+
+        sql = f"""
+            WITH ordered AS (
+                SELECT
+                    q."NUM_POSTE",
+                    q."AAAAMMJJ",
+                    q."{col}",
+                    {agg}(q."{col}") OVER (
+                        PARTITION BY q."NUM_POSTE"
+                        ORDER BY q."AAAAMMJJ"
+                        ROWS BETWEEN UNBOUNDED PRECEDING AND 1 PRECEDING
+                    ) AS prev_val
+                FROM public."Quotidienne" q
+                WHERE {period_clause}
+                  AND q."{col}" IS NOT NULL
+            )
+            SELECT
+                o."NUM_POSTE",
+                s.name,
+                s.departement,
+                o."{col}",
+                o."AAAAMMJJ"
+            FROM ordered o
+            JOIN public.v_station s ON s.station_code = o."NUM_POSTE"
+            WHERE o.prev_val IS NULL OR o."{col}" {cmp} o.prev_val
+            ORDER BY s.name, o."AAAAMMJJ"
+        """
+
+        with connection.cursor() as cur:
+            cur.execute(sql, params)
+            cols = [c.name for c in cur.description]
+            rows = [dict(zip(cols, row, strict=False)) for row in cur.fetchall()]
+
+        return [
+            TemperatureRecordEntry(
+                station_id=row["NUM_POSTE"].strip(),
+                station_name=row["name"],
+                department=str(row["departement"])
+                if row["departement"] is not None
+                else "",
+                record_value=float(row[col]),
+                record_date=row["AAAAMMJJ"].date()
+                if isinstance(row["AAAAMMJJ"], dt.datetime)
+                else row["AAAAMMJJ"],
+            )
+            for row in rows
+        ]
+
+    def _period_clause(self, request: TemperatureRecordsRequest) -> tuple[str, list]:
+        return _temperature_records_period_clause(request)
+
+
+def _temperature_records_period_clause(
+    request: TemperatureRecordsRequest,
+) -> tuple[str, list]:
+    if request.period_type == "month":
+        return 'EXTRACT(MONTH FROM q."AAAAMMJJ") = %s', [request.month]
+    elif request.period_type == "season":
+        months = list(SEASON_MONTHS[request.season])
+        placeholders = ", ".join(["%s"] * len(months))
+        return f'EXTRACT(MONTH FROM q."AAAAMMJJ") IN ({placeholders})', months
+    else:
+        return "TRUE", []
+
+
+def _temperature_records_period_clause_named(
+    request: TemperatureRecordsRequest,
+) -> tuple[str, dict]:
+    """Variante de _temperature_records_period_clause avec placeholders nommés %(…)s."""
+    if request.period_type == "month":
+        return 'EXTRACT(MONTH FROM q."AAAAMMJJ") = %(period_month)s', {
+            "period_month": request.month
+        }
+    elif request.period_type == "season":
+        months = list(SEASON_MONTHS[request.season])
+        named = {f"period_season_{i}": m for i, m in enumerate(months)}
+        placeholders = ", ".join(f"%(period_season_{i})s" for i in range(len(months)))
+        return f'EXTRACT(MONTH FROM q."AAAAMMJJ") IN ({placeholders})', named
+    else:
+        return "TRUE", {}
+
+
+class MaterializedTemperatureRecordsDataSource:
+    """
+    Data source optimisée : lit les records pré-calculés depuis la vue
+    matérialisée mv_records_battus. Temps de réponse < 10 ms.
+
+    Pré-requis : la MV doit exister en base. La créer avec :
+        psql < backend/sql/materialized_views/records/001_mv_records_battus.sql
+
+    Rafraîchissement après import de nouvelles données :
+        python manage.py refresh_records_mv
+    """
+
+    def fetch_records(
+        self, request: TemperatureRecordsRequest
+    ) -> list[TemperatureRecordEntry]:
+        record_type = "TX" if request.type_records == "hot" else "TN"
+
+        if request.period_type == "month":
+            period_value: str | None = str(request.month)
+        elif request.period_type == "season":
+            period_value = request.season
+        else:
+            period_value = None
+
+        sql = """
+            SELECT station_code, station_name, department, record_value, record_date
+            FROM public.mv_records_battus
+            WHERE record_type = %s
+              AND period_type = %s
+              AND period_value IS NOT DISTINCT FROM %s
+            ORDER BY station_name, record_date
+        """
+
+        with connection.cursor() as cur:
+            cur.execute(sql, [record_type, request.period_type, period_value])
+            cols = [c.name for c in cur.description]
+            rows = [dict(zip(cols, row, strict=False)) for row in cur.fetchall()]
+
+        return [
+            TemperatureRecordEntry(
+                station_id=row["station_code"].strip(),
+                station_name=row["station_name"],
+                department=str(row["department"])
+                if row["department"] is not None
+                else "",
+                record_value=float(row["record_value"]),
+                record_date=row["record_date"].date()
+                if isinstance(row["record_date"], dt.datetime)
+                else row["record_date"],
+            )
+            for row in rows
+        ]
+
+
+class HybridTemperatureRecordsDataSource:
+    """
+    Data source hybride : lit les records pré-calculés depuis mv_records_battus
+    (snapshot figé) et complète à chaud les nouvelles données (après cutoff_date)
+    via une window function amorcée par les records actuels de la MV.
+
+    La MV n'est jamais rafraîchie. La cutoff_date est stockée dans
+    mv_records_battus_meta au moment de la création de la MV.
+
+    Fallback silencieux vers la MV seule si mv_records_battus_meta est absente
+    ou vide (env de dev sans script de seed exécuté).
+    """
+
+    def __init__(self) -> None:
+        self._mv_source = MaterializedTemperatureRecordsDataSource()
+
+    def fetch_records(
+        self, request: TemperatureRecordsRequest
+    ) -> list[TemperatureRecordEntry]:
+        mv_results = self._mv_source.fetch_records(request)
+        try:
+            cutoff = self._get_cutoff_date()
+        except Exception:
+            return mv_results
+        if cutoff is None:
+            return mv_results
+        hot_results = self._fetch_records_after_cutoff(request, cutoff)
+        return mv_results + hot_results
+
+    def _get_cutoff_date(self) -> dt.date | None:
+        with connection.cursor() as cur:
+            cur.execute("SELECT cutoff_date FROM public.mv_records_battus_meta LIMIT 1")
+            row = cur.fetchone()
+        return row[0] if row else None
+
+    def _fetch_records_after_cutoff(
+        self, request: TemperatureRecordsRequest, cutoff_date: dt.date
+    ) -> list[TemperatureRecordEntry]:
+        hot = request.type_records == "hot"
+        col = "TX" if hot else "TN"
+        agg = "MAX" if hot else "MIN"
+        cmp = ">" if hot else "<"
+        extremum_fn = "GREATEST" if hot else "LEAST"
+        neutral_val = (
+            "'-Infinity'::double precision" if hot else "'Infinity'::double precision"
+        )
+        record_type = col
+
+        if request.period_type == "month":
+            period_value: str | None = str(request.month)
+        elif request.period_type == "season":
+            period_value = request.season
+        else:
+            period_value = None
+
+        period_clause, period_named_params = _temperature_records_period_clause_named(
+            request
+        )
+
+        sql = f"""
+            WITH mv_seeds AS (
+                SELECT station_code, {agg}(record_value) AS seed_val
+                FROM public.mv_records_battus
+                WHERE record_type = %(record_type)s
+                  AND period_type = %(period_type)s
+                  AND period_value IS NOT DISTINCT FROM %(period_value)s
+                GROUP BY station_code
+            ),
+            ordered AS (
+                SELECT
+                    q."NUM_POSTE",
+                    q."AAAAMMJJ",
+                    q."{col}",
+                    {extremum_fn}(
+                        COALESCE(s.seed_val, {neutral_val}),
+                        COALESCE(
+                            {agg}(q."{col}") OVER (
+                                PARTITION BY q."NUM_POSTE"
+                                ORDER BY q."AAAAMMJJ"
+                                ROWS BETWEEN UNBOUNDED PRECEDING AND 1 PRECEDING
+                            ),
+                            {neutral_val}
+                        )
+                    ) AS prev_val
+                FROM public."Quotidienne" q
+                LEFT JOIN mv_seeds s ON s.station_code = q."NUM_POSTE"
+                WHERE q."AAAAMMJJ" > %(cutoff_date)s
+                  AND {period_clause}
+                  AND q."{col}" IS NOT NULL
+            )
+            SELECT
+                o."NUM_POSTE",
+                vs.name,
+                vs.departement,
+                o."{col}",
+                o."AAAAMMJJ"
+            FROM ordered o
+            JOIN public.v_station vs ON vs.station_code = o."NUM_POSTE"
+            WHERE o."{col}" {cmp} o.prev_val
+            ORDER BY vs.name, o."AAAAMMJJ"
+        """
+
+        params = {
+            "record_type": record_type,
+            "period_type": request.period_type,
+            "period_value": period_value,
+            "cutoff_date": cutoff_date,
+            **period_named_params,
+        }
+
+        with connection.cursor() as cur:
+            cur.execute(sql, params)
+            cols = [c.name for c in cur.description]
+            rows = [dict(zip(cols, row, strict=False)) for row in cur.fetchall()]
+
+        return [
+            TemperatureRecordEntry(
+                station_id=row["NUM_POSTE"].strip(),
+                station_name=row["name"],
+                department=str(row["departement"])
+                if row["departement"] is not None
+                else "",
+                record_value=float(row[col]),
+                record_date=row["AAAAMMJJ"].date()
+                if isinstance(row["AAAAMMJJ"], dt.datetime)
+                else row["AAAAMMJJ"],
+            )
+            for row in rows
+        ]
+
+
+class TimescaleRecordsDataSource:
+    """
+    Adaptateur qui implémente RecordsDataSource (nouvelle spec) en s'appuyant sur
+    HybridTemperatureRecordsDataSource.
+
+    Mapping :
+      record_scope  → period_type  (all_time, monthly→month, seasonal→season)
+      record_kind   → "absolute" = dernier record par station, "historical" = tous
+      type_records  → "all" déclenche les deux passages hot + cold
+    """
+
+    _SCOPE_TO_PERIOD = {
+        "all_time": "all_time",
+        "monthly": "month",
+        "seasonal": "season",
+    }
+
+    def __init__(self) -> None:
+        self._hybrid = HybridTemperatureRecordsDataSource()
+
+    def fetch_records(self, query: RecordsQuery) -> tuple[StationRecords, ...]:
+        period_type = self._SCOPE_TO_PERIOD[query.record_scope]
+
+        types: list[str] = (
+            ["hot", "cold"] if query.type_records == "all" else [query.type_records]
+        )
+
+        hot_entries: list[TemperatureRecordEntry] = []
+        cold_entries: list[TemperatureRecordEntry] = []
+
+        for type_records in types:
+            req = TemperatureRecordsRequest(
+                period_type=period_type,
+                type_records=type_records,
+                month=query.month,
+                season=query.season,
+            )
+            entries = self._hybrid.fetch_records(req)
+            if type_records == "hot":
+                hot_entries = entries
+            else:
+                cold_entries = entries
+
+        station_hot: dict[str, list[TemperatureRecordEntry]] = defaultdict(list)
+        station_cold: dict[str, list[TemperatureRecordEntry]] = defaultdict(list)
+        station_name: dict[str, str] = {}
+        station_department: dict[str, str] = {}
+
+        for e in hot_entries:
+            station_hot[e.station_id].append(e)
+            station_name[e.station_id] = e.station_name
+            station_department[e.station_id] = e.department
+
+        for e in cold_entries:
+            station_cold[e.station_id].append(e)
+            station_name[e.station_id] = e.station_name
+            station_department[e.station_id] = e.department
+
+        all_ids: set[str] = set(station_hot) | set(station_cold)
+
+        if query.station_ids:
+            all_ids &= set(query.station_ids)
+
+        if query.departments:
+            all_ids = {
+                sid
+                for sid in all_ids
+                if station_department.get(sid, _department_of_station(sid))
+                in query.departments
+            }
+
+        result: list[StationRecords] = []
+        for station_id in sorted(all_ids):
+            hot_recs = station_hot.get(station_id, [])
+            cold_recs = station_cold.get(station_id, [])
+
+            if query.record_kind == "absolute":
+                hot_recs = hot_recs[-1:] if hot_recs else []
+                cold_recs = cold_recs[-1:] if cold_recs else []
+
+            hot_recs = _apply_temperature_filter(
+                hot_recs, query.temperature_min, query.temperature_max
+            )
+            cold_recs = _apply_temperature_filter(
+                cold_recs, query.temperature_min, query.temperature_max
+            )
+
+            if not hot_recs and not cold_recs:
+                continue
+
+            result.append(
+                StationRecords(
+                    id=station_id,
+                    name=station_name.get(station_id, station_id),
+                    hot_records=tuple(
+                        TemperatureRecord(value=e.record_value, date=e.record_date)
+                        for e in hot_recs
+                    ),
+                    cold_records=tuple(
+                        TemperatureRecord(value=e.record_value, date=e.record_date)
+                        for e in cold_recs
+                    ),
+                )
+            )
+
+        return tuple(result)
+
+
+def _department_of_station(station_id: str) -> str:
+    if station_id.startswith(("971", "972", "973", "974", "976")):
+        return station_id[:3]
+    return station_id[:2]
+
+
+def _apply_temperature_filter(
+    entries: list[TemperatureRecordEntry],
+    temperature_min: float | None,
+    temperature_max: float | None,
+) -> list[TemperatureRecordEntry]:
+    return [
+        e
+        for e in entries
+        if (temperature_min is None or e.record_value >= temperature_min)
+        and (temperature_max is None or e.record_value <= temperature_max)
+    ]

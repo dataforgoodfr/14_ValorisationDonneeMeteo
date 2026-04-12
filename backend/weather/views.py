@@ -11,10 +11,11 @@ from weather.bootstrap_itn import ITNDependencyProvider
 from weather.bootstrap_temperature_deviation import (
     TemperatureDeviationDependencyProvider,
 )
-from weather.data_sources.records_fake import FakeRecordsDataSource
+from weather.bootstrap_temperature_records import TemperatureRecordsDependencyProvider
 from weather.services.national_indicator.use_case import get_national_indicator
-from weather.services.records.use_case import get_records
 from weather.services.temperature_deviation.use_case import get_temperature_deviation
+from weather.services.temperature_records.types import TemperatureRecordsRequest
+from weather.services.temperature_records.use_case import get_temperature_records
 
 from .filters import StationFilter
 from .models import Station
@@ -26,8 +27,8 @@ from .serializers import (
     StationSerializer,
     TemperatureDeviationQuerySerializer,
     TemperatureDeviationResponseSerializer,
+    TemperatureRecordEntrySerializer,
     TemperatureRecordsQuerySerializer,
-    TemperatureRecordsResponseSerializer,
 )
 
 
@@ -163,11 +164,10 @@ class TemperatureDeviationAPIView(APIView):
         return Response(out.data, status=status.HTTP_200_OK)
 
 
-class RecordsAPIView(APIView):
+class TemperatureRecordsAPIView(APIView):
     """
     GET /api/v1/temperature/records
-
-    implémentation données mockées
+    Retourne les records absolus de température par station.
     """
 
     authentication_classes = []
@@ -184,23 +184,40 @@ class RecordsAPIView(APIView):
                 ),
                 status=status.HTTP_400_BAD_REQUEST,
             )
-        params = q.validated_data
 
-        ds = FakeRecordsDataSource()
-        stations = get_records(data_source=ds, **params)
-        full_payload = {
-            "metadata": {
-                "date_start": params.get("date_start"),
-                "date_end": params.get("date_end"),
-                "record_kind": params["record_kind"],
-                "record_scope": params["record_scope"],
-                "type_records": params["type_records"],
-                "station_ids": list(params.get("station_ids", ())),
-                "departments": list(params.get("departments", ())),
-                "temperature_min": params.get("temperature_min"),
-                "temperature_max": params.get("temperature_max"),
-            },
-            "stations": stations,
-        }
-        out = TemperatureRecordsResponseSerializer(full_payload)
-        return Response(out.data, status=status.HTTP_200_OK)
+        params = q.validated_data
+        ds = TemperatureRecordsDependencyProvider.get_dep()
+
+        req = TemperatureRecordsRequest(
+            period_type=params["period_type"],
+            type_records=params["type_records"],
+            month=params.get("month"),
+            season=params.get("season"),
+        )
+
+        try:
+            entries = get_temperature_records(request=req, data_source=ds)
+        except ValueError as exc:
+            return Response(
+                ErrorSerializer.build(
+                    code="INVALID_PARAMETER",
+                    message=str(exc),
+                ),
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        serializer = TemperatureRecordEntrySerializer(
+            [
+                {
+                    "station_id": e.station_id,
+                    "station_name": e.station_name,
+                    "department": e.department,
+                    "record_value": e.record_value,
+                    "record_date": e.record_date,
+                }
+                for e in entries
+            ],
+            many=True,
+        )
+
+        return Response(serializer.data, status=status.HTTP_200_OK)
