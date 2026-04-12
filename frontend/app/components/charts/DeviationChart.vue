@@ -208,7 +208,7 @@ provide(INIT_OPTIONS_KEY, initOptions);
                 :ref="adapter.chartRef"
                 :key="`${adapter.granularity.value}-${adapter.chartType?.value}`"
                 :option="option"
-                :not-merge="true"
+                :update-options="{ notMerge: true }"
                 :init-options="initOptions"
                 :loading="adapter.pending.value"
                 :loading-options="{ text: 'Chargement…', color: '#3b82f6' }"
