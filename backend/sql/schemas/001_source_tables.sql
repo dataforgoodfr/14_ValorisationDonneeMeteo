@@ -94,8 +94,8 @@ CREATE INDEX "Station_lat_idx" ON public."Station" USING btree (lat);
 La table station_classe contient les évolutions des classes des stations
 au cours de leur vie.
 */
-DROP TABLE IF EXISTS "Station_classe";
-CREATE TABLE "public"."Station_classe" (
+DROP TABLE IF EXISTS "station_classe";
+CREATE TABLE "public"."station_classe" (
     "station_code" character(8) NOT NULL,
     "classe" integer NOT NULL,
     "date_debut" timestamp(3) NOT NULL,
@@ -104,6 +104,6 @@ CREATE TABLE "public"."Station_classe" (
 )
 WITH (oids = false);
 
-CREATE INDEX "Station_date_debut_idx" ON public."Station_classe" USING btree (date_debut);
+CREATE INDEX "Station_date_debut_idx" ON public."station_classe" USING btree (date_debut);
 
-CREATE INDEX "Station_date_fin_idx" ON public."Station_classe" USING btree (date_fin);
+CREATE INDEX "Station_date_fin_idx" ON public."station_classe" USING btree (date_fin);
