@@ -36,7 +36,6 @@ echarts.use([
 
 interface Props {
     adapter: SelectBarAdapter<DeviationResponse>;
-    chartType: ChartType;
 }
 
 const props = defineProps<Props>();
@@ -192,7 +191,6 @@ provide(INIT_OPTIONS_KEY, initOptions);
                 sélectionnée.
             </p>
         </div>
-        <<<<<<< HEAD
         <div
             v-else-if="
                 props.adapter.chartType?.value === 'calendar' &&
@@ -217,18 +215,5 @@ provide(INIT_OPTIONS_KEY, initOptions);
                 autoresize
             />
         </template>
-        =======
-        <VChart
-            v-else
-            :ref="adapter.chartRef"
-            :key="`${adapter.granularity.value}-${chartType}`"
-            :option="option"
-            :not-merge="true"
-            :init-options="initOptions"
-            :loading="adapter.pending.value"
-            :loading-options="{ text: 'Chargement…', color: '#3b82f6' }"
-            autoresize
-        />
-        >>>>>>> 576f9e5 (add calendar - i.e. heatmap - type chart)
     </div>
 </template>
