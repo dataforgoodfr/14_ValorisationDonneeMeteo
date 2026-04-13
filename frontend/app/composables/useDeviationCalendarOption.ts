@@ -1,10 +1,6 @@
 import { deviationCalendarTooltipFormatter } from "~/components/charts/tooltipFormatters/deviationCalendarTooltipFormatter";
 import { COLORS } from "~/constants/colors";
-import type {
-    EChartsOption,
-    SeriesOption,
-    VisualMapComponentOption,
-} from "echarts";
+import type { EChartsOption, SeriesOption } from "echarts";
 import type {
     TopLevelFormatterParams,
     XAXisOption,
@@ -162,11 +158,8 @@ export function useDeviationCalendarOption(
     const stationCount = stationsAndNational.length || 1;
     const { xCategories, yCategories } = buildCategories(data, granularity);
 
-    const VISUAL_MAP_MIN = -4;
-    const VISUAL_MAP_MAX = 5;
-
     const totalHeightPct = 92;
-    const gapBetweenPct = stationCount === 1 ? 0 : 8;
+    const gapBetweenPct = stationCount === 1 ? 0 : 15;
     const blockHeightPct =
         (totalHeightPct - (stationCount - 1) * gapBetweenPct) / stationCount;
     const topOffsetPct = 3;
@@ -176,9 +169,8 @@ export function useDeviationCalendarOption(
     const yAxes: YAXisOption[] = [];
     const series: SeriesOption[] = [];
     const titles: TitleOption[] = [];
-    const visualMaps: VisualMapComponentOption[] = [];
 
-    const labelInterval = granularity === "year" ? 0 : 1;
+    const labelInterval = granularity === "day" ? 1 : 0;
     const labelRotate = granularity === "year" ? 0 : 45;
     const xAxisName = "Mois";
     const yAxisName = granularity === "year" ? "Année" : "Jour";
@@ -260,7 +252,7 @@ export function useDeviationCalendarOption(
         titles.push({
             text: stationName,
             top: `${top - 4}%`,
-            left: "7%",
+            right: "12%",
             textStyle: {
                 fontSize: 12,
                 fontWeight: "bold",
@@ -282,33 +274,33 @@ export function useDeviationCalendarOption(
                 },
             },
         });
-
-        visualMaps.push({
-            min: VISUAL_MAP_MIN,
-            max: VISUAL_MAP_MAX,
-            calculable: index === 0,
-            show: index === 0,
-            orient: "vertical",
-            right: "0%",
-            bottom: "center",
-            inRange: {
-                color: [COLORS.negative, COLORS.white, COLORS.positive],
-            },
-            textStyle: { color: COLORS.black },
-            handleStyle: { borderColor: "#3a5080" },
-            seriesIndex: index,
-            text: index === 0 ? ["+ chaud", "+ froid"] : ["", ""],
-            formatter: (val: unknown): string => {
-                if (typeof val !== "number" && typeof val !== "string") {
-                    return "";
-                }
-
-                const num = Number(val);
-
-                return `${num >= 0 ? "+" : ""}${num} °C`;
-            },
-        });
     });
+
+    const visualMap = {
+        min: -5,
+        max: +5,
+        calculable: true,
+        show: true,
+        orient: "vertical",
+        right: "0%",
+        bottom: "center",
+        inRange: {
+            color: [COLORS.negative, COLORS.white, COLORS.positive],
+        },
+        textStyle: { color: COLORS.black },
+        handleStyle: { borderColor: "#3a5080" },
+        seriesIndex: series.map((_, i) => i),
+        text: ["+ chaud", "+ froid"],
+        formatter: (val: unknown): string => {
+            if (typeof val !== "number" && typeof val !== "string") {
+                return "";
+            }
+
+            const num = Number(val);
+
+            return `${num >= 0 ? "+" : ""}${num} °C`;
+        },
+    };
 
     return {
         title: titles,
@@ -319,7 +311,7 @@ export function useDeviationCalendarOption(
                     yAxis: yCategories,
                 }),
         },
-        visualMap: visualMaps,
+        visualMap,
         grid: grids,
         xAxis: xAxes,
         yAxis: yAxes,
