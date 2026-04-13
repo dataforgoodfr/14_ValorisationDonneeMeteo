@@ -11,10 +11,14 @@ import {
     LegendComponent,
     TitleComponent,
     TooltipComponent,
+    VisualMapComponent,
 } from "echarts/components";
-import { BarChart } from "echarts/charts";
+import { BarChart, HeatmapChart } from "echarts/charts";
 import { UniversalTransition } from "echarts/features";
 import { CanvasRenderer } from "echarts/renderers";
+import { useDeviationCalendarOption } from "~/composables/useDeviationCalendarOption";
+import { COLORS } from "~/constants/colors";
+import type { EChartsOption } from "echarts";
 
 echarts.registerLocale("FR", langFR);
 echarts.use([
@@ -22,8 +26,10 @@ echarts.use([
     TooltipComponent,
     GridComponent,
     BarChart,
+    HeatmapChart,
     LegendComponent,
     DataZoomComponent,
+    VisualMapComponent,
     UniversalTransition,
     CanvasRenderer,
 ]);
@@ -31,20 +37,16 @@ echarts.use([
 interface Props {
     adapter: SelectBarAdapter<DeviationResponse>;
 }
-const { selectedStations, includeNational } = storeToRefs(useDeviationStore());
+
 const props = defineProps<Props>();
 
-const selectedStationsAndNationalNames = computed(() => {
-    const stations = selectedStations.value.map(
-        (station) => `${station.nom} (${station.departement})`,
-    );
-    return includeNational.value
-        ? ["France Métropolitaine", ...stations]
-        : stations;
-});
+const deviationStore = useDeviationStore();
+const { selectedStationsAndNational } = storeToRefs(useDeviationStore());
 
-// provide init-options
+const isChartMounted = ref<boolean>(true);
+
 const renderer = ref<"svg" | "canvas">("canvas");
+
 const initOptions = computed(() => ({
     height: 600,
     locale: "FR",
@@ -52,33 +54,31 @@ const initOptions = computed(() => ({
 }));
 provide(INIT_OPTIONS_KEY, initOptions);
 
-const option = computed<ECOption>(() => {
+const barOption = computed<ECOption>(() => {
     const data = props.adapter.data.value;
-    if (!data) {
-        return {};
-    }
-    const stationsAndNational = includeNational.value
-        ? [data.national, ...data.stations]
-        : data.stations;
+
+    if (!data) return {};
+
+    const stationsAndNational =
+        deviationStore.stationsAndNationalFormatted(data);
     const plotAmountToDisplay = stationsAndNational.length || 1;
 
     return {
-        dataset:
-            stationsAndNational.map((stationOrNational) => ({
-                dimensions: [
-                    "date",
-                    "deviation_positive",
-                    "deviation_negative",
-                ],
-                source:
-                    stationOrNational?.data?.map((p) => ({
-                        date: p.date,
-                        deviation_positive:
-                            p.deviation >= 0 ? p.deviation : null,
-                        deviation_negative:
-                            p.deviation < 0 ? p.deviation : null,
-                    })) ?? [],
-            })) ?? [],
+        dataset: stationsAndNational.map((stationOrNational) => ({
+            dimensions: [
+                "date",
+                "deviation_positive",
+                "deviation_negative",
+                "station_id",
+            ],
+            source:
+                stationOrNational?.data?.map((p) => ({
+                    date: p.date,
+                    deviation_positive: p.deviation >= 0 ? p.deviation : null,
+                    deviation_negative: p.deviation < 0 ? p.deviation : null,
+                    station_id: stationOrNational.station_id,
+                })) ?? [],
+        })),
         grid: stationsAndNational.map((_, index) => ({
             top: `${index * (100 / plotAmountToDisplay) + 3}%`,
             height: `${100 / plotAmountToDisplay - 10}%`,
@@ -114,7 +114,7 @@ const option = computed<ECOption>(() => {
                 stack: `deviation-${index}`,
                 datasetIndex: index,
                 encode: { x: "date", y: "deviation_positive" },
-                color: "#d32f2f",
+                color: COLORS.positive,
                 tooltip: { show: true },
                 xAxisIndex: index,
                 yAxisIndex: index,
@@ -125,14 +125,17 @@ const option = computed<ECOption>(() => {
                 stack: `deviation-${index}`,
                 datasetIndex: index,
                 encode: { x: "date", y: "deviation_negative" },
-                color: "#1976d2",
+                color: COLORS.negative,
                 tooltip: { show: true },
                 xAxisIndex: index,
                 yAxisIndex: index,
             },
         ]),
-        title: stationsAndNational.map((stationOrNational, index) => ({
-            text: selectedStationsAndNationalNames.value[index],
+        title: stationsAndNational.map((station, index) => ({
+            text: getStationById(
+                selectedStationsAndNational.value,
+                station.station_id,
+            )?.station_name,
             right: "right",
             top: `${index * (100 / plotAmountToDisplay)}%`,
         })),
@@ -140,28 +143,41 @@ const option = computed<ECOption>(() => {
             link: [{ xAxisIndex: "all" }],
             label: { backgroundColor: "#3a5080" },
         },
-        legend: {
-            bottom: 0,
-        },
+        legend: { bottom: 0 },
         tooltip: {
             trigger: "axis",
             axisPointer: { type: "line" },
-            formatter: (params) =>
-                deviationChartTooltipFormatter(
+            formatter: (params) => {
+                return deviationChartTooltipFormatter(
                     params,
                     props.adapter.granularity.value,
-                    selectedStationsAndNationalNames.value,
-                ),
-        },
-        dataZoom: [
-            {
-                xAxisIndex: "all",
-                type: "inside",
-                minSpan: 20,
+                    selectedStationsAndNational.value,
+                );
             },
-        ],
+        },
+        dataZoom: [{ xAxisIndex: "all", type: "inside", minSpan: 20 }],
     };
 });
+
+const calendarOption = computed<ECOption | EChartsOption>(() => {
+    const data = props.adapter.data.value;
+
+    if (!data) return {} as ECOption;
+
+    return useDeviationCalendarOption(
+        data,
+        props.adapter.granularity.value,
+        selectedStationsAndNational.value,
+    );
+});
+
+const option = computed<ECOption | EChartsOption>(() =>
+    props.adapter.chartType?.value === "calendar"
+        ? calendarOption.value
+        : barOption.value,
+);
+
+provide(INIT_OPTIONS_KEY, initOptions);
 </script>
 
 <template>
@@ -176,15 +192,29 @@ const option = computed<ECOption>(() => {
                 sélectionnée.
             </p>
         </div>
-        <VChart
-            v-else
-            :ref="adapter.chartRef"
-            :key="adapter.granularity.value"
-            :option="option"
-            :init-options="initOptions"
-            :loading="adapter.pending.value"
-            :loading-options="{ text: 'Chargement…', color: '#3b82f6' }"
-            autoresize
-        />
+        <div
+            v-else-if="
+                props.adapter.chartType?.value === 'calendar' &&
+                props.adapter.granularity.value === 'day'
+            "
+            class="flex justify-center items-center h-full text-stone-400"
+        >
+            <p>
+                Le calendrier n'est pas disponible en granularité journalière.
+            </p>
+        </div>
+        <template v-else>
+            <VChart
+                v-if="isChartMounted"
+                :ref="adapter.chartRef"
+                :key="`${adapter.granularity.value}-${adapter.chartType?.value}`"
+                :option="option"
+                :update-options="{ notMerge: true }"
+                :init-options="initOptions"
+                :loading="adapter.pending.value"
+                :loading-options="{ text: 'Chargement…', color: '#3b82f6' }"
+                autoresize
+            />
+        </template>
     </div>
 </template>
