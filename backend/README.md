@@ -165,13 +165,20 @@ curl -L http://localhost:8000/api/v1/stations?departement=13
 #Indicateur thermique national :
 curl "http://localhost:8000/api/v1/temperature/national-indicator?date_start=2025-01-01&date_end=2025-01-31&granularity=month"
 
-#Ecart à la normale
-curl "http://localhost:8000/api/v1/temperature/deviation?date_start=2024-01-01&date_end=2024-01-31&granularity=day&station_ids=07149,07222"
+# Ecart à la normale — OVERVIEW (table + carte)
+curl "http://localhost:8000/api/v1/temperature/deviation?date_start=2024-01-01&date_end=2024-01-31"
+
+# Exemple avec filtres
+curl "http://localhost:8000/api/v1/temperature/deviation?date_start=2024-01-01&date_end=2024-01-31&departments=13,75&regions=Île-de-France&alt_min=100&alt_max=500&ordering=-deviation&page=1&page_size=20"
+
+# Ecart à la normale — GRAPH
+curl "http://localhost:8000/api/v1/temperature/deviation/graph?date_start=2024-01-01&date_end=2024-01-31&granularity=day&station_ids=07149,07222"
 
 #Records de température
 curl "http://localhost:8000/api/v1/temperature/records?period_type=all_time&type_records=hot"
 curl "http://localhost:8000/api/v1/temperature/records?period_type=month&month=7&type_records=hot"
 ```
+
 ## Structure du projet
 
 ```

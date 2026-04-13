@@ -194,7 +194,7 @@ class CommaSeparatedStringListField(serializers.Field):
         )
 
 
-class TemperatureDeviationQuerySerializer(serializers.Serializer):
+class TemperatureDeviationGraphQuerySerializer(serializers.Serializer):
     date_start = serializers.DateField(required=True)
     date_end = serializers.DateField(required=True)
     granularity = serializers.ChoiceField(
@@ -292,3 +292,142 @@ class TemperatureRecordEntrySerializer(serializers.Serializer):
     department = serializers.CharField()
     record_value = serializers.FloatField()
     record_date = serializers.DateField()
+
+
+class TemperatureDeviationOverviewQuerySerializer(serializers.Serializer):
+    date_start = serializers.DateField(required=True)
+    date_end = serializers.DateField(required=True)
+
+    station_ids = CommaSeparatedStringListField(required=False)
+    station_search = serializers.CharField(required=False, allow_blank=True)
+
+    temperature_mean_min = serializers.FloatField(required=False, allow_null=True)
+    temperature_mean_max = serializers.FloatField(required=False, allow_null=True)
+
+    deviation_min = serializers.FloatField(required=False, allow_null=True)
+    deviation_max = serializers.FloatField(required=False, allow_null=True)
+
+    alt_min = serializers.FloatField(required=False, allow_null=True)
+    alt_max = serializers.FloatField(required=False, allow_null=True)
+
+    departments = CommaSeparatedStringListField(required=False)
+    regions = CommaSeparatedStringListField(required=False)
+
+    ordering = serializers.ChoiceField(
+        choices=[
+            "station_name",
+            "-station_name",
+            "temperature_mean",
+            "-temperature_mean",
+            "deviation",
+            "-deviation",
+            "department",
+            "-department",
+            "region",
+            "-region",
+        ],
+        required=False,
+        default="-deviation",
+    )
+
+    limit = serializers.IntegerField(
+        required=False,
+        min_value=1,
+        max_value=500,
+        default=50,
+    )
+    offset = serializers.IntegerField(required=False, min_value=0, default=0)
+
+    def validate(self, attrs):
+        ds = attrs["date_start"]
+        de = attrs["date_end"]
+        if ds > de:
+            raise serializers.ValidationError(
+                {"date_end": "date_end doit être >= date_start."}
+            )
+
+        tmin = attrs.get("temperature_mean_min")
+        tmax = attrs.get("temperature_mean_max")
+        if tmin is not None and tmax is not None and tmin > tmax:
+            raise serializers.ValidationError(
+                {
+                    "temperature_mean_max": (
+                        "temperature_mean_max doit être >= temperature_mean_min."
+                    )
+                }
+            )
+
+        dmin = attrs.get("deviation_min")
+        dmax = attrs.get("deviation_max")
+        if dmin is not None and dmax is not None and dmin > dmax:
+            raise serializers.ValidationError(
+                {"deviation_max": "deviation_max doit être >= deviation_min."}
+            )
+
+        alt_min = attrs.get("alt_min")
+        alt_max = attrs.get("alt_max")
+        if alt_min is not None and alt_max is not None and alt_min > alt_max:
+            raise serializers.ValidationError(
+                {"alt_max": "alt_max doit être >= alt_min."}
+            )
+
+        station_search = attrs.get("station_search")
+        if station_search is not None:
+            attrs["station_search"] = station_search.strip()
+
+        attrs["temperature_mean_min"] = (
+            tmin if "temperature_mean_min" in attrs else None
+        )
+        attrs["temperature_mean_max"] = (
+            tmax if "temperature_mean_max" in attrs else None
+        )
+        attrs["deviation_min"] = dmin if "deviation_min" in attrs else None
+        attrs["deviation_max"] = dmax if "deviation_max" in attrs else None
+        attrs["alt_min"] = alt_min if "alt_min" in attrs else None
+        attrs["alt_max"] = alt_max if "alt_max" in attrs else None
+
+        attrs["departments"] = attrs.get("departments", ())
+        attrs["regions"] = attrs.get("regions", ())
+        attrs["station_ids"] = attrs.get("station_ids", ())
+
+        attrs["station_search"] = attrs.get("station_search") or None
+
+        return attrs
+
+
+class PaginationMetadataSerializer(serializers.Serializer):
+    total_count = serializers.IntegerField()
+    limit = serializers.IntegerField()
+    offset = serializers.IntegerField()
+
+
+class TemperatureDeviationOverviewNationalSerializer(serializers.Serializer):
+    deviation_mean = serializers.FloatField()
+
+
+class TemperatureDeviationOverviewStationSerializer(serializers.Serializer):
+    station_id = serializers.CharField()
+    station_name = serializers.CharField()
+    temperature_mean = serializers.FloatField()
+    baseline_mean = serializers.FloatField()
+    deviation = serializers.FloatField()
+    lat = serializers.FloatField(allow_null=True)
+    lon = serializers.FloatField(allow_null=True)
+    department = serializers.CharField(allow_null=True)
+    alt = serializers.FloatField(allow_null=True)
+    region = serializers.CharField(allow_null=True)
+
+
+class TemperatureDeviationOverviewMetadataSerializer(serializers.Serializer):
+    date_start = serializers.DateField()
+    date_end = serializers.DateField()
+    baseline = serializers.CharField()
+    filters = serializers.DictField()
+    ordering = serializers.CharField()
+
+
+class TemperatureDeviationOverviewResponseSerializer(serializers.Serializer):
+    metadata = TemperatureDeviationOverviewMetadataSerializer()
+    national = TemperatureDeviationOverviewNationalSerializer()
+    pagination = PaginationMetadataSerializer()
+    stations = TemperatureDeviationOverviewStationSerializer(many=True)

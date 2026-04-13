@@ -21,11 +21,11 @@ def fake_temperature_deviation_dep():
 
 
 @pytest.mark.usefixtures("fake_temperature_deviation_dep")
-def test_get_temperature_deviation_day_happy_path(
+def test_get_temperature_deviation_graph_day_happy_path(
     client: APIClient,
 ):
     resp = client.get(
-        "/api/v1/temperature/deviation",
+        "/api/v1/temperature/deviation/graph",
         {
             "date_start": "2024-01-01",
             "date_end": "2024-01-03",
@@ -64,9 +64,9 @@ def test_get_temperature_deviation_day_happy_path(
 
 
 @pytest.mark.usefixtures("fake_temperature_deviation_dep")
-def test_get_temperature_deviation_without_national(client: APIClient):
+def test_get_temperature_deviation_graph_without_national(client: APIClient):
     resp = client.get(
-        "/api/v1/temperature/deviation",
+        "/api/v1/temperature/deviation/graph",
         {
             "date_start": "2024-01-01",
             "date_end": "2024-01-03",
@@ -84,11 +84,11 @@ def test_get_temperature_deviation_without_national(client: APIClient):
     assert body["stations"][0]["station_id"] == "07149"
 
 
-def test_get_temperature_deviation_returns_400_if_include_national_false_and_no_station_ids(
+def test_get_temperature_deviation_graph_returns_400_if_include_national_false_and_no_station_ids(
     client: APIClient,
 ):
     resp = client.get(
-        "/api/v1/temperature/deviation",
+        "/api/v1/temperature/deviation/graph",
         {
             "date_start": "2024-01-01",
             "date_end": "2024-01-03",
@@ -104,11 +104,11 @@ def test_get_temperature_deviation_returns_400_if_include_national_false_and_no_
     assert "station_ids" in body["error"]["details"]
 
 
-def test_get_temperature_deviation_returns_400_if_date_start_gt_date_end(
+def test_get_temperature_deviation_graph_returns_400_if_date_start_gt_date_end(
     client: APIClient,
 ):
     resp = client.get(
-        "/api/v1/temperature/deviation",
+        "/api/v1/temperature/deviation/graph",
         {
             "date_start": "2024-02-01",
             "date_end": "2024-01-03",
@@ -124,11 +124,11 @@ def test_get_temperature_deviation_returns_400_if_date_start_gt_date_end(
 
 
 @pytest.mark.usefixtures("fake_temperature_deviation_dep")
-def test_get_temperature_deviation_endpoint_uses_dependency_provider(
+def test_get_temperature_deviation_graph_endpoint_uses_dependency_provider(
     client: APIClient,
 ):
     resp = client.get(
-        "/api/v1/temperature/deviation",
+        "/api/v1/temperature/deviation/graph",
         {
             "date_start": "2024-01-01",
             "date_end": "2024-01-03",
