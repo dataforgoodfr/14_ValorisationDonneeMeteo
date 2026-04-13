@@ -23,11 +23,14 @@ export function useTemperatureDeviation(
         enabled !== undefined ? toValue(enabled) : true,
     );
 
-    const result = useApiFetch<DeviationResponse>("/temperature/deviation", {
-        query: params,
-        immediate: false,
-        watch: false,
-    });
+    const result = useApiFetch<DeviationResponse>(
+        "/temperature/deviation/graph",
+        {
+            query: params,
+            immediate: false,
+            watch: false,
+        },
+    );
 
     watch(
         [isEnabled, hasRequiredParams, params],
