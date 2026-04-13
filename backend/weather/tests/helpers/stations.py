@@ -3,7 +3,15 @@ import datetime as dt
 from django.db import connection
 
 
-def insert_station(code: str, name: str = "Station test") -> None:
+def insert_station(
+    code: str,
+    name: str = "Station test",
+    *,
+    departement: int = 1,
+    lat: float = 0.0,
+    lon: float = 0.0,
+    alt: float = 0.0,
+) -> None:
     now = dt.datetime.now()
 
     with connection.cursor() as cur:
@@ -16,14 +24,18 @@ def insert_station(code: str, name: str = "Station test") -> None:
                  "lon", "lat", "alt", "postePublic")
             VALUES
                 (%(created)s, %(updated)s, %(id)s, %(name)s,
-                 1, 'horaire',
+                 %(departement)s, 'horaire',
                  '1', 1,
-                 0.0, 0.0, 0.0, '1')
+                 %(lon)s, %(lat)s, %(alt)s, '1')
             """,
             {
                 "created": now,
                 "updated": now,
                 "id": code,
                 "name": name,
+                "departement": departement,
+                "lat": lat,
+                "lon": lon,
+                "alt": alt,
             },
         )

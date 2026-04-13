@@ -9,6 +9,7 @@ from datetime import date
 
 from weather.services.temperature_deviation.protocols import (
     TemperatureDeviationDailyDataSource,
+    TemperatureDeviationOverviewDataSource,
 )
 from weather.services.temperature_deviation.types import (
     DailyBaselinePoint,
@@ -16,7 +17,11 @@ from weather.services.temperature_deviation.types import (
     DailyDeviationSeriesQuery,
     MonthlyBaselinePoint,
     ObservedPoint,
+    Pagination,
     StationDailySeries,
+    TemperatureDeviationOverviewQuery,
+    TemperatureDeviationOverviewResult,
+    TemperatureDeviationOverviewStation,
     YearlyBaselinePoint,
 )
 from weather.utils.date_range import iter_days_intersecting
@@ -175,3 +180,124 @@ class FakeTemperatureDeviationDailyDataSource(TemperatureDeviationDailyDataSourc
 
     def fetch_national_yearly_baseline(self) -> YearlyBaselinePoint | None:
         return _fake_yearly_baseline()
+
+
+class FakeTemperatureDeviationOverviewDataSource(
+    TemperatureDeviationOverviewDataSource
+):
+    def __init__(self) -> None:
+        self._seed = 123
+        self._stations = self._build_dataset()
+
+    def _build_dataset(self) -> list[TemperatureDeviationOverviewStation]:
+        out = []
+        rng = random.Random(self._seed)
+        departments = ["75", "13", "69", "31", "59"]
+
+        def department_to_region(dep: str) -> str:
+            mapping = {
+                "75": "Île-de-France",
+                "13": "Provence-Alpes-Côte d'Azur",
+                "69": "Auvergne-Rhône-Alpes",
+                "31": "Occitanie",
+                "59": "Hauts-de-France",
+            }
+            return mapping.get(dep, "Autre")
+
+        for i in range(500):
+            station_id = f"{70000 + i}"
+            department = departments[i % len(departments)]
+
+            temperature_mean = rng.uniform(5, 30)
+            baseline_mean = temperature_mean - rng.uniform(-3, 3)
+            deviation = temperature_mean - baseline_mean
+
+            out.append(
+                TemperatureDeviationOverviewStation(
+                    station_id=station_id,
+                    station_name=f"Station {station_id}",
+                    lat=40.0 + (i % 50) * 0.1,
+                    lon=-5.0 + (i % 80) * 0.1,
+                    department=department,
+                    alt=50 + (i % 200),
+                    region=department_to_region(department),
+                    temperature_mean=temperature_mean,
+                    baseline_mean=baseline_mean,
+                    deviation=deviation,
+                )
+            )
+
+        return out
+
+    def fetch_national_mean_deviation(
+        self,
+        *,
+        date_start,
+        date_end,
+    ) -> float:
+        # valeur fixe simple
+        return 1.5
+
+    def fetch_station_overview(
+        self,
+        query: TemperatureDeviationOverviewQuery,
+    ) -> TemperatureDeviationOverviewResult:
+        data = self._stations
+
+        if query.station_ids:
+            allowed = set(query.station_ids)
+            data = [x for x in data if x.station_id in allowed]
+
+        if query.station_search:
+            s = query.station_search.lower()
+            data = [x for x in data if s in x.station_name.lower()]
+
+        if query.departments:
+            allowed = set(query.departments)
+            data = [x for x in data if x.department in allowed]
+
+        if query.regions:
+            allowed = set(query.regions)
+            data = [x for x in data if x.region in allowed]
+
+        if query.alt_min is not None:
+            data = [x for x in data if x.alt is not None and x.alt >= query.alt_min]
+
+        if query.alt_max is not None:
+            data = [x for x in data if x.alt is not None and x.alt <= query.alt_max]
+
+        if query.temperature_mean_min is not None:
+            data = [x for x in data if x.temperature_mean >= query.temperature_mean_min]
+
+        if query.temperature_mean_max is not None:
+            data = [x for x in data if x.temperature_mean <= query.temperature_mean_max]
+
+        if query.deviation_min is not None:
+            data = [x for x in data if x.deviation >= query.deviation_min]
+
+        if query.deviation_max is not None:
+            data = [x for x in data if x.deviation <= query.deviation_max]
+
+        reverse = query.ordering.startswith("-")
+        field = query.ordering.lstrip("-")
+
+        def key(x):
+            return getattr(x, field)
+
+        data = sorted(data, key=key, reverse=reverse)
+        total_count = len(data)
+
+        start = query.offset
+        end = start + query.limit
+
+        page_items = data[start:end]
+
+        return TemperatureDeviationOverviewResult(
+            national_deviation_mean=1.5,  # ignoré ici
+            pagination=Pagination(
+                total_count=total_count,
+                limit=query.limit,
+                offset=query.offset,
+            ),
+            stations=page_items,
+        )
