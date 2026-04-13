@@ -10,17 +10,17 @@ from weather.tests.conftest import insert_mv_record
 
 
 def _req(**kwargs) -> RecordsGraphRequest:
-    defaults = dict(
-        date_start=dt.date(1940, 1, 1),
-        date_end=dt.date(2025, 12, 31),
-        granularity="year",
-        period_type="all_time",
-        type_records="hot",
-        month=None,
-        season=None,
-        territoire="france",
-        territoire_id=None,
-    )
+    defaults = {
+        "date_start": dt.date(1940, 1, 1),
+        "date_end": dt.date(2025, 12, 31),
+        "granularity": "year",
+        "period_type": "all_time",
+        "type_records": "hot",
+        "month": None,
+        "season": None,
+        "territoire": "france",
+        "territoire_id": None,
+    }
     defaults.update(kwargs)
     return RecordsGraphRequest(**defaults)
 
@@ -28,7 +28,9 @@ def _req(**kwargs) -> RecordsGraphRequest:
 @pytest.mark.django_db
 def test_fetch_graph_returns_one_bucket_per_year():
     ds = TimescaleRecordsGraphDataSource()
-    result = ds.fetch_graph(_req(date_start=dt.date(2019, 1, 1), date_end=dt.date(2021, 12, 31)))
+    result = ds.fetch_graph(
+        _req(date_start=dt.date(2019, 1, 1), date_end=dt.date(2021, 12, 31))
+    )
 
     buckets = [b.bucket for b in result]
     assert buckets == ["2019", "2020", "2021"]
@@ -58,7 +60,13 @@ def test_fetch_graph_counts_hot_records():
     )
 
     ds = TimescaleRecordsGraphDataSource()
-    result = ds.fetch_graph(_req(date_start=dt.date(2019, 1, 1), date_end=dt.date(2019, 12, 31), granularity="year"))
+    result = ds.fetch_graph(
+        _req(
+            date_start=dt.date(2019, 1, 1),
+            date_end=dt.date(2019, 12, 31),
+            granularity="year",
+        )
+    )
 
     bucket_2019 = next(b for b in result if b.bucket == "2019")
     assert bucket_2019.nb_records_battus == 2
@@ -78,7 +86,14 @@ def test_fetch_graph_cold_records_not_counted_as_hot():
     )
 
     ds = TimescaleRecordsGraphDataSource()
-    result = ds.fetch_graph(_req(date_start=dt.date(2012, 1, 1), date_end=dt.date(2012, 12, 31), granularity="year", type_records="hot"))
+    result = ds.fetch_graph(
+        _req(
+            date_start=dt.date(2012, 1, 1),
+            date_end=dt.date(2012, 12, 31),
+            granularity="year",
+            type_records="hot",
+        )
+    )
 
     bucket_2012 = next(b for b in result if b.bucket == "2012")
     assert bucket_2012.nb_records_battus == 0
@@ -87,7 +102,13 @@ def test_fetch_graph_cold_records_not_counted_as_hot():
 @pytest.mark.django_db
 def test_fetch_graph_month_granularity_buckets():
     ds = TimescaleRecordsGraphDataSource()
-    result = ds.fetch_graph(_req(date_start=dt.date(2019, 1, 1), date_end=dt.date(2019, 3, 31), granularity="month"))
+    result = ds.fetch_graph(
+        _req(
+            date_start=dt.date(2019, 1, 1),
+            date_end=dt.date(2019, 3, 31),
+            granularity="month",
+        )
+    )
 
     buckets = [b.bucket for b in result]
     assert buckets == ["2019-01", "2019-02", "2019-03"]
@@ -96,7 +117,13 @@ def test_fetch_graph_month_granularity_buckets():
 @pytest.mark.django_db
 def test_fetch_graph_empty_buckets_return_zero():
     ds = TimescaleRecordsGraphDataSource()
-    result = ds.fetch_graph(_req(date_start=dt.date(1900, 1, 1), date_end=dt.date(1900, 12, 31), granularity="year"))
+    result = ds.fetch_graph(
+        _req(
+            date_start=dt.date(1900, 1, 1),
+            date_end=dt.date(1900, 12, 31),
+            granularity="year",
+        )
+    )
 
     assert len(result) == 1
     assert result[0].bucket == "1900"
