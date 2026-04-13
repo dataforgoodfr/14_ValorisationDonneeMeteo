@@ -17,6 +17,25 @@ let cachedTempMOCKED = null;
 import { ref, onMounted } from "vue";
 import * as d3 from "d3";
 import * as topojson from "topojson-client";
+import { storeToRefs } from "pinia";
+import { useRecordsStore } from "~/stores/recordsStore";
+
+const store = useRecordsStore();
+const {
+    recordType,
+    startDate,
+    endDate,
+    page,
+    pageSize,
+    recordsData,
+    pending,
+    error,
+} = storeToRefs(store);
+const { getFilter, setFilter } = store;
+
+watch(recordsData, (val) => {
+    // console.log("stations :", val?.stations);
+});
 
 const props = defineProps({
     mode: {
@@ -399,7 +418,7 @@ onMounted(async () => {
         .then((res) => res.text())
         .then((text) => d3.csvParse(text, d3.autoType));
 
-    console.log("infoclimatStations :", infoclimatStations);
+    // console.log("infoclimatStations :", infoclimatStations);
 
     const infoclimatStationsTemp = await fetch(
         "/data/stations_temperatures_2024_2025.csv",
@@ -407,7 +426,7 @@ onMounted(async () => {
         .then((res) => res.text())
         .then((text) => d3.dsvFormat(";").parse(text, d3.autoType));
 
-    console.log("infoclimatStationsTemp :", infoclimatStationsTemp);
+    // console.log("infoclimatStationsTemp :", infoclimatStationsTemp);
 
     const geojsonREG = topojson.feature(topoData, topoData.objects.REG);
     const geojsonDEP = topojson.feature(topoData, topoData.objects.DEP);
@@ -491,7 +510,7 @@ onMounted(async () => {
 
     if (props.mode === "stationsPoints") {
         drawBasemap(context, path, featuresDEP, featuresREG);
-        console.log("props.date :", props.date);
+        // console.log("props.date :", props.date);
         drawPointsStationsTemp(
             context,
             projection,
