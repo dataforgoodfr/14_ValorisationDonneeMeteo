@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import datetime as dt
 from typing import Protocol
 
 from .types import (
@@ -8,6 +9,8 @@ from .types import (
     MonthlyBaselinePoint,
     ObservedPoint,
     StationDailySeries,
+    TemperatureDeviationOverviewQuery,
+    TemperatureDeviationOverviewResult,
     YearlyBaselinePoint,
 )
 
@@ -41,4 +44,28 @@ class TemperatureDeviationDailyDataSource(Protocol):
     ) -> list[StationDailySeries]:
         """
         Retourne les séries journalières par station, avec baseline déjà jointe.
+        """
+
+
+class TemperatureDeviationOverviewDataSource(Protocol):
+    def fetch_national_mean_deviation(
+        self,
+        *,
+        date_start: dt.date,
+        date_end: dt.date,
+    ) -> float:
+        """
+        Retourne l'écart moyen à la normale à l'échelle nationale
+        sur la période donnée (indépendant des filtres station).
+        """
+
+    def fetch_station_overview(
+        self,
+        query: TemperatureDeviationOverviewQuery,
+    ) -> TemperatureDeviationOverviewResult:
+        """
+        Retourne :
+        - la pagination
+        - la liste paginée de stations agrégées sur la période
+        (avec filtres, tri et pagination appliqués)
         """

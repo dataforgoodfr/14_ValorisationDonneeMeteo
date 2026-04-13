@@ -14,7 +14,7 @@ from weather.services.temperature_deviation.types import (
 from weather.services.temperature_deviation.use_case import get_temperature_deviation
 
 
-def test_temperature_deviation_business_day_happy_path():
+def test_temperature_deviation_graph_business_day_happy_path():
     ds = FakeTemperatureDeviationDailyDataSource()
 
     out = get_temperature_deviation(
@@ -39,7 +39,7 @@ def test_temperature_deviation_business_day_happy_path():
     assert len(station["data"]) == 3
 
 
-def test_temperature_deviation_business_month_aggregates_to_one_point_per_month():
+def test_temperature_deviation_graph__business_month_aggregates_to_one_point_per_month():
     ds = FakeTemperatureDeviationDailyDataSource()
 
     out = get_temperature_deviation(
@@ -64,7 +64,7 @@ def test_temperature_deviation_business_month_aggregates_to_one_point_per_month(
     ]
 
 
-def test_temperature_deviation_business_without_national_returns_only_stations():
+def test_temperature_deviation_graph__business_without_national_returns_only_stations():
     ds = FakeTemperatureDeviationDailyDataSource()
 
     out = get_temperature_deviation(
@@ -81,7 +81,7 @@ def test_temperature_deviation_business_without_national_returns_only_stations()
     assert [s["station_id"] for s in out["stations"]] == ["07149", "07222"]
 
 
-def test_temperature_deviation_business_deviation_equals_temperature_minus_baseline_mean():
+def test_temperature_deviation_graph__business_deviation_equals_temperature_minus_baseline_mean():
     ds = FakeTemperatureDeviationDailyDataSource()
 
     out = get_temperature_deviation(
@@ -103,7 +103,7 @@ def test_temperature_deviation_business_deviation_equals_temperature_minus_basel
         assert point["deviation"] == expected
 
 
-def test_temperature_deviation_business_returns_expected_payload_on_simple_input():
+def test_temperature_deviation_graph__business_returns_expected_payload_on_simple_input():
     class DeterministicTemperatureDeviationDataSource:
         def fetch_national_observed_series(self, query):
             return [
@@ -152,7 +152,7 @@ def test_temperature_deviation_business_returns_expected_payload_on_simple_input
             ]
 
 
-def test_temperature_deviation_business_national_month_partial_uses_daily_baseline():
+def test_temperature_deviation_graph_business_national_month_partial_uses_daily_baseline():
     class DS:
         def fetch_national_observed_series(self, query):
             return [
@@ -357,7 +357,7 @@ def test_national_year_partial_bucket_uses_daily_baseline():
     assert point["baseline_mean"] == 2.0
 
 
-def test_temperature_deviation_business_month_extends_source_window_to_full_month():
+def test_temperature_deviation_graph__business_month_extends_source_window_to_full_month():
     class DS:
         def fetch_national_observed_series(self, query):
             assert query.date_start == dt.date(2024, 1, 1)
@@ -401,7 +401,7 @@ def test_temperature_deviation_business_month_extends_source_window_to_full_mont
     assert point["temperature"] == 12.0
 
 
-def test_temperature_deviation_business_year_extends_source_window_to_full_year():
+def test_temperature_deviation_graph_business_year_extends_source_window_to_full_year():
     class DS:
         def fetch_national_observed_series(self, query):
             assert query.date_start == dt.date(2024, 1, 1)

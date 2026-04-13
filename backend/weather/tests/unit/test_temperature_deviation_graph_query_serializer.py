@@ -1,10 +1,10 @@
 import datetime as dt
 
-from weather.serializers import TemperatureDeviationQuerySerializer
+from weather.serializers import TemperatureDeviationGraphQuerySerializer
 
 
 def test_temperature_deviation_query_serializer_happy_path():
-    s = TemperatureDeviationQuerySerializer(
+    s = TemperatureDeviationGraphQuerySerializer(
         data={
             "date_start": "2024-01-01",
             "date_end": "2024-01-31",
@@ -22,7 +22,7 @@ def test_temperature_deviation_query_serializer_happy_path():
 
 
 def test_temperature_deviation_query_serializer_include_national_defaults_true():
-    s = TemperatureDeviationQuerySerializer(
+    s = TemperatureDeviationGraphQuerySerializer(
         data={
             "date_start": "2024-01-01",
             "date_end": "2024-01-31",
@@ -36,7 +36,7 @@ def test_temperature_deviation_query_serializer_include_national_defaults_true()
 
 
 def test_temperature_deviation_query_serializer_rejects_date_start_gt_date_end():
-    s = TemperatureDeviationQuerySerializer(
+    s = TemperatureDeviationGraphQuerySerializer(
         data={
             "date_start": "2024-02-01",
             "date_end": "2024-01-31",
@@ -49,7 +49,7 @@ def test_temperature_deviation_query_serializer_rejects_date_start_gt_date_end()
 
 
 def test_temperature_deviation_query_serializer_requires_station_ids_if_include_national_false():
-    s = TemperatureDeviationQuerySerializer(
+    s = TemperatureDeviationGraphQuerySerializer(
         data={
             "date_start": "2024-01-01",
             "date_end": "2024-01-31",
@@ -63,7 +63,7 @@ def test_temperature_deviation_query_serializer_requires_station_ids_if_include_
 
 
 def test_temperature_deviation_query_serializer_empty_station_ids_are_empty_tuple():
-    s = TemperatureDeviationQuerySerializer(
+    s = TemperatureDeviationGraphQuerySerializer(
         data={
             "date_start": "2024-01-01",
             "date_end": "2024-01-31",
