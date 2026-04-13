@@ -45,6 +45,9 @@ SQL
 echo "== Create tables (schema) =="
 "${psql_base[@]}" -f "$SCHEMA_SQL"
 
+echo "== Create additional reference tables =="
+bash "${ROOT_DIR}/dev_scripts/create_extra_tables.sh"
+
 echo "== Import Station (SQL dump) =="
 "${psql_base[@]}" -f "$STATION_SQL"
 
@@ -70,6 +73,8 @@ echo "== Create records materialized view =="
 bash "${ROOT_DIR}/dev_scripts/seed_records_mv.sh"
 
 echo "== Sanity checks =="
+"${psql_base[@]}" -c 'SELECT COUNT(*) AS ref_department_region_count FROM public.ref_department_region;'
+"${psql_base[@]}" -c 'SELECT * FROM public.ref_department_region ORDER BY departement LIMIT 5;'
 "${psql_base[@]}" -c 'SELECT COUNT(*) AS station_count FROM public."Station";'
 "${psql_base[@]}" -c 'SELECT COUNT(*) AS quotidienne_count FROM public."Quotidienne";'
 "${psql_base[@]}" -c 'SELECT COUNT(*) AS v_station_count FROM public.v_station;'
