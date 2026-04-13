@@ -1046,27 +1046,39 @@ def _apply_temperature_filter(
     ]
 
 
+def _generate_buckets_day(date_start: dt.date, date_end: dt.date) -> list[str]:
+    buckets: list[str] = []
+    current = date_start
+    while current <= date_end:
+        buckets.append(current.strftime("%Y-%m-%d"))
+        current += dt.timedelta(days=1)
+    return buckets
+
+
+def _generate_buckets_month(date_start: dt.date, date_end: dt.date) -> list[str]:
+    buckets: list[str] = []
+    current = date_start.replace(day=1)
+    end_month = date_end.replace(day=1)
+    while current <= end_month:
+        buckets.append(current.strftime("%Y-%m"))
+        month = current.month + 1
+        year = current.year + (month - 1) // 12
+        current = current.replace(year=year, month=((month - 1) % 12) + 1)
+    return buckets
+
+
+def _generate_buckets_year(date_start: dt.date, date_end: dt.date) -> list[str]:
+    return [str(year) for year in range(date_start.year, date_end.year + 1)]
+
+
 def _generate_buckets(
     date_start: dt.date, date_end: dt.date, granularity: str
 ) -> list[str]:
-    buckets: list[str] = []
     if granularity == "day":
-        current = date_start
-        while current <= date_end:
-            buckets.append(current.strftime("%Y-%m-%d"))
-            current += dt.timedelta(days=1)
-    elif granularity == "month":
-        current = date_start.replace(day=1)
-        end_month = date_end.replace(day=1)
-        while current <= end_month:
-            buckets.append(current.strftime("%Y-%m"))
-            month = current.month + 1
-            year = current.year + (month - 1) // 12
-            current = current.replace(year=year, month=((month - 1) % 12) + 1)
-    elif granularity == "year":
-        for year in range(date_start.year, date_end.year + 1):
-            buckets.append(str(year))
-    return buckets
+        return _generate_buckets_day(date_start, date_end)
+    if granularity == "month":
+        return _generate_buckets_month(date_start, date_end)
+    return _generate_buckets_year(date_start, date_end)
 
 
 class TimescaleRecordsGraphDataSource:
@@ -1076,7 +1088,7 @@ class TimescaleRecordsGraphDataSource:
     Retourne un point par unité de granularité, y compris les buckets à 0.
     """
 
-    _GRAN_TO_TRUNC = {"day": "day", "month": "month", "year": "year"}
+    _GRANULARITY_TO_DATE_TRUNC = {"day": "day", "month": "month", "year": "year"}
 
     def fetch_graph(self, request: RecordsGraphRequest) -> list[RecordsGraphBucket]:
         record_type = "TX" if request.type_records == "hot" else "TN"
@@ -1088,7 +1100,7 @@ class TimescaleRecordsGraphDataSource:
         else:
             period_value = None
 
-        trunc = self._GRAN_TO_TRUNC[request.granularity]
+        date_trunc = self._GRANULARITY_TO_DATE_TRUNC[request.granularity]
 
         clauses = [
             "record_type = %s",
@@ -1115,11 +1127,11 @@ class TimescaleRecordsGraphDataSource:
         where = " AND ".join(clauses)
         sql = f"""
             SELECT
-                DATE_TRUNC('{trunc}', record_date)::date AS bucket_date,
+                DATE_TRUNC('{date_trunc}', record_date)::date AS bucket_date,
                 COUNT(*) AS cnt
             FROM public.mv_records_battus
             WHERE {where}
-            GROUP BY DATE_TRUNC('{trunc}', record_date)
+            GROUP BY DATE_TRUNC('{date_trunc}', record_date)
             ORDER BY bucket_date
         """
 
@@ -1128,9 +1140,9 @@ class TimescaleRecordsGraphDataSource:
             rows = {
                 row[0].strftime(
                     "%Y-%m-%d"
-                    if trunc == "day"
+                    if date_trunc == "day"
                     else "%Y-%m"
-                    if trunc == "month"
+                    if date_trunc == "month"
                     else "%Y"
                 ): row[1]
                 for row in cur.fetchall()
