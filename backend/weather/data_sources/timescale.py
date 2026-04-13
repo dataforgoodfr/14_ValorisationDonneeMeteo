@@ -35,6 +35,7 @@ from weather.services.national_indicator.types import (
 )
 from weather.services.records.types import (
     RecordsQuery,
+    RecordsResult,
     StationRecords,
     TemperatureRecord,
 )
@@ -59,6 +60,10 @@ from weather.services.temperature_records.types import (
     SEASON_MONTHS,
     TemperatureRecordEntry,
     TemperatureRecordsRequest,
+    TemperatureRecordsResult,
+)
+from weather.services.temperature_records.types import (
+    Pagination as paginationRecord,
 )
 
 
@@ -543,14 +548,17 @@ class TimescaleTemperatureRecordsDataSource:
 
     def fetch_records(
         self, request: TemperatureRecordsRequest
-    ) -> list[TemperatureRecordEntry]:
+    ) -> TemperatureRecordsResult:
         col = "TX" if request.type_records == "hot" else "TN"
         agg = "MAX" if request.type_records == "hot" else "MIN"
         cmp = ">" if request.type_records == "hot" else "<"
+        page = request.page
+        page_size = request.page_size
+        offset = (page - 1) * page_size
 
         period_clause, params = self._period_clause(request)
 
-        sql = f"""
+        base_sql = f"""
             WITH ordered AS (
                 SELECT
                     q."NUM_POSTE",
@@ -565,6 +573,29 @@ class TimescaleTemperatureRecordsDataSource:
                 WHERE {period_clause}
                   AND q."{col}" IS NOT NULL
             )
+        """
+
+        count_sql = (
+            base_sql
+            + f"""
+            SELECT COUNT(*)
+            FROM ordered o
+            JOIN public.v_station s
+              ON s.station_code = o."NUM_POSTE"
+            WHERE o.prev_val IS NULL
+               OR o."{col}" {cmp} o.prev_val
+        """
+        )
+
+        with connection.cursor() as cur:
+            cur.execute(count_sql, params)
+            total_count = cur.fetchone()[0]
+
+        total_pages = (total_count + page_size - 1) // page_size if page_size else 1
+
+        data_sql = (
+            base_sql
+            + f"""
             SELECT
                 o."NUM_POSTE",
                 s.name,
@@ -572,23 +603,26 @@ class TimescaleTemperatureRecordsDataSource:
                 o."{col}",
                 o."AAAAMMJJ"
             FROM ordered o
-            JOIN public.v_station s ON s.station_code = o."NUM_POSTE"
-            WHERE o.prev_val IS NULL OR o."{col}" {cmp} o.prev_val
+            JOIN public.v_station s
+              ON s.station_code = o."NUM_POSTE"
+            WHERE o.prev_val IS NULL
+               OR o."{col}" {cmp} o.prev_val
             ORDER BY s.name, o."AAAAMMJJ"
+            LIMIT %s OFFSET %s
         """
+        )
 
         with connection.cursor() as cur:
-            cur.execute(sql, params)
+            cur.execute(data_sql, params + [page_size, offset])
+
             cols = [c.name for c in cur.description]
             rows = [dict(zip(cols, row, strict=False)) for row in cur.fetchall()]
 
-        return [
+        results = [
             TemperatureRecordEntry(
                 station_id=row["NUM_POSTE"].strip(),
                 station_name=row["name"],
-                department=str(row["departement"])
-                if row["departement"] is not None
-                else "",
+                department=str(row["departement"]) if row["departement"] else "",
                 record_value=float(row[col]),
                 record_date=row["AAAAMMJJ"].date()
                 if isinstance(row["AAAAMMJJ"], dt.datetime)
@@ -596,6 +630,16 @@ class TimescaleTemperatureRecordsDataSource:
             )
             for row in rows
         ]
+
+        return TemperatureRecordsResult(
+            stations=results,
+            pagination=paginationRecord(
+                total_count=total_count,
+                page=page,
+                page_size=page_size,
+                total_pages=total_pages,
+            ),
+        )
 
     def _period_clause(self, request: TemperatureRecordsRequest) -> tuple[str, list]:
         return _temperature_records_period_clause(request)
@@ -645,7 +689,7 @@ class MaterializedTemperatureRecordsDataSource:
 
     def fetch_records(
         self, request: TemperatureRecordsRequest
-    ) -> list[TemperatureRecordEntry]:
+    ) -> TemperatureRecordEntry:
         record_type = "TX" if request.type_records == "hot" else "TN"
 
         if request.period_type == "month":
@@ -668,7 +712,6 @@ class MaterializedTemperatureRecordsDataSource:
             cur.execute(sql, [record_type, request.period_type, period_value])
             cols = [c.name for c in cur.description]
             rows = [dict(zip(cols, row, strict=False)) for row in cur.fetchall()]
-
         return [
             TemperatureRecordEntry(
                 station_id=row["station_code"].strip(),
@@ -703,16 +746,43 @@ class HybridTemperatureRecordsDataSource:
 
     def fetch_records(
         self, request: TemperatureRecordsRequest
-    ) -> list[TemperatureRecordEntry]:
-        mv_results = self._mv_source.fetch_records(request)
+    ) -> TemperatureRecordsResult:
+        mv_entries = self._mv_source.fetch_records(request)
         try:
             cutoff = self._get_cutoff_date()
         except Exception:
-            return mv_results
+            return self._paginate(mv_entries, request)
         if cutoff is None:
-            return mv_results
+            return self._paginate(mv_entries, request)
         hot_results = self._fetch_records_after_cutoff(request, cutoff)
-        return mv_results + hot_results
+        all_entries = mv_entries + hot_results
+        return self._paginate(all_entries, request)
+
+    def _paginate(
+        self,
+        entries: list[TemperatureRecordEntry],
+        request: TemperatureRecordsRequest,
+    ) -> TemperatureRecordsResult:
+        total_count = len(entries)
+        page = request.page
+        page_size = request.page_size
+
+        start = (page - 1) * page_size
+        end = start + page_size
+
+        paginated = entries[start:end]
+
+        total_pages = (total_count + page_size - 1) // page_size
+
+        return TemperatureRecordsResult(
+            entries=paginated,
+            pagination=paginationRecord(
+                total_count=total_count,
+                page=page,
+                page_size=page_size,
+                total_pages=total_pages,
+            ),
+        )
 
     def _get_cutoff_date(self) -> dt.date | None:
         with connection.cursor() as cur:
@@ -920,8 +990,24 @@ class TimescaleRecordsDataSource:
                     ),
                 )
             )
+        total_count = len(result)
 
-        return tuple(result)
+        start = (query.page - 1) * query.page_size
+        end = start + query.page_size
+
+        paginated = result[start:end]
+
+        total_pages = (total_count + query.page_size - 1) // query.page_size
+
+        return RecordsResult(
+            stations=paginated,
+            pagination=Pagination(
+                total_count=total_count,
+                page=query.page,
+                page_size=query.page_size,
+                total_pages=total_pages,
+            ),
+        )
 
 
 def _department_of_station(station_id: str) -> str:

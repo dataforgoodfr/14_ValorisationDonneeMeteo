@@ -33,8 +33,8 @@ from .serializers import (
     TemperatureDeviationOverviewQuerySerializer,
     TemperatureDeviationOverviewResponseSerializer,
     TemperatureDeviationResponseSerializer,
-    TemperatureRecordEntrySerializer,
     TemperatureRecordsQuerySerializer,
+    TemperatureRecordsResponseSerializer,
 )
 
 
@@ -199,10 +199,15 @@ class TemperatureRecordsAPIView(APIView):
             type_records=params["type_records"],
             month=params.get("month"),
             season=params.get("season"),
+            page=params.get("page", 1),
+            page_size=params.get("page_size", 50),
         )
 
         try:
-            entries = get_temperature_records(request=req, data_source=ds)
+            result = get_temperature_records(
+                request=req,
+                data_source=ds,
+            )
         except ValueError as exc:
             return Response(
                 ErrorSerializer.build(
@@ -212,21 +217,28 @@ class TemperatureRecordsAPIView(APIView):
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
-        serializer = TemperatureRecordEntrySerializer(
-            [
-                {
-                    "station_id": e.station_id,
-                    "station_name": e.station_name,
-                    "department": e.department,
-                    "record_value": e.record_value,
-                    "record_date": e.record_date,
-                }
-                for e in entries
-            ],
-            many=True,
+        out = TemperatureRecordsResponseSerializer(
+            {
+                "pagination": {
+                    "total_count": result.pagination.total_count,
+                    "page": result.pagination.page,
+                    "page_size": result.pagination.page_size,
+                    "total_pages": result.pagination.total_pages,
+                },
+                "results": [
+                    {
+                        "station_id": e.station_id,
+                        "station_name": e.station_name,
+                        "department": e.department,
+                        "record_value": e.record_value,
+                        "record_date": e.record_date,
+                    }
+                    for e in result.entries
+                ],
+            }
         )
 
-        return Response(serializer.data, status=status.HTTP_200_OK)
+        return Response(out.data, status=status.HTTP_200_OK)
 
 
 class TemperatureDeviationOverviewAPIView(APIView):

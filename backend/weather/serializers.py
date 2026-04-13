@@ -269,6 +269,8 @@ class TemperatureRecordsQuerySerializer(serializers.Serializer):
         required=False,
         default="hot",
     )
+    page = serializers.IntegerField(required=False, default=1)
+    page_size = serializers.IntegerField(required=False, default=50)
 
     def validate(self, attrs):
         period_type = attrs.get("period_type", "all_time")
@@ -431,3 +433,15 @@ class TemperatureDeviationOverviewResponseSerializer(serializers.Serializer):
     national = TemperatureDeviationOverviewNationalSerializer()
     pagination = PaginationMetadataSerializer()
     stations = TemperatureDeviationOverviewStationSerializer(many=True)
+
+
+class PaginationSerializer(serializers.Serializer):
+    total_count = serializers.IntegerField()
+    page = serializers.IntegerField()
+    page_size = serializers.IntegerField()
+    total_pages = serializers.IntegerField()
+
+
+class TemperatureRecordsResponseSerializer(serializers.Serializer):
+    pagination = PaginationSerializer()
+    results = TemperatureRecordEntrySerializer(many=True)
