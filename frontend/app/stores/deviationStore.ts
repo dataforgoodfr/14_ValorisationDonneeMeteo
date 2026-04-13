@@ -135,12 +135,8 @@ export const useDeviationStore = defineStore("deviationStore", () => {
 
     watch(isGranularityYear, (value) => {
         if (value) {
-            pickedDateStart.value = new Date(
-                dateToFirstDayOfYearYMD(pickedDateStart.value),
-            );
-            pickedDateEnd.value = new Date(
-                dateToLastDayOfYearYMD(pickedDateEnd.value),
-            );
+            pickedDateStart.value = setToFirstDayOfYear(pickedDateStart.value);
+            pickedDateEnd.value = setToLastDayOfYear(pickedDateEnd.value);
         }
     });
 

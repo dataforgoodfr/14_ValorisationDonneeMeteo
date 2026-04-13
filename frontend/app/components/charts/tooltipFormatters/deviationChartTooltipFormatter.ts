@@ -59,8 +59,8 @@ export function deviationChartTooltipFormatter(
 
         const stationName =
             serie.axisIndex !== undefined
-                ? getStationById(stationsIdAndNames, data?.station_id)
-                      ?.station_name
+                ? (getStationById(stationsIdAndNames, data?.station_id)
+                      ?.station_name ?? "")
                 : "";
 
         const deviation =
@@ -69,7 +69,7 @@ export function deviationChartTooltipFormatter(
         const plusSign = Math.sign(deviation) === 1 ? "+" : "";
 
         return [
-            `${serie?.marker ?? ""} ${stationName} : ${plusSign}${(deviation as number)?.toFixed(1)}°C`,
+            `${serie?.marker ?? ""} ${stationName} : ${plusSign}${deviation.toFixed(1)}°C`,
         ];
     };
 

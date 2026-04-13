@@ -39,7 +39,7 @@ function exportAsPng() {
     const dataURL = chartRef?.value.getDataURL({
         type: "png",
         pixelRatio: 2,
-        backgroundColor: COLORS.white,
+        backgroundColor: COLORS.background,
         excludeComponents: ["dataZoom"],
     });
 

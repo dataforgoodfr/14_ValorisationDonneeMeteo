@@ -8,7 +8,11 @@ import type {
     GridOption,
     TitleOption,
 } from "echarts/types/dist/shared";
-import type { DeviationResponse, DeviationStationSerie } from "~/types/api";
+import type {
+    DeviationDataPoint,
+    DeviationResponse,
+    DeviationStationSerie,
+} from "~/types/api";
 import type { GranularityType } from "~/components/ui/commons/selectBar/types";
 import type { DeviationStationIdAndName } from "~/types/common";
 
@@ -185,7 +189,7 @@ export function useDeviationCalendarOption(
         )?.station_name;
 
         const heatmapData = (stationOrNational?.data ?? [])
-            .map((point) => {
+            .map((point: DeviationDataPoint) => {
                 const coordinates = dateToXY(
                     point.date,
                     granularity,
@@ -193,13 +197,9 @@ export function useDeviationCalendarOption(
                 );
                 if (!coordinates) return null;
 
-                return [...coordinates, point.deviation] as [
-                    number,
-                    number,
-                    number,
-                ];
+                return [...coordinates, point.deviation];
             })
-            .filter(Boolean) as [number, number, number][];
+            .filter((coords) => coords !== null);
 
         grids.push({
             top: `${top}%`,
@@ -285,7 +285,7 @@ export function useDeviationCalendarOption(
         right: "0%",
         bottom: "center",
         inRange: {
-            color: [COLORS.negative, COLORS.white, COLORS.positive],
+            color: [COLORS.negative, "#FFF", COLORS.positive],
         },
         textStyle: { color: COLORS.black },
         handleStyle: { borderColor: "#3a5080" },
