@@ -10,7 +10,10 @@ from weather.utils.date_range import (
     period_start,
 )
 
-from .protocols import TemperatureDeviationDailyDataSource
+from .protocols import (
+    TemperatureDeviationDailyDataSource,
+    TemperatureDeviationOverviewDataSource,
+)
 from .types import (
     AggregatedDeviationPoint,
     DailyDeviationPoint,
@@ -18,6 +21,7 @@ from .types import (
     NationalDeviationSeries,
     ObservedPoint,
     StationDeviationSeries,
+    TemperatureDeviationOverviewQuery,
     TemperatureDeviationResult,
 )
 
@@ -365,3 +369,73 @@ def compute_temperature_deviation(
         include_national=include_national,
     )
     return serialize_temperature_deviation_result(result)
+
+
+def compute_temperature_deviation_overview(
+    *,
+    data_source: TemperatureDeviationOverviewDataSource,
+    date_start: dt.date,
+    date_end: dt.date,
+    station_ids: tuple[str, ...] = (),
+    station_search: str | None = None,
+    temperature_mean_min: float | None = None,
+    temperature_mean_max: float | None = None,
+    deviation_min: float | None = None,
+    deviation_max: float | None = None,
+    alt_min: float | None = None,
+    alt_max: float | None = None,
+    departments: tuple[str, ...] = (),
+    regions: tuple[str, ...] = (),
+    ordering: str = "-deviation",
+    limit: int = 50,
+    offset: int = 0,
+) -> dict:
+    query = TemperatureDeviationOverviewQuery(
+        date_start=date_start,
+        date_end=date_end,
+        station_ids=station_ids,
+        station_search=station_search,
+        temperature_mean_min=temperature_mean_min,
+        temperature_mean_max=temperature_mean_max,
+        deviation_min=deviation_min,
+        deviation_max=deviation_max,
+        alt_min=alt_min,
+        alt_max=alt_max,
+        departments=departments,
+        regions=regions,
+        ordering=ordering,
+        limit=limit,
+        offset=offset,
+    )
+
+    national = data_source.fetch_national_mean_deviation(
+        date_start=date_start,
+        date_end=date_end,
+    )
+    result = data_source.fetch_station_overview(query)
+
+    return {
+        "national": {
+            "deviation_mean": round(national, 2),
+        },
+        "pagination": {
+            "total_count": result.pagination.total_count,
+            "limit": result.pagination.limit,
+            "offset": result.pagination.offset,
+        },
+        "stations": [
+            {
+                "station_id": s.station_id,
+                "station_name": s.station_name,
+                "lat": s.lat,
+                "lon": s.lon,
+                "department": s.department,
+                "alt": s.alt,
+                "region": s.region,
+                "temperature_mean": round(s.temperature_mean, 2),
+                "baseline_mean": round(s.baseline_mean, 2),
+                "deviation": round(s.deviation, 2),
+            }
+            for s in result.stations
+        ],
+    }

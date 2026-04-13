@@ -33,12 +33,224 @@ tags:
 paths:
   /temperature/deviation:
     get:
-      summary: Écart de température à la normale
+      summary: Vue synthétique des écarts de température à la normale
+      description: >
+        Retourne les données agrégées nécessaires à l'écran de synthèse des écarts
+        de température à la normale sur une période donnée :
+        un indicateur national moyen et une liste paginée de stations agrégées
+        sur la période.
+
+        Le tableau des stations peut être filtré par recherche textuelle, critères
+          numériques, zone géographique ou liste explicite d'identifiants de stations.
+
+        L'indicateur national est calculé à l'échelle de la France métropolitaine
+        et n'est pas affecté par les filtres appliqués au tableau des stations.
+      operationId: getTemperatureDeviationOverview
+      tags:
+        - Temperature
+      parameters:
+        - name: date_start
+          in: query
+          required: true
+          schema:
+            type: string
+            format: date
+          description: Date de début incluse (YYYY-MM-DD).
+          example: "2025-03-01"
+
+        - name: date_end
+          in: query
+          required: true
+          schema:
+            type: string
+            format: date
+          description: Date de fin incluse (YYYY-MM-DD).
+          example: "2025-03-31"
+
+        - name: station_ids
+          in: query
+          required: false
+          schema:
+            type: array
+            items:
+              type: string
+          style: form
+          explode: false
+          description: >
+            Liste d'identifiants de stations à inclure dans la réponse.
+            Permet de restreindre explicitement le tableau à une sélection de stations.
+          example: "07149,07255"
+
+        - name: station_search
+          in: query
+          required: false
+          schema:
+            type: string
+          description: Filtre textuel sur le nom de station.
+          example: "Montsouris"
+
+        - name: temperature_mean_min
+          in: query
+          required: false
+          schema:
+            type: number
+            format: float
+          description: Température moyenne minimale incluse.
+          example: 20.0
+
+        - name: temperature_mean_max
+          in: query
+          required: false
+          schema:
+            type: number
+            format: float
+          description: Température moyenne maximale incluse.
+          example: 35.0
+
+        - name: deviation_min
+          in: query
+          required: false
+          schema:
+            type: number
+            format: float
+          description: Écart à la normale minimal inclus.
+          example: -2.0
+
+        - name: deviation_max
+          in: query
+          required: false
+          schema:
+            type: number
+            format: float
+          description: Écart à la normale maximal inclus.
+          example: 4.0
+
+        - name: ordering
+          in: query
+          required: false
+          schema:
+            type: string
+            enum:
+              - station_name
+              - -station_name
+              - temperature_mean
+              - -temperature_mean
+              - deviation
+              - -deviation
+              - department
+              - -department
+              - region
+              - -region
+            default: -deviation
+          description: >
+            Champ de tri du tableau. Le préfixe '-' indique un tri décroissant.
+
+        - name: limit
+          in: query
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 500
+            default: 50
+          description: Nombre maximal d'éléments retournés.
+
+        - name: offset
+          in: query
+          required: false
+          schema:
+            type: integer
+            minimum: 0
+            default: 0
+          description: Nombre d'éléments à ignorer avant de commencer la page.
+
+        - name: alt_min
+          in: query
+          schema:
+            type: number
+          required: false
+
+        - name: alt_max
+          in: query
+          schema:
+            type: number
+          required: false
+
+        - name: departments
+          in: query
+          schema:
+            type: string
+          description: |
+            Liste de départements séparés par des virgules (ex: "13,75,2A")
+
+        - name: regions
+          in: query
+          schema:
+            type: string
+          description: |
+            Liste de régions séparées par des virgules (ex: "Île-de-France,Provence-Alpes-Côte d'Azur")
+
+      responses:
+        "200":
+          description: Indicateur national et tableau paginé des stations.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TemperatureDeviationOverviewResponse"
+              examples:
+                sample:
+                  summary: Réponse paginée sur une période donnée
+                  value:
+                    metadata:
+                      date_start: "2025-03-01"
+                      date_end: "2025-03-31"
+                      baseline: "1991-2020"
+                      filters:
+                        station_search: null
+                        station_ids: ["07149", "07255"]
+                        temperature_mean_min: null
+                        temperature_mean_max: null
+                        deviation_min: null
+                        deviation_max: null
+                      ordering: "-deviation"
+                    national:
+                      deviation_mean: 2.1
+                    pagination:
+                      total_count: 1320
+                      limit: 50
+                      offset: 0
+                    stations:
+                      - station_id: "013001650"
+                        station_name: "Marseille-Marignane"
+                        temperature_mean: 28.5
+                        baseline_mean: 25.2
+                        deviation: 3.3
+                        alt: 10
+                        lat: 44
+                        lon: 5.3
+                        department: "13"
+                        region: "Provence-Alpes-Côte d'Azur"
+                      - station_id: "7501111156"
+                        station_name: "Paris-Montsouris"
+                        temperature_mean: 28.5
+                        baseline_mean: 26.5
+                        deviation: 2.0
+                        lat: 46
+                        lon: 2
+                        alt: 40
+                        department: "75"
+                        region: "Ile de France"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+
+  /temperature/deviation/graph:
+    get:
+      summary: Données d'écart de température à la normale pour les graphes
       description: >
         Récupère les données d'écart de température par rapport à la normale (baseline fixe 1991-2020).
         Permet de comparer l'écart à la normale moyen en France avec celui de stations spécifiques.
         La granularité temporelle est ajustable (jour, mois, année) pour s'adapter à l'axe des abscisses.
-      operationId: getTemperatureDeviation
+      operationId: getTemperatureDeviationGraph
       tags:
         - Temperature
       parameters:
@@ -104,14 +316,14 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/TemperatureDeviationResponse"
+                $ref: "#/components/schemas/TemperatureDeviationGraphResponse"
               examples:
                 national_and_stations:
-                  summary: Moyenne nationale et deux stations
+                  summary: Moyenne nationale et deux stations (granularité journalière)
                   value:
                     metadata:
                       date_start: "2025-02-01"
-                      date_end: "2025-02-28"
+                      date_end: "2025-02-02"
                       baseline: "1991-2020"
                       granularity: "day"
                     national:
@@ -120,6 +332,10 @@ paths:
                           deviation: 1.2
                           temperature: 8.4
                           baseline_mean: 7.2
+                        - date: "2025-02-02"
+                          deviation: 0.5
+                          temperature: 7.8
+                          baseline_mean: 7.3
                     stations:
                       - station_id: "07149"
                         station_name: "Orly"
@@ -128,6 +344,10 @@ paths:
                             deviation: 0.8
                             temperature: 7.9
                             baseline_mean: 7.1
+                          - date: "2025-02-02"
+                            deviation: 0.2
+                            temperature: 7.5
+                            baseline_mean: 7.3
                       - station_id: "07255"
                         station_name: "Marseille-Marignane"
                         data:
@@ -135,6 +355,10 @@ paths:
                             deviation: 1.5
                             temperature: 10.3
                             baseline_mean: 8.8
+                          - date: "2025-02-02"
+                            deviation: 0.9
+                            temperature: 9.6
+                            baseline_mean: 8.7
                 stations_only:
                   summary: Stations uniquement
                   value:
@@ -664,7 +888,7 @@ components:
                     maximum: 1
                     description: Pourcentage de données disponibles
 
-    TemperatureDeviationPoint:
+    TemperatureDeviationGraphPoint:
       type: object
       required:
         - date
@@ -697,7 +921,7 @@ components:
           type: array
           description: "Série agrégée au niveau national"
           items:
-            $ref: "#/components/schemas/TemperatureDeviationPoint"
+            $ref: "#/components/schemas/TemperatureDeviationGraphPoint"
 
     StationTemperatureDeviationSeries:
       type: object
@@ -716,9 +940,9 @@ components:
           type: array
           description: "Série agrégée pour cette station"
           items:
-            $ref: "#/components/schemas/TemperatureDeviationPoint"
+            $ref: "#/components/schemas/TemperatureDeviationGraphPoint"
 
-    TemperatureDeviationResponse:
+    TemperatureDeviationGraphResponse:
       type: object
       required:
         - metadata
@@ -805,6 +1029,152 @@ components:
           type: string
           format: date
           description: Date à laquelle le record a été enregistré
+    TemperatureDeviationOverviewResponse:
+      type: object
+      required:
+        - metadata
+        - national
+        - pagination
+        - stations
+      properties:
+        metadata:
+          $ref: "#/components/schemas/TemperatureDeviationOverviewMetadata"
+        national:
+          $ref: "#/components/schemas/TemperatureDeviationOverviewNational"
+        pagination:
+          $ref: "#/components/schemas/PaginationMetadata"
+        stations:
+          type: array
+          items:
+            $ref: "#/components/schemas/TemperatureDeviationOverviewStation"
+
+    TemperatureDeviationOverviewMetadata:
+      type: object
+      required:
+        - date_start
+        - date_end
+        - baseline
+        - filters
+        - ordering
+      properties:
+        date_start:
+          type: string
+          format: date
+        date_end:
+          type: string
+          format: date
+        baseline:
+          type: string
+          description: Période de référence fixe imposée par les règles métier.
+          example: "1991-2020"
+        filters:
+          type: object
+          properties:
+            station_ids:
+              type: array
+              items:
+                type: string
+            station_search:
+              type: string
+              nullable: true
+            temperature_mean_min:
+              type: number
+              nullable: true
+            temperature_mean_max:
+              type: number
+              nullable: true
+            deviation_min:
+              type: number
+              nullable: true
+            deviation_max:
+              type: number
+              nullable: true
+            alt_min:
+              type: number
+              nullable: true
+            alt_max:
+              type: number
+              nullable: true
+            departments:
+              type: array
+              items:
+                type: string
+            regions:
+              type: array
+              items:
+                type: string
+        ordering:
+          type: string
+
+    TemperatureDeviationOverviewNational:
+      type: object
+      required:
+        - deviation_mean
+      properties:
+        deviation_mean:
+          type: number
+          format: float
+          description: Écart moyen à la normale sur la période en France métropolitaine.
+
+    PaginationMetadata:
+      type: object
+      required:
+        - total_count
+        - limit
+        - offset
+      properties:
+        total_count:
+          type: integer
+        limit:
+          type: integer
+        offset:
+          type: integer
+
+    TemperatureDeviationOverviewStation:
+      type: object
+      required:
+        - station_id
+        - station_name
+        - temperature_mean
+        - baseline_mean
+        - deviation
+        - lat
+        - lon
+        - alt
+        - department
+        - region
+      properties:
+        station_id:
+          type: string
+        station_name:
+          type: string
+        temperature_mean:
+          type: number
+          format: float
+        baseline_mean:
+          type: number
+          format: float
+        deviation:
+          type: number
+          format: float
+        lat:
+          type: number
+          format: double
+          nullable: true
+        lon:
+          type: number
+          format: double
+          nullable: true
+        alt:
+          type: number
+          format: double
+          nullable: true
+        department:
+          type: string
+          nullable: true
+        region:
+          type: string
+          nullable: true
 
   responses:
     BadRequest:

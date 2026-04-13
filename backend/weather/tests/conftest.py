@@ -115,6 +115,9 @@ def setup_db_schema_and_views(django_db_setup, django_db_blocker):
     Crée les tables sources + views dans la DB de test.
     """
     schema_sql = (BASE_DIR / "sql" / "schemas" / "001_source_tables.sql").read_text()
+    ref_department_region_sql = (
+        BASE_DIR / "sql" / "tables" / "001_table_ref_department_region.sql"
+    ).read_text()
     v_station_sql = (BASE_DIR / "sql" / "views" / "001_v_station.sql").read_text()
     v_quot_sql = (BASE_DIR / "sql" / "views" / "002_v_quotidienne.sql").read_text()
     baseline_station_table_sql = (
@@ -154,6 +157,7 @@ def setup_db_schema_and_views(django_db_setup, django_db_blocker):
                 "DROP TABLE IF EXISTS public.baseline_station_daily_mean_1991_2020 CASCADE;"
             )
             cur.execute(schema_sql)
+            cur.execute(ref_department_region_sql)
             cur.execute(v_station_sql)
             cur.execute(v_quot_sql)
             cur.execute(baseline_station_table_sql)

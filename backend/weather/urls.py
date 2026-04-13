@@ -8,7 +8,8 @@ from rest_framework.routers import DefaultRouter
 from .views import (
     NationalIndicatorAPIView,
     StationViewSet,
-    TemperatureDeviationAPIView,
+    TemperatureDeviationGraphAPIView,
+    TemperatureDeviationOverviewAPIView,
     TemperatureRecordsAPIView,
 )
 
@@ -28,8 +29,13 @@ urlpatterns = [
         name="temperature-records",
     ),
     path(
+        "temperature/deviation/graph",
+        TemperatureDeviationGraphAPIView.as_view(),
+        name="temperature-deviation-graph",
+    ),
+    path(
         "temperature/deviation",
-        TemperatureDeviationAPIView.as_view(),
-        name="temperature-deviation",
+        TemperatureDeviationOverviewAPIView.as_view(),
+        name="temperature-deviation-overview",
     ),
 ]
