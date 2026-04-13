@@ -1,12 +1,62 @@
 import type {
-    DeviationParams,
-    DeviationResponse,
+    TemperatureDeviationParams,
+    TemperatureDeviationResponse,
+    TemperatureDeviationGraphParams,
+    TemperatureDeviationGraphResponse,
     TemperatureRecordsParams,
     TemperatureRecordsResponse,
 } from "~/types/api";
 
 export function useTemperatureDeviation(
-    params: MaybeRef<DeviationParams>,
+    params: MaybeRef<TemperatureDeviationParams>,
+    enabled?: MaybeRef<boolean>,
+    requireStations: boolean = true,
+) {
+    const { useApiFetch } = useApiClient();
+
+    const hasRequiredParams = computed(() => {
+        const resolved = toValue(params);
+        if (!requireStations) {
+            return (
+                resolved.date_start !== undefined &&
+                resolved.date_end !== undefined
+            );
+        }
+        return (
+            resolved.station_ids !== undefined && resolved.station_ids !== ""
+        );
+    });
+
+    const isEnabled = computed(() =>
+        enabled !== undefined ? toValue(enabled) : true,
+    );
+
+    const result = useApiFetch<TemperatureDeviationResponse>(
+        "/temperature/deviation",
+        {
+            query: params,
+            immediate: false,
+            watch: false,
+        },
+    );
+
+    watch(
+        [isEnabled, hasRequiredParams, params],
+        ([enabled, hasParams]) => {
+            if (enabled && hasParams) {
+                result.execute();
+            } else if (!hasParams) {
+                result.data.value = undefined;
+            }
+        },
+        { immediate: true },
+    );
+
+    return result;
+}
+
+export function useTemperatureDeviationGraph(
+    params: MaybeRef<TemperatureDeviationGraphParams>,
     enabled?: MaybeRef<boolean>,
 ) {
     const { useApiFetch } = useApiClient();
@@ -23,11 +73,14 @@ export function useTemperatureDeviation(
         enabled !== undefined ? toValue(enabled) : true,
     );
 
-    const result = useApiFetch<DeviationResponse>("/temperature/deviation", {
-        query: params,
-        immediate: false,
-        watch: false,
-    });
+    const result = useApiFetch<TemperatureDeviationGraphResponse>(
+        "/temperature/deviation/graph",
+        {
+            query: params,
+            immediate: false,
+            watch: false,
+        },
+    );
 
     watch(
         [isEnabled, hasRequiredParams, params],

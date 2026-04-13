@@ -7,19 +7,25 @@ import { useDeviationTableStore } from "~/stores/deviationTableStore";
 import DeviationFilterBar from "~/components/table/deviation/DeviationFilterBar.vue";
 
 const store = useDeviationTableStore();
-const { page, pageSize, data, pending, error } = storeToRefs(store);
+const { page, pageSize, deviationData, pending, error } = storeToRefs(store);
 
 interface TableRow {
     station_name: string;
-    departement: string;
-    deviation: number;
+    departement: string | undefined;
+    region: string | undefined;
+    altitude: number | undefined;
+    deviation: number | undefined;
+    temperatureMean: number | undefined;
 }
 
 const tableData = computed<TableRow[]>(() =>
-    (data.value?.results ?? []).map((r) => ({
-        station_name: r.station_name,
-        departement: r.departement,
-        deviation: r.deviation,
+    (deviationData.value?.stations ?? []).map((s) => ({
+        station_name: s.station_name,
+        departement: s.department,
+        region: s.region,
+        altitude: s.alt,
+        deviation: s.deviation,
+        temperatureMean: s.temperature_mean,
     })),
 );
 
@@ -29,6 +35,12 @@ const deviationBadgeColor = (deviation: number) =>
 const columns: TableColumn<TableRow>[] = [
     { accessorKey: "station_name", header: "Station" },
     { accessorKey: "departement", header: "Département" },
+    { accessorKey: "region", header: "Région" },
+    {
+        accessorKey: "altitude",
+        header: "Altitude (m)",
+        cell: ({ row }) => `${row.getValue<number>("altitude")} m`,
+    },
     {
         accessorKey: "deviation",
         header: "Écart à la normale (°C)",
@@ -42,6 +54,12 @@ const columns: TableColumn<TableRow>[] = [
                 },
                 () => `${row.getValue<number>("deviation").toFixed(1)} °C`,
             ),
+    },
+    {
+        accessorKey: "temperatureMean",
+        header: "Température Moyenne (°C)",
+        cell: ({ row }) =>
+            `${row.getValue<number>("temperatureMean").toFixed(1)}`,
     },
 ];
 </script>
@@ -64,7 +82,7 @@ const columns: TableColumn<TableRow>[] = [
         <div class="flex justify-center border-t border-accented pt-4">
             <UPagination
                 v-model:page="page"
-                :total="data?.count ?? 0"
+                :total="deviationData?.pagination.total_count ?? 0"
                 :items-per-page="pageSize"
             />
         </div>
