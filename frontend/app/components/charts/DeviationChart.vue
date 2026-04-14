@@ -18,7 +18,6 @@ import { UniversalTransition } from "echarts/features";
 import { CanvasRenderer } from "echarts/renderers";
 import { useDeviationCalendarOption } from "~/composables/useDeviationCalendarOption";
 import { COLORS } from "~/constants/colors";
-import type { EChartsOption } from "echarts";
 
 echarts.registerLocale("FR", langFR);
 echarts.use([
