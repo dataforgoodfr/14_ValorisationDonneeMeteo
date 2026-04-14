@@ -7,13 +7,20 @@ import { useRecordsTableStore } from "~/stores/recordsTableStore";
 import RecordsFilterBar from "~/components/table/records/RecordsFilterBar.vue";
 
 const store = useRecordsTableStore();
-const { page, pageSize, typeRecords, recordsData, pending, error } =
-    storeToRefs(store);
+const {
+    page,
+    pageSize,
+    typeRecords,
+    pagedStations,
+    filteredCount,
+    pending,
+    error,
+} = storeToRefs(store);
 
 // Track the record type that corresponds to the data currently displayed,
 // so the badge color only flips once the new data has arrived.
 const displayedTypeRecords = ref(typeRecords.value);
-watch(recordsData, () => {
+watch(pagedStations, () => {
     displayedTypeRecords.value = typeRecords.value;
 });
 
@@ -21,34 +28,20 @@ const temperatureBadgeColor = computed(() =>
     displayedTypeRecords.value === "hot" ? "error" : "info",
 );
 
-// station_ids and departments in the metadata are parallel arrays
-// zip them to derive the department for each station.
-const stationDeptMap = computed(() => {
-    const { station_ids = [], departments = [] } =
-        recordsData.value?.metadata ?? {};
-    return new Map(station_ids.map((id, i) => [id, departments[i]]));
-});
-
 interface TableRow {
     name: string;
-    departement: string | undefined;
-    record: number | undefined;
-    recordDate: string | undefined;
+    departement: string;
+    record: number;
+    recordDate: string;
 }
 
 const tableData = computed<TableRow[]>(() =>
-    (recordsData.value?.stations ?? []).map((s) => {
-        const record =
-            displayedTypeRecords.value === "cold"
-                ? s.cold_records[0]
-                : s.hot_records[0];
-        return {
-            name: s.name,
-            departement: stationDeptMap.value.get(s.id),
-            record: record?.value,
-            recordDate: record?.date,
-        };
-    }),
+    pagedStations.value.map((s) => ({
+        name: s.station_name,
+        departement: s.department,
+        record: s.record_value,
+        recordDate: s.record_date,
+    })),
 );
 
 const columns = computed<TableColumn<TableRow>[]>(() => [
@@ -94,7 +87,7 @@ const columns = computed<TableColumn<TableRow>[]>(() => [
         <div class="flex justify-center border-t border-accented pt-4">
             <UPagination
                 v-model:page="page"
-                :total="recordsData?.count ?? 0"
+                :total="filteredCount"
                 :items-per-page="pageSize"
             />
         </div>

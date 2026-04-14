@@ -138,35 +138,15 @@ export interface TemperatureRecordsParams {
     offset?: number;
 }
 
-export interface TemperatureRecordEntry {
-    value: number;
-    date: string;
+export interface TemperatureRecordFlatEntry {
+    station_id: string;
+    station_name: string;
+    department: string;
+    record_value: number;
+    record_date: string;
 }
 
-export interface TemperatureRecordStation {
-    id: string;
-    name: string;
-    hot_records: TemperatureRecordEntry[];
-    cold_records: TemperatureRecordEntry[];
-}
-
-export interface TemperatureRecordsMetadata {
-    date_start: string | null;
-    date_end: string | null;
-    record_kind: RecordKind;
-    record_scope: RecordScope;
-    type_records: TypeRecords;
-    station_ids: string[];
-    departments: string[];
-    temperature_min: number | null;
-    temperature_max: number | null;
-}
-
-export interface TemperatureRecordsResponse {
-    count: number;
-    metadata: TemperatureRecordsMetadata;
-    stations: TemperatureRecordStation[];
-}
+export type TemperatureRecordsResponse = TemperatureRecordFlatEntry[];
 
 // ===== API Error type =====
 
