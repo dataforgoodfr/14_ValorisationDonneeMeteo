@@ -7,6 +7,7 @@ import type {
     YAXisOption,
     GridOption,
     TitleOption,
+    ContinousVisualMapOption,
 } from "echarts/types/dist/shared";
 import type {
     DeviationDataPoint,
@@ -45,24 +46,22 @@ function toMonthNumber(monthLabel: string): number {
     return fullYear * 12 + monthIndex;
 }
 
-function buildCategories(
-    data: DeviationResponse,
-    granularity: GranularityType,
-): { xCategories: string[]; yCategories: string[] } {
-    const allDates = [
-        ...(data.national?.data?.map((d) => d.date) ?? []),
-        ...data.stations.flatMap((s) => s.data?.map((d) => d.date) ?? []),
-    ];
+function buildCategoriesForYear(allDates: string[]): {
+    xCategories: string[];
+    yCategories: string[];
+} {
+    const years = [...new Set(allDates.map((d) => d.slice(0, 4)))].sort();
 
-    if (granularity === "year") {
-        const years = [...new Set(allDates.map((d) => d.slice(0, 4)))].sort();
+    return {
+        xCategories: years,
+        yCategories: SHORT_FRENCH_MONTHS,
+    };
+}
 
-        return {
-            xCategories: years,
-            yCategories: SHORT_FRENCH_MONTHS,
-        };
-    }
-
+function buildCategoriesForMonth(allDates: string[]): {
+    xCategories: string[];
+    yCategories: string[];
+} {
     const monthLabels = [
         ...new Set(
             allDates.map((isoDate) => {
@@ -87,6 +86,22 @@ function buildCategories(
         xCategories: monthLabels,
         yCategories: Array.from({ length: 31 }, (_, i) => String(i + 1)),
     };
+}
+
+function buildCategories(
+    data: DeviationResponse,
+    granularity: GranularityType,
+): { xCategories: string[]; yCategories: string[] } {
+    const allDates = [
+        ...(data.national?.data?.map((d) => d.date) ?? []),
+        ...data.stations.flatMap((s) => s.data?.map((d) => d.date) ?? []),
+    ];
+
+    if (granularity === "year") {
+        return buildCategoriesForYear(allDates);
+    }
+
+    return buildCategoriesForMonth(allDates);
 }
 
 function splitIsoDate(isoDate: string): [string, string, string] {
@@ -238,7 +253,7 @@ export function useDeviationCalendarOption(
             splitArea: { show: true },
             axisTick: { show: false },
             axisLine: { lineStyle: { color: "#3a5080" } },
-            axisLabel: { color: COLORS.black, fontSize: 11 },
+            axisLabel: { color: COLORS.foregound, fontSize: 11 },
             name: yAxisName,
             nameLocation: "middle",
             nameGap: 35,
@@ -276,7 +291,7 @@ export function useDeviationCalendarOption(
         });
     });
 
-    const visualMap = {
+    const visualMap: ContinousVisualMapOption = {
         min: -5,
         max: +5,
         calculable: true,
