@@ -8,6 +8,16 @@ import type {
     ScatterSeriesOption,
     BarSeriesOption,
 } from "echarts";
+import {
+    GridComponent,
+    TitleComponent,
+    TooltipComponent,
+    LegendComponent,
+    DataZoomComponent,
+} from "echarts/components";
+import { ScatterChart, BarChart } from "echarts/charts";
+import { CanvasRenderer } from "echarts/renderers";
+import { UniversalTransition } from "echarts/features";
 import { recordsChartTooltipFormatter } from "~/components/charts/tooltipFormatters/recordsChartTooltipFormatter";
 import {
     countByPeriod,
@@ -16,6 +26,17 @@ import {
 } from "./recordsChartUtils";
 
 echarts.registerLocale("FR", langFR);
+echarts.use([
+    GridComponent,
+    TitleComponent,
+    TooltipComponent,
+    LegendComponent,
+    DataZoomComponent,
+    ScatterChart,
+    BarChart,
+    CanvasRenderer,
+    UniversalTransition,
+]);
 
 interface Props {
     adapter: SelectBarAdapter<TemperatureRecordsResponse>;
