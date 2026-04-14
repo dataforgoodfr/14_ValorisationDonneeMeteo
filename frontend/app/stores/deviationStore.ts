@@ -1,4 +1,4 @@
-import type { DeviationParams, Station } from "~/types/api";
+import type { TemperatureDeviationGraphParams, Station } from "~/types/api";
 import { useCustomDate, dateToStringYMD } from "#imports";
 import type {
     GranularityType,
@@ -27,7 +27,7 @@ export const useDeviationStore = defineStore("deviationStore", () => {
     const selectedStations = ref<Station[]>([]);
     const includeNational = ref<boolean>(true);
 
-    const params = computed<DeviationParams>(() => ({
+    const params = computed<TemperatureDeviationGraphParams>(() => ({
         date_start: dateToStringYMD(pickedDateStart.value),
         date_end: dateToStringYMD(pickedDateEnd.value),
         granularity: granularity.value,
@@ -39,7 +39,7 @@ export const useDeviationStore = defineStore("deviationStore", () => {
         data: deviationData,
         pending,
         error,
-    } = useTemperatureDeviation(params);
+    } = useTemperatureDeviationGraph(params);
 
     const setGranularity = (value: GranularityType) => {
         sliceType.value = "full";

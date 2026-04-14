@@ -1,9 +1,9 @@
 import type { SelectBarAdapter } from "~/components/ui/commons/selectBar/types";
-import type { DeviationResponse } from "~/types/api";
+import type { TemperatureDeviationGraphResponse } from "~/types/api";
 import { useDeviationStore } from "#imports";
 
 export const useDeviationSelectBarAdapter =
-    (): SelectBarAdapter<DeviationResponse> => {
+    (): SelectBarAdapter<TemperatureDeviationGraphResponse> => {
         const store = useDeviationStore();
 
         const {
