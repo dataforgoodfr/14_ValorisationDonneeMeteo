@@ -39,7 +39,7 @@ export const useDeviationSelectBarAdapter =
                 hasChartTypeSelector: true,
                 hasExport: true,
             },
-            chartTypes: [
+            chartTypeOptions: [
                 {
                     label: "Barres",
                     value: "bar",
