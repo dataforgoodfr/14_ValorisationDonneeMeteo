@@ -25,7 +25,7 @@ interface TableRow {
     station_name: string;
     departement: string | undefined;
     region: string | undefined;
-    altitude: number | undefined;
+    // altitude: number | undefined;
     deviation: number | undefined;
     temperatureMean: number | undefined;
 }
@@ -35,7 +35,7 @@ const tableData = computed<TableRow[]>(() =>
         station_name: s.station_name,
         departement: s.department,
         region: s.region,
-        altitude: s.alt,
+        // altitude: s.alt,
         deviation: s.deviation,
         temperatureMean: s.temperature_mean,
     })),
@@ -94,29 +94,29 @@ const columns: TableColumn<TableRow>[] = [
                     : "i-lucide-arrow-up-down",
                 color: "neutral",
                 class: "-mx-2.5 font-semibold text-highlighted w-full justify-center",
-                onClick: () => setOrdering("departement"),
+                onClick: () => setOrdering("region"),
             }),
         meta: { class: { td: "text-center" } },
     },
-    {
-        accessorKey: "altitude",
-        header: () =>
-            h(UButton, {
-                variant: "ghost",
-                label: "Altitude (m)",
-                title: "Altitude (m)",
-                trailingIcon: ordering.value.includes("altitude")
-                    ? ordering.value.startsWith("-")
-                        ? "i-lucide-arrow-down"
-                        : "i-lucide-arrow-up"
-                    : "i-lucide-arrow-up-down",
-                color: "neutral",
-                class: "-mx-2.5 font-semibold text-highlighted w-full justify-center",
-                onClick: () => setOrdering("departement"),
-            }),
-        meta: { class: { td: "text-center" } },
-        cell: ({ row }) => `${row.getValue<number>("altitude")} m`,
-    },
+    // {
+    //     accessorKey: "altitude",
+    //     header: () =>
+    //         h(UButton, {
+    //             variant: "ghost",
+    //             label: "Altitude (m)",
+    //             title: "Altitude (m)",
+    //             trailingIcon: ordering.value.includes("altitude")
+    //                 ? ordering.value.startsWith("-")
+    //                     ? "i-lucide-arrow-down"
+    //                     : "i-lucide-arrow-up"
+    //                 : "i-lucide-arrow-up-down",
+    //             color: "neutral",
+    //             class: "-mx-2.5 font-semibold text-highlighted w-full justify-center",
+    //             onClick: () => setOrdering("alt"),
+    //         }),
+    //     meta: { class: { td: "text-center" } },
+    //     cell: ({ row }) => `${row.getValue<number>("altitude")} m`,
+    // },
     {
         accessorKey: "deviation",
         header: () =>
@@ -131,7 +131,7 @@ const columns: TableColumn<TableRow>[] = [
                     : "i-lucide-arrow-up-down",
                 color: "neutral",
                 class: "-mx-2.5 font-semibold text-highlighted w-full justify-center",
-                onClick: () => setOrdering("departement"),
+                onClick: () => setOrdering("deviation"),
             }),
         meta: { class: { td: "text-center" } },
         cell: ({ row }) =>
@@ -159,7 +159,7 @@ const columns: TableColumn<TableRow>[] = [
                     : "i-lucide-arrow-up-down",
                 color: "neutral",
                 class: "-mx-2.5 font-semibold text-highlighted w-full justify-center",
-                onClick: () => setOrdering("departement"),
+                onClick: () => setOrdering("temperature_mean"),
             }),
         meta: { class: { td: "text-center" } },
         cell: ({ row }) =>

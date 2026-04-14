@@ -12,7 +12,7 @@ type DeviationTableFilters = {
     name?: StringFilterValue;
     departement?: StringFilterValue;
     region?: StringFilterValue;
-    altitude?: RangeFilterValue;
+    // altitude?: RangeFilterValue;
     deviation?: RangeFilterValue;
     temperatureMean?: RangeFilterValue;
 };
@@ -28,8 +28,8 @@ export const useDeviationTableStore = defineStore("deviationTableStore", () => {
     const stationIds = ref<string[]>([]);
     const departmentsFilter = ref<string[]>([]);
     const regionsFilter = ref<string[]>([]);
-    const altitudeMin = ref<string | undefined>(undefined);
-    const altitudeMax = ref<string | undefined>(undefined);
+    // const altitudeMin = ref<string | undefined>(undefined);
+    // const altitudeMax = ref<string | undefined>(undefined);
     const deviationMin = ref<string | undefined>(undefined);
     const deviationMax = ref<string | undefined>(undefined);
     const temperatureMeanMin = ref<string | undefined>(undefined);
@@ -58,12 +58,12 @@ export const useDeviationTableStore = defineStore("deviationTableStore", () => {
             };
         if (regionsFilter.value.length >= 1)
             result.region = { type: "string", values: regionsFilter.value };
-        if (altitudeMin.value || altitudeMax.value)
-            result.altitude = {
-                type: "number-range",
-                min: altitudeMin.value,
-                max: altitudeMax.value,
-            };
+        // if (altitudeMin.value || altitudeMax.value)
+        //     result.altitude = {
+        //         type: "number-range",
+        //         min: altitudeMin.value,
+        //         max: altitudeMax.value,
+        //     };
         if (deviationMin.value || deviationMax.value)
             result.deviation = {
                 type: "number-range",
@@ -85,10 +85,10 @@ export const useDeviationTableStore = defineStore("deviationTableStore", () => {
             if (id === "departement") departmentsFilter.value = value.values;
             if (id === "region") regionsFilter.value = value.values;
         } else if (value.type === "number-range") {
-            if (id === "altitude") {
-                altitudeMin.value = value.min;
-                altitudeMax.value = value.max;
-            } else if (id === "deviation") {
+            // if (id === "altitude") {
+            //     altitudeMin.value = value.min;
+            //     altitudeMax.value = value.max;
+            if (id === "deviation") {
                 deviationMin.value = value.min;
                 deviationMax.value = value.max;
             } else if (id === "temperatureMean") {
@@ -105,9 +105,9 @@ export const useDeviationTableStore = defineStore("deviationTableStore", () => {
             departmentsFilter.value = [];
         } else if (id === "region") {
             regionsFilter.value = [];
-        } else if (id === "altitude") {
-            altitudeMin.value = undefined;
-            altitudeMax.value = undefined;
+            // } else if (id === "altitude") {
+            //     altitudeMin.value = undefined;
+            //     altitudeMax.value = undefined;
         } else if (id === "deviation") {
             deviationMin.value = undefined;
             deviationMax.value = undefined;
@@ -123,8 +123,8 @@ export const useDeviationTableStore = defineStore("deviationTableStore", () => {
         debounceDuration,
     );
     const debouncedRegions = refDebounced(regionsFilter, debounceDuration);
-    const debouncedAltMin = refDebounced(altitudeMin, debounceDuration);
-    const debouncedAltMax = refDebounced(altitudeMax, debounceDuration);
+    // const debouncedAltMin = refDebounced(altitudeMin, debounceDuration);
+    // const debouncedAltMax = refDebounced(altitudeMax, debounceDuration);
     const debouncedDevMin = refDebounced(deviationMin, debounceDuration);
     const debouncedDevMax = refDebounced(deviationMax, debounceDuration);
     const debouncedTMeanMin = refDebounced(
@@ -154,10 +154,10 @@ export const useDeviationTableStore = defineStore("deviationTableStore", () => {
             result.departments = debouncedDepartments.value.join(",");
         if (debouncedRegions.value.length >= 1)
             result.regions = debouncedRegions.value.join(",");
-        if (debouncedAltMin.value)
-            result.altitude_min = Number(debouncedAltMin.value);
-        if (debouncedAltMax.value)
-            result.altitude_max = Number(debouncedAltMax.value);
+        // if (debouncedAltMin.value)
+        //     result.altitude_min = Number(debouncedAltMin.value);
+        // if (debouncedAltMax.value)
+        //     result.altitude_max = Number(debouncedAltMax.value);
         if (debouncedDevMin.value)
             result.deviation_min = Number(debouncedDevMin.value);
         if (debouncedDevMax.value)
