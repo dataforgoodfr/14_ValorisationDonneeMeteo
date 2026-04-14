@@ -1,8 +1,8 @@
 <script setup lang="ts">
 import * as echarts from "echarts/core";
 import langFR from "~/i18n/langFR.js";
+import type { TemperatureDeviationGraphResponse } from "~/types/api";
 import type { SelectBarAdapter } from "~/components/ui/commons/selectBar/types";
-import type { DeviationResponse } from "~/types/api";
 import type { EChartsOption } from "echarts";
 import { useDeviationStore } from "#imports";
 import { deviationChartTooltipFormatter } from "./tooltipFormatters/deviationChartTooltipFormatter";
@@ -35,7 +35,7 @@ echarts.use([
 ]);
 
 interface Props {
-    adapter: SelectBarAdapter<DeviationResponse>;
+    adapter: SelectBarAdapter<TemperatureDeviationGraphResponse>;
 }
 
 const props = defineProps<Props>();
@@ -176,8 +176,6 @@ const option = computed<ECOption | EChartsOption>(() =>
         ? calendarOption.value
         : barOption.value,
 );
-
-provide(INIT_OPTIONS_KEY, initOptions);
 </script>
 
 <template>

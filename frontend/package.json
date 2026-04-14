@@ -14,7 +14,8 @@
         "lint": "eslint --ext .js,.ts,.vue .",
         "lint:fix": "npm run lint -- --fix",
         "format": "prettier --write '**/*.{js,ts,vue,css,json,html}'",
-        "test:unit": "vitest --project unit",
+        "test:unit:watch": "vitest --project unit",
+        "test:unit": "vitest --project unit --run",
         "test:integration": "vitest run --project integration --no-file-parallelism",
         "test:all": "vitest run --no-file-parallelism",
         "test:ci": "vitest run --no-file-parallelism",
@@ -49,6 +50,7 @@
         "eslint-config-prettier": "^10.1.8",
         "happy-dom": "^20.8.4",
         "prettier": "^3.8.1",
-        "vitest": "^3.2.4"
+        "vitest": "^3.2.4",
+        "vue-tsc": "^3.2.6"
     }
 }

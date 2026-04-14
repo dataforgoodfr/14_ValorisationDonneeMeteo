@@ -69,7 +69,8 @@ function toRangeChip(
     if (f.type === "number-range") {
         min = f.min;
         max = f.max;
-        unit = "°C";
+        const field = props.fields.find((field) => field.id === id);
+        unit = field?.unit ?? "";
     } else {
         min = f.min ? dateToStringDMY(f.min) : undefined;
         max = f.max ? dateToStringDMY(f.max) : undefined;

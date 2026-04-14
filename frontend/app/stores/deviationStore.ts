@@ -1,14 +1,10 @@
 import type {
-    DeviationParams,
-    DeviationResponse,
-    DeviationStationSerie,
+    TemperatureDeviationGraphParams,
     Station,
+    TemperatureDeviationGraphResponse,
+    TemperatureDeviationGraphStationSerie,
 } from "~/types/api";
-import {
-    useCustomDate,
-    dateToFirstDayOfYearYMD,
-    dateToLastDayOfYearYMD,
-} from "#imports";
+import { useCustomDate, dateToStringYMD } from "#imports";
 import type {
     GranularityType,
     SliceType,
@@ -37,53 +33,21 @@ export const useDeviationStore = defineStore("deviationStore", () => {
     const selectedStations = ref<Station[]>([]);
     const includeNational = ref<boolean>(true);
 
-    const isGranularityYear = computed<boolean>(
-        () => granularity.value === "year",
-    );
-
-    const params = computed<DeviationParams>(() => {
-        return {
-            date_start: rangeDatesByGranularity.value.date_start,
-            date_end: rangeDatesByGranularity.value.date_end,
-            granularity:
-                chartType.value === "calendar"
-                    ? granularity.value === "month"
-                        ? "day"
-                        : "month" // gère l'exception du calendrier pour granularité
-                    : granularity.value,
-            station_ids: stationIds.value.join(","),
-            include_national: includeNational.value,
-        };
-    });
-
-    const rangeDatesByGranularity = computed<{
-        date_start: string;
-        date_end: string;
-    }>(() => {
-        return {
-            date_start: isGranularityYear.value
-                ? dateToFirstDayOfYearYMD(pickedDateStart.value)
-                : dateToStringYMD(pickedDateStart.value),
-            date_end: isGranularityYear.value
-                ? dateToLastDayOfYearYMD(pickedDateEnd.value)
-                : dateToStringYMD(pickedDateEnd.value),
-        };
-    });
+    const isGranularityYear = computed(() => granularity.value === "year");
 
     const selectedStationsAndNational = computed<DeviationStationIdAndName[]>(
         () => {
-            const stations = selectedStations.value.map((station) => {
-                return {
-                    station_id: station.code,
-                    station_name: `${station.nom} (${station.departement})`,
-                };
-            });
-
+            const stations = selectedStations.value.map((s) => ({
+                station_id: s.code,
+                station_name: s.nom,
+                departement: String(s.departement),
+            }));
             return includeNational.value
                 ? [
                       {
                           station_id: "national",
                           station_name: "France Métropolitaine",
+                          departement: "",
                       },
                       ...stations,
                   ]
@@ -91,11 +55,19 @@ export const useDeviationStore = defineStore("deviationStore", () => {
         },
     );
 
+    const params = computed<TemperatureDeviationGraphParams>(() => ({
+        date_start: dateToStringYMD(pickedDateStart.value),
+        date_end: dateToStringYMD(pickedDateEnd.value),
+        granularity: granularity.value,
+        station_ids: stationIds.value.join(","),
+        include_national: includeNational.value,
+    }));
+
     const {
         data: deviationData,
         pending,
         error,
-    } = useTemperatureDeviation(params);
+    } = useTemperatureDeviationGraph(params);
 
     const setGranularity = (value: GranularityType) => {
         sliceType.value = "full";
@@ -119,13 +91,14 @@ export const useDeviationStore = defineStore("deviationStore", () => {
     };
 
     const stationsAndNationalFormatted = (
-        chartData: DeviationResponse,
-    ): DeviationStationSerie[] => {
+        chartData: TemperatureDeviationGraphResponse,
+    ): TemperatureDeviationGraphStationSerie[] => {
         return includeNational.value
             ? [
                   {
                       station_id: "national",
                       station_name: "France Métropolitaine",
+                      departement: "75",
                       ...chartData.national,
                   },
                   ...chartData.stations,

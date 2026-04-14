@@ -1,10 +1,10 @@
 export function useApiClient() {
     const config = useRuntimeConfig();
-    const baseURL = config.public.apiBase as string;
+    const baseURL = config.public.apiBase;
 
     function apiFetch<T>(
         endpoint: string,
-        options?: Record<string, unknown>,
+        options?: Parameters<typeof $fetch<T>>[1],
     ): Promise<T> {
         return $fetch<T>(endpoint, {
             baseURL,
@@ -14,7 +14,7 @@ export function useApiClient() {
 
     function useApiFetch<T>(
         endpoint: string | Ref<string> | (() => string),
-        options?: Record<string, unknown>,
+        options?: Parameters<typeof useFetch<T>>[1],
     ) {
         return useFetch<T>(endpoint, {
             baseURL,
