@@ -3,9 +3,11 @@ import { useTemperatureRecords } from "~/composables/useTemperature";
 import { departements } from "~/data/records/departements";
 import { dateToStringYMD } from "~/utils/date";
 import type {
-    RecordKind,
     TypeRecords,
+    PeriodType,
+    Season,
     TemperatureRecordsParams,
+    TemperatureRecordFlatEntry,
 } from "~/types/api";
 import type {
     StringFilterValue,
@@ -23,6 +25,26 @@ type RecordsFilters = {
 
 const debounceDuration = 300;
 
+export const periodOptions = [
+    { value: "all_time", label: "Toute l'année" },
+    { value: "season_spring", label: "Printemps" },
+    { value: "season_summer", label: "Été" },
+    { value: "season_autumn", label: "Automne" },
+    { value: "season_winter", label: "Hiver" },
+    { value: "month_1", label: "Janvier" },
+    { value: "month_2", label: "Février" },
+    { value: "month_3", label: "Mars" },
+    { value: "month_4", label: "Avril" },
+    { value: "month_5", label: "Mai" },
+    { value: "month_6", label: "Juin" },
+    { value: "month_7", label: "Juillet" },
+    { value: "month_8", label: "Août" },
+    { value: "month_9", label: "Septembre" },
+    { value: "month_10", label: "Octobre" },
+    { value: "month_11", label: "Novembre" },
+    { value: "month_12", label: "Décembre" },
+];
+
 export const useRecordsTableStore = defineStore("recordsTableStore", () => {
     // Pagination
     const page = ref(1);
@@ -30,7 +52,7 @@ export const useRecordsTableStore = defineStore("recordsTableStore", () => {
 
     // Query shape
     const typeRecords = ref<TypeRecords>("hot");
-    const recordKind = ref<RecordKind>("absolute");
+    const periodSelection = ref("all_time");
 
     // Filters
     const stationIds = ref<string[]>([]);
@@ -76,6 +98,7 @@ export const useRecordsTableStore = defineStore("recordsTableStore", () => {
     });
 
     function setFilter(id: string, value: FilterValue) {
+        page.value = 1;
         if (value.type === "string") {
             if (id === "name") {
                 stationIds.value = value.values;
@@ -96,6 +119,7 @@ export const useRecordsTableStore = defineStore("recordsTableStore", () => {
     }
 
     function clearFilter(id: string) {
+        page.value = 1;
         if (id === "name") {
             stationIds.value = [];
         } else if (id === "departement") {
@@ -109,7 +133,7 @@ export const useRecordsTableStore = defineStore("recordsTableStore", () => {
         }
     }
 
-    // Debounce text inputs before sending to the API
+    // Debounce filter inputs before applying client-side filters
     const debouncedStationIds = refDebounced(stationIds, debounceDuration);
     const debouncedDepartments = refDebounced(departments, debounceDuration);
     const debouncedTempMin = refDebounced(temperatureMin, debounceDuration);
@@ -117,48 +141,109 @@ export const useRecordsTableStore = defineStore("recordsTableStore", () => {
     const debouncedDateStart = refDebounced(dateStart, debounceDuration);
     const debouncedDateEnd = refDebounced(dateEnd, debounceDuration);
 
+    // Build API params from periodSelection
     const params = computed<TemperatureRecordsParams>(() => {
         const result: TemperatureRecordsParams = {
             type_records: typeRecords.value,
-            record_kind: recordKind.value,
-            limit: pageSize.value,
-            offset: (page.value - 1) * pageSize.value,
         };
 
-        if (debouncedStationIds.value.length >= 1) {
-            result.station_ids = debouncedStationIds.value.join(",");
-        }
-        if (debouncedDepartments.value.length >= 1) {
-            result.departments = debouncedDepartments.value.join(",");
-        }
-        if (debouncedTempMin.value) {
-            result.temperature_min = Number(debouncedTempMin.value);
-        }
-        if (debouncedTempMax.value) {
-            result.temperature_max = Number(debouncedTempMax.value);
-        }
-        if (debouncedDateStart.value) {
-            result.date_start = dateToStringYMD(debouncedDateStart.value);
-        }
-        if (debouncedDateEnd.value) {
-            result.date_end = dateToStringYMD(debouncedDateEnd.value);
+        if (periodSelection.value.startsWith("season_")) {
+            result.period_type = "season" as PeriodType;
+            result.season = periodSelection.value.replace(
+                "season_",
+                "",
+            ) as Season;
+        } else if (periodSelection.value.startsWith("month_")) {
+            result.period_type = "month" as PeriodType;
+            result.month = parseInt(
+                periodSelection.value.replace("month_", ""),
+            );
         }
 
         return result;
     });
 
-    const { data: recordsData, pending, error } = useTemperatureRecords(params);
+    // Reset page when API params or client-side filters change
+    watch(
+        [
+            params,
+            debouncedStationIds,
+            debouncedDepartments,
+            debouncedTempMin,
+            debouncedTempMax,
+            debouncedDateStart,
+            debouncedDateEnd,
+        ],
+        () => {
+            page.value = 1;
+        },
+    );
+
+    const { data: rawRecords, pending, error } = useTemperatureRecords(params);
+
+    // Group flat list by station, keeping the last record per station (= absolute record)
+    const absoluteRecords = computed<TemperatureRecordFlatEntry[]>(() => {
+        const stationMap = new Map<string, TemperatureRecordFlatEntry>();
+        for (const record of rawRecords.value ?? []) {
+            stationMap.set(record.station_id, record);
+        }
+        return Array.from(stationMap.values());
+    });
+
+    // Apply client-side filters
+    const filteredRecords = computed<TemperatureRecordFlatEntry[]>(() => {
+        let result = absoluteRecords.value;
+
+        if (debouncedStationIds.value.length > 0) {
+            result = result.filter((r) =>
+                debouncedStationIds.value.includes(r.station_id),
+            );
+        }
+        if (debouncedDepartments.value.length > 0) {
+            result = result.filter((r) =>
+                debouncedDepartments.value.includes(r.department),
+            );
+        }
+        if (debouncedTempMin.value) {
+            result = result.filter(
+                (r) => r.record_value >= Number(debouncedTempMin.value),
+            );
+        }
+        if (debouncedTempMax.value) {
+            result = result.filter(
+                (r) => r.record_value <= Number(debouncedTempMax.value),
+            );
+        }
+        if (debouncedDateStart.value) {
+            const start = dateToStringYMD(debouncedDateStart.value);
+            result = result.filter((r) => r.record_date >= start);
+        }
+        if (debouncedDateEnd.value) {
+            const end = dateToStringYMD(debouncedDateEnd.value);
+            result = result.filter((r) => r.record_date <= end);
+        }
+
+        return result;
+    });
+
+    const filteredCount = computed(() => filteredRecords.value.length);
+
+    const pagedStations = computed<TemperatureRecordFlatEntry[]>(() => {
+        const start = (page.value - 1) * pageSize.value;
+        return filteredRecords.value.slice(start, start + pageSize.value);
+    });
 
     return {
         page,
         pageSize,
         typeRecords,
-        recordKind,
+        periodSelection,
         filters,
         staticOptions,
         setFilter,
         clearFilter,
-        recordsData,
+        pagedStations,
+        filteredCount,
         pending,
         error,
     };
