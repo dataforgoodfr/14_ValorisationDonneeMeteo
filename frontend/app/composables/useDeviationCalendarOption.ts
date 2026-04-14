@@ -216,7 +216,7 @@ export function useDeviationCalendarOption(
             axisTick: { show: false },
             axisLine: { lineStyle: { color: "#3a5080" } },
             axisLabel: {
-                color: COLORS.black,
+                color: "#000000",
                 fontSize: 11,
                 interval: labelInterval,
                 rotate: labelRotate,
@@ -225,7 +225,7 @@ export function useDeviationCalendarOption(
             nameLocation: "middle",
             nameGap: granularity === "year" ? 25 : 38,
             nameTextStyle: {
-                color: COLORS.black,
+                color: COLORS.foregound,
                 fontSize: 12,
                 fontWeight: "bold",
             },
@@ -243,7 +243,7 @@ export function useDeviationCalendarOption(
             nameLocation: "middle",
             nameGap: 35,
             nameTextStyle: {
-                color: COLORS.black,
+                color: COLORS.foregound,
                 fontSize: 12,
                 fontWeight: "bold",
             },
@@ -256,7 +256,7 @@ export function useDeviationCalendarOption(
             textStyle: {
                 fontSize: 12,
                 fontWeight: "bold",
-                color: COLORS.black,
+                color: COLORS.foregound,
             },
         });
 
@@ -287,7 +287,7 @@ export function useDeviationCalendarOption(
         inRange: {
             color: [COLORS.negative, "#FFF", COLORS.positive],
         },
-        textStyle: { color: COLORS.black },
+        textStyle: { color: COLORS.foregound },
         handleStyle: { borderColor: "#3a5080" },
         seriesIndex: series.map((_, i) => i),
         text: ["+ chaud", "+ froid"],
