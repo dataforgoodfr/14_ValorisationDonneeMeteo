@@ -33,6 +33,9 @@ export default defineNuxtConfig({
     fonts: {
         provider: "google",
     },
+    typescript: {
+        typeCheck: false, // turn to true when calm and ready
+    },
     app: {
         head: {
             title: "InfoClimat - Dashboard",
