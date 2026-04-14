@@ -191,8 +191,8 @@ export function useDeviationCalendarOption(
 
     const labelInterval = granularity === "day" ? 1 : 0;
     const labelRotate = granularity === "year" ? 0 : 45;
-    const xAxisName = "Mois";
-    const yAxisName = granularity === "year" ? "Année" : "Jour";
+    const xAxisName = granularity === "year" ? "Année" : "Mois";
+    const yAxisName = granularity === "year" ? "Mois" : "Jour";
 
     stationsAndNational.forEach((stationOrNational, index) => {
         const top = topOffsetPct + index * (blockHeightPct + gapBetweenPct);
