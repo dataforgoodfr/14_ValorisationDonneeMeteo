@@ -220,6 +220,9 @@ class TemperatureRecordsAPIView(APIView):
                     "department": e.department,
                     "record_value": e.record_value,
                     "record_date": e.record_date,
+                    "lat": e.lat,
+                    "lon": e.lon,
+                    "alt": e.alt,
                 }
                 for e in entries
             ],
