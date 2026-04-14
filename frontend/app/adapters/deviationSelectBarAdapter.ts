@@ -16,6 +16,8 @@ export const useDeviationSelectBarAdapter =
             sliceDatepickerDate, // Will be enabled in futur version
             deviationData,
             pending,
+            chartTypeSwitchEnabled,
+            chartType,
         } = storeToRefs(store);
 
         return {
@@ -29,11 +31,26 @@ export const useDeviationSelectBarAdapter =
             data: deviationData,
             pending,
             setGranularity: store.setGranularity,
+            chartType,
+            chartTypeSwitchEnabled,
+            setChartType: store.setChartType,
             features: {
                 hasSliceType: false, // Will be enabled in futur version
-                hasChartTypeSelector: false,
+                hasChartTypeSelector: true,
                 hasExport: true,
             },
+            chartTypes: [
+                {
+                    label: "Barres",
+                    value: "bar",
+                    icon: "i-lucide-chart-column",
+                },
+                {
+                    label: "Calendrier",
+                    value: "calendar",
+                    icon: "i-lucide-calendar-days",
+                },
+            ],
             exportConfig: {
                 chartName: "ecart-normale",
                 csvHeaders: [
