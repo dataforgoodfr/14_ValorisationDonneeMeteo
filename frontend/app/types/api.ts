@@ -224,8 +224,8 @@ export interface TemperatureRecordStation {
     id: string;
     name: string;
     departement: number;
-    hot_records: TemperatureRecordEntry[];
-    cold_records: TemperatureRecordEntry[];
+    hot_records: TemperatureRecordFlatEntry[];
+    cold_records: TemperatureRecordFlatEntry[];
 }
 
 export interface TemperatureRecordsMetadata {
