@@ -74,7 +74,11 @@ export function useTemperatureDeviationGraph(
         enabled !== undefined ? toValue(enabled) : true,
     );
 
+<<<<<<< HEAD
     const result = useApiFetch<TemperatureDeviationGraphResponse>(
+=======
+    const result = useApiFetch<DeviationResponse>(
+>>>>>>> 93cda2a (add calendar graph from main branch (#290))
         "/temperature/deviation/graph",
         {
             query: params,

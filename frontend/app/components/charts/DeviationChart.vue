@@ -1,9 +1,14 @@
 <script setup lang="ts">
 import * as echarts from "echarts/core";
 import langFR from "~/i18n/langFR.js";
+<<<<<<< HEAD
 import type { TemperatureDeviationGraphResponse } from "~/types/api";
 import type { SelectBarAdapter } from "~/components/ui/commons/selectBar/types";
 import { COLORS } from "~/constants/colors";
+=======
+import type { SelectBarAdapter } from "~/components/ui/commons/selectBar/types";
+import type { DeviationResponse } from "~/types/api";
+>>>>>>> 93cda2a (add calendar graph from main branch (#290))
 import type { EChartsOption } from "echarts";
 import { useDeviationStore } from "#imports";
 import { CHART_ATTRIBUTION_GRAPHIC } from "~/constants/chartAttribution";
@@ -21,6 +26,10 @@ import { BarChart, HeatmapChart } from "echarts/charts";
 import { UniversalTransition } from "echarts/features";
 import { CanvasRenderer } from "echarts/renderers";
 import { useDeviationCalendarOption } from "~/composables/useDeviationCalendarOption";
+<<<<<<< HEAD
+=======
+import { COLORS } from "~/constants/colors";
+>>>>>>> 93cda2a (add calendar graph from main branch (#290))
 
 echarts.registerLocale("FR", langFR);
 echarts.use([
@@ -159,7 +168,10 @@ const barOption = computed<ECOption>(() => {
             },
         },
         dataZoom: [{ xAxisIndex: "all", type: "inside", minSpan: 20 }],
+<<<<<<< HEAD
         graphic: CHART_ATTRIBUTION_GRAPHIC,
+=======
+>>>>>>> 93cda2a (add calendar graph from main branch (#290))
     };
 });
 
@@ -180,6 +192,11 @@ const option = computed<ECOption | EChartsOption>(() =>
         ? calendarOption.value
         : barOption.value,
 );
+<<<<<<< HEAD
+=======
+
+provide(INIT_OPTIONS_KEY, initOptions);
+>>>>>>> 93cda2a (add calendar graph from main branch (#290))
 </script>
 
 <template>

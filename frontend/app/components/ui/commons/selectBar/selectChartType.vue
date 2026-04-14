@@ -5,7 +5,19 @@ import type {
 } from "~/components/ui/commons/selectBar/types";
 
 const adapter = inject<SelectBarAdapter>("selectBarAdapter")!;
+<<<<<<< HEAD
 const chartTypes = adapter.chartTypeOptions;
+=======
+
+const chartTypes = computed(
+    () =>
+        // chaque adapter fournit ses propres boutons via chartTypes
+        adapter.chartTypes ?? [
+            { label: "Bar Chart", value: "bar", icon: "i-lucide-chart-column" },
+            { label: "Line Chart", value: "line", icon: "i-lucide-chart-line" },
+        ],
+);
+>>>>>>> 93cda2a (add calendar graph from main branch (#290))
 </script>
 
 <template>

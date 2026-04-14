@@ -1,10 +1,23 @@
 import type {
+<<<<<<< HEAD
     TemperatureDeviationGraphParams,
     Station,
     TemperatureDeviationGraphResponse,
     TemperatureDeviationGraphStationSerie,
 } from "~/types/api";
 import { useCustomDate, dateToStringYMD } from "#imports";
+=======
+    DeviationParams,
+    DeviationResponse,
+    DeviationStationSerie,
+    Station,
+} from "~/types/api";
+import {
+    useCustomDate,
+    dateToFirstDayOfYearYMD,
+    dateToLastDayOfYearYMD,
+} from "#imports";
+>>>>>>> 93cda2a (add calendar graph from main branch (#290))
 import type {
     GranularityType,
     SliceType,
@@ -37,13 +50,48 @@ export const useDeviationStore = defineStore("deviationStore", () => {
         () => granularity.value === "year",
     );
 
+<<<<<<< HEAD
+=======
+    const params = computed<DeviationParams>(() => {
+        return {
+            date_start: rangeDatesByGranularity.value.date_start,
+            date_end: rangeDatesByGranularity.value.date_end,
+            granularity:
+                chartType.value === "calendar"
+                    ? granularity.value === "month"
+                        ? "day"
+                        : "month" // gère l'exception du calendrier pour granularité
+                    : granularity.value,
+            station_ids: stationIds.value.join(","),
+            include_national: includeNational.value,
+        };
+    });
+
+    const rangeDatesByGranularity = computed<{
+        date_start: string;
+        date_end: string;
+    }>(() => {
+        return {
+            date_start: isGranularityYear.value
+                ? dateToFirstDayOfYearYMD(pickedDateStart.value)
+                : dateToStringYMD(pickedDateStart.value),
+            date_end: isGranularityYear.value
+                ? dateToLastDayOfYearYMD(pickedDateEnd.value)
+                : dateToStringYMD(pickedDateEnd.value),
+        };
+    });
+
+>>>>>>> 93cda2a (add calendar graph from main branch (#290))
     const selectedStationsAndNational = computed<DeviationStationIdAndName[]>(
         () => {
             const stations = selectedStations.value.map((station) => {
                 return {
                     station_id: station.code,
                     station_name: `${station.nom} (${station.departement})`,
+<<<<<<< HEAD
                     departement: String(station.departement),
+=======
+>>>>>>> 93cda2a (add calendar graph from main branch (#290))
                 };
             });
 
@@ -52,13 +100,17 @@ export const useDeviationStore = defineStore("deviationStore", () => {
                       {
                           station_id: "national",
                           station_name: "France Métropolitaine",
+<<<<<<< HEAD
                           departement: "",
+=======
+>>>>>>> 93cda2a (add calendar graph from main branch (#290))
                       },
                       ...stations,
                   ]
                 : stations;
         },
     );
+<<<<<<< HEAD
 
     const params = computed<TemperatureDeviationGraphParams>(() => ({
         date_start: dateToStringYMD(pickedDateStart.value),
@@ -72,6 +124,8 @@ export const useDeviationStore = defineStore("deviationStore", () => {
         station_ids: stationIds.value.join(","),
         include_national: includeNational.value,
     }));
+=======
+>>>>>>> 93cda2a (add calendar graph from main branch (#290))
 
     const {
         data: deviationData,
@@ -101,14 +155,22 @@ export const useDeviationStore = defineStore("deviationStore", () => {
     };
 
     const stationsAndNationalFormatted = (
+<<<<<<< HEAD
         chartData: TemperatureDeviationGraphResponse,
     ): TemperatureDeviationGraphStationSerie[] => {
+=======
+        chartData: DeviationResponse,
+    ): DeviationStationSerie[] => {
+>>>>>>> 93cda2a (add calendar graph from main branch (#290))
         return includeNational.value
             ? [
                   {
                       station_id: "national",
                       station_name: "France Métropolitaine",
+<<<<<<< HEAD
                       departement: "75",
+=======
+>>>>>>> 93cda2a (add calendar graph from main branch (#290))
                       ...chartData.national,
                   },
                   ...chartData.stations,

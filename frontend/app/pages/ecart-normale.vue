@@ -5,7 +5,10 @@ import SearchStation from "~/components/ecartNormale/searchStation.vue";
 import { useDeviationSelectBarAdapter } from "~/adapters/deviationSelectBarAdapter";
 import SelectBar from "~/components/ui/commons/selectBar/selectBar.vue";
 import DeviationChart from "~/components/charts/DeviationChart.vue";
+<<<<<<< HEAD
 import DeviationTable from "~/components/table/deviation/DeviationTable.vue";
+=======
+>>>>>>> 93cda2a (add calendar graph from main branch (#290))
 import type { ChartType } from "~/components/ui/commons/selectBar/types";
 
 const selectBarAdapter = useDeviationSelectBarAdapter();

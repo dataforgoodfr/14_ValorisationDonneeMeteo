@@ -57,6 +57,7 @@ function exportAsPng() {
         type: "png",
         pixelRatio: 2,
         backgroundColor: COLORS.background,
+<<<<<<< HEAD
         excludeComponents: ["dataZoom"],
     });
 
@@ -101,6 +102,8 @@ function exportAsPngWhiteBackground() {
         type: "png",
         pixelRatio: 2,
         backgroundColor: "#ffffff",
+=======
+>>>>>>> 93cda2a (add calendar graph from main branch (#290))
         excludeComponents: ["dataZoom"],
     });
 
