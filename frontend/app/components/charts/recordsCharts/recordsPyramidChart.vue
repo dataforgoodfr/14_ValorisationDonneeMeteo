@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import * as echarts from "echarts/core";
 import langFR from "~/i18n/langFR.js";
-import type { SelectBarAdapter } from "../../ui/commons/selectBar/types";
+import type { SelectBarAdapter } from "~/components/ui/commons/selectBar/types";
 import type { TemperatureRecordsResponse } from "~/types/api";
 import {
     countByPeriod,

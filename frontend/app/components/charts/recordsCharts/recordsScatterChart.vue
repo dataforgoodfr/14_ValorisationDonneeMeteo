@@ -1,9 +1,9 @@
 <script setup lang="ts">
 import * as echarts from "echarts/core";
 import langFR from "~/i18n/langFR.js";
-import type { SelectBarAdapter } from "../../ui/commons/selectBar/types";
+import type { SelectBarAdapter } from "~/components/ui/commons/selectBar/types";
 import type { TemperatureRecordsResponse } from "~/types/api";
-import { recordsChartTooltipFormatter } from ".././tooltipFormatters/recordsChartTooltipFormatter";
+import { recordsChartTooltipFormatter } from "~/components/charts/tooltipFormatters/recordsChartTooltipFormatter";
 import {
     countByPeriod,
     flattenColdRecords,
@@ -27,6 +27,25 @@ const initOptions = computed(() => ({
 }));
 provide(INIT_OPTIONS_KEY, initOptions);
 
+function buildTerritoryPlot(
+    territory: { type: string; id: string; value: string },
+    data: TemperatureRecordsResponse,
+) {
+    const stations =
+        territory.type === "STATION"
+            ? data.stations.filter((station) => station.id === territory.id)
+            : territory.type === "DEPARTMENT"
+              ? data.stations.filter(
+                    (station) => station.departement === Number(territory.id),
+                )
+              : data.stations;
+    return {
+        name: territory.value,
+        hot: flattenHotRecords({ ...data, stations }),
+        cold: flattenColdRecords({ ...data, stations }),
+    };
+}
+
 const option = computed<ECOption>(() => {
     const data = props.adapter.data.value;
     if (!data) return {};
@@ -45,25 +64,9 @@ const option = computed<ECOption>(() => {
                       cold: flattenColdRecords(data),
                   },
               ]
-            : selectedTerritories.map((territory) => {
-                  const stations =
-                      territory.type === "STATION"
-                          ? data.stations.filter(
-                                (station) => station.id === territory.id,
-                            )
-                          : territory.type === "DEPARTMENT"
-                            ? data.stations.filter(
-                                  (station) =>
-                                      station.departement ===
-                                      Number(territory.id),
-                              )
-                            : data.stations;
-                  return {
-                      name: territory.value,
-                      hot: flattenHotRecords({ ...data, stations }),
-                      cold: flattenColdRecords({ ...data, stations }),
-                  };
-              });
+            : selectedTerritories.map((territory) =>
+                  buildTerritoryPlot(territory, data),
+              );
 
     const plots = showStackedBar
         ? ["scatter", "bar"]
@@ -141,7 +144,7 @@ const option = computed<ECOption>(() => {
             ...territoryPlots.flatMap((_, index) => [
                 {
                     name: "Records de chaleur",
-                    type: "scatter" as const,
+                    type: "scatter",
                     datasetIndex: index * 2,
                     encode: { x: "date", y: "value" },
                     color: "#d32f2f",
@@ -151,7 +154,7 @@ const option = computed<ECOption>(() => {
                 },
                 {
                     name: "Records de froid",
-                    type: "scatter" as const,
+                    type: "scatter",
                     datasetIndex: index * 2 + 1,
                     encode: { x: "date", y: "value" },
                     color: "#1976d2",
@@ -164,7 +167,7 @@ const option = computed<ECOption>(() => {
                 ? [
                       {
                           name: "Records de chaleur",
-                          type: "bar" as const,
+                          type: "bar",
                           datasetIndex: territoryPlots.length * 2,
                           encode: { x: "period", y: "hot" },
                           color: "#d32f2f",
@@ -174,7 +177,7 @@ const option = computed<ECOption>(() => {
                       },
                       {
                           name: "Records de froid",
-                          type: "bar" as const,
+                          type: "bar",
                           datasetIndex: territoryPlots.length * 2,
                           encode: { x: "period", y: "cold" },
                           color: "#1976d2",
@@ -209,7 +212,7 @@ const option = computed<ECOption>(() => {
         },
         dataZoom: [
             {
-                type: "inside" as const,
+                type: "inside",
                 xAxisIndex: plots.map((_, i) => i),
                 minSpan: 20,
             },
