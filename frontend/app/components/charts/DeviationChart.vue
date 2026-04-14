@@ -2,7 +2,7 @@
 import * as echarts from "echarts/core";
 import langFR from "~/i18n/langFR.js";
 import type { SelectBarAdapter } from "../ui/commons/selectBar/types";
-import type { DeviationResponse } from "~/types/api";
+import type { TemperatureDeviationGraphResponse } from "~/types/api";
 import { useDeviationStore } from "#imports";
 import { deviationChartTooltipFormatter } from "./tooltipFormatters/deviationChartTooltipFormatter";
 import {
@@ -29,7 +29,7 @@ echarts.use([
 ]);
 
 interface Props {
-    adapter: SelectBarAdapter<DeviationResponse>;
+    adapter: SelectBarAdapter<TemperatureDeviationGraphResponse>;
 }
 const { selectedStations, includeNational } = storeToRefs(useDeviationStore());
 const props = defineProps<Props>();
