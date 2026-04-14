@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import * as echarts from "echarts/core";
 import langFR from "~/i18n/langFR.js";
-import type { SelectBarAdapter } from "../ui/commons/selectBar/types";
 import type { TemperatureDeviationGraphResponse } from "~/types/api";
 import type { SelectBarAdapter } from "~/components/ui/commons/selectBar/types";
 import type { EChartsOption } from "echarts";
@@ -177,8 +176,6 @@ const option = computed<ECOption | EChartsOption>(() =>
         ? calendarOption.value
         : barOption.value,
 );
-
-provide(INIT_OPTIONS_KEY, initOptions);
 </script>
 
 <template>

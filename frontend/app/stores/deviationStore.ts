@@ -1,4 +1,9 @@
-import type { TemperatureDeviationGraphParams, Station } from "~/types/api";
+import type {
+    TemperatureDeviationGraphParams,
+    Station,
+    TemperatureDeviationGraphResponse,
+    TemperatureDeviationGraphStationSerie,
+} from "~/types/api";
 import { useCustomDate, dateToStringYMD } from "#imports";
 import type {
     GranularityType,
@@ -27,6 +32,28 @@ export const useDeviationStore = defineStore("deviationStore", () => {
     const stationIds = ref<string[]>([]);
     const selectedStations = ref<Station[]>([]);
     const includeNational = ref<boolean>(true);
+
+    const isGranularityYear = computed(() => granularity.value === "year");
+
+    const selectedStationsAndNational = computed<DeviationStationIdAndName[]>(
+        () => {
+            const stations = selectedStations.value.map((s) => ({
+                station_id: s.code,
+                station_name: s.nom,
+                departement: String(s.departement),
+            }));
+            return includeNational.value
+                ? [
+                      {
+                          station_id: "national",
+                          station_name: "France Métropolitaine",
+                          departement: "",
+                      },
+                      ...stations,
+                  ]
+                : stations;
+        },
+    );
 
     const params = computed<TemperatureDeviationGraphParams>(() => ({
         date_start: dateToStringYMD(pickedDateStart.value),
@@ -64,13 +91,14 @@ export const useDeviationStore = defineStore("deviationStore", () => {
     };
 
     const stationsAndNationalFormatted = (
-        chartData: DeviationResponse,
-    ): DeviationStationSerie[] => {
+        chartData: TemperatureDeviationGraphResponse,
+    ): TemperatureDeviationGraphStationSerie[] => {
         return includeNational.value
             ? [
                   {
                       station_id: "national",
                       station_name: "France Métropolitaine",
+                      departement: "75",
                       ...chartData.national,
                   },
                   ...chartData.stations,
