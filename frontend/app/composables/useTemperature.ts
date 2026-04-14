@@ -8,7 +8,7 @@ import type {
 export function useTemperatureDeviation(
     params: MaybeRef<DeviationParams>,
     enabled?: MaybeRef<boolean>,
-) {
+): ReturnType<typeof useFetch<DeviationResponse | undefined>> {
     const { useApiFetch } = useApiClient();
 
     const hasRequiredParams = computed(() => {
@@ -23,11 +23,14 @@ export function useTemperatureDeviation(
         enabled !== undefined ? toValue(enabled) : true,
     );
 
-    const result = useApiFetch<DeviationResponse>("/temperature/deviation", {
-        query: params,
-        immediate: false,
-        watch: false,
-    });
+    const result = useApiFetch<DeviationResponse>(
+        "/temperature/deviation/graph",
+        {
+            query: params,
+            immediate: false,
+            watch: false,
+        },
+    );
 
     watch(
         [isEnabled, hasRequiredParams, params],

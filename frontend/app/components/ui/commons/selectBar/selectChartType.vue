@@ -6,10 +6,14 @@ import type {
 
 const adapter = inject<SelectBarAdapter>("selectBarAdapter")!;
 
-const chartTypes = reactive([
-    { label: "Bar Chart", value: "bar", icon: "i-lucide-chart-column" },
-    { label: "Line Chart", value: "line", icon: "i-lucide-chart-line" },
-]);
+const chartTypes = computed(
+    () =>
+        // chaque adapter fournit ses propres boutons via chartTypes
+        adapter.chartTypes ?? [
+            { label: "Bar Chart", value: "bar", icon: "i-lucide-chart-column" },
+            { label: "Line Chart", value: "line", icon: "i-lucide-chart-line" },
+        ],
+);
 </script>
 <template>
     <UFormField
