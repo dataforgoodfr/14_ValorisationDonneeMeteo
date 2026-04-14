@@ -27,6 +27,18 @@ const initOptions = computed(() => ({
 }));
 provide(INIT_OPTIONS_KEY, initOptions);
 
+// Arrondit au multiple supérieur d'un pas "propre" pour que le dernier tick
+// respecte l'espacement régulier (évite un tick isolé en bout d'axe).
+function niceMax(value: number): number {
+    if (value <= 0) return 1;
+    const rough = value / 5;
+    const exp = Math.floor(Math.log10(rough));
+    const base = Math.pow(10, exp);
+    const multiplier = rough / base <= 1 ? 1 : rough / base <= 2 ? 2 : 5;
+    const step = base * multiplier;
+    return Math.ceil(value / step) * step;
+}
+
 const option = computed<ECOption>(() => {
     const data = props.adapter.data.value;
     if (!data) return {};
