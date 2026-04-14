@@ -5,6 +5,7 @@ import SearchStation from "~/components/ecartNormale/searchStation.vue";
 import { useDeviationSelectBarAdapter } from "~/adapters/deviationSelectBarAdapter";
 import SelectBar from "~/components/ui/commons/selectBar/selectBar.vue";
 import DeviationChart from "~/components/charts/DeviationChart.vue";
+import DeviationTable from "~/components/table/deviation/DeviationTable.vue";
 import type { ChartType } from "~/components/ui/commons/selectBar/types";
 
 const selectBarAdapter = useDeviationSelectBarAdapter();
@@ -25,6 +26,7 @@ const heroData = {
             :title="heroData.title"
             :description="heroData.description"
         />
+        <DeviationTable />
         <ChartLayout :has-sidebar="true">
             <template #select-bar>
                 <SelectBar :adapter="selectBarAdapter" />

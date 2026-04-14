@@ -1,5 +1,8 @@
 import type { ShallowRef } from "vue";
-import type { DeviationResponse, NationalIndicatorResponse } from "~/types/api";
+import type {
+    TemperatureDeviationGraphResponse,
+    NationalIndicatorResponse,
+} from "~/types/api";
 
 export type GranularityType = "year" | "month" | "day";
 
@@ -8,7 +11,7 @@ export type SliceType = "full" | "month_of_year" | "day_of_month";
 export type ChartType = "line" | "bar" | "scatter" | "pyramid" | "calendar";
 
 export interface SelectBarAdapter<
-    T = NationalIndicatorResponse | DeviationResponse,
+    T = NationalIndicatorResponse | TemperatureDeviationGraphResponse,
 > {
     // Date
     granularity: Ref<GranularityType>;

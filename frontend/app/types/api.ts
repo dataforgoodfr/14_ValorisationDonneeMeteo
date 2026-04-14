@@ -80,42 +80,111 @@ export interface NationalIndicatorResponse {
 
 // ===== Ecart à la normale (Temperature Deviation) types =====
 
-export interface DeviationParams {
+export interface TemperatureDeviationParams {
+    date_start: string;
+    date_end: string;
+    station_ids?: string;
+    station_search?: string;
+    departments?: string;
+    regions?: string;
+    temperature_mean_min?: number;
+    temperature_mean_max?: number;
+    deviation_min?: number;
+    deviation_max?: number;
+    altitude_min?: number;
+    altitude_max?: number;
+    ordering?: string;
+    limit?: number;
+    offset?: number;
+}
+
+export interface TemperatureDeviationMetadata {
+    date_start: string | null;
+    date_end: string | null;
+    baseline: string;
+    filters: {
+        station_search: string | null;
+        station_ids: string[] | null;
+        temperature_mean_min: number | null;
+        temperature_mean_max: number | null;
+        deviation_min: number | null;
+        deviation_max: number | null;
+    };
+    ordering: string;
+}
+
+export interface TemperatureDeviationNational {
+    deviation_mean: number;
+}
+
+export interface TemperatureDeviationPagination {
+    total_count: number;
+    limit: number;
+    offset: number;
+}
+
+export interface TemperatureDeviationStation {
+    station_id: string;
+    station_name: string;
+    temperature_mean: number;
+    baseline_mean: number;
+    deviation: number;
+    alt: number;
+    lat: number;
+    lon: number;
+    department: string;
+    region: string;
+}
+
+export interface TemperatureDeviationResponse {
+    metadata: TemperatureDeviationMetadata;
+    national: TemperatureDeviationNational;
+    pagination: TemperatureDeviationPagination;
+    stations: TemperatureDeviationStation[];
+}
+export interface TemperatureDeviationGraphParams {
     date_start: string;
     date_end: string;
     granularity: "year" | "month" | "day";
     station_ids?: string;
+    departments?: string;
     include_national: boolean;
+    deviation_min?: number;
+    deviation_max?: number;
+    limit?: number;
+    offset?: number;
 }
 
-export interface DeviationMetadata {
+export interface TemperatureDeviationGraphMetadata {
     date_start: string;
     date_end: string;
     baseline: string;
     granularity: "year" | "month" | "day";
 }
 
-export interface DeviationNational {
-    data: DeviationDataPoint[];
+export interface TemperatureDeviationGraphNational {
+    data: TemperatureDeviationGraphDataPoint[];
 }
 
-export interface DeviationStationSerie {
+export interface TemperatureDeviationGraphStationSerie {
     station_id: string;
     station_name: string;
-    data: DeviationDataPoint[];
+    departement: string;
+    data: TemperatureDeviationGraphDataPoint[];
 }
 
-export interface DeviationDataPoint {
+export interface TemperatureDeviationGraphDataPoint {
     date: string;
     deviation: number;
     temperature: number;
     baseline_mean: number;
 }
 
-export interface DeviationResponse {
-    metadata: DeviationMetadata;
-    national: DeviationNational;
-    stations: DeviationStationSerie[];
+export interface TemperatureDeviationGraphResponse {
+    count: number;
+    metadata: TemperatureDeviationGraphMetadata;
+    national: TemperatureDeviationGraphNational;
+    stations: TemperatureDeviationGraphStationSerie[];
 }
 
 // ===== Temperature Records types =====

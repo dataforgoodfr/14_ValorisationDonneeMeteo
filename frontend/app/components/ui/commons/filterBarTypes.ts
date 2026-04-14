@@ -8,6 +8,7 @@ export interface FilterField {
     id: string;
     label: string;
     type: FilterType;
+    unit?: string;
 }
 
 export interface FilterOption {

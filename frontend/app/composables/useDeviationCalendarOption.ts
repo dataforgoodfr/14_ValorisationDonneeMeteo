@@ -10,9 +10,9 @@ import type {
     ContinousVisualMapOption,
 } from "echarts/types/dist/shared";
 import type {
-    DeviationDataPoint,
-    DeviationResponse,
-    DeviationStationSerie,
+    TemperatureDeviationGraphDataPoint,
+    TemperatureDeviationGraphResponse,
+    TemperatureDeviationGraphStationSerie,
 } from "~/types/api";
 import type { GranularityType } from "~/components/ui/commons/selectBar/types";
 import type { DeviationStationIdAndName } from "~/types/common";
@@ -89,12 +89,19 @@ function buildCategoriesForMonth(allDates: string[]): {
 }
 
 function buildCategories(
-    data: DeviationResponse,
+    data: TemperatureDeviationGraphResponse,
     granularity: GranularityType,
 ): { xCategories: string[]; yCategories: string[] } {
     const allDates = [
-        ...(data.national?.data?.map((d) => d.date) ?? []),
-        ...data.stations.flatMap((s) => s.data?.map((d) => d.date) ?? []),
+        ...(data.national?.data?.map(
+            (d: TemperatureDeviationGraphDataPoint) => d.date,
+        ) ?? []),
+        ...data.stations.flatMap(
+            (s: TemperatureDeviationGraphStationSerie) =>
+                s.data?.map(
+                    (d: TemperatureDeviationGraphDataPoint) => d.date,
+                ) ?? [],
+        ),
     ];
 
     if (granularity === "year") {
@@ -165,13 +172,13 @@ function dateToXY(
 }
 
 export function useDeviationCalendarOption(
-    data: DeviationResponse,
+    data: TemperatureDeviationGraphResponse,
     granularity: GranularityType,
     stationsIdAndNames: DeviationStationIdAndName[],
 ): EChartsOption {
     const deviationStore = useDeviationStore();
 
-    const stationsAndNational: DeviationStationSerie[] =
+    const stationsAndNational: TemperatureDeviationGraphStationSerie[] =
         deviationStore.stationsAndNationalFormatted(data);
 
     const stationCount = stationsAndNational.length || 1;
@@ -204,7 +211,7 @@ export function useDeviationCalendarOption(
         )?.station_name;
 
         const heatmapData = (stationOrNational?.data ?? [])
-            .map((point: DeviationDataPoint) => {
+            .map((point: TemperatureDeviationGraphDataPoint) => {
                 const coordinates = dateToXY(
                     point.date,
                     granularity,
@@ -214,7 +221,7 @@ export function useDeviationCalendarOption(
 
                 return [...coordinates, point.deviation];
             })
-            .filter((coords) => coords !== null);
+            .filter((coords): coords is number[] => coords !== null);
 
         grids.push({
             top: `${top}%`,

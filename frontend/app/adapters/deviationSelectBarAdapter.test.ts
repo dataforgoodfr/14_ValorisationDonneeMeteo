@@ -4,7 +4,7 @@ import type {
     GranularityType,
     SelectBarAdapter,
 } from "~/components/ui/commons/selectBar/types";
-import type { DeviationResponse } from "~/types/api";
+import type { TemperatureDeviationGraphResponse } from "~/types/api";
 
 // Mock the store
 const createMockDeviationStore = () => ({
@@ -36,7 +36,7 @@ let mockStore: ReturnType<typeof createMockDeviationStore>;
 
 // Mock the adapter function
 const useDeviationSelectBarAdapter =
-    (): SelectBarAdapter<DeviationResponse> => {
+    (): SelectBarAdapter<TemperatureDeviationGraphResponse> => {
         return {
             granularity: mockStore.granularity,
             pickedDateStart: mockStore.pickedDateStart,
