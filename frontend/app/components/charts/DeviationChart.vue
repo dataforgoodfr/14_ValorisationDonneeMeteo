@@ -3,6 +3,7 @@ import * as echarts from "echarts/core";
 import langFR from "~/i18n/langFR.js";
 import type { SelectBarAdapter } from "~/components/ui/commons/selectBar/types";
 import type { DeviationResponse } from "~/types/api";
+import type { EChartsOption } from "echarts";
 import { useDeviationStore } from "#imports";
 import { deviationChartTooltipFormatter } from "./tooltipFormatters/deviationChartTooltipFormatter";
 import {
