@@ -1,6 +1,5 @@
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { describe, expect, it } from "vitest";
 import { deviationChartTooltipFormatter } from "./deviationChartTooltipFormatter";
-import { getStationById } from "~/utils/station";
 import type { DefaultLabelFormatterCallbackParams } from "echarts";
 
 const makeParam = (
@@ -20,10 +19,6 @@ const makeParam = (
     marker,
     $vars: ["seriesName", "name", "value"],
 });
-
-vi.mock("~/utils/station", () => ({
-    getStationById: vi.fn(),
-}));
 
 describe("deviationChartTooltipFormatter", () => {
     const stationsNameAndId = {
@@ -53,10 +48,6 @@ describe("deviationChartTooltipFormatter", () => {
             station_name: "Lyon",
         };
 
-        beforeEach(() => {
-            vi.mocked(getStationById).mockReturnValue(stationsNameAndId);
-        });
-
         it("returns the right string with granularity : day", () => {
             const params: DefaultLabelFormatterCallbackParams[] = [
                 {
@@ -72,6 +63,7 @@ describe("deviationChartTooltipFormatter", () => {
                         deviation: -0.4,
                         deviation_positive: null,
                         deviation_negative: -0.4,
+                        station_id: "1",
                     },
                     value: {
                         date: "2025-03-02",
@@ -95,6 +87,7 @@ describe("deviationChartTooltipFormatter", () => {
                         deviation: -0.4,
                         deviation_positive: null,
                         deviation_negative: -0.4,
+                        station_id: "1",
                     },
                     value: {
                         date: "2025-03-02",
@@ -129,6 +122,7 @@ describe("deviationChartTooltipFormatter", () => {
                         deviation: 0.1,
                         deviation_positive: 0.1,
                         deviation_negative: null,
+                        station_id: "1",
                     },
                     value: {
                         date: "2026-03-01",
@@ -153,6 +147,7 @@ describe("deviationChartTooltipFormatter", () => {
                         deviation: 0.1,
                         deviation_positive: 0.1,
                         deviation_negative: null,
+                        station_id: "1",
                     },
                     value: {
                         date: "2026-03-01",
@@ -186,6 +181,7 @@ describe("deviationChartTooltipFormatter", () => {
                         deviation: 0.04,
                         deviation_positive: 0.04,
                         deviation_negative: null,
+                        station_id: "1",
                     },
                     value: {
                         date: "2026-01-01",
@@ -210,6 +206,7 @@ describe("deviationChartTooltipFormatter", () => {
                         deviation: 0.04,
                         deviation_positive: 0.04,
                         deviation_negative: null,
+                        station_id: "1",
                     },
                     value: {
                         date: "2026-01-01",
