@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import type { TableColumn } from "@nuxt/ui";
 import { h } from "vue";
-import { UBadge } from "#components";
+import { UBadge, UButton } from "#components";
 import { storeToRefs } from "pinia";
 import { useDeviationTableStore } from "~/stores/deviationTableStore";
 import DeviationFilterBar from "~/components/table/deviation/DeviationFilterBar.vue";
@@ -9,8 +9,17 @@ import DayPicker from "~/components/ui/commons/selectBar/dayPicker.vue";
 import { useCustomDate } from "~/composables/useCustomDate";
 
 const store = useDeviationTableStore();
-const { page, pageSize, deviationData, pending, error, dateStart, dateEnd } =
-    storeToRefs(store);
+const {
+    page,
+    pageSize,
+    deviationData,
+    pending,
+    error,
+    dateStart,
+    dateEnd,
+    ordering,
+} = storeToRefs(store);
+const { setOrdering } = store;
 
 interface TableRow {
     station_name: string;
@@ -36,17 +45,95 @@ const deviationBadgeColor = (deviation: number) =>
     deviation >= 0 ? "error" : "info";
 
 const columns: TableColumn<TableRow>[] = [
-    { accessorKey: "station_name", header: "Station" },
-    { accessorKey: "departement", header: "Département" },
-    { accessorKey: "region", header: "Région" },
+    {
+        accessorKey: "station_name",
+        header: () =>
+            h(UButton, {
+                variant: "ghost",
+                label: "Station",
+                title: "Station",
+                trailingIcon: ordering.value.includes("station_name")
+                    ? ordering.value.startsWith("-")
+                        ? "i-lucide-arrow-down"
+                        : "i-lucide-arrow-up"
+                    : "i-lucide-arrow-up-down",
+                color: "neutral",
+                class: "-mx-2.5 font-semibold text-highlighted w-full justify-center",
+                onClick: () => setOrdering("station_name"),
+            }),
+    },
+    {
+        accessorKey: "departement",
+        header: () =>
+            h(UButton, {
+                variant: "ghost",
+                label: "Département",
+                title: "Département",
+                trailingIcon: ordering.value.includes("departement")
+                    ? ordering.value.startsWith("-")
+                        ? "i-lucide-arrow-down"
+                        : "i-lucide-arrow-up"
+                    : "i-lucide-arrow-up-down",
+                color: "neutral",
+                class: "-mx-2.5 font-semibold text-highlighted w-full justify-center",
+                onClick: () => setOrdering("departement"),
+            }),
+        meta: { class: { td: "text-center" } },
+    },
+    {
+        accessorKey: "region",
+        header: () =>
+            h(UButton, {
+                variant: "ghost",
+                label: "Région",
+                title: "Région",
+                trailingIcon: ordering.value.includes("region")
+                    ? ordering.value.startsWith("-")
+                        ? "i-lucide-arrow-down"
+                        : "i-lucide-arrow-up"
+                    : "i-lucide-arrow-up-down",
+                color: "neutral",
+                class: "-mx-2.5 font-semibold text-highlighted w-full justify-center",
+                onClick: () => setOrdering("departement"),
+            }),
+        meta: { class: { td: "text-center" } },
+    },
     {
         accessorKey: "altitude",
-        header: "Altitude (m)",
+        header: () =>
+            h(UButton, {
+                variant: "ghost",
+                label: "Altitude (m)",
+                title: "Altitude (m)",
+                trailingIcon: ordering.value.includes("altitude")
+                    ? ordering.value.startsWith("-")
+                        ? "i-lucide-arrow-down"
+                        : "i-lucide-arrow-up"
+                    : "i-lucide-arrow-up-down",
+                color: "neutral",
+                class: "-mx-2.5 font-semibold text-highlighted w-full justify-center",
+                onClick: () => setOrdering("departement"),
+            }),
+        meta: { class: { td: "text-center" } },
         cell: ({ row }) => `${row.getValue<number>("altitude")} m`,
     },
     {
         accessorKey: "deviation",
-        header: "Écart à la normale (°C)",
+        header: () =>
+            h(UButton, {
+                variant: "ghost",
+                label: "Écart à la normale (°C)",
+                title: "Écart à la normale (°C)",
+                trailingIcon: ordering.value.includes("deviation")
+                    ? ordering.value.startsWith("-")
+                        ? "i-lucide-arrow-down"
+                        : "i-lucide-arrow-up"
+                    : "i-lucide-arrow-up-down",
+                color: "neutral",
+                class: "-mx-2.5 font-semibold text-highlighted w-full justify-center",
+                onClick: () => setOrdering("departement"),
+            }),
+        meta: { class: { td: "text-center" } },
         cell: ({ row }) =>
             h(
                 UBadge,
@@ -60,7 +147,21 @@ const columns: TableColumn<TableRow>[] = [
     },
     {
         accessorKey: "temperatureMean",
-        header: "Température Moyenne (°C)",
+        header: () =>
+            h(UButton, {
+                variant: "ghost",
+                label: "Température Moyenne (°C)",
+                title: "Température Moyenne (°C)",
+                trailingIcon: ordering.value.includes("temperatureMean")
+                    ? ordering.value.startsWith("-")
+                        ? "i-lucide-arrow-down"
+                        : "i-lucide-arrow-up"
+                    : "i-lucide-arrow-up-down",
+                color: "neutral",
+                class: "-mx-2.5 font-semibold text-highlighted w-full justify-center",
+                onClick: () => setOrdering("departement"),
+            }),
+        meta: { class: { td: "text-center" } },
         cell: ({ row }) =>
             `${row.getValue<number>("temperatureMean").toFixed(1)}`,
     },

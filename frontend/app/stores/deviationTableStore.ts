@@ -138,6 +138,7 @@ export const useDeviationTableStore = defineStore("deviationTableStore", () => {
 
     const dateStart = ref<Date>(new Date("1950-03-01"));
     const dateEnd = ref<Date>(new Date("2026-03-31"));
+    const ordering = ref<string>("-deviation");
 
     const params = computed<TemperatureDeviationParams>(() => {
         const result: TemperatureDeviationParams = {
@@ -145,6 +146,7 @@ export const useDeviationTableStore = defineStore("deviationTableStore", () => {
             date_end: dateToStringYMD(dateEnd.value),
             limit: pageSize.value,
             offset: (page.value - 1) * pageSize.value,
+            ordering: ordering.value,
         };
         if (debouncedStationIds.value.length >= 1)
             result.station_ids = debouncedStationIds.value.join(",");
@@ -167,8 +169,15 @@ export const useDeviationTableStore = defineStore("deviationTableStore", () => {
         return result;
     });
 
-    watch(dateStart, (val) => console.log("dateStart changed:", val));
-    watch(params, (val) => console.log("params changed:", val));
+    function setOrdering(field: string) {
+        if (ordering.value === field) {
+            ordering.value = `-${field}`;
+        } else if (ordering.value === `-${field}`) {
+            ordering.value = field;
+        } else {
+            ordering.value = `-${field}`;
+        }
+    }
 
     const {
         data: deviationData,
@@ -188,5 +197,7 @@ export const useDeviationTableStore = defineStore("deviationTableStore", () => {
         error,
         dateStart,
         dateEnd,
+        ordering,
+        setOrdering,
     };
 });
