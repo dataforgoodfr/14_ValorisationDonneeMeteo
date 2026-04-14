@@ -123,11 +123,16 @@ export interface DeviationResponse {
 export type RecordKind = "historical" | "absolute";
 export type RecordScope = "monthly" | "seasonal" | "all_time";
 export type TypeRecords = "hot" | "cold" | "all";
+export type PeriodType = "all_time" | "season" | "month";
+export type Season = "spring" | "summer" | "autumn" | "winter";
 
 export interface TemperatureRecordsParams {
     record_kind?: RecordKind;
     record_scope?: RecordScope;
     type_records?: TypeRecords;
+    period_type?: PeriodType;
+    season?: Season;
+    month?: number;
     date_start?: string;
     date_end?: string;
     station_ids?: string;

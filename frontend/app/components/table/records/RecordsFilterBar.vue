@@ -19,7 +19,7 @@ const filterFields: FilterField[] = [
 ];
 
 const store = useRecordsTableStore();
-const { filters, typeRecords } = storeToRefs(store);
+const { filters } = storeToRefs(store);
 const { setFilter, clearFilter } = store;
 
 const searchQuery = ref("");
@@ -137,24 +137,5 @@ const filterOptions = computed(() => {
         @clear="clearFilter"
         @search="onSearch"
         @load-more="onLoadMore"
-    >
-        <template #actions>
-            <UFieldGroup class="ml-auto">
-                <UButton
-                    class="cursor-pointer"
-                    color="neutral"
-                    :variant="typeRecords === 'hot' ? 'subtle' : 'outline'"
-                    label="Chaud"
-                    @click="typeRecords = 'hot'"
-                />
-                <UButton
-                    class="cursor-pointer"
-                    color="neutral"
-                    :variant="typeRecords === 'cold' ? 'subtle' : 'outline'"
-                    label="Froid"
-                    @click="typeRecords = 'cold'"
-                />
-            </UFieldGroup>
-        </template>
-    </FilterBar>
+    />
 </template>

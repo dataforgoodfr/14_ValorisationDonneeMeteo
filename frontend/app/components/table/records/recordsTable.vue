@@ -3,7 +3,10 @@ import type { TableColumn } from "@nuxt/ui";
 import { h } from "vue";
 import { UBadge } from "#components";
 import { storeToRefs } from "pinia";
-import { useRecordsTableStore } from "~/stores/recordsTableStore";
+import {
+    useRecordsTableStore,
+    periodOptions,
+} from "~/stores/recordsTableStore";
 import RecordsFilterBar from "~/components/table/records/RecordsFilterBar.vue";
 
 const store = useRecordsTableStore();
@@ -11,6 +14,7 @@ const {
     page,
     pageSize,
     typeRecords,
+    periodSelection,
     pagedStations,
     filteredCount,
     pending,
@@ -67,6 +71,28 @@ const columns = computed<TableColumn<TableRow>[]>(() => [
 
 <template>
     <div class="flex flex-col gap-4">
+        <!-- Controls: Période + Chaud/Froid -->
+        <div class="flex items-end gap-4">
+            <div class="flex flex-col gap-1">
+                <p class="text-sm text-muted">Période</p>
+                <USelect v-model="periodSelection" :items="periodOptions" />
+            </div>
+            <UButtonGroup>
+                <UButton
+                    color="neutral"
+                    :variant="typeRecords === 'hot' ? 'subtle' : 'outline'"
+                    label="Chaud"
+                    @click="typeRecords = 'hot'"
+                />
+                <UButton
+                    color="neutral"
+                    :variant="typeRecords === 'cold' ? 'subtle' : 'outline'"
+                    label="Froid"
+                    @click="typeRecords = 'cold'"
+                />
+            </UButtonGroup>
+        </div>
+
         <!-- Filter bar -->
         <RecordsFilterBar />
 

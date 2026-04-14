@@ -4,6 +4,8 @@ import { departements } from "~/data/records/departements";
 import { dateToStringYMD } from "~/utils/date";
 import type {
     TypeRecords,
+    PeriodType,
+    Season,
     TemperatureRecordsParams,
     TemperatureRecordFlatEntry,
 } from "~/types/api";
@@ -23,6 +25,26 @@ type RecordsFilters = {
 
 const debounceDuration = 300;
 
+export const periodOptions = [
+    { value: "all_time", label: "Toute l'année" },
+    { value: "season_spring", label: "Printemps" },
+    { value: "season_summer", label: "Été" },
+    { value: "season_autumn", label: "Automne" },
+    { value: "season_winter", label: "Hiver" },
+    { value: "month_1", label: "Janvier" },
+    { value: "month_2", label: "Février" },
+    { value: "month_3", label: "Mars" },
+    { value: "month_4", label: "Avril" },
+    { value: "month_5", label: "Mai" },
+    { value: "month_6", label: "Juin" },
+    { value: "month_7", label: "Juillet" },
+    { value: "month_8", label: "Août" },
+    { value: "month_9", label: "Septembre" },
+    { value: "month_10", label: "Octobre" },
+    { value: "month_11", label: "Novembre" },
+    { value: "month_12", label: "Décembre" },
+];
+
 export const useRecordsTableStore = defineStore("recordsTableStore", () => {
     // Pagination
     const page = ref(1);
@@ -30,6 +52,7 @@ export const useRecordsTableStore = defineStore("recordsTableStore", () => {
 
     // Query shape
     const typeRecords = ref<TypeRecords>("hot");
+    const periodSelection = ref("all_time");
 
     // Filters
     const stationIds = ref<string[]>([]);
@@ -118,10 +141,43 @@ export const useRecordsTableStore = defineStore("recordsTableStore", () => {
     const debouncedDateStart = refDebounced(dateStart, debounceDuration);
     const debouncedDateEnd = refDebounced(dateEnd, debounceDuration);
 
-    // The API only supports type_records — all other filtering is client-side
-    const params = computed<TemperatureRecordsParams>(() => ({
-        type_records: typeRecords.value,
-    }));
+    // Build API params from periodSelection
+    const params = computed<TemperatureRecordsParams>(() => {
+        const result: TemperatureRecordsParams = {
+            type_records: typeRecords.value,
+        };
+
+        if (periodSelection.value.startsWith("season_")) {
+            result.period_type = "season" as PeriodType;
+            result.season = periodSelection.value.replace(
+                "season_",
+                "",
+            ) as Season;
+        } else if (periodSelection.value.startsWith("month_")) {
+            result.period_type = "month" as PeriodType;
+            result.month = parseInt(
+                periodSelection.value.replace("month_", ""),
+            );
+        }
+
+        return result;
+    });
+
+    // Reset page when API params or client-side filters change
+    watch(
+        [
+            params,
+            debouncedStationIds,
+            debouncedDepartments,
+            debouncedTempMin,
+            debouncedTempMax,
+            debouncedDateStart,
+            debouncedDateEnd,
+        ],
+        () => {
+            page.value = 1;
+        },
+    );
 
     const { data: rawRecords, pending, error } = useTemperatureRecords(params);
 
@@ -181,6 +237,7 @@ export const useRecordsTableStore = defineStore("recordsTableStore", () => {
         page,
         pageSize,
         typeRecords,
+        periodSelection,
         filters,
         staticOptions,
         setFilter,
