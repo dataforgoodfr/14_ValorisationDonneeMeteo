@@ -24,6 +24,7 @@ describe("deviationChartTooltipFormatter", () => {
     const stationsNameAndId = {
         station_id: "1",
         station_name: "Station",
+        departement: "",
     };
 
     describe("Guard cases", () => {
@@ -46,6 +47,7 @@ describe("deviationChartTooltipFormatter", () => {
         const stationsNameAndId = {
             station_id: "1",
             station_name: "Lyon",
+            departement: "",
         };
 
         it("returns the right string with granularity : day", () => {

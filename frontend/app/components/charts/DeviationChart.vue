@@ -19,7 +19,6 @@ import { BarChart, HeatmapChart } from "echarts/charts";
 import { UniversalTransition } from "echarts/features";
 import { CanvasRenderer } from "echarts/renderers";
 import { useDeviationCalendarOption } from "~/composables/useDeviationCalendarOption";
-import { COLORS } from "~/constants/colors";
 
 echarts.registerLocale("FR", langFR);
 echarts.use([
