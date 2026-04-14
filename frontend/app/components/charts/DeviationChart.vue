@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import * as echarts from "echarts/core";
 import langFR from "~/i18n/langFR.js";
-import type { SelectBarAdapter } from "../ui/commons/selectBar/types";
+import type { SelectBarAdapter } from "~/components/ui/commons/selectBar/types";
 import type { DeviationResponse } from "~/types/api";
 import { useDeviationStore } from "#imports";
 import { deviationChartTooltipFormatter } from "./tooltipFormatters/deviationChartTooltipFormatter";
@@ -54,7 +54,7 @@ const initOptions = computed(() => ({
 }));
 provide(INIT_OPTIONS_KEY, initOptions);
 
-const barOption = computed<ECOption>(() => {
+const barOption = computed<EChartsOption>(() => {
     const data = props.adapter.data.value;
 
     if (!data) return {};
@@ -155,14 +155,20 @@ const barOption = computed<ECOption>(() => {
                 );
             },
         },
-        dataZoom: [{ xAxisIndex: "all", type: "inside", minSpan: 20 }],
+        dataZoom: [
+            {
+                xAxisIndex: getXAxisIndexes(stationsAndNational.length),
+                type: "inside",
+                minSpan: 20,
+            },
+        ],
     };
 });
 
-const calendarOption = computed<ECOption | EChartsOption>(() => {
+const calendarOption = computed<EChartsOption>(() => {
     const data = props.adapter.data.value;
 
-    if (!data) return {} as ECOption;
+    if (!data) return {} as EChartsOption;
 
     return useDeviationCalendarOption(
         data,
@@ -171,7 +177,7 @@ const calendarOption = computed<ECOption | EChartsOption>(() => {
     );
 });
 
-const option = computed<ECOption | EChartsOption>(() =>
+const option = computed<EChartsOption>(() =>
     props.adapter.chartType?.value === "calendar"
         ? calendarOption.value
         : barOption.value,
