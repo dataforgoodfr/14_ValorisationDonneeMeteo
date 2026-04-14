@@ -1,8 +1,8 @@
 import type {
-    TemperatureDeviationParams,
-    TemperatureDeviationResponse,
     TemperatureDeviationGraphParams,
     TemperatureDeviationGraphResponse,
+    TemperatureDeviationParams,
+    TemperatureDeviationResponse,
     TemperatureRecordsParams,
     TemperatureRecordsResponse,
 } from "~/types/api";
@@ -59,7 +59,7 @@ export function useTemperatureDeviation(
 export function useTemperatureDeviationGraph(
     params: MaybeRef<TemperatureDeviationGraphParams>,
     enabled?: MaybeRef<boolean>,
-): ReturnType<typeof useFetch<TemperatureDeviationGraphResponse | undefined>> {
+) {
     const { useApiFetch } = useApiClient();
 
     const hasRequiredParams = computed(() => {
