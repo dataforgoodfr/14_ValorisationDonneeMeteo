@@ -163,6 +163,17 @@ const option = computed<EChartsOption>(() => {
             nameTextStyle: { fontSize: 11, fontWeight: "bold" },
             axisPointer: { type: "line", label: { show: false } },
             boundaryGap: ["3%", "3%"],
+            ...{
+                year: {
+                    axisLabel: { formatter: "{yyyy}" },
+                },
+                month: {
+                    axisLabel: { formatter: "{MMM}-{yyyy}" },
+                },
+                day: {
+                    axisLabel: { formatter: "{dd}-{MMM}-{yyyy}" },
+                },
+            }[props.adapter.granularity.value],
         })),
         yAxis: plots.map((plot, index) => ({
             type: "value",
