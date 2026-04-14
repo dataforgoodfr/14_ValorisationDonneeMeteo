@@ -3,6 +3,11 @@ import * as echarts from "echarts/core";
 import langFR from "~/i18n/langFR.js";
 import type { SelectBarAdapter } from "~/components/ui/commons/selectBar/types";
 import type { TemperatureRecordsResponse } from "~/types/api";
+import type {
+    EChartsOption,
+    ScatterSeriesOption,
+    BarSeriesOption,
+} from "echarts";
 import { recordsChartTooltipFormatter } from "~/components/charts/tooltipFormatters/recordsChartTooltipFormatter";
 import {
     countByPeriod,
@@ -27,6 +32,16 @@ const initOptions = computed(() => ({
 }));
 provide(INIT_OPTIONS_KEY, initOptions);
 
+function scatterSeries(
+    opts: Omit<ScatterSeriesOption, "type">,
+): ScatterSeriesOption {
+    return { type: "scatter", ...opts };
+}
+
+function barSeries(opts: Omit<BarSeriesOption, "type">): BarSeriesOption {
+    return { type: "bar", ...opts };
+}
+
 function buildTerritoryPlot(
     territory: { type: string; id: string; value: string },
     data: TemperatureRecordsResponse,
@@ -46,7 +61,7 @@ function buildTerritoryPlot(
     };
 }
 
-const option = computed<ECOption>(() => {
+const option = computed<EChartsOption>(() => {
     const data = props.adapter.data.value;
     if (!data) return {};
 
@@ -142,52 +157,48 @@ const option = computed<ECOption>(() => {
         })),
         series: [
             ...territoryPlots.flatMap((_, index) => [
-                {
+                scatterSeries({
                     name: "Records de chaleur",
-                    type: "scatter",
                     datasetIndex: index * 2,
                     encode: { x: "date", y: "value" },
                     color: "#d32f2f",
                     symbolSize: 10,
                     xAxisIndex: index,
                     yAxisIndex: index,
-                },
-                {
+                }),
+                scatterSeries({
                     name: "Records de froid",
-                    type: "scatter",
                     datasetIndex: index * 2 + 1,
                     encode: { x: "date", y: "value" },
                     color: "#1976d2",
                     symbolSize: 10,
                     xAxisIndex: index,
                     yAxisIndex: index,
-                },
+                }),
             ]),
             ...(showStackedBar
                 ? [
-                      {
+                      barSeries({
                           name: "Records de chaleur",
-                          type: "bar",
                           datasetIndex: territoryPlots.length * 2,
                           encode: { x: "period", y: "hot" },
                           color: "#d32f2f",
                           stack: "records",
                           xAxisIndex: 1,
                           yAxisIndex: 1,
-                      },
-                      {
+                      }),
+                      barSeries({
                           name: "Records de froid",
-                          type: "bar",
                           datasetIndex: territoryPlots.length * 2,
                           encode: { x: "period", y: "cold" },
                           color: "#1976d2",
                           stack: "records",
                           xAxisIndex: 1,
                           yAxisIndex: 1,
-                      },
+                      }),
                   ]
                 : []),
-        ] as ECOption["series"],
+        ],
         title: territoryPlots.map((plot, index) => ({
             text: plot.name,
             right: "right",
