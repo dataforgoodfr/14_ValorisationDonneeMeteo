@@ -9,7 +9,7 @@ export type GranularityType = "year" | "month" | "day";
 
 export type SliceType = "full" | "month_of_year" | "day_of_month";
 
-export type ChartType = "line" | "bar" | "scatter" | "pyramid";
+export type ChartType = "line" | "bar" | "scatter" | "pyramid" | "calendar";
 
 export interface SelectBarAdapter<
     T =

@@ -37,35 +37,6 @@ export const useDeviationStore = defineStore("deviationStore", () => {
         () => granularity.value === "year",
     );
 
-    const rangeDatesByGranularity = computed<{
-        date_start: string;
-        date_end: string;
-    }>(() => {
-        return {
-            date_start: isGranularityYear.value
-                ? dateToFirstDayOfYearYMD(pickedDateStart.value)
-                : dateToStringYMD(pickedDateStart.value),
-            date_end: isGranularityYear.value
-                ? dateToLastDayOfYearYMD(pickedDateEnd.value)
-                : dateToStringYMD(pickedDateEnd.value),
-        };
-    });
-
-    const params = computed<DeviationParams>(() => {
-        return {
-            date_start: rangeDatesByGranularity.value.date_start,
-            date_end: rangeDatesByGranularity.value.date_end,
-            granularity:
-                chartType.value === "calendar"
-                    ? granularity.value === "month"
-                        ? "day"
-                        : "month" // gère l'exception du calendrier pour granularité
-                    : granularity.value,
-            station_ids: stationIds.value.join(","),
-            include_national: includeNational.value,
-        };
-    });
-
     const selectedStationsAndNational = computed<DeviationStationIdAndName[]>(
         () => {
             const stations = selectedStations.value.map((station) => {
