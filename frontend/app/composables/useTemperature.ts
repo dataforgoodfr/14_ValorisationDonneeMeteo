@@ -59,7 +59,7 @@ export function useTemperatureDeviation(
 export function useTemperatureDeviationGraph(
     params: MaybeRef<TemperatureDeviationGraphParams>,
     enabled?: MaybeRef<boolean>,
-) {
+): ReturnType<typeof useFetch<DeviationResponse | undefined>> {
     const { useApiFetch } = useApiClient();
 
     const hasRequiredParams = computed(() => {

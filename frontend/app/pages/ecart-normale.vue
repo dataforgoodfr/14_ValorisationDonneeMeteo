@@ -6,8 +6,12 @@ import { useDeviationSelectBarAdapter } from "~/adapters/deviationSelectBarAdapt
 import SelectBar from "~/components/ui/commons/selectBar/selectBar.vue";
 import DeviationChart from "~/components/charts/DeviationChart.vue";
 import DeviationTable from "~/components/table/deviation/DeviationTable.vue";
+import type { ChartType } from "~/components/ui/commons/selectBar/types";
 
 const selectBarAdapter = useDeviationSelectBarAdapter();
+const chartType = computed<ChartType>(
+    () => selectBarAdapter.chartType?.value ?? "bar",
+);
 
 const heroData = {
     title: "Ecart à la normale",
@@ -34,6 +38,7 @@ const heroData = {
                 <ClientOnly>
                     <DeviationChart
                         :adapter="selectBarAdapter"
+                        :chart-type="chartType"
                         class="px-3 py-2"
                     />
                 </ClientOnly>

@@ -5,6 +5,7 @@ import type {
     SliceType,
     ChartType,
 } from "~/components/ui/commons/selectBar/types";
+import type { DeviationStationIdAndName } from "~/types/common";
 
 const dates = useCustomDate();
 
@@ -57,9 +58,32 @@ export const useDeviationStore = defineStore("deviationStore", () => {
         stationIds.value = stations.map((station) => station.code);
         selectedStations.value = stations;
     };
+
     const setIncludeNational = (value: boolean) => {
         includeNational.value = value;
     };
+
+    const stationsAndNationalFormatted = (
+        chartData: DeviationResponse,
+    ): DeviationStationSerie[] => {
+        return includeNational.value
+            ? [
+                  {
+                      station_id: "national",
+                      station_name: "France Métropolitaine",
+                      ...chartData.national,
+                  },
+                  ...chartData.stations,
+              ]
+            : chartData.stations;
+    };
+
+    watch(isGranularityYear, (value) => {
+        if (value) {
+            pickedDateStart.value = setToFirstDayOfYear(pickedDateStart.value);
+            pickedDateEnd.value = setToLastDayOfYear(pickedDateEnd.value);
+        }
+    });
 
     return {
         deviationChartRef,
@@ -76,8 +100,10 @@ export const useDeviationStore = defineStore("deviationStore", () => {
         setIncludeNational,
         setChartType,
         setStations,
+        stationsAndNationalFormatted,
         stationIds,
         selectedStations,
+        selectedStationsAndNational,
         deviationData,
         pending,
         error,
