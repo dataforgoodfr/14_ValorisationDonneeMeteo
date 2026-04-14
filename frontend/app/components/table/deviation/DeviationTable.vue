@@ -5,9 +5,12 @@ import { UBadge } from "#components";
 import { storeToRefs } from "pinia";
 import { useDeviationTableStore } from "~/stores/deviationTableStore";
 import DeviationFilterBar from "~/components/table/deviation/DeviationFilterBar.vue";
+import DayPicker from "~/components/ui/commons/selectBar/dayPicker.vue";
+import { useCustomDate } from "~/composables/useCustomDate";
 
 const store = useDeviationTableStore();
-const { page, pageSize, deviationData, pending, error } = storeToRefs(store);
+const { page, pageSize, deviationData, pending, error, dateStart, dateEnd } =
+    storeToRefs(store);
 
 interface TableRow {
     station_name: string;
@@ -62,10 +65,19 @@ const columns: TableColumn<TableRow>[] = [
             `${row.getValue<number>("temperatureMean").toFixed(1)}`,
     },
 ];
+
+const dates = useCustomDate();
 </script>
 
 <template>
     <div class="flex flex-col gap-4">
+        <DayPicker
+            v-model:start-date="dateStart"
+            v-model:end-date="dateEnd"
+            :min-date="dates.absoluteMinDataDate.value"
+            :max-date="dates.twoDaysAgo.value"
+        />
+
         <DeviationFilterBar />
 
         <div v-if="error" class="px-4 py-3 bg-error/10 text-error rounded">

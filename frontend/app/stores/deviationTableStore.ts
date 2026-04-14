@@ -85,12 +85,16 @@ export const useDeviationTableStore = defineStore("deviationTableStore", () => {
             if (id === "departement") departmentsFilter.value = value.values;
             if (id === "region") regionsFilter.value = value.values;
         } else if (value.type === "number-range") {
-            if (id === "altitude") altitudeMin.value = value.min;
-            altitudeMax.value = value.max;
-            if (id === "deviation") deviationMin.value = value.min;
-            deviationMax.value = value.max;
-            if (id === "temperatureMean") temperatureMeanMin.value = value.min;
-            temperatureMeanMax.value = value.max;
+            if (id === "altitude") {
+                altitudeMin.value = value.min;
+                altitudeMax.value = value.max;
+            } else if (id === "deviation") {
+                deviationMin.value = value.min;
+                deviationMax.value = value.max;
+            } else if (id === "temperatureMean") {
+                temperatureMeanMin.value = value.min;
+                temperatureMeanMax.value = value.max;
+            }
         }
     }
 
@@ -132,21 +136,13 @@ export const useDeviationTableStore = defineStore("deviationTableStore", () => {
         debounceDuration,
     );
 
-    const dateStart = ref<string>("1950-03-01");
-    const dateEnd = ref<string>("2026-03-31");
-
-    // function setDateStart(date: string) {
-    //     dateStart.value = date;
-    // }
-
-    // function setDateEnd(date: string) {
-    //     dateEnd.value = date;
-    // }
+    const dateStart = ref<Date>(new Date("1950-03-01"));
+    const dateEnd = ref<Date>(new Date("2026-03-31"));
 
     const params = computed<TemperatureDeviationParams>(() => {
         const result: TemperatureDeviationParams = {
-            date_start: dateStart.value,
-            date_end: dateEnd.value,
+            date_start: dateToStringYMD(dateStart.value),
+            date_end: dateToStringYMD(dateEnd.value),
             limit: pageSize.value,
             offset: (page.value - 1) * pageSize.value,
         };
@@ -171,6 +167,9 @@ export const useDeviationTableStore = defineStore("deviationTableStore", () => {
         return result;
     });
 
+    watch(dateStart, (val) => console.log("dateStart changed:", val));
+    watch(params, (val) => console.log("params changed:", val));
+
     const {
         data: deviationData,
         pending,
@@ -187,5 +186,7 @@ export const useDeviationTableStore = defineStore("deviationTableStore", () => {
         deviationData,
         pending,
         error,
+        dateStart,
+        dateEnd,
     };
 });

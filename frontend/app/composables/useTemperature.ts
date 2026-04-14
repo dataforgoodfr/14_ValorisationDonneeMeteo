@@ -43,13 +43,14 @@ export function useTemperatureDeviation(
     watch(
         [isEnabled, hasRequiredParams, params],
         ([enabled, hasParams]) => {
+            console.log("watch triggered", { enabled, hasParams });
             if (enabled && hasParams) {
                 result.execute();
             } else if (!hasParams) {
                 result.data.value = undefined;
             }
         },
-        { immediate: true },
+        { immediate: true, deep: true },
     );
 
     return result;

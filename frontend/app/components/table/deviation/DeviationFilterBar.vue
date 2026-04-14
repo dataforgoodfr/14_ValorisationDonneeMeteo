@@ -15,12 +15,18 @@ const filterFields: FilterField[] = [
     { id: "name", label: "Station", type: "string-async" },
     { id: "departement", label: "Département", type: "string" },
     { id: "region", label: "Région", type: "string" },
-    { id: "altitude", label: "Altitude", type: "number-range" },
-    { id: "deviation", label: "Écart à la normale", type: "number-range" },
+    { id: "altitude", label: "Altitude", type: "number-range", unit: "m" },
+    {
+        id: "deviation",
+        label: "Écart à la normale",
+        type: "number-range",
+        unit: "°C",
+    },
     {
         id: "temperatureMean",
         label: "Température moyenne",
         type: "number-range",
+        unit: "°C",
     },
 ];
 
