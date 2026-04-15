@@ -33,15 +33,20 @@ export const useDeviationStore = defineStore("deviationStore", () => {
     const selectedStations = ref<Station[]>([]);
     const includeNational = ref<boolean>(true);
 
-    const isGranularityYear = computed(() => granularity.value === "year");
+    const isGranularityYear = computed<boolean>(
+        () => granularity.value === "year",
+    );
 
     const selectedStationsAndNational = computed<DeviationStationIdAndName[]>(
         () => {
-            const stations = selectedStations.value.map((s) => ({
-                station_id: s.code,
-                station_name: s.nom,
-                departement: String(s.departement),
-            }));
+            const stations = selectedStations.value.map((station) => {
+                return {
+                    station_id: station.code,
+                    station_name: `${station.nom} (${station.departement})`,
+                    departement: String(station.departement),
+                };
+            });
+
             return includeNational.value
                 ? [
                       {
