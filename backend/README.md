@@ -51,6 +51,8 @@ Elle est alimentée par :
 - un schéma SQL
 - un dump des stations
 - un export CSV des données quotidiennes (2024–2025)
+- un export CSV des stations classées
+- un export CSV des stations avec leur date de  création et fermeture
 - des vues SQL utilisées par Django
 - des baselines climatologiques pré-calculées (1991–2020) importées depuis des CSV
 
@@ -68,7 +70,8 @@ Liste des fichiers attendus :
 - itn_baseline_monthly_9120.csv
 - itn_baseline_yearly_9120.csv
 - baseline_stations_daily_mean_9120.csv
--
+- station_classe.csv
+- station_creation_date.csv
 
 ⚠️ Si un de ces fichiers est absent, le seed échouera.
 
@@ -81,7 +84,7 @@ docker compose run --rm db-seed
 
 Ce que fait le script
 - recrée le schéma public
-- crée les tables sources (Station, Quotidienne)
+- crée les tables sources (Station, Quotidienne, station_classe, station_creation_date)
 - importe les données : stations, données quotidiennes
 - applique les vues SQL utilisées par l’API
 - importe les baselines climatologiques depuis des CSV :
