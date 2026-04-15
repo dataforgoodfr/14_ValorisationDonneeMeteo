@@ -20,7 +20,7 @@ import {
     buildTerritoryPlots,
     countByPeriod,
     scatterSeries,
-} from "./recordsChartUtils";
+} from "../../../utils/recordsChartUtils";
 
 echarts.registerLocale("FR", langFR);
 echarts.use([
