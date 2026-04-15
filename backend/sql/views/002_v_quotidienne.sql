@@ -1,3 +1,4 @@
+CREATE OR REPLACE VIEW public.v_quotidienne_itn AS
 WITH horaire_from_infrahoraire AS (
     SELECT
         geo_id_insee                                                                AS station_id,
