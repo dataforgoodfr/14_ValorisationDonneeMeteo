@@ -570,7 +570,10 @@ class TimescaleTemperatureRecordsDataSource:
                 s.name,
                 s.departement,
                 o."{col}",
-                o."AAAAMMJJ"
+                o."AAAAMMJJ",
+                s.lat,
+                s.lon,
+                s.alt
             FROM ordered o
             JOIN public.v_station s ON s.station_code = o."NUM_POSTE"
             WHERE o.prev_val IS NULL OR o."{col}" {cmp} o.prev_val
@@ -593,6 +596,9 @@ class TimescaleTemperatureRecordsDataSource:
                 record_date=row["AAAAMMJJ"].date()
                 if isinstance(row["AAAAMMJJ"], dt.datetime)
                 else row["AAAAMMJJ"],
+                lat=row["lat"],
+                lon=row["lon"],
+                alt=row["alt"],
             )
             for row in rows
         ]
