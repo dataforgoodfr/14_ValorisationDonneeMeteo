@@ -8,6 +8,7 @@ import {
     periodOptions,
 } from "~/stores/recordsTableStore";
 import RecordsFilterBar from "~/components/table/records/RecordsFilterBar.vue";
+import { escapeCsvValue } from "~/utils/string";
 
 const store = useRecordsTableStore();
 const {
@@ -24,12 +25,6 @@ const {
 
 function downloadCsv() {
     if (!import.meta.client) return;
-    const escape = (v: string | number | undefined) => {
-        const s = String(v ?? "");
-        return s.includes(",") || s.includes('"')
-            ? `"${s.replace(/"/g, '""')}"`
-            : s;
-    };
     const headers = [
         "Station",
         "Département",
@@ -39,8 +34,8 @@ function downloadCsv() {
     const rows = filteredRecords.value
         .map((s) =>
             [
-                escape(s.station_name),
-                escape(s.department),
+                escapeCsvValue(s.station_name),
+                escapeCsvValue(s.department),
                 s.record_value,
                 s.record_date,
             ].join(","),
@@ -54,6 +49,8 @@ function downloadCsv() {
         periodSelection.value,
         undefined,
         undefined,
+        "csv",
+    );
     a.href = `data:text/csv;charset=utf-8,${encodeURIComponent(csv)}`;
     a.download = `records-${typeRecords.value}.csv`;
     a.click();

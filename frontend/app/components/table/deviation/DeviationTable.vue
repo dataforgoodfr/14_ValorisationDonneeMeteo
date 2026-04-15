@@ -8,6 +8,7 @@ import DeviationFilterBar from "~/components/table/deviation/DeviationFilterBar.
 import DayPicker from "~/components/ui/commons/selectBar/dayPicker.vue";
 import { useCustomDate } from "~/composables/useCustomDate";
 import type { TemperatureDeviationResponse } from "~/types/api";
+import { buildDeviationCsv } from "~/utils/deviationCsv";
 
 const store = useDeviationTableStore();
 const {
@@ -30,26 +31,7 @@ async function downloadCsv() {
         "/temperature/deviation",
         { query: exportParams.value },
     );
-    const escape = (v: string | number | undefined) => {
-        const s = String(v ?? "");
-        return s.includes(",") || s.includes('"')
-            ? `"${s.replace(/"/g, '""')}"`
-            : s;
-    };
-    const headers =
-        "Station,Département,Région,Écart à la normale (°C),Température Moyenne (°C)";
-    const rows = data.stations
-        .map((s) =>
-            [
-                escape(s.station_name),
-                escape(s.department),
-                escape(s.region),
-                s.deviation?.toFixed(1) ?? "",
-                s.temperature_mean?.toFixed(1) ?? "",
-            ].join(","),
-        )
-        .join("\n");
-    const csv = `${headers}\n${rows}`;
+    const csv = buildDeviationCsv(data.stations);
     const a = document.createElement("a");
     a.href = `data:text/csv;charset=utf-8,${encodeURIComponent(csv)}`;
     a.download = useFormatFileName(
