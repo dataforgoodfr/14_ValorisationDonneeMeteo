@@ -49,9 +49,10 @@ function downloadCsv() {
         periodSelection.value,
         undefined,
         undefined,
-        "csv",
-    );
+    a.href = `data:text/csv;charset=utf-8,${encodeURIComponent(csv)}`;
+    a.download = `records-${typeRecords.value}.csv`;
     a.click();
+    a.remove();
 }
 
 // Track the record type that corresponds to the data currently displayed,
