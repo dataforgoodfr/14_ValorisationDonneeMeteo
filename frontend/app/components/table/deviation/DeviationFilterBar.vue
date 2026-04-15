@@ -8,8 +8,7 @@ import type {
     FilterOption,
     FilterValue,
 } from "~/components/ui/commons/FilterBar.vue";
-import type { StationFilters } from "~/types/api";
-import { useStations } from "~/composables/useStations";
+import type { PaginatedResponse, Station, StationFilters } from "~/types/api";
 
 const filterFields: FilterField[] = [
     { id: "name", label: "Station", type: "string-async" },
@@ -46,11 +45,21 @@ const stationFilter = computed<StationFilters>(() => ({
     offset: stationPage.value * 20,
 }));
 
-const {
-    data: stationsData,
-    pending: stationPending,
-    execute: fetchStations,
-} = useStations(stationFilter, { immediate: false, watch: false });
+const { apiFetch } = useApiClient();
+const stationPending = ref(false);
+const stationsData = ref<PaginatedResponse<Station> | null>(null);
+
+async function fetchStations() {
+    stationPending.value = true;
+    try {
+        stationsData.value = await apiFetch<PaginatedResponse<Station>>(
+            "/stations/",
+            { query: stationFilter.value },
+        );
+    } finally {
+        stationPending.value = false;
+    }
+}
 
 watch(stationsData, (newData) => {
     if (!newData) return;
@@ -69,7 +78,7 @@ watch(stationsData, (newData) => {
 watch(debouncedQuery, () => {
     stationPage.value = 0;
     allStationOptions.value = [];
-    stationsData.value = undefined;
+    stationsData.value = null;
     stationHasMore.value = false;
     fetchStations();
 });
@@ -100,7 +109,7 @@ function onSearch(id: string, query: string) {
     if (!query) {
         stationPage.value = 0;
         allStationOptions.value = [];
-        stationsData.value = undefined;
+        stationsData.value = null;
         stationHasMore.value = false;
         fetchStations();
     }
