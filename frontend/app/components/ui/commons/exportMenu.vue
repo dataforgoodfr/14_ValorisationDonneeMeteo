@@ -25,7 +25,7 @@ const exportMenuItems = ref<DropdownMenuItem[]>([
         },
     },
     {
-        label: "Format PNG fond bland",
+        label: "Format PNG fond blanc",
         icon: "i-lucide-file-image",
         onSelect(e: Event) {
             e.preventDefault();
