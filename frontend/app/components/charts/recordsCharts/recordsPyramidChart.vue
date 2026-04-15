@@ -174,7 +174,7 @@ const option = computed<ECOption>(() => {
                 text: "Nombre de records",
                 bottom: 25,
                 left: "50%",
-                textAlign: "center" as const,
+                textAlign: "center",
                 textStyle: { fontSize: 12, color: "#000000" },
             },
         ],
