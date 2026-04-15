@@ -21,7 +21,7 @@ const exportMenuItems = ref<DropdownMenuItem[]>([
         icon: "i-lucide-file-image",
         onSelect(e: Event) {
             e.preventDefault();
-            exportAsPngWoBackground();
+            exportAsPngWithoutBackground();
         },
     },
     {
@@ -71,7 +71,7 @@ function exportAsPng() {
     a.click();
 }
 
-function exportAsPngWoBackground() {
+function exportAsPngWithoutBackground() {
     if (!import.meta.client) return;
     const dataURL = chartRef?.value.getDataURL({
         type: "png",
