@@ -1,7 +1,7 @@
 import type { TemperatureRecordsResponse } from "~/types/api";
 import type { GranularityType } from "~/components/ui/commons/selectBar/types";
 
-interface RecordEntry {
+export interface RecordEntry {
     date: string;
     value: number;
     station: string;
@@ -67,7 +67,7 @@ export function countByPeriod(
 export function buildTerritoryPlot(
     territory: { type: string; id: string; value: string },
     data: TemperatureRecordsResponse,
-) {
+): { name: string; hot: RecordEntry[]; cold: RecordEntry[] } {
     const stations =
         territory.type === "STATION"
             ? data.stations.filter((station) => station.id === territory.id)
