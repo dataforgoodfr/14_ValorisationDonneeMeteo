@@ -58,7 +58,12 @@ export const useDeviationStore = defineStore("deviationStore", () => {
     const params = computed<TemperatureDeviationGraphParams>(() => ({
         date_start: dateToStringYMD(pickedDateStart.value),
         date_end: dateToStringYMD(pickedDateEnd.value),
-        granularity: granularity.value,
+        granularity:
+            chartType.value === "calendar"
+                ? granularity.value === "month"
+                    ? "day" // calendrier mois → données journalières (y-axis = jours)
+                    : "month" // calendrier année → données mensuelles (y-axis = mois)
+                : granularity.value,
         station_ids: stationIds.value.join(","),
         include_national: includeNational.value,
     }));
