@@ -54,12 +54,26 @@ export const useDeviationSelectBarAdapter =
             exportConfig: {
                 chartName: "ecart-normale",
                 csvHeaders: [
+                    "Station / Territoire",
                     "Date",
                     "Écart à la normale en °C",
                     "Température observée en °C",
                     "Température de référence 1991-2020 en °C",
                 ],
-                getCsvRows: () => deviationData.value?.national.data,
+                getCsvRows: () => {
+                    if (!deviationData.value) return undefined;
+                    return store
+                        .stationsAndNationalFormatted(deviationData.value)
+                        .flatMap((serie) =>
+                            serie.data.map((point) => ({
+                                station_name: serie.station_name,
+                                date: point.date,
+                                deviation: point.deviation,
+                                temperature: point.temperature,
+                                baseline_mean: point.baseline_mean,
+                            })),
+                        );
+                },
             },
         };
     };
