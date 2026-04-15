@@ -30,7 +30,12 @@ function downloadCsv() {
             ? `"${s.replace(/"/g, '""')}"`
             : s;
     };
-    const headers = "Station,Département,Record (°C),Date du record";
+    const headers = [
+        "Station",
+        "Département",
+        "Record (°C)",
+        "Date du record",
+    ].join(",");
     const rows = filteredRecords.value
         .map((s) =>
             [
