@@ -44,3 +44,8 @@ export function setToLastDayOfYear(date: Date = new Date()): Date {
 
     return new Date(date.getFullYear(), 11, 31, 23, 59, 59, 999);
 }
+
+/** Format a Date as day Month Year for display. */
+export function formatDateLongForDisplay(d: Date): string {
+    return d.toLocaleDateString("fr-FR", { dateStyle: "long" });
+}
