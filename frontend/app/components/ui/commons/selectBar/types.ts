@@ -33,11 +33,7 @@ export interface SelectBarAdapter<
     // Chart type
     chartTypeSwitchEnabled?: Ref<boolean>;
     chartType?: Ref<ChartType>;
-<<<<<<< HEAD
     chartTypeOptions?: { label: string; value: ChartType; icon: string }[];
-=======
-    chartTypes?: { label: string; value: ChartType; icon: string }[];
->>>>>>> 93cda2a (add calendar graph from main branch (#290))
 
     pending: Ref<boolean>;
 

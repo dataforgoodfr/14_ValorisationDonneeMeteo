@@ -39,11 +39,8 @@ export const useDeviationSelectBarAdapter =
                 hasChartTypeSelector: true,
                 hasExport: true,
             },
-<<<<<<< HEAD
+
             chartTypeOptions: [
-=======
-            chartTypes: [
->>>>>>> 93cda2a (add calendar graph from main branch (#290))
                 {
                     label: "Barres",
                     value: "bar",

@@ -119,6 +119,50 @@ function exportAsPngWhiteBackground() {
     a.click();
 }
 
+function exportAsPngWithoutBackground() {
+    if (!import.meta.client) return;
+    if (!chartRef?.value) return;
+    const dataURL = chartRef.value.getDataURL({
+        type: "png",
+        pixelRatio: 2,
+        backgroundColor: "transparent",
+        excludeComponents: ["dataZoom"],
+    });
+
+    const a = document.createElement("a");
+    a.href = dataURL;
+    a.download = useFormatFileName(
+        exportConfig.chartName,
+        granularity.value,
+        pickedDateStart.value,
+        pickedDateEnd.value,
+        "png",
+    );
+    a.click();
+}
+
+function exportAsPngWhiteBackground() {
+    if (!import.meta.client) return;
+    if (!chartRef?.value) return;
+    const dataURL = chartRef.value.getDataURL({
+        type: "png",
+        pixelRatio: 2,
+        backgroundColor: "#ffffff",
+        excludeComponents: ["dataZoom"],
+    });
+
+    const a = document.createElement("a");
+    a.href = dataURL;
+    a.download = useFormatFileName(
+        exportConfig.chartName,
+        granularity.value,
+        pickedDateStart.value,
+        pickedDateEnd.value,
+        "png",
+    );
+    a.click();
+}
+
 function exportAsCSV() {
     if (!import.meta.client) return;
     const source = exportConfig.getCsvRows();

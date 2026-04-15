@@ -10,15 +10,9 @@ import type {
     ContinousVisualMapOption,
 } from "echarts/types/dist/shared";
 import type {
-<<<<<<< HEAD
     TemperatureDeviationGraphDataPoint,
     TemperatureDeviationGraphResponse,
     TemperatureDeviationGraphStationSerie,
-=======
-    DeviationDataPoint,
-    DeviationResponse,
-    DeviationStationSerie,
->>>>>>> 93cda2a (add calendar graph from main branch (#290))
 } from "~/types/api";
 import type { GranularityType } from "~/components/ui/commons/selectBar/types";
 import type { DeviationStationIdAndName } from "~/types/common";
@@ -95,7 +89,6 @@ function buildCategoriesForMonth(allDates: string[]): {
 }
 
 function buildCategories(
-<<<<<<< HEAD
     data: TemperatureDeviationGraphResponse,
     granularity: GranularityType,
 ): { xCategories: string[]; yCategories: string[] } {
@@ -109,14 +102,6 @@ function buildCategories(
                     (d: TemperatureDeviationGraphDataPoint) => d.date,
                 ) ?? [],
         ),
-=======
-    data: DeviationResponse,
-    granularity: GranularityType,
-): { xCategories: string[]; yCategories: string[] } {
-    const allDates = [
-        ...(data.national?.data?.map((d) => d.date) ?? []),
-        ...data.stations.flatMap((s) => s.data?.map((d) => d.date) ?? []),
->>>>>>> 93cda2a (add calendar graph from main branch (#290))
     ];
 
     if (granularity === "year") {
@@ -187,21 +172,13 @@ function dateToXY(
 }
 
 export function useDeviationCalendarOption(
-<<<<<<< HEAD
     data: TemperatureDeviationGraphResponse,
-=======
-    data: DeviationResponse,
->>>>>>> 93cda2a (add calendar graph from main branch (#290))
     granularity: GranularityType,
     stationsIdAndNames: DeviationStationIdAndName[],
 ): EChartsOption {
     const deviationStore = useDeviationStore();
 
-<<<<<<< HEAD
     const stationsAndNational: TemperatureDeviationGraphStationSerie[] =
-=======
-    const stationsAndNational: DeviationStationSerie[] =
->>>>>>> 93cda2a (add calendar graph from main branch (#290))
         deviationStore.stationsAndNationalFormatted(data);
 
     const stationCount = stationsAndNational.length || 1;
@@ -219,16 +196,12 @@ export function useDeviationCalendarOption(
     const series: SeriesOption[] = [];
     const titles: TitleOption[] = [];
 
-<<<<<<< HEAD
     // Cible ~12 labels max pour éviter le chevauchement sur les longues périodes
     const maxLabels = granularity === "year" ? 15 : 12;
     const labelInterval = Math.max(
         0,
         Math.ceil(xCategories.length / maxLabels) - 1,
     );
-=======
-    const labelInterval = granularity === "day" ? 1 : 0;
->>>>>>> 93cda2a (add calendar graph from main branch (#290))
     const labelRotate = granularity === "year" ? 0 : 45;
     const xAxisName = granularity === "year" ? "Année" : "Mois";
     const yAxisName = granularity === "year" ? "Mois" : "Jour";
@@ -243,11 +216,7 @@ export function useDeviationCalendarOption(
         )?.station_name;
 
         const heatmapData = (stationOrNational?.data ?? [])
-<<<<<<< HEAD
             .map((point: TemperatureDeviationGraphDataPoint) => {
-=======
-            .map((point: DeviationDataPoint) => {
->>>>>>> 93cda2a (add calendar graph from main branch (#290))
                 const coordinates = dateToXY(
                     point.date,
                     granularity,
@@ -257,11 +226,7 @@ export function useDeviationCalendarOption(
 
                 return [...coordinates, point.deviation];
             })
-<<<<<<< HEAD
             .filter((coords): coords is number[] => coords !== null);
-=======
-            .filter((coords) => coords !== null);
->>>>>>> 93cda2a (add calendar graph from main branch (#290))
 
         grids.push({
             top: `${top}%`,
