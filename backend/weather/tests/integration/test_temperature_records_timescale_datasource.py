@@ -53,6 +53,9 @@ def test_fetch_records_hot_month_happy_path():
     assert station_entries[-1].record_date == dt.date(2019, 7, 25)
     assert station_entries[0].station_name == "Station Records Test"
     assert station_entries[0].department == "99"
+    assert station_entries[0].lat == 48.0
+    assert station_entries[0].lon == 2.0
+    assert station_entries[0].alt == 100.0
 
 
 @pytest.mark.django_db
@@ -163,3 +166,6 @@ def test_fetch_records_returns_correct_types():
     assert isinstance(entry.department, str)
     assert isinstance(entry.record_value, float)
     assert isinstance(entry.record_date, dt.date)
+    assert isinstance(entry.lat, float)
+    assert isinstance(entry.lon, float)
+    assert isinstance(entry.alt, float)
