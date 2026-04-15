@@ -33,7 +33,11 @@ export function flattenColdRecords(
 
 export function periodKey(date: string, granularity: GranularityType): string {
     const length =
-        granularity === "year" ? 4 : granularity === "month" ? 7 : 10;
+        granularity === "year"
+            ? "YYYY".length
+            : granularity === "month"
+              ? "YYYY-MM".length
+              : "YYYY-MM-DD".length;
     return date.substring(0, length);
 }
 
