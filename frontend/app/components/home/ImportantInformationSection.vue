@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import Card from "./Cards.vue";
+import Card from "./Card.vue";
 
 
 const {
