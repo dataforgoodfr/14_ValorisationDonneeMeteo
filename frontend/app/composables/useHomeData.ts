@@ -2,16 +2,12 @@ import type { NationalIndicatorParams } from "~/types/api";
 
 const { yesterday } = useCustomDate();
 
-export const useHomeStore = defineStore("homeStore", () => {
-    // Yesterday data
+export function ueseHomeData() {
+   // Yesterday data
     const yesterdayParams = computed<NationalIndicatorParams>(() => {
         return {
-            date_start: yesterday.value
-                .toISOString()
-                .substring(0, "YYYY-MM-DD".length),
-            date_end: yesterday.value
-                .toISOString()
-                .substring(0, "YYYY-MM-DD".length),
+            date_start: dateToStringYMD(yesterday.value),
+            date_end: dateToStringYMD(yesterday.value),
             granularity: "day",
             slice_type: "full",
         };
@@ -35,12 +31,8 @@ export const useHomeStore = defineStore("homeStore", () => {
     });
     const yesterdayLastYearParams = computed<NationalIndicatorParams>(() => {
         return {
-            date_start: yesterdayLastYear.value
-                .toISOString()
-                .substring(0, "YYYY-MM-DD".length),
-            date_end: yesterdayLastYear.value
-                .toISOString()
-                .substring(0, "YYYY-MM-DD".length),
+            date_start: dateToStringYMD(yesterdayLastYear.value),
+            date_end: dateToStringYMD(yesterdayLastYear.value),
             granularity: "day",
             slice_type: "full",
         };
@@ -69,4 +61,4 @@ export const useHomeStore = defineStore("homeStore", () => {
         temperatureChangeYearOverYear,
         yesterdayLastYear,
     };
-});
+}
