@@ -21,6 +21,8 @@ const {
 } = storeToRefs(store);
 const { setOrdering } = store;
 
+withDefaults(defineProps<{ showFilters?: boolean }>(), { showFilters: true });
+
 interface TableRow {
     station_name: string;
     departement: string | undefined;
@@ -172,14 +174,15 @@ const dates = useCustomDate();
 
 <template>
     <div class="flex flex-col gap-4">
-        <DayPicker
-            v-model:start-date="dateStart"
-            v-model:end-date="dateEnd"
-            :min-date="dates.absoluteMinDataDate.value"
-            :max-date="dates.twoDaysAgo.value"
-        />
-
-        <DeviationFilterBar />
+        <template v-if="showFilters">
+            <DayPicker
+                v-model:start-date="dateStart"
+                v-model:end-date="dateEnd"
+                :min-date="dates.absoluteMinDataDate.value"
+                :max-date="dates.twoDaysAgo.value"
+            />
+            <DeviationFilterBar />
+        </template>
 
         <div v-if="error" class="px-4 py-3 bg-error/10 text-error rounded">
             Erreur de chargement : {{ error }}

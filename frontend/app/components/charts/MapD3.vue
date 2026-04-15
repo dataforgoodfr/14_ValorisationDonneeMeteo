@@ -1,5 +1,40 @@
 <template>
-    <div>
+    <div class="flex flex-col gap-2">
+        <div class="flex flex-col gap-0.5">
+            <div class="flex items-baseline gap-2">
+                <span class="text-sm text-muted">Écart à la normale moyen</span>
+                <span
+                    v-if="nationalDeviation != null"
+                    class="text-lg font-semibold"
+                    :class="
+                        nationalDeviation >= 0
+                            ? 'text-red-400'
+                            : 'text-blue-400'
+                    "
+                >
+                    {{ nationalDeviation >= 0 ? "+" : ""
+                    }}{{ nationalDeviation.toFixed(1) }} °C
+                </span>
+                <span v-else class="text-lg font-semibold text-muted">—</span>
+            </div>
+            <div class="text-xs text-muted">
+                <span v-if="baseline"
+                    >Période des normales : {{ baseline }}</span
+                >
+                <span v-if="baseline"> · </span>
+                en France métropolitaine
+            </div>
+        </div>
+
+        <USelect
+            v-model="activeMode"
+            :items="modeOptions"
+            value-key="value"
+            label-key="label"
+            size="sm"
+            class="w-full"
+        />
+
         <canvas
             ref="canvas"
             :width="width * dpr"
@@ -9,93 +44,90 @@
     </div>
 </template>
 
-<script>
-let cachedTempMOCKED = null;
-</script>
-
-<script setup>
-import { ref, onMounted } from "vue";
+<script setup lang="ts">
 import * as d3 from "d3";
 import * as topojson from "topojson-client";
-import { storeToRefs } from "pinia";
-import { useRecordsStore } from "~/stores/recordsStore";
+import type { Feature, FeatureCollection, Geometry } from "geojson";
+import type { Topology, GeometryCollection } from "topojson-specification";
+import type { DeviationMapParams, DeviationMapStation } from "~/types/api";
 
-const store = useRecordsStore();
-const {
-    recordType,
-    startDate,
-    endDate,
-    page,
-    pageSize,
-    recordsData,
-    pending,
-    error,
-} = storeToRefs(store);
-const { getFilter, setFilter } = store;
+interface DepartmentProperties {
+    code: string;
+}
 
-watch(recordsData, (val) => {
-    // console.log("stations :", val?.stations);
-});
+type FranceTopology = Topology<{
+    DEP: GeometryCollection<DepartmentProperties>;
+    REG: GeometryCollection<DepartmentProperties>;
+}>;
 
-const props = defineProps({
-    mode: {
-        type: String,
-        default: "points", // "points" | "heatmap" | "stations"
-    },
-    stationType: {
-        type: Number,
-        default: null,
-    },
-    date: {
-        type: String,
-        default: null,
-    },
+type GeoFeature = Feature<Geometry, DepartmentProperties>;
+
+const props = withDefaults(
+    defineProps<{
+        mode?: "points" | "heatmap";
+        dateStart: string;
+        dateEnd: string;
+    }>(),
+    { mode: "points" },
+);
+
+const activeMode = ref<"points" | "heatmap">(props.mode);
+const modeOptions = [
+    { label: "Stations", value: "points" },
+    { label: "Carte de chaleur", value: "heatmap" },
+];
+
+const params = computed<DeviationMapParams>(() => ({
+    date_start: props.dateStart,
+    date_end: props.dateEnd,
+    limit: 500,
+}));
+
+const { data: stationsData, execute: fetchStations } =
+    useTemperatureDeviationMap(params, `deviation-map-${props.mode}`);
+
+const nationalDeviation = computed(
+    () => stationsData.value?.national.deviation_mean ?? null,
+);
+const baseline = computed(() => {
+    const b = stationsData.value?.metadata.baseline;
+    if (!b) return null;
+    return b.replace("-", " – ");
 });
 
 const width = 500;
 const height = 500;
 const dpr = 2;
-const canvas = ref(null);
-const minTemp = 0;
-const maxTemp = 30;
+const mapPadding = 10;
+const footer = 80;
 
-// Génère N points aléatoires à l'intérieur des régions GeoJSON fournies
-// avec une température plus élevée dans le sud (lat faible) que dans le nord
-function generateTempMOCKED(n = 200, features) {
-    const tempMin = 8;
-    const tempMax = 21;
-    const latMetroMin = 42.3;
-    const latMetroMax = 51.1;
-    const points = [];
+const canvas = ref<HTMLCanvasElement | null>(null);
 
-    while (points.length < n) {
-        const feature = features[Math.floor(Math.random() * features.length)];
-        const [[lonMin, latMin], [lonMax, latMax]] = d3.geoBounds(feature);
+let featuresDEP: GeoFeature[] = [];
+let featuresREG: GeoFeature[] = [];
+let projection: d3.GeoProjection | null = null;
+let pathFn: d3.GeoPath | null = null;
+let ctxRef: CanvasRenderingContext2D | null = null;
 
-        let attempts = 0;
-        while (attempts < 50) {
-            const lon = lonMin + Math.random() * (lonMax - lonMin);
-            const lat = latMin + Math.random() * (latMax - latMin);
-            if (d3.geoContains(feature, [lon, lat])) {
-                const latNorm =
-                    (lat - latMetroMin) / (latMetroMax - latMetroMin);
-                const baseTemp = tempMax - latNorm * (tempMax - tempMin);
-                const temp =
-                    Math.round((baseTemp + (Math.random() * 4 - 2)) * 10) / 10;
-                points.push({
-                    lon,
-                    lat,
-                    temperature: Math.min(tempMax, Math.max(tempMin, temp)),
-                });
-                break;
-            }
-            attempts++;
-        }
-    }
-    return points;
+/** Fixed scale [-8, 8]°C as per design spec. Values outside this range are clamped. */
+const DEVIATION_MIN = -8;
+const DEVIATION_MAX = 8;
+
+function colorForDeviation(deviation: number): string {
+    const t = Math.max(
+        0,
+        Math.min(
+            1,
+            (deviation - DEVIATION_MIN) / (DEVIATION_MAX - DEVIATION_MIN),
+        ),
+    );
+    return d3.interpolateRdYlBu(1 - t);
 }
 
-function drawBasemap(context, path, featuresDEP, featuresREG) {
+function drawBasemap(
+    context: CanvasRenderingContext2D,
+    path: d3.GeoPath,
+): void {
     context.strokeStyle = "#ffffff";
     context.lineWidth = 0.4;
     context.fillStyle = "#202d43";
@@ -114,7 +146,7 @@ function drawBasemap(context, path, featuresDEP, featuresREG) {
     });
 }
 
-function drawLegend(context, width, mapPadding, footer) {
+function drawLegend(context: CanvasRenderingContext2D): void {
     const legendW = (width - (mapPadding + 20) * 2) / 2;
     const legendX = mapPadding + 20 + (width - (mapPadding + 20) * 2) / 4;
     const legendY = height - footer + 20;
@@ -123,7 +155,11 @@ function drawLegend(context, width, mapPadding, footer) {
     context.fillStyle = "#ffffff";
     context.font = "11px sans-serif";
     context.textAlign = "center";
-    context.fillText("Température (°C)", legendX + legendW / 2, legendY - 6);
+    context.fillText(
+        "Écart à la normale (°C)",
+        legendX + legendW / 2,
+        legendY - 6,
+    );
 
     const gradient = context.createLinearGradient(
         legendX,
@@ -134,168 +170,98 @@ function drawLegend(context, width, mapPadding, footer) {
     for (let i = 0; i <= 10; i++) {
         gradient.addColorStop(i / 10, d3.interpolateRdYlBu(1 - i / 10));
     }
+    const radius = legendH / 2;
+    context.beginPath();
+    context.roundRect(legendX, legendY, legendW, legendH, radius);
     context.fillStyle = gradient;
-    context.fillRect(legendX, legendY, legendW, legendH);
+    context.fill();
 
+    context.beginPath();
+    context.roundRect(legendX, legendY, legendW, legendH, radius);
     context.strokeStyle = "rgba(255,255,255,0.4)";
     context.lineWidth = 0.5;
-    context.strokeRect(legendX, legendY, legendW, legendH);
+    context.stroke();
 
     context.fillStyle = "#ffffff";
     context.font = "11px sans-serif";
     context.textAlign = "left";
-    context.fillText("0°C", legendX, legendY + legendH + 14);
+    context.fillText(`${DEVIATION_MIN}°C`, legendX, legendY + legendH + 14);
     context.textAlign = "right";
-    context.fillText("30°C", legendX + legendW, legendY + legendH + 14);
-}
-
-function drawLegendDate(context, mapPadding, date) {
-    context.fillStyle = "#ffffff";
-    context.font = "bold 12px sans-serif";
-    context.textAlign = "left";
-    context.fillText(date, mapPadding + 10, mapPadding + 15);
-}
-
-function drawPoints(context, projection, tempMOCKED) {
-    tempMOCKED.forEach(({ lon, lat, temperature }) => {
-        const [x, y] = projection([lon, lat]);
-        context.beginPath();
-        context.arc(x, y, 3, 0, 2 * Math.PI);
-        context.fillStyle = d3.interpolateRdYlBu(
-            1 - (temperature - minTemp) / (maxTemp - minTemp),
-        );
-        context.fill();
-        context.strokeStyle = "rgba(255,255,255,0.5)";
-        context.lineWidth = 0.4;
-        context.stroke();
-    });
-}
-
-function drawPointsStationsTemp(
-    context,
-    projection,
-    infoclimatStationsTemp,
-    temperatureDate = "2025-06-01",
-) {
-    infoclimatStationsTemp.forEach((station, i) => {
-        const lon = station.lon;
-        const lat = station.lat;
-        const temp = station[temperatureDate];
-
-        const [x, y] = projection([lon, lat]);
-        context.beginPath();
-        context.arc(x, y, 3, 0, 2 * Math.PI);
-        context.fillStyle = d3.interpolateRdYlBu(
-            1 - (temp - minTemp) / (maxTemp - minTemp),
-        );
-        context.fill();
-        context.strokeStyle = "rgba(255,255,255,0.5)";
-        context.lineWidth = 0.4;
-        context.stroke();
-    });
-}
-
-const stationTypeColor = d3
-    .scaleOrdinal()
-    .domain([0, 1, 2, 3, 4])
-    .range(["#ffffb2", "#fecc5c", "#fd8d3c", "#f03b20", "#bd0026"]);
-
-function drawStationsLegend(
-    context,
-    width,
-    mapPadding,
-    footer,
-    stationType,
-    count,
-) {
-    const centerX = width / 2;
-    const legendY = height - footer + 20;
-
-    context.fillStyle = "#ffffff";
-    context.font = "bold 12px sans-serif";
-    context.textAlign = "center";
-    const typeLabel = stationType !== null ? stationType : "tous";
     context.fillText(
-        `Type de station : ${typeLabel} - ${count} station${count > 1 ? "s" : ""}`,
-        centerX,
-        legendY + 14,
+        `+${DEVIATION_MAX}°C`,
+        legendX + legendW,
+        legendY + legendH + 14,
     );
 }
 
-function drawStationsPoints(context, projection, stations, filterType = null) {
-    const data =
-        filterType !== null
-            ? stations.filter((s) => s.station_type === filterType)
-            : stations;
-    data.forEach(({ lon, lat, station_type }) => {
-        const [x, y] = projection([lon, lat]);
+function drawPoints(
+    context: CanvasRenderingContext2D,
+    stations: DeviationMapStation[],
+    proj: d3.GeoProjection,
+): void {
+    stations.forEach(({ lon, lat, deviation }) => {
+        if (lon == null || lat == null) return;
+        const coords = proj([lon, lat]);
+        if (!coords) return;
+        const [x, y] = coords;
         context.beginPath();
-        context.arc(x, y, 1, 0, 2 * Math.PI);
-        context.fillStyle =
-            filterType !== null ? "#ffffff" : stationTypeColor(station_type);
+        context.arc(x, y, 3, 0, 2 * Math.PI);
+        context.fillStyle = colorForDeviation(deviation);
         context.fill();
         context.strokeStyle = "rgba(255,255,255,0.5)";
         context.lineWidth = 0.4;
-        // context.stroke();
+        context.stroke();
     });
 }
 
-function drawHeatmapStationsTemp(
-    context,
-    projection,
-    infoclimatStationsTemp,
-    featuresDEP,
-    featuresREG,
-    path,
-    footer,
-    temperatureDate = "2025-06-01",
-) {
-    const projectedPoints = infoclimatStationsTemp
-        .filter((s) => s[temperatureDate] != null)
-        .map((s) => {
-            const [px, py] = projection([s.lon, s.lat]);
-            return { px, py, temperature: s[temperatureDate] };
+function drawHeatmap(
+    context: CanvasRenderingContext2D,
+    stations: DeviationMapStation[],
+    path: d3.GeoPath,
+    proj: d3.GeoProjection,
+): void {
+    const projectedPoints = stations
+        .filter(
+            (s): s is DeviationMapStation & { lat: number; lon: number } =>
+                s.lat != null && s.lon != null,
+        )
+        .flatMap((s) => {
+            const coords = proj([s.lon, s.lat]);
+            if (!coords) return [];
+            const [px, py] = coords;
+            return [{ px, py, deviation: s.deviation }];
         });
 
     const mapAreaH = height - footer;
     const offscreen = document.createElement("canvas");
     offscreen.width = width;
     offscreen.height = mapAreaH;
-    const offCtx = offscreen.getContext("2d");
+    const offCtx = offscreen.getContext("2d")!;
     const imageData = offCtx.createImageData(width, mapAreaH);
 
     const sigma = 40;
-    const step = 1;
-    for (let y = 0; y < mapAreaH; y += step) {
-        for (let x = 0; x < width; x += step) {
+    for (let y = 0; y < mapAreaH; y++) {
+        for (let x = 0; x < width; x++) {
             let sumWeight = 0;
-            let sumTemp = 0;
-            for (const { px, py, temperature } of projectedPoints) {
+            let sumDev = 0;
+            for (const { px, py, deviation } of projectedPoints) {
                 const dist2 = (x - px) ** 2 + (y - py) ** 2;
                 const w = Math.exp(-dist2 / (2 * sigma ** 2));
                 sumWeight += w;
-                sumTemp += w * temperature;
+                sumDev += w * deviation;
             }
-            const temp = sumTemp / sumWeight;
-            const col = d3.color(
-                d3.interpolateRdYlBu(
-                    1 - (temp - minTemp) / (maxTemp - minTemp),
-                ),
-            );
-            for (let dy = 0; dy < step && y + dy < mapAreaH; dy++) {
-                for (let dx = 0; dx < step && x + dx < width; dx++) {
-                    const idx = ((y + dy) * width + (x + dx)) * 4;
-                    imageData.data[idx] = col.r;
-                    imageData.data[idx + 1] = col.g;
-                    imageData.data[idx + 2] = col.b;
-                    imageData.data[idx + 3] = 210;
-                }
-            }
+            const dev = sumDev / sumWeight;
+            const col = d3.rgb(colorForDeviation(dev));
+            const idx = (y * width + x) * 4;
+            imageData.data[idx] = col.r;
+            imageData.data[idx + 1] = col.g;
+            imageData.data[idx + 2] = col.b;
+            imageData.data[idx + 3] = 210;
         }
     }
     offCtx.putImageData(imageData, 0, 0);
 
-    const svgPath = d3.geoPath().projection(projection);
+    const svgPath = d3.geoPath().projection(proj);
     const clipPath = new Path2D();
     featuresDEP.forEach((feature) => {
         const d = svgPath(feature);
@@ -320,220 +286,76 @@ function drawHeatmapStationsTemp(
         path(feature);
         context.stroke();
     });
-
-    // drawPointsStationsTemp(
-    //     context,
-    //     projection,
-    //     infoclimatStationsTemp,
-    //     temperatureDate,
-    // );
 }
 
-function drawHeatmap(
-    context,
-    projection,
-    tempMOCKED,
-    featuresDEP,
-    featuresREG,
-    path,
-    footer,
-) {
-    const projectedPoints = tempMOCKED.map(({ lon, lat, temperature }) => {
-        const [px, py] = projection([lon, lat]);
-        return { px, py, temperature };
-    });
+function draw(): void {
+    if (!ctxRef || !projection || !pathFn) return;
+    const stations = stationsData.value?.stations;
+    if (!stations) return;
 
-    const mapAreaH = height - footer;
-    const offscreen = document.createElement("canvas");
-    offscreen.width = width;
-    offscreen.height = mapAreaH;
-    const offCtx = offscreen.getContext("2d");
-    const imageData = offCtx.createImageData(width, mapAreaH);
+    ctxRef.clearRect(0, 0, width, height);
+    ctxRef.fillStyle = "#202d43";
+    ctxRef.fillRect(0, 0, width, height);
 
-    const sigma = 40; // rayon de lissage gaussien en pixels
-    const step = 1;
-    for (let y = 0; y < mapAreaH; y += step) {
-        for (let x = 0; x < width; x += step) {
-            let sumWeight = 0;
-            let sumTemp = 0;
-            for (const { px, py, temperature } of projectedPoints) {
-                const dist2 = (x - px) ** 2 + (y - py) ** 2;
-                // const w = dist2 < 0.25 ? 1e8 : 1 / dist2;
-                const w = Math.exp(-dist2 / (2 * sigma ** 2));
-                sumWeight += w;
-                sumTemp += w * temperature;
-            }
-            const temp = sumTemp / sumWeight;
-            const col = d3.color(
-                d3.interpolateRdYlBu(1 - (temp - 8) / (21 - 8)),
-            );
-            for (let dy = 0; dy < step && y + dy < mapAreaH; dy++) {
-                for (let dx = 0; dx < step && x + dx < width; dx++) {
-                    const idx = ((y + dy) * width + (x + dx)) * 4;
-                    imageData.data[idx] = col.r;
-                    imageData.data[idx + 1] = col.g;
-                    imageData.data[idx + 2] = col.b;
-                    imageData.data[idx + 3] = 210;
-                }
-            }
-        }
+    if (activeMode.value === "points") {
+        drawBasemap(ctxRef, pathFn);
+        drawPoints(ctxRef, stations, projection);
+        drawLegend(ctxRef);
     }
-    offCtx.putImageData(imageData, 0, 0);
-
-    const svgPath = d3.geoPath().projection(projection);
-    const clipPath = new Path2D();
-    featuresDEP.forEach((feature) => {
-        const d = svgPath(feature);
-        if (d) clipPath.addPath(new Path2D(d));
-    });
-    context.save();
-    context.clip(clipPath);
-    context.drawImage(offscreen, 0, 0);
-    context.restore();
-
-    context.strokeStyle = "rgba(255,255,255,0.5)";
-    context.lineWidth = 0.4;
-    featuresDEP.forEach((feature) => {
-        context.beginPath();
-        path(feature);
-        context.stroke();
-    });
-    context.strokeStyle = "#ffffff";
-    context.lineWidth = 0.9;
-    featuresREG.forEach((feature) => {
-        context.beginPath();
-        path(feature);
-        context.stroke();
-    });
-
-    drawPoints(context, projection, tempMOCKED);
+    if (activeMode.value === "heatmap") {
+        drawHeatmap(ctxRef, stations, pathFn, projection);
+        drawLegend(ctxRef);
+    }
 }
 
 onMounted(async () => {
-    const topoData = await fetch("/json/France_2024_WGS84_DEP.json").then(
-        (res) => res.json(),
-    );
-
-    const infoclimatStations = await fetch("/data/D4G_stations.csv")
-        .then((res) => res.text())
-        .then((text) => d3.csvParse(text, d3.autoType));
-
-    // console.log("infoclimatStations :", infoclimatStations);
-
-    const infoclimatStationsTemp = await fetch(
-        "/data/stations_temperatures_2024_2025.csv",
-    )
-        .then((res) => res.text())
-        .then((text) => d3.dsvFormat(";").parse(text, d3.autoType));
-
-    // console.log("infoclimatStationsTemp :", infoclimatStationsTemp);
+    const res = await fetch("/json/France_2024_WGS84_DEP.json");
+    const topoData = (await res.json()) as FranceTopology;
 
     const geojsonREG = topojson.feature(topoData, topoData.objects.REG);
     const geojsonDEP = topojson.feature(topoData, topoData.objects.DEP);
 
-    const featuresDEP = geojsonDEP.features.filter(
+    const DOM_REG_CODES = ["01", "02", "03", "04", "06"];
+    featuresDEP = geojsonDEP.features.filter(
         (f) => !f.properties.code.startsWith("97"),
     );
-    const DOM_REG_CODES = ["01", "02", "03", "04", "06"];
-    const featuresREG = geojsonREG.features.filter(
+    featuresREG = geojsonREG.features.filter(
         (f) => !DOM_REG_CODES.includes(f.properties.code),
     );
 
-    if (!cachedTempMOCKED) {
-        cachedTempMOCKED = generateTempMOCKED(500, featuresREG);
-    }
-    const tempMOCKED = cachedTempMOCKED;
-
-    const context = canvas.value.getContext("2d");
-    context.scale(dpr, dpr);
-
-    const mapPadding = 10;
-    const footer = 80;
-    const map_extent = [
+    const mapExtent: [[number, number], [number, number]] = [
         [mapPadding, mapPadding],
         [width - mapPadding, height - mapPadding - footer],
     ];
+    const featureCollection: FeatureCollection<Geometry, DepartmentProperties> =
+        {
+            type: "FeatureCollection",
+            features: featuresDEP,
+        };
+    projection = d3.geoMercator().fitExtent(mapExtent, featureCollection);
 
-    const featureCollection = {
-        type: "FeatureCollection",
-        features: featuresDEP,
-    };
-    const projection = d3
-        .geoMercator()
-        .fitExtent(map_extent, featureCollection);
-    const path = d3.geoPath().projection(projection).context(context);
+    ctxRef = canvas.value!.getContext("2d")!;
+    ctxRef.scale(dpr, dpr);
+    pathFn = d3.geoPath().projection(projection).context(ctxRef);
 
-    context.clearRect(0, 0, width, height);
-    context.fillStyle = "#202d43";
-    context.fillRect(0, 0, width, height);
-
-    if (props.mode === "points") {
-        drawBasemap(context, path, featuresDEP, featuresREG);
-        drawPoints(context, projection, tempMOCKED);
-        drawLegend(context, width, mapPadding, footer);
-    }
-    if (props.mode === "heatmap") {
-        drawHeatmap(
-            context,
-            projection,
-            tempMOCKED,
-            featuresDEP,
-            featuresREG,
-            path,
-            footer,
-        );
-        drawLegend(context, width, mapPadding, footer);
-    }
-    if (props.mode === "stations") {
-        drawBasemap(context, path, featuresDEP, featuresREG);
-        drawStationsPoints(
-            context,
-            projection,
-            infoclimatStations,
-            props.stationType,
-        );
-        const filteredCount =
-            props.stationType !== null
-                ? infoclimatStations.filter(
-                      (s) => s.station_type === props.stationType,
-                  ).length
-                : infoclimatStations.length;
-        drawStationsLegend(
-            context,
-            width,
-            mapPadding,
-            footer,
-            props.stationType,
-            filteredCount,
-        );
-    }
-
-    if (props.mode === "stationsPoints") {
-        drawBasemap(context, path, featuresDEP, featuresREG);
-        // console.log("props.date :", props.date);
-        drawPointsStationsTemp(
-            context,
-            projection,
-            infoclimatStationsTemp,
-            props.date,
-        );
-        drawLegend(context, width, mapPadding, footer);
-        drawLegendDate(context, mapPadding, props.date);
-    }
-
-    if (props.mode === "heatmapStationsTemp") {
-        drawHeatmapStationsTemp(
-            context,
-            projection,
-            infoclimatStationsTemp,
-            featuresDEP,
-            featuresREG,
-            path,
-            footer,
-            props.date,
-        );
-        drawLegend(context, width, mapPadding, footer);
-        drawLegendDate(context, mapPadding, props.date);
-    }
+    await fetchStations();
+    draw();
 });
+
+watch(
+    params,
+    async () => {
+        await fetchStations();
+        draw();
+    },
+    { deep: true },
+);
+watch(
+    stationsData,
+    (data) => {
+        if (data) draw();
+    },
+    { deep: true },
+);
+watch(activeMode, draw);
 </script>

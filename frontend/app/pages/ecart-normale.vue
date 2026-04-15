@@ -6,13 +6,24 @@ import { useDeviationSelectBarAdapter } from "~/adapters/deviationSelectBarAdapt
 import SelectBar from "~/components/ui/commons/selectBar/selectBar.vue";
 import DeviationChart from "~/components/charts/DeviationChart.vue";
 import DeviationTable from "~/components/table/deviation/DeviationTable.vue";
+import DeviationFilterBar from "~/components/table/deviation/DeviationFilterBar.vue";
+import DayPicker from "~/components/ui/commons/selectBar/dayPicker.vue";
 import type { ChartType } from "~/components/ui/commons/selectBar/types";
 import MapD3 from "~/components/charts/MapD3.vue";
+import { useDeviationTableStore } from "~/stores/deviationTableStore";
+import { useCustomDate } from "~/composables/useCustomDate";
 
 const selectBarAdapter = useDeviationSelectBarAdapter();
 const chartType = computed<ChartType>(
     () => selectBarAdapter.chartType?.value ?? "bar",
 );
+
+const tableStore = useDeviationTableStore();
+const { dateStart, dateEnd } = storeToRefs(tableStore);
+const dates = useCustomDate();
+
+const mapDateStart = computed(() => dateStart.value.toISOString().substring(0, 10));
+const mapDateEnd = computed(() => dateEnd.value.toISOString().substring(0, 10));
 
 const heroData = {
     title: "Ecart à la normale",
@@ -27,7 +38,32 @@ const heroData = {
             :title="heroData.title"
             :description="heroData.description"
         />
-        <DeviationTable />
+
+        <div class="flex flex-col gap-4">
+            <DayPicker
+                v-model:start-date="dateStart"
+                v-model:end-date="dateEnd"
+                :min-date="dates.absoluteMinDataDate.value"
+                :max-date="dates.twoDaysAgo.value"
+            />
+
+            <hr class="border-accented" />
+
+            <div class="flex items-start gap-8">
+                <ClientOnly>
+                    <MapD3
+                        mode="points"
+                        :date-start="mapDateStart"
+                        :date-end="mapDateEnd"
+                    />
+                </ClientOnly>
+                <div class="flex flex-col flex-1 min-w-0 gap-4">
+                    <DeviationFilterBar />
+                    <DeviationTable :show-filters="false" />
+                </div>
+            </div>
+        </div>
+
         <ChartLayout :has-sidebar="true">
             <template #select-bar>
                 <SelectBar :adapter="selectBarAdapter" />
@@ -45,30 +81,5 @@ const heroData = {
                 </ClientOnly>
             </template>
         </ChartLayout>
-        <div class="flex justify-center gap-8">
-            <MapD3 mode="points" />
-            <MapD3 mode="heatmap" />
-        </div>
-        <div class="flex justify-center gap-8">
-            <!-- <MapD3 mode="stationsPoints" date="2025-01-01" />
-            <MapD3 mode="stationsPoints" date="2025-04-01" />
-            <MapD3 mode="stationsPoints" date="2025-07-01" /> -->
-            <MapD3 mode="stationsPoints" date="2025-10-01" />
-        </div>
-        <div class="flex justify-center gap-8">
-            <!-- <MapD3 mode="heatmapStationsTemp" date="2025-01-01" />
-            <MapD3 mode="heatmapStationsTemp" date="2025-04-01" />
-            <MapD3 mode="heatmapStationsTemp" date="2025-07-01" /> -->
-            <MapD3 mode="heatmapStationsTemp" date="2025-10-01" />
-        </div>
-        <!-- <div class="flex justify-center gap-8">
-            <MapD3 mode="stationsPoints" date="2025-07-01" />
-            <MapD3 mode="stationsPoints" date="2025-10-01" />
-            <MapD3 mode="stationsPoints" date="2025-12-01" />
-        </div>
-        <div class="flex justify-center gap-8">
-            <MapD3 mode="stations" :stationType="0" />
-            <MapD3 mode="stations" :stationType="2" />
-        </div> -->
     </UContainer>
 </template>
