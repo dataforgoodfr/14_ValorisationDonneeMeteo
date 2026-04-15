@@ -1,6 +1,14 @@
 import type { TemperatureRecordsResponse } from "~/types/api";
 import type { GranularityType } from "~/components/ui/commons/selectBar/types";
 
+export function scatterSeries(opts: object) {
+    return { type: "scatter" as const, ...opts };
+}
+
+export function barSeries(opts: object) {
+    return { type: "bar" as const, ...opts };
+}
+
 export interface RecordEntry {
     date: string;
     value: number;
@@ -64,7 +72,23 @@ export function countByPeriod(
     );
 }
 
-export function buildTerritoryPlot(
+export function buildTerritoryPlots(
+    selectedTerritories: Array<{ type: string; id: string; value: string }>,
+    data: TemperatureRecordsResponse,
+): { name: string; hot: RecordEntry[]; cold: RecordEntry[] }[] {
+    if (selectedTerritories.length === 0) {
+        return [
+            {
+                name: "France Métropolitaine",
+                hot: flattenHotRecords(data),
+                cold: flattenColdRecords(data),
+            },
+        ];
+    }
+    return selectedTerritories.map((t) => buildTerritoryPlot(t, data));
+}
+
+function buildTerritoryPlot(
     territory: { type: string; id: string; value: string },
     data: TemperatureRecordsResponse,
 ): { name: string; hot: RecordEntry[]; cold: RecordEntry[] } {

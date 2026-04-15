@@ -3,13 +3,11 @@ import * as echarts from "echarts/core";
 import langFR from "~/i18n/langFR.js";
 import type { SelectBarAdapter } from "~/components/ui/commons/selectBar/types";
 import type { TemperatureRecordsResponse } from "~/types/api";
-import type { BarSeriesOption, YAXisOption, XAXisOption } from "echarts";
 import {
+    barSeries,
+    buildTerritoryPlots,
     countByPeriod,
-    flattenColdRecords,
-    flattenHotRecords,
     niceMax,
-    buildTerritoryPlot,
 } from "./recordsChartUtils";
 import { recordsPyramidTooltipFormatter } from "../tooltipFormatters/recordsPyramidTooltipFormatter";
 
@@ -29,19 +27,15 @@ const initOptions = computed(() => ({
 }));
 provide(INIT_OPTIONS_KEY, initOptions);
 
-function barSeries(opts: Omit<BarSeriesOption, "type">): BarSeriesOption {
-    return { type: "bar", ...opts };
-}
-
-function coldYAxis(opts: Omit<YAXisOption, "type" | "position">): YAXisOption {
+function coldYAxis(opts: object) {
     return { type: "category", position: "right", ...opts };
 }
 
-function hotYAxis(opts: Omit<YAXisOption, "type" | "position">): YAXisOption {
+function hotYAxis(opts: object) {
     return { type: "category", position: "left", ...opts };
 }
 
-function valueXAxis(opts: Omit<XAXisOption, "type">): XAXisOption {
+function valueXAxis(opts: object) {
     return { type: "value", ...opts };
 }
 
@@ -52,17 +46,7 @@ const option = computed<ECOption>(() => {
     const granularity = props.adapter.granularity.value;
     const selectedTerritories = props.adapter.selectedElements?.value ?? [];
 
-    // Territoires à afficher (France Métropolitaine si aucune sélection)
-    const territoryPlots =
-        selectedTerritories.length === 0
-            ? [
-                  {
-                      name: "France Métropolitaine",
-                      hot: flattenHotRecords(data),
-                      cold: flattenColdRecords(data),
-                  },
-              ]
-            : selectedTerritories.map((t) => buildTerritoryPlot(t, data));
+    const territoryPlots = buildTerritoryPlots(selectedTerritories, data);
 
     const N = territoryPlots.length;
 
