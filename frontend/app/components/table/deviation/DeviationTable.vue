@@ -52,7 +52,13 @@ async function downloadCsv() {
     const csv = `${headers}\n${rows}`;
     const a = document.createElement("a");
     a.href = `data:text/csv;charset=utf-8,${encodeURIComponent(csv)}`;
-    a.download = `ecart-normale.csv`;
+    a.download = useFormatFileName(
+        "tableau-ecart-normale",
+        "", // non utile pour deviation
+        dateStart.value,
+        dateEnd.value,
+        "csv",
+    );
     a.click();
 }
 const { setOrdering } = store;

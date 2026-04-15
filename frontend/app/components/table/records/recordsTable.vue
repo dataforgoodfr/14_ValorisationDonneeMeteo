@@ -44,7 +44,13 @@ function downloadCsv() {
     const csv = `${headers}\n${rows}`;
     const a = document.createElement("a");
     a.href = `data:text/csv;charset=utf-8,${encodeURIComponent(csv)}`;
-    a.download = `records-${typeRecords.value}.csv`;
+    a.download = useFormatFileName(
+        `tableau-records-${typeRecords.value}`,
+        periodSelection.value,
+        undefined,
+        undefined,
+        "csv",
+    );
     a.click();
 }
 
