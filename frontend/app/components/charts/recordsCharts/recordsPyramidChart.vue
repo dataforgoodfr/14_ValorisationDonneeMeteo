@@ -8,8 +8,8 @@ import {
     buildTerritoryPlots,
     countByPeriod,
     niceMax,
-} from "../../../utils/recordsChartUtils";
-import { recordsPyramidTooltipFormatter } from "../tooltipFormatters/recordsPyramidTooltipFormatter";
+} from "~/utils/recordsChartUtils";
+import { recordsPyramidTooltipFormatter } from "~/components/charts/tooltipFormatters/recordsPyramidTooltipFormatter";
 
 echarts.registerLocale("FR", langFR);
 
