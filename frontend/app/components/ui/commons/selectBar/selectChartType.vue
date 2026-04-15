@@ -5,14 +5,9 @@ import type {
 } from "~/components/ui/commons/selectBar/types";
 
 const adapter = inject<SelectBarAdapter>("selectBarAdapter")!;
-
-// const chartTypes = reactive([
-//     { label: "Bar Chart", value: "bar", icon: "i-lucide-chart-column" },
-//     { label: "Line Chart", value: "line", icon: "i-lucide-chart-line" },
-// ]);
-
 const chartTypes = adapter.chartTypeOptions;
 </script>
+
 <template>
     <UFormField
         v-if="
