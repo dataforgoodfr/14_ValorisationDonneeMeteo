@@ -42,7 +42,7 @@ export const useDeviationTableStore = defineStore("deviationTableStore", () => {
             label: `${d.code} - ${d.name}`,
         })),
         region: regions.map((d) => ({
-            value: d.code,
+            value: d.name,
             label: `${d.name}`,
         })),
     };
