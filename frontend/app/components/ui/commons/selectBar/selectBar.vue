@@ -33,11 +33,11 @@ const granularityValues = reactive([
 <template>
     <div
         id="select-bar-wrapper"
-        class="flex flex-wrap gap-6 px-3 py-2 items-center"
+        class="flex flex-col md:flex-row md:flex-wrap gap-4 px-3 py-2 items-start md:items-center"
     >
         <div
             id="left-side"
-            class="flex flex-wrap gap-6 items-center self-stretch"
+            class="flex flex-wrap gap-4 items-center md:self-stretch"
         >
             <UFormField label="Granularité" name="granularity">
                 <USelect
@@ -65,11 +65,11 @@ const granularityValues = reactive([
             <USeparator
                 orientation="vertical"
                 size="sm"
-                class="bg-gray-200 h-full self-stretch"
+                class="hidden md:block bg-gray-200 h-full self-stretch"
             />
         </div>
 
-        <div id="right-side" class="flex flex-1 gap-6 items-center">
+        <div id="right-side" class="flex md:flex-1 gap-6 items-center">
             <template v-if="adapter.features.hasSliceType">
                 <UTooltip
                     :disabled="adapter.granularity.value !== 'day'"

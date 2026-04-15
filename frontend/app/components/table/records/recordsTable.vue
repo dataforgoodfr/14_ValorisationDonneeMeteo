@@ -88,7 +88,7 @@ const columns = computed<TableColumn<TableRow>[]>(() => [
 <template>
     <div class="flex flex-col gap-4">
         <!-- Controls: Période + Chaud/Froid -->
-        <div class="flex items-end gap-4">
+        <div class="flex flex-wrap items-end gap-4">
             <div class="flex flex-col gap-1">
                 <p class="text-sm text-muted">Période</p>
                 <USelect v-model="periodSelection" :items="periodOptions" />
