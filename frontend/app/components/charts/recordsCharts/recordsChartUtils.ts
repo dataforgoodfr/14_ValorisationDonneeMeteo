@@ -63,3 +63,22 @@ export function countByPeriod(
         {} as Record<string, number>,
     );
 }
+
+export function buildTerritoryPlot(
+    territory: { type: string; id: string; value: string },
+    data: TemperatureRecordsResponse,
+) {
+    const stations =
+        territory.type === "STATION"
+            ? data.stations.filter((station) => station.id === territory.id)
+            : territory.type === "DEPARTMENT"
+              ? data.stations.filter(
+                    (station) => station.departement === Number(territory.id),
+                )
+              : data.stations;
+    return {
+        name: territory.value,
+        hot: flattenHotRecords({ ...data, stations }),
+        cold: flattenColdRecords({ ...data, stations }),
+    };
+}

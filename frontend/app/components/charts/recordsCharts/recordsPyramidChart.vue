@@ -3,11 +3,13 @@ import * as echarts from "echarts/core";
 import langFR from "~/i18n/langFR.js";
 import type { SelectBarAdapter } from "~/components/ui/commons/selectBar/types";
 import type { TemperatureRecordsResponse } from "~/types/api";
+import type { BarSeriesOption, YAXisOption, XAXisOption } from "echarts";
 import {
     countByPeriod,
     flattenColdRecords,
     flattenHotRecords,
     niceMax,
+    buildTerritoryPlot,
 } from "./recordsChartUtils";
 import { recordsPyramidTooltipFormatter } from "../tooltipFormatters/recordsPyramidTooltipFormatter";
 
@@ -39,76 +41,124 @@ function niceMax(value: number): number {
     return Math.ceil(value / step) * step;
 }
 
+function barSeries(opts: Omit<BarSeriesOption, "type">): BarSeriesOption {
+    return { type: "bar", ...opts };
+}
+
+function coldYAxis(opts: Omit<YAXisOption, "type" | "position">): YAXisOption {
+    return { type: "category", position: "right", ...opts };
+}
+
+function hotYAxis(opts: Omit<YAXisOption, "type" | "position">): YAXisOption {
+    return { type: "category", position: "left", ...opts };
+}
+
+function valueXAxis(opts: Omit<XAXisOption, "type">): XAXisOption {
+    return { type: "value", ...opts };
+}
+
 const option = computed<ECOption>(() => {
     const data = props.adapter.data.value;
     if (!data) return {};
 
-    const hotRecords = flattenHotRecords(data);
-    const coldRecords = flattenColdRecords(data);
-    const hotByPeriod = countByPeriod(
-        hotRecords,
-        props.adapter.granularity.value,
+    const granularity = props.adapter.granularity.value;
+    const selectedTerritories = props.adapter.selectedElements?.value ?? [];
+
+    // Territoires à afficher (France Métropolitaine si aucune sélection)
+    const territoryPlots =
+        selectedTerritories.length === 0
+            ? [
+                  {
+                      name: "France Métropolitaine",
+                      hot: flattenHotRecords(data),
+                      cold: flattenColdRecords(data),
+                  },
+              ]
+            : selectedTerritories.map((t) => buildTerritoryPlot(t, data));
+
+    const N = territoryPlots.length;
+
+    // Agrégation par période pour chaque territoire
+    const periodData = territoryPlots.map((plot) => {
+        const hotByPeriod = countByPeriod(plot.hot, granularity);
+        const coldByPeriod = countByPeriod(plot.cold, granularity);
+        const allPeriods = Object.keys({
+            ...hotByPeriod,
+            ...coldByPeriod,
+        }).sort();
+        return { name: plot.name, hotByPeriod, coldByPeriod, allPeriods };
+    });
+
+    // Max global → échelle identique sur tous les sous-graphes
+    const globalMax = niceMax(
+        Math.max(
+            ...periodData.flatMap(({ hotByPeriod, coldByPeriod }) => [
+                ...Object.values(hotByPeriod),
+                ...Object.values(coldByPeriod),
+            ]),
+            1,
+        ),
     );
-    const coldByPeriod = countByPeriod(
-        coldRecords,
-        props.adapter.granularity.value,
-    );
+
     const rightOfLeftGrid = { year: "53%", month: "53.5%", day: "54%" }[
-        props.adapter.granularity.value
+        granularity
     ];
-    const labelMargin = { year: 27, month: 31, day: 35 }[
-        props.adapter.granularity.value
-    ];
+    const labelMargin = { year: 27, month: 31, day: 35 }[granularity];
+    const slotSize = 100 / N;
 
-    const maxCount = Math.max(
-        ...Object.values(hotByPeriod),
-        ...Object.values(coldByPeriod),
-        1,
-    );
+    // Positions verticales du subplot i dans le conteneur (en %)
+    const gridTop = (i: number) => `${i * slotSize + 4}%`;
+    const gridBottom = (i: number) =>
+        i === N - 1 ? "12%" : `${(N - 1 - i) * slotSize + 4}%`;
 
-    const xAxisBase = {
-        type: "value" as const,
+    const xAxisBase: Omit<XAXisOption, "gridIndex" | "inverse"> = {
         min: 0,
-        max: niceMax(maxCount),
+        max: globalMax,
         minInterval: 1,
-        splitLine: { lineStyle: { type: "dashed" as const } },
+        splitLine: { lineStyle: { type: "dashed" } },
     };
 
     return {
-        dataset: {
-            dimensions: ["period", "hot", "cold"],
-            source: Object.keys({ ...hotByPeriod, ...coldByPeriod })
-                .sort()
-                .map((period) => ({
+        dataset: periodData.map(
+            ({ hotByPeriod, coldByPeriod, allPeriods }) => ({
+                dimensions: ["period", "hot", "cold"],
+                source: allPeriods.map((period) => ({
                     period,
                     hot: hotByPeriod[period] ?? 0,
                     cold: coldByPeriod[period] ?? 0,
                 })),
-        },
-        grid: [
-            { top: "8%", bottom: "12%", left: "5%", right: rightOfLeftGrid },
-            { top: "8%", bottom: "12%", left: rightOfLeftGrid, right: "5%" },
-        ],
-        xAxis: [
-            { ...xAxisBase, gridIndex: 0, inverse: true },
-            { ...xAxisBase, gridIndex: 1 },
-        ],
-        axisPointer: {
-            link: [{ yAxisIndex: "all" }],
-        },
-        yAxis: [
+            }),
+        ),
+        grid: periodData.flatMap((_, i) => [
             {
-                type: "category",
-                gridIndex: 0,
-                position: "right",
+                top: gridTop(i),
+                bottom: gridBottom(i),
+                left: "5%",
+                right: rightOfLeftGrid,
+            },
+            {
+                top: gridTop(i),
+                bottom: gridBottom(i),
+                left: rightOfLeftGrid,
+                right: "5%",
+            },
+        ]),
+        xAxis: periodData.flatMap((_, i) => [
+            valueXAxis({ ...xAxisBase, gridIndex: 2 * i, inverse: true }),
+            valueXAxis({ ...xAxisBase, gridIndex: 2 * i + 1 }),
+        ]),
+        axisPointer: { link: [{ yAxisIndex: "all" }] },
+        yAxis: periodData.flatMap((pd, i) => [
+            coldYAxis({
+                data: pd.allPeriods,
+                gridIndex: 2 * i,
                 axisLabel: { show: false },
                 axisLine: { show: true },
                 axisPointer: { type: "shadow" },
-            }, // gauche, labels cachés
-            {
-                type: "category",
-                gridIndex: 1,
-                position: "left",
+            }),
+            hotYAxis({
+                data: pd.allPeriods,
+                gridIndex: 2 * i + 1,
                 axisLabel: {
                     margin: labelMargin,
                     align: "center",
@@ -118,24 +168,25 @@ const option = computed<ECOption>(() => {
                 axisTick: { show: false },
                 axisLine: { lineStyle: { color: "#3a5080", width: 1 } },
                 axisPointer: { type: "shadow" },
-            }, // droite, labels visibles au centre
-        ],
+            }),
+        ]),
         tooltip: {
             trigger: "axis",
             axisPointer: { type: "shadow" },
             formatter: recordsPyramidTooltipFormatter,
         },
         title: [
-            {
-                text: "France Métropolitaine",
+            ...periodData.map((pd, i) => ({
+                text: pd.name,
                 right: "right",
-                top: 10,
-            },
+                top: `${i * slotSize + 2}%`,
+                textStyle: { fontSize: 12 },
+            })),
             {
                 text: "Nombre de records",
                 bottom: 25,
                 left: "50%",
-                textAlign: "center",
+                textAlign: "center" as const,
                 textStyle: { fontSize: 12, color: "#000000" },
             },
         ],
@@ -143,24 +194,24 @@ const option = computed<ECOption>(() => {
             data: ["Records de froid", "Records de chaleur"],
             bottom: 0,
         },
-        series: [
-            {
+        series: periodData.flatMap((_, i) => [
+            barSeries({
                 name: "Records de froid",
-                type: "bar",
+                datasetIndex: i,
                 encode: { x: "cold", y: "period" },
                 color: "#1976d2",
-                xAxisIndex: 0,
-                yAxisIndex: 0,
-            },
-            {
+                xAxisIndex: 2 * i,
+                yAxisIndex: 2 * i,
+            }),
+            barSeries({
                 name: "Records de chaleur",
-                type: "bar",
+                datasetIndex: i,
                 encode: { x: "hot", y: "period" },
                 color: "#d32f2f",
-                xAxisIndex: 1,
-                yAxisIndex: 1,
-            },
-        ],
+                xAxisIndex: 2 * i + 1,
+                yAxisIndex: 2 * i + 1,
+            }),
+        ]),
     };
 });
 </script>
