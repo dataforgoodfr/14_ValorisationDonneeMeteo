@@ -3,6 +3,7 @@ import * as echarts from "echarts/core";
 import langFR from "~/i18n/langFR.js";
 import type { SelectBarAdapter } from "~/components/ui/commons/selectBar/types";
 import type { NationalIndicatorResponse } from "~/types/api";
+import { CHART_ATTRIBUTION_GRAPHIC } from "~/constants/chartAttribution";
 import { itnChartTooltipFormatter } from "./tooltipFormatters/itnChartTooltipFormatter";
 
 import {
@@ -12,6 +13,7 @@ import {
     GridComponent,
     DataZoomComponent,
     LegendComponent,
+    GraphicComponent,
 } from "echarts/components";
 import { LineChart } from "echarts/charts";
 import { UniversalTransition } from "echarts/features";
@@ -27,6 +29,7 @@ echarts.use([
     UniversalTransition,
     LegendComponent,
     DataZoomComponent,
+    GraphicComponent,
 ]);
 
 interface Props {
@@ -241,6 +244,7 @@ const option = computed<ECOption>(() => {
             focus: "none",
             disabled: true, // disables all emphasis state changes on hover
         },
+        graphic: CHART_ATTRIBUTION_GRAPHIC,
     };
 });
 </script>

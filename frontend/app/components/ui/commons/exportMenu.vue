@@ -17,6 +17,22 @@ const exportMenuItems = ref<DropdownMenuItem[]>([
         },
     },
     {
+        label: "Format PNG sans fond",
+        icon: "i-lucide-file-image",
+        onSelect(e: Event) {
+            e.preventDefault();
+            exportAsPngWithoutBackground();
+        },
+    },
+    {
+        label: "Format PNG fond bland",
+        icon: "i-lucide-file-image",
+        onSelect(e: Event) {
+            e.preventDefault();
+            exportAsPngWhiteBackground();
+        },
+    },
+    {
         label: "Format CSV",
         icon: "i-lucide-file-spreadsheet",
         onSelect(e: Event) {
@@ -36,10 +52,55 @@ const exportMenuItems = ref<DropdownMenuItem[]>([
 
 function exportAsPng() {
     if (!import.meta.client) return;
-    const dataURL = chartRef?.value.getDataURL({
+    if (!chartRef?.value) return;
+    const dataURL = chartRef.value.getDataURL({
         type: "png",
         pixelRatio: 2,
         backgroundColor: COLORS.background,
+        excludeComponents: ["dataZoom"],
+    });
+
+    const a = document.createElement("a");
+    a.href = dataURL;
+    a.download = useFormatFileName(
+        exportConfig.chartName,
+        granularity.value,
+        pickedDateStart.value,
+        pickedDateEnd.value,
+        "png",
+    );
+    a.click();
+}
+
+function exportAsPngWithoutBackground() {
+    if (!import.meta.client) return;
+    if (!chartRef?.value) return;
+    const dataURL = chartRef.value.getDataURL({
+        type: "png",
+        pixelRatio: 2,
+        backgroundColor: "transparent",
+        excludeComponents: ["dataZoom"],
+    });
+
+    const a = document.createElement("a");
+    a.href = dataURL;
+    a.download = useFormatFileName(
+        exportConfig.chartName,
+        granularity.value,
+        pickedDateStart.value,
+        pickedDateEnd.value,
+        "png",
+    );
+    a.click();
+}
+
+function exportAsPngWhiteBackground() {
+    if (!import.meta.client) return;
+    if (!chartRef?.value) return;
+    const dataURL = chartRef.value.getDataURL({
+        type: "png",
+        pixelRatio: 2,
+        backgroundColor: "#ffffff",
         excludeComponents: ["dataZoom"],
     });
 
@@ -78,7 +139,8 @@ function exportAsCSV() {
 
 function exportAsHTML() {
     if (!import.meta.client) return;
-    const options = chartRef?.value.getOption();
+    if (!chartRef?.value) return;
+    const options = chartRef.value.getOption();
     const scriptTag = "script";
     const html = `<!DOCTYPE html>
 <html>
