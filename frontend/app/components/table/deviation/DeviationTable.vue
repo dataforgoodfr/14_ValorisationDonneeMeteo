@@ -7,18 +7,54 @@ import { useDeviationTableStore } from "~/stores/deviationTableStore";
 import DeviationFilterBar from "~/components/table/deviation/DeviationFilterBar.vue";
 import DayPicker from "~/components/ui/commons/selectBar/dayPicker.vue";
 import { useCustomDate } from "~/composables/useCustomDate";
+import type { TemperatureDeviationResponse } from "~/types/api";
 
 const store = useDeviationTableStore();
 const {
     page,
     pageSize,
     deviationData,
+    exportParams,
     pending,
     error,
     dateStart,
     dateEnd,
     ordering,
 } = storeToRefs(store);
+
+const { apiFetch } = useApiClient();
+
+async function downloadCsv() {
+    if (!import.meta.client) return;
+    const data = await apiFetch<TemperatureDeviationResponse>(
+        "/temperature/deviation",
+        { query: exportParams.value },
+    );
+    const escape = (v: string | number | undefined) => {
+        const s = String(v ?? "");
+        return s.includes(",") || s.includes('"')
+            ? `"${s.replace(/"/g, '""')}"`
+            : s;
+    };
+    const headers =
+        "Station,Département,Région,Écart à la normale (°C),Température Moyenne (°C)";
+    const rows = data.stations
+        .map((s) =>
+            [
+                escape(s.station_name),
+                escape(s.department),
+                escape(s.region),
+                s.deviation?.toFixed(1) ?? "",
+                s.temperature_mean?.toFixed(1) ?? "",
+            ].join(","),
+        )
+        .join("\n");
+    const csv = `${headers}\n${rows}`;
+    const a = document.createElement("a");
+    a.href = `data:text/csv;charset=utf-8,${encodeURIComponent(csv)}`;
+    a.download = `ecart-normale.csv`;
+    a.click();
+}
 const { setOrdering } = store;
 
 interface TableRow {
@@ -172,12 +208,21 @@ const dates = useCustomDate();
 
 <template>
     <div class="flex flex-col gap-4">
-        <DayPicker
-            v-model:start-date="dateStart"
-            v-model:end-date="dateEnd"
-            :min-date="dates.absoluteMinDataDate.value"
-            :max-date="dates.twoDaysAgo.value"
-        />
+        <div class="flex items-end justify-between gap-4">
+            <DayPicker
+                v-model:start-date="dateStart"
+                v-model:end-date="dateEnd"
+                :min-date="dates.absoluteMinDataDate.value"
+                :max-date="dates.twoDaysAgo.value"
+            />
+            <UButton
+                label="Exporter CSV"
+                icon="i-lucide-download"
+                color="neutral"
+                :disabled="pending"
+                @click="downloadCsv"
+            />
+        </div>
 
         <DeviationFilterBar />
 

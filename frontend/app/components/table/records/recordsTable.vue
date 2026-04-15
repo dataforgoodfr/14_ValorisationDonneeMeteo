@@ -16,10 +16,37 @@ const {
     typeRecords,
     periodSelection,
     pagedStations,
+    filteredRecords,
     filteredCount,
     pending,
     error,
 } = storeToRefs(store);
+
+function downloadCsv() {
+    if (!import.meta.client) return;
+    const escape = (v: string | number | undefined) => {
+        const s = String(v ?? "");
+        return s.includes(",") || s.includes('"')
+            ? `"${s.replace(/"/g, '""')}"`
+            : s;
+    };
+    const headers = "Station,Département,Record (°C),Date du record";
+    const rows = filteredRecords.value
+        .map((s) =>
+            [
+                escape(s.station_name),
+                escape(s.department),
+                s.record_value,
+                s.record_date,
+            ].join(","),
+        )
+        .join("\n");
+    const csv = `${headers}\n${rows}`;
+    const a = document.createElement("a");
+    a.href = `data:text/csv;charset=utf-8,${encodeURIComponent(csv)}`;
+    a.download = `records-${typeRecords.value}.csv`;
+    a.click();
+}
 
 // Track the record type that corresponds to the data currently displayed,
 // so the badge color only flips once the new data has arrived.
@@ -91,6 +118,14 @@ const columns = computed<TableColumn<TableRow>[]>(() => [
                     @click="typeRecords = 'cold'"
                 />
             </UButtonGroup>
+            <UButton
+                class="ml-auto"
+                label="Exporter CSV"
+                icon="i-lucide-download"
+                color="neutral"
+                :disabled="pending"
+                @click="downloadCsv"
+            />
         </div>
 
         <!-- Filter bar -->
