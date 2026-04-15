@@ -5,9 +5,11 @@ import type { TemperatureDeviationGraphResponse } from "~/types/api";
 import type { SelectBarAdapter } from "~/components/ui/commons/selectBar/types";
 import type { EChartsOption } from "echarts";
 import { useDeviationStore } from "#imports";
+import { CHART_ATTRIBUTION_GRAPHIC } from "~/constants/chartAttribution";
 import { deviationChartTooltipFormatter } from "./tooltipFormatters/deviationChartTooltipFormatter";
 import {
     DataZoomComponent,
+    GraphicComponent,
     GridComponent,
     LegendComponent,
     TitleComponent,
@@ -32,6 +34,7 @@ echarts.use([
     VisualMapComponent,
     UniversalTransition,
     CanvasRenderer,
+    GraphicComponent,
 ]);
 
 interface Props {
@@ -156,6 +159,7 @@ const barOption = computed<ECOption>(() => {
             },
         },
         dataZoom: [{ xAxisIndex: "all", type: "inside", minSpan: 20 }],
+        graphic: CHART_ATTRIBUTION_GRAPHIC,
     };
 });
 
