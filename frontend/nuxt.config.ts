@@ -53,8 +53,15 @@ export default defineNuxtConfig({
     },
     echarts: {
         renderer: ["svg", "canvas"],
-        charts: ["BarChart", "LineChart"],
-        components: ["DatasetComponent", "GridComponent", "TooltipComponent"],
+        charts: ["BarChart", "LineChart", "ScatterChart"],
+        components: [
+            "DatasetComponent",
+            "GridComponent",
+            "TooltipComponent",
+            "TitleComponent",
+            "LegendComponent",
+            "DataZoomComponent",
+        ],
         features: ["LabelLayout", "UniversalTransition"],
     },
     primevue: {

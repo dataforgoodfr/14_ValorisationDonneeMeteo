@@ -1,9 +1,15 @@
 import { refDebounced } from "@vueuse/core";
-import { useTemperatureRecords } from "~/composables/useTemperature";
 import { dateToStringYMD } from "~/utils/date";
-import type { Station } from "~/types/api";
+import type { Station, TemperatureRecordsParams } from "~/types/api";
+import { useCustomDate } from "#imports";
+import type {
+    GranularityType,
+    SliceType,
+    ChartType,
+} from "~/components/ui/commons/selectBar/types";
 
 const debounceDuration = 300;
+const dates = useCustomDate();
 
 export enum TerritoryFilterType {
     STATION = "STATION",
@@ -18,14 +24,34 @@ type SelectedItem = {
     type: TerritoryFilterType;
 };
 
-export const useRecordsChartStore = defineStore("recordsChartStore", () => {
-    // Date range — default to the past year
-    const defaultStartDate = new Date();
-    defaultStartDate.setFullYear(defaultStartDate.getFullYear() - 1);
-    const startDate = ref<Date>(defaultStartDate);
-    const endDate = ref<Date>(new Date());
-    const departmentsFilter = ref<string[]>([]);
+export const useRecordsChartStore = defineStore("recordChartStore", () => {
+    const recordsChartRef = shallowRef();
+
+    // Date range
+    const pickedDateStart = ref(new Date(1950, 0, 1));
+    const pickedDateEnd = ref(dates.twoDaysAgo.value);
+    const debouncedStartDate = refDebounced(pickedDateStart, debounceDuration);
+    const debouncedEndDate = refDebounced(pickedDateEnd, debounceDuration);
+
+    // Chart controls
+    const granularity: Ref<GranularityType> = ref<GranularityType>("year");
+    const sliceTypeSwitchEnabled = ref(false);
+    const sliceType: Ref<SliceType> = ref<SliceType>("full");
+    const sliceDatepickerDate = ref(new Date(2006, 0, 1));
+    const chartTypeSwitchEnabled = ref(false);
+    const chartType: Ref<ChartType> = ref<ChartType>("pyramid");
+
+    // Record filters
+    const recordKind: Ref<"historical" | "absolute"> = ref("absolute");
+    const recordScope: Ref<"monthly" | "seasonal" | "all_time"> =
+        ref("all_time");
+    const typeRecords: Ref<"hot" | "cold" | "all"> = ref("all");
+    const temperatureMin = ref<number | null>(null);
+    const temperatureMax = ref<number | null>(null);
+
+    // Territory filters
     const stationCodeFilter = ref<string[]>([]);
+    const departmentsFilter = ref<string[]>([]);
     const regionsFilter = ref<string[]>([]);
     const territoriesFilter = ref<string[]>(["FR"]);
     const selectedElements = ref<SelectedItem[]>([
@@ -40,9 +66,6 @@ export const useRecordsChartStore = defineStore("recordsChartStore", () => {
     const page = ref(1);
     const pageSize = ref(3);
 
-    // Debounced values used to drive API calls
-    const debouncedStartDate = refDebounced(startDate, debounceDuration);
-    const debouncedEndDate = refDebounced(endDate, debounceDuration);
     const debouncedDepartmentsFilter = refDebounced(
         departmentsFilter,
         debounceDuration,
@@ -52,19 +75,41 @@ export const useRecordsChartStore = defineStore("recordsChartStore", () => {
         debounceDuration,
     );
 
-    const params = computed(() => ({
+    const params = computed<TemperatureRecordsParams>(() => ({
         date_start: dateToStringYMD(debouncedStartDate.value),
         date_end: dateToStringYMD(debouncedEndDate.value),
         limit: pageSize.value,
         offset: (page.value - 1) * pageSize.value,
         departement_filter: debouncedDepartmentsFilter.value.join(","),
         station_name_filter: debouncedStationCodeFilter.value.join(","),
+
+        record_kind: recordKind.value,
+        record_scope: recordScope.value,
+        type_records: typeRecords.value,
+        ...(debouncedStationCodeFilter.value.length > 0
+            ? { station_ids: debouncedStationCodeFilter.value.join(",") }
+            : {}),
+        ...(debouncedDepartmentsFilter.value.length > 0
+            ? { departments: debouncedDepartmentsFilter.value.join(",") }
+            : {}),
+        temperature_min: temperatureMin.value ?? undefined,
+        temperature_max: temperatureMax.value ?? undefined,
     }));
 
-    function setDepartmentFilter(department: { code: string; name: string }) {
-        if (departmentsFilter.value.includes(department.code)) {
-            return;
+    const setGranularity = (value: GranularityType) => {
+        sliceType.value = "full";
+        granularity.value = value;
+        if (value === "day") {
+            sliceTypeSwitchEnabled.value = false;
         }
+    };
+
+    const setChartType = (value: ChartType) => {
+        chartType.value = value;
+    };
+
+    function setDepartmentFilter(department: { code: string; name: string }) {
+        if (departmentsFilter.value.includes(department.code)) return;
         departmentsFilter.value.push(department.code);
         selectedElements.value.push({
             id: department.code,
@@ -74,9 +119,7 @@ export const useRecordsChartStore = defineStore("recordsChartStore", () => {
     }
 
     function setStationFilter(station: Station) {
-        if (stationCodeFilter.value.includes(station.code)) {
-            return;
-        }
+        if (stationCodeFilter.value.includes(station.code)) return;
         stationCodeFilter.value.push(station.code);
         selectedElements.value.push({
             id: station.code,
@@ -86,9 +129,7 @@ export const useRecordsChartStore = defineStore("recordsChartStore", () => {
     }
 
     function setRegionFilter(region: { code: string; name: string }) {
-        if (regionsFilter.value.includes(region.code)) {
-            return;
-        }
+        if (regionsFilter.value.includes(region.code)) return;
         regionsFilter.value.push(region.code);
         selectedElements.value.push({
             id: region.code,
@@ -98,9 +139,7 @@ export const useRecordsChartStore = defineStore("recordsChartStore", () => {
     }
 
     function setTerritoryFilter(territory: { code: string; name: string }) {
-        if (territoriesFilter.value.includes(territory.code)) {
-            return;
-        }
+        if (territoriesFilter.value.includes(territory.code)) return;
         territoriesFilter.value.push(territory.code);
         selectedElements.value.push({
             id: territory.code,
@@ -136,11 +175,31 @@ export const useRecordsChartStore = defineStore("recordsChartStore", () => {
                 break;
         }
     }
-    const { data: recordsData, pending, error } = useTemperatureRecords(params);
+    // TODO: Replace with useTemperatureRecords(params) when backend is ready
+    // const { data: recordsData, pending, error } = useTemperatureRecords(params);
+    const {
+        data: recordsData,
+        pending,
+        error,
+    } = useTemperatureRecordsChartFake(params);
 
     return {
-        startDate,
-        endDate,
+        recordsChartRef,
+        pickedDateStart,
+        pickedDateEnd,
+        granularity,
+        sliceTypeSwitchEnabled,
+        sliceType,
+        sliceDatepickerDate,
+        chartTypeSwitchEnabled,
+        chartType,
+        setGranularity,
+        setChartType,
+        stationCodeFilter,
+        departmentsFilter,
+        regionsFilter,
+        territoriesFilter,
+        selectedElements,
         setDepartmentFilter,
         setStationFilter,
         setRegionFilter,
@@ -148,13 +207,13 @@ export const useRecordsChartStore = defineStore("recordsChartStore", () => {
         removeItemFromFilter,
         page,
         pageSize,
+        recordKind,
+        recordScope,
+        typeRecords,
+        temperatureMin,
+        temperatureMax,
         recordsData,
-        stationCodeFilter,
-        departmentsFilter,
-        regionsFilter,
-        territoriesFilter,
         pending,
         error,
-        selectedElements,
     };
 });
