@@ -52,7 +52,8 @@ const exportMenuItems = ref<DropdownMenuItem[]>([
 
 function exportAsPng() {
     if (!import.meta.client) return;
-    const dataURL = chartRef?.value.getDataURL({
+    if (!chartRef?.value) return;
+    const dataURL = chartRef.value.getDataURL({
         type: "png",
         pixelRatio: 2,
         backgroundColor: COLORS.background,
@@ -73,7 +74,8 @@ function exportAsPng() {
 
 function exportAsPngWithoutBackground() {
     if (!import.meta.client) return;
-    const dataURL = chartRef?.value.getDataURL({
+    if (!chartRef?.value) return;
+    const dataURL = chartRef.value.getDataURL({
         type: "png",
         pixelRatio: 2,
         backgroundColor: "transparent",
@@ -94,7 +96,8 @@ function exportAsPngWithoutBackground() {
 
 function exportAsPngWhiteBackground() {
     if (!import.meta.client) return;
-    const dataURL = chartRef?.value.getDataURL({
+    if (!chartRef?.value) return;
+    const dataURL = chartRef.value.getDataURL({
         type: "png",
         pixelRatio: 2,
         backgroundColor: "#ffffff",
@@ -136,7 +139,8 @@ function exportAsCSV() {
 
 function exportAsHTML() {
     if (!import.meta.client) return;
-    const options = chartRef?.value.getOption();
+    if (!chartRef?.value) return;
+    const options = chartRef.value.getOption();
     const scriptTag = "script";
     const html = `<!DOCTYPE html>
 <html>
