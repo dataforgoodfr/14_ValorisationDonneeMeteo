@@ -8,7 +8,7 @@ const {
     gap,
     yesterdayLastYear,
     temperatureChangeYearOverYear,
-} = ueseHomeData();
+} = useHomeData();
 </script>
 <template>
     <h3>LES INFORMATIONS À RETENIR</h3>

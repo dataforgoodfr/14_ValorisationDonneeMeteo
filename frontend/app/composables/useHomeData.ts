@@ -2,8 +2,8 @@ import type { NationalIndicatorParams } from "~/types/api";
 
 const { yesterday } = useCustomDate();
 
-export function ueseHomeData() {
-   // Yesterday data
+export function useHomeData() {
+    // Yesterday data
     const yesterdayParams = computed<NationalIndicatorParams>(() => {
         return {
             date_start: dateToStringYMD(yesterday.value),
