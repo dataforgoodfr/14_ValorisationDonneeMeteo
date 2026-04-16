@@ -1,12 +1,24 @@
 import type { TooltipComponentFormatterCallbackParams } from "echarts";
 import type { GranularityType } from "~/components/ui/commons/selectBar/types";
 
+interface BaselineRow {
+    baseline_mean?: number;
+    baseline_min?: number;
+    baseline_band?: number;
+    baseline_std_dev_lower?: number;
+    baseline_std_dev_band?: number;
+}
+
+function isBaselineRow(v: unknown): v is BaselineRow {
+    return typeof v === "object" && v !== null && !Array.isArray(v);
+}
+
 export function itnStackedTooltipFormatter(
     params: TooltipComponentFormatterCallbackParams,
     granularity: GranularityType,
 ): string {
     if (!Array.isArray(params) || params.length === 0) return "";
-    const pos = params[0]!.axisValue as string;
+    const pos = String(params[0]!.axisValue);
 
     const header =
         granularity === "month"
@@ -30,8 +42,8 @@ export function itnStackedTooltipFormatter(
 
     // Baseline stats are in the "Indicateur MF" dataset-encoded series
     const mfParam = params.find((p) => p.seriesName === "Indicateur MF");
-    if (mfParam) {
-        const row = mfParam.value as Record<string, number>;
+    if (mfParam && isBaselineRow(mfParam.value)) {
+        const row = mfParam.value;
         if (row.baseline_mean !== undefined)
             lines.push(
                 `${mfParam.marker ?? ""}Indicateur MF : ${fmt(row.baseline_mean)}`,
@@ -57,10 +69,8 @@ export function itnStackedTooltipFormatter(
         )
             continue;
         const val = Array.isArray(p.value) ? p.value[1] : null;
-        if (val !== null && val !== undefined)
-            lines.push(
-                `${p.marker ?? ""}${p.seriesName} : ${fmt(val as number)}`,
-            );
+        if (typeof val === "number")
+            lines.push(`${p.marker ?? ""}${p.seriesName} : ${fmt(val)}`);
     }
 
     return lines.join("<br/>");
