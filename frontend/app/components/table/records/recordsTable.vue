@@ -33,8 +33,6 @@ function downloadCsv() {
         periodSelection.value,
         "csv",
     );
-    a.href = `data:text/csv;charset=utf-8,${encodeURIComponent(csv)}`;
-    a.download = `records-${typeRecords.value}.csv`;
     a.click();
     a.remove();
 }
