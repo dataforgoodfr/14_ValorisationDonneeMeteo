@@ -65,9 +65,9 @@ function exportAsPng() {
     a.download = useFormatFileName(
         exportConfig.chartName,
         granularity.value,
+        "png",
         pickedDateStart.value,
         pickedDateEnd.value,
-        "png",
     );
     a.click();
 }
@@ -87,9 +87,9 @@ function exportAsPngWithoutBackground() {
     a.download = useFormatFileName(
         exportConfig.chartName,
         granularity.value,
+        "png",
         pickedDateStart.value,
         pickedDateEnd.value,
-        "png",
     );
     a.click();
 }
@@ -109,9 +109,9 @@ function exportAsPngWhiteBackground() {
     a.download = useFormatFileName(
         exportConfig.chartName,
         granularity.value,
+        "png",
         pickedDateStart.value,
         pickedDateEnd.value,
-        "png",
     );
     a.click();
 }
@@ -130,9 +130,9 @@ function exportAsCSV() {
     a.download = useFormatFileName(
         exportConfig.chartName,
         granularity.value,
+        "csv",
         pickedDateStart.value,
         pickedDateEnd.value,
-        "csv",
     );
     a.click();
 }
@@ -165,9 +165,9 @@ function exportAsHTML() {
     a.download = useFormatFileName(
         "itn",
         granularity.value,
+        "html",
         pickedDateStart.value,
         pickedDateEnd.value,
-        "html",
     );
     a.click();
 }

@@ -47,9 +47,9 @@ function downloadCsv() {
     a.download = useFormatFileName(
         `tableau-records-${typeRecords.value}`,
         periodSelection.value,
-        undefined,
-        undefined,
         "csv",
+        undefined,
+        undefined,
     );
     a.href = `data:text/csv;charset=utf-8,${encodeURIComponent(csv)}`;
     a.download = `records-${typeRecords.value}.csv`;

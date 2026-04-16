@@ -21,9 +21,9 @@ const toISODate = (date: Date) => dateToStringYMD(date);
 export function useFormatFileName(
     chartName: string,
     granularity: string,
-    dateStart: Date | undefined,
-    dateEnd: Date | undefined,
     fileFormat: string,
+    dateStart: Date | undefined = undefined,
+    dateEnd: Date | undefined = undefined,
 ) {
     const datePart =
         dateStart && dateEnd

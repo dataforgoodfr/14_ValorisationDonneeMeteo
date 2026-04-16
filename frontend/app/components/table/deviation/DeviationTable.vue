@@ -37,9 +37,9 @@ async function downloadCsv() {
     a.download = useFormatFileName(
         "tableau-ecart-normale",
         "", // non utile pour deviation
+        "csv",
         dateStart.value,
         dateEnd.value,
-        "csv",
     );
     a.click();
 }
