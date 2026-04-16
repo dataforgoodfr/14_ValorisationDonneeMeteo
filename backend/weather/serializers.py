@@ -700,3 +700,31 @@ class TemperatureMinMaxGraphQuerySerializer(serializers.Serializer):
         attrs["regions"] = attrs.get("regions", ())
 
         return attrs
+
+
+class TemperatureMinMaxGraphPointSerializer(serializers.Serializer):
+    date = serializers.DateField()
+    tmin_mean = serializers.FloatField()
+    tmax_mean = serializers.FloatField()
+
+
+class TemperatureMinMaxGraphNationalSerializer(serializers.Serializer):
+    data = TemperatureMinMaxGraphPointSerializer(many=True)
+
+
+class TemperatureMinMaxGraphStationSerializer(serializers.Serializer):
+    station_id = serializers.CharField()
+    station_name = serializers.CharField()
+    data = TemperatureMinMaxGraphPointSerializer(many=True)
+
+
+class TemperatureMinMaxGraphMetadataSerializer(serializers.Serializer):
+    date_start = serializers.DateField()
+    date_end = serializers.DateField()
+    granularity = serializers.ChoiceField(choices=["day", "month", "year"])
+
+
+class TemperatureMinMaxGraphResponseSerializer(serializers.Serializer):
+    metadata = TemperatureMinMaxGraphMetadataSerializer()
+    national = TemperatureMinMaxGraphNationalSerializer(required=False)
+    stations = TemperatureMinMaxGraphStationSerializer(many=True)

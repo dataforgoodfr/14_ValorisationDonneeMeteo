@@ -1,7 +1,21 @@
 import pytest
 from rest_framework.test import APIClient
 
+from weather.bootstrap_temperature_minmax import TemperatureMinMaxDependencyProvider
+from weather.data_sources.temperature_minmax_fake import FakeTemperatureMinMaxDataSource
+
 URL = "/api/v1/temperature/minmax/graph"
+
+
+@pytest.fixture
+def fake_minmax_dep():
+    TemperatureMinMaxDependencyProvider.set_builder(
+        lambda: FakeTemperatureMinMaxDataSource()
+    )
+    try:
+        yield
+    finally:
+        TemperatureMinMaxDependencyProvider.reset()
 
 
 def test_returns_400_when_no_params(client: APIClient):
@@ -42,17 +56,65 @@ def test_returns_400_on_invalid_granularity(client: APIClient):
     )
 
     assert resp.status_code == 400
+
+
+@pytest.mark.usefixtures("fake_minmax_dep")
+def test_france_returns_national_series(client: APIClient):
+    resp = client.get(
+        URL,
+        {
+            "date_start": "2020-01-01",
+            "date_end": "2020-03-31",
+            "granularity": "month",
+        },
+    )
+
+    assert resp.status_code == 200
     body = resp.json()
-    assert body["error"]["code"] == "INVALID_PARAMETER"
+
+    assert "national" in body
+    assert body["stations"] == []
+
+    assert body["metadata"]["granularity"] == "month"
+    assert body["metadata"]["date_start"] == "2020-01-01"
+    assert body["metadata"]["date_end"] == "2020-03-31"
+
+    data = body["national"]["data"]
+    assert len(data) == 3
+    assert data[0]["date"] == "2020-01-01"
+    assert "tmin_mean" in data[0]
+    assert "tmax_mean" in data[0]
 
 
+@pytest.mark.usefixtures("fake_minmax_dep")
+def test_station_filter_returns_station_series(client: APIClient):
+    resp = client.get(
+        URL,
+        {
+            "date_start": "2020-01-01",
+            "date_end": "2020-03-31",
+            "granularity": "month",
+            "station_ids": "07149,07222",
+        },
+    )
+
+    assert resp.status_code == 200
+    body = resp.json()
+
+    assert "national" not in body
+    assert len(body["stations"]) == 2
+    assert body["stations"][0]["station_id"] == "07149"
+    assert body["stations"][1]["station_id"] == "07222"
+
+    data = body["stations"][0]["data"]
+    assert len(data) == 3
+    assert "tmin_mean" in data[0]
+    assert "tmax_mean" in data[0]
+
+
+@pytest.mark.usefixtures("fake_minmax_dep")
 @pytest.mark.parametrize("granularity", ["day", "month", "year"])
-def test_returns_501_with_valid_params(client: APIClient, granularity: str):
-    """
-    TODO : la logique métier n'est pas encore branchée.
-    Un appel valide doit retourner 501, pas 400 ni 500.
-    Ce test sera mis quand le data source sera branché.
-    """
+def test_all_granularities_return_200(client: APIClient, granularity: str):
     resp = client.get(
         URL,
         {
@@ -62,21 +124,7 @@ def test_returns_501_with_valid_params(client: APIClient, granularity: str):
         },
     )
 
-    assert resp.status_code == 501
+    assert resp.status_code == 200
     body = resp.json()
-    assert body["error"]["code"] == "NOT_IMPLEMENTED"
-
-
-def test_returns_501_with_territoire_filters(client: APIClient):
-    resp = client.get(
-        URL,
-        {
-            "date_start": "2020-01-01",
-            "date_end": "2020-12-31",
-            "granularity": "month",
-            "departments": "75,69",
-            "station_ids": "07149",
-        },
-    )
-
-    assert resp.status_code == 501
+    assert "national" in body
+    assert body["metadata"]["granularity"] == granularity

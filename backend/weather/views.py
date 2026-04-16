@@ -13,6 +13,7 @@ from weather.bootstrap_temperature_deviation import (
     TemperatureDeviationDependencyProvider,
     TemperatureDeviationOverviewDependencyProvider,
 )
+from weather.bootstrap_temperature_minmax import TemperatureMinMaxDependencyProvider
 from weather.bootstrap_temperature_records import TemperatureRecordsDependencyProvider
 from weather.services.national_indicator.kpi_use_case import get_national_indicator_kpi
 from weather.services.national_indicator.use_case import get_national_indicator
@@ -22,6 +23,7 @@ from weather.services.temperature_deviation.use_case import (
     get_temperature_deviation,
     get_temperature_deviation_overview,
 )
+from weather.services.temperature_minmax.use_case import get_minmax_graph
 from weather.services.temperature_records.types import TemperatureRecordsRequest
 from weather.services.temperature_records.use_case import get_temperature_records
 
@@ -42,6 +44,7 @@ from .serializers import (
     TemperatureDeviationOverviewResponseSerializer,
     TemperatureDeviationResponseSerializer,
     TemperatureMinMaxGraphQuerySerializer,
+    TemperatureMinMaxGraphResponseSerializer,
     TemperatureRecordEntrySerializer,
     TemperatureRecordsQuerySerializer,
 )
@@ -282,14 +285,23 @@ class TemperatureMinMaxGraphAPIView(APIView):
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
-        # validation OK, logique métier pas encore implémentée
-        return Response(
-            ErrorSerializer.build(
-                code="NOT_IMPLEMENTED",
-                message="Endpoint en cours d'implémentation",
-            ),
-            status=status.HTTP_501_NOT_IMPLEMENTED,
-        )
+        params = q.validated_data
+        ds = TemperatureMinMaxDependencyProvider.get_dep()
+        data = get_minmax_graph(data_source=ds, **params)
+
+        full_payload = {
+            "metadata": {
+                "date_start": params["date_start"],
+                "date_end": params["date_end"],
+                "granularity": params["granularity"],
+            },
+            **data,
+        }
+
+        out = TemperatureMinMaxGraphResponseSerializer(data=full_payload)
+        out.is_valid(raise_exception=True)
+
+        return Response(out.data, status=status.HTTP_200_OK)
 
 
 class TemperatureDeviationOverviewAPIView(APIView):

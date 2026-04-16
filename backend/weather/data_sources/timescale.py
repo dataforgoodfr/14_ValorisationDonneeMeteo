@@ -62,6 +62,12 @@ from weather.services.temperature_deviation.types import (
     TemperatureDeviationOverviewStation,
     YearlyBaselinePoint,
 )
+from weather.services.temperature_minmax.protocols import MinMaxGraphDataSource
+from weather.services.temperature_minmax.types import (
+    DailyMinMaxPoint,
+    MinMaxGraphQuery,
+    StationDailyMinMaxSeries,
+)
 from weather.services.temperature_records.types import (
     SEASON_MONTHS,
     TemperatureRecordEntry,
@@ -1022,6 +1028,105 @@ class TimescaleRecordsDataSource:
             )
 
         return tuple(result)
+
+
+class TimescaleTemperatureMinMaxDataSource(MinMaxGraphDataSource):
+    def fetch_daily_series(
+        self, query: MinMaxGraphQuery
+    ) -> list[StationDailyMinMaxSeries]:
+        where_clauses = [
+            'q."AAAAMMJJ" BETWEEN %s AND %s',
+            '(q."TN" IS NOT NULL OR q."TX" IS NOT NULL)',
+        ]
+        params: list = [query.date_start, query.date_end]
+
+        if query.station_ids:
+            where_clauses.append('q."NUM_POSTE" = ANY(%s)')
+            params.append(list(query.station_ids))
+
+        if query.departments:
+            where_clauses.append("s.departement = ANY(%s)")
+            params.append([int(d) for d in query.departments if d.isdigit()])
+
+        if query.regions:
+            where_clauses.append("r.region = ANY(%s)")
+            params.append(list(query.regions))
+
+        where_sql = " AND ".join(where_clauses)
+
+        sql = f"""
+            SELECT
+                q."NUM_POSTE"   AS station_id,
+                s.name          AS station_name,
+                q."AAAAMMJJ"    AS date,
+                q."TN"          AS tmin,
+                q."TX"          AS tmax
+            FROM public."Quotidienne" q
+            JOIN public.v_station s
+                ON s.station_code = q."NUM_POSTE"
+            LEFT JOIN public.ref_department_region r
+                ON r.departement = s.departement
+            WHERE {where_sql}
+            ORDER BY q."NUM_POSTE", q."AAAAMMJJ"
+        """
+
+        with connection.cursor() as cur:
+            cur.execute(sql, params)
+            cols = [c.name for c in cur.description]
+            rows = [dict(zip(cols, row, strict=False)) for row in cur.fetchall()]
+
+        grouped: dict[str, list[DailyMinMaxPoint]] = defaultdict(list)
+        station_names: dict[str, str] = {}
+
+        for row in rows:
+            sid = row["station_id"].strip()
+            station_names[sid] = row["station_name"]
+            grouped[sid].append(
+                DailyMinMaxPoint(
+                    date=row["date"],
+                    tmin=float(row["tmin"]) if row["tmin"] is not None else None,
+                    tmax=float(row["tmax"]) if row["tmax"] is not None else None,
+                )
+            )
+
+        return [
+            StationDailyMinMaxSeries(
+                station_id=sid,
+                station_name=station_names[sid],
+                points=grouped[sid],
+            )
+            for sid in grouped
+        ]
+
+    def fetch_national_daily_series(
+        self, query: MinMaxGraphQuery
+    ) -> list[DailyMinMaxPoint]:
+        sql = """
+            SELECT
+                q."AAAAMMJJ"    AS date,
+                AVG(q."TN")     AS tmin,
+                AVG(q."TX")     AS tmax
+            FROM public."Quotidienne" q
+            WHERE q."AAAAMMJJ" BETWEEN %s AND %s
+              AND q."TN" IS NOT NULL
+              AND q."TX" IS NOT NULL
+            GROUP BY q."AAAAMMJJ"
+            ORDER BY q."AAAAMMJJ"
+        """
+
+        with connection.cursor() as cur:
+            cur.execute(sql, [query.date_start, query.date_end])
+            cols = [c.name for c in cur.description]
+            rows = [dict(zip(cols, row, strict=False)) for row in cur.fetchall()]
+
+        return [
+            DailyMinMaxPoint(
+                date=row["date"],
+                tmin=float(row["tmin"]),
+                tmax=float(row["tmax"]),
+            )
+            for row in rows
+        ]
 
 
 def _department_of_station(station_id: str) -> str:
