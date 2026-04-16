@@ -1,8 +1,13 @@
 import type { TemperatureDeviationStation } from "~/types/api";
 import { escapeCsvValue } from "./string";
 
-const HEADERS =
-    "Station,Département,Région,Écart à la normale (°C),Température Moyenne (°C)";
+const HEADERS = [
+    "Station",
+    "Département",
+    "Région",
+    "Écart à la normale (°C)",
+    "Température Moyenne (°C)",
+].join(",");
 
 export function buildDeviationCsv(
     stations: TemperatureDeviationStation[],
