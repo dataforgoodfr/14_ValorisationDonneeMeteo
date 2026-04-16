@@ -1091,8 +1091,6 @@ class TimescaleRecordsGraphDataSource:
     _GRANULARITY_TO_DATE_TRUNC = {"day": "day", "month": "month", "year": "year"}
 
     def fetch_graph(self, request: RecordsGraphRequest) -> list[RecordsGraphBucket]:
-        record_type = "TX" if request.type_records == "hot" else "TN"
-
         if request.period_type == "month":
             period_value: str | None = str(request.month)
         elif request.period_type == "season":
@@ -1103,19 +1101,22 @@ class TimescaleRecordsGraphDataSource:
         date_trunc = self._GRANULARITY_TO_DATE_TRUNC[request.granularity]
 
         clauses = [
-            "record_type = %s",
             "period_type = %s",
             "period_value IS NOT DISTINCT FROM %s",
             "record_date >= %s",
             "record_date <= %s",
         ]
         params: list = [
-            record_type,
             request.period_type,
             period_value,
             request.date_start,
             request.date_end,
         ]
+
+        if request.type_records != "all":
+            record_type = "TX" if request.type_records == "hot" else "TN"
+            clauses.insert(0, "record_type = %s")
+            params.insert(0, record_type)
 
         terr_clause, terr_params = _territoire_clause_positional(
             request.territoire, request.territoire_id

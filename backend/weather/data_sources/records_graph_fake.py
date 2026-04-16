@@ -16,9 +16,12 @@ class FakeRecordsGraphDataSource:
     """
 
     def fetch_graph(self, request: RecordsGraphRequest) -> list[RecordsGraphBucket]:
-        base = list(
-            _FAKE_HOT_RECORDS if request.type_records == "hot" else _FAKE_COLD_RECORDS
-        )
+        if request.type_records == "all":
+            base = list(_FAKE_HOT_RECORDS) + list(_FAKE_COLD_RECORDS)
+        elif request.type_records == "hot":
+            base = list(_FAKE_HOT_RECORDS)
+        else:
+            base = list(_FAKE_COLD_RECORDS)
 
         entries = [
             e for e in base if request.date_start <= e.record_date <= request.date_end

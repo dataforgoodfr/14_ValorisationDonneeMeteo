@@ -492,9 +492,9 @@ class RecordsGraphQuerySerializer(serializers.Serializer):
         default="all_time",
     )
     type_records = serializers.ChoiceField(
-        choices=["hot", "cold"],
+        choices=["hot", "cold", "all"],
         required=False,
-        default="hot",
+        default="all",
     )
     month = serializers.IntegerField(required=False, min_value=1, max_value=12)
     season = serializers.ChoiceField(

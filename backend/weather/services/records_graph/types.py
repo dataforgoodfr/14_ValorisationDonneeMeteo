@@ -10,7 +10,7 @@ class RecordsGraphRequest:
     date_end: dt.date
     granularity: str  # "day" | "month" | "year"
     period_type: str  # "all_time" | "month" | "season"
-    type_records: str  # "hot" | "cold"
+    type_records: str  # "hot" | "cold" | "all"
     month: int | None = None
     season: str | None = None
     territoire: str | None = None  # "france" | "region" | "department" | "station"
