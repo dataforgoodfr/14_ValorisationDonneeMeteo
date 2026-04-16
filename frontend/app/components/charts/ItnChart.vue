@@ -51,8 +51,191 @@ provide(INIT_OPTIONS_KEY, initOptions);
 const colorEcartType = "rgba(175, 175, 175, 1)";
 const colorExtremes = "rgba(100, 100, 100, 0.2)";
 
+const MONTH_SHORT = [
+    "Janv.",
+    "Févr.",
+    "Mars",
+    "Avr.",
+    "Mai",
+    "Juin",
+    "Juil.",
+    "Août",
+    "Sept.",
+    "Oct.",
+    "Nov.",
+    "Déc.",
+];
+
+function buildStackedOption(
+    timeSeries: NonNullable<typeof props.adapter.data.value>["time_series"],
+    granularity: "month" | "day",
+): ECOption {
+    function getXKey(dateStr: string): string {
+        const d = new Date(dateStr);
+        const m = String(d.getMonth() + 1).padStart(2, "0");
+        return granularity === "month"
+            ? m
+            : `${m}-${String(d.getDate()).padStart(2, "0")}`;
+    }
+
+    const allPositions = [
+        ...new Set(timeSeries.map((p) => getXKey(p.date))),
+    ].sort();
+
+    // Baseline: première occurrence par position (identique pour toutes les années)
+    const baselineByPos = new Map<string, (typeof timeSeries)[0]>();
+    for (const p of timeSeries) {
+        const k = getXKey(p.date);
+        if (!baselineByPos.has(k)) baselineByPos.set(k, p);
+    }
+
+    // Températures par année
+    const byYear = new Map<number, Map<string, number>>();
+    for (const p of timeSeries) {
+        const year = new Date(p.date).getFullYear();
+        const k = getXKey(p.date);
+        if (!byYear.has(year)) byYear.set(year, new Map());
+        byYear.get(year)!.set(k, p.temperature);
+    }
+    const years = [...byYear.keys()].sort();
+
+    const baselineSource = allPositions.map((pos) => {
+        const p = baselineByPos.get(pos)!;
+        return [
+            pos,
+            p.baseline_min,
+            p.baseline_max - p.baseline_min,
+            p.baseline_std_dev_lower,
+            p.baseline_std_dev_upper - p.baseline_std_dev_lower,
+            p.baseline_mean,
+        ];
+    });
+
+    const baselineSeries: ECOption["series"] = [
+        {
+            type: "line",
+            encode: { x: "position", y: "baseline_min" },
+            stack: "extreme",
+            stackStrategy: "all",
+            symbol: "none",
+            lineStyle: { opacity: 0 },
+            areaStyle: { color: "transparent" },
+            tooltip: { show: false },
+        },
+        {
+            name: "Extrêmes",
+            type: "line",
+            encode: { x: "position", y: "baseline_band" },
+            stack: "extreme",
+            stackStrategy: "all",
+            symbol: "none",
+            color: colorExtremes,
+            lineStyle: { opacity: 0 },
+            areaStyle: { color: colorExtremes },
+        },
+        {
+            type: "line",
+            encode: { x: "position", y: "baseline_std_dev_lower" },
+            stack: "std",
+            stackStrategy: "all",
+            symbol: "none",
+            lineStyle: { opacity: 0 },
+            areaStyle: { color: "transparent" },
+            tooltip: { show: false },
+        },
+        {
+            name: "Écart-type",
+            type: "line",
+            encode: { x: "position", y: "baseline_std_dev_band" },
+            stack: "std",
+            stackStrategy: "all",
+            symbol: "none",
+            color: colorEcartType,
+            lineStyle: { opacity: 0 },
+            areaStyle: { color: colorEcartType },
+        },
+        {
+            name: "Indicateur MF",
+            type: "line",
+            encode: { x: "position", y: "baseline_mean" },
+            symbol: "none",
+            lineStyle: { width: 2, color: "#333" },
+            z: 5,
+        },
+    ];
+
+    const yearSeries: ECOption["series"] = years.map((year) => ({
+        name: String(year),
+        type: "line",
+        data: allPositions.map((pos) => [
+            pos,
+            byYear.get(year)?.get(pos) ?? null,
+        ]),
+        symbol: "none",
+        lineStyle: { width: 1.5 },
+        connectNulls: false,
+        z: 10,
+    }));
+
+    return {
+        dataset: {
+            dimensions: [
+                "position",
+                "baseline_min",
+                "baseline_band",
+                "baseline_std_dev_lower",
+                "baseline_std_dev_band",
+                "baseline_mean",
+            ],
+            source: baselineSource,
+        },
+        grid: { left: 30, right: 10, bottom: 150, containLabel: true },
+        xAxis: {
+            type: "category",
+            data: allPositions,
+            axisLabel: {
+                formatter: (val: string) =>
+                    granularity === "month"
+                        ? (MONTH_SHORT[parseInt(val, 10) - 1] ?? val)
+                        : val.replace("-", "/"),
+                interval: granularity === "day" ? 30 : 0,
+            },
+        },
+        yAxis: {
+            type: "value",
+            name: "Température (°C)",
+            nameRotate: 90,
+            nameLocation: "middle",
+            nameGap: 40,
+        },
+        series: [...(baselineSeries as []), ...(yearSeries as [])],
+        legend: {
+            data: [
+                "Extrêmes",
+                "Écart-type",
+                "Indicateur MF",
+                ...years.map(String),
+            ],
+            bottom: 85,
+        },
+        title: { text: "Indicateur thermique national", left: "center" },
+        tooltip: { trigger: "axis" },
+        emphasis: { focus: "none", disabled: true },
+        graphic: CHART_ATTRIBUTION_GRAPHIC,
+    };
+}
+
 const option = computed<ECOption>(() => {
     const data = props.adapter.data.value;
+
+    if (props.adapter.chartType?.value === "stacked" && data) {
+        const gran = props.adapter.granularity.value;
+        return buildStackedOption(
+            data.time_series,
+            gran === "year" ? "month" : gran,
+        );
+    }
+
     const timeSeries = insertCrossingPoints(data?.time_series ?? []);
 
     return {
@@ -258,7 +441,7 @@ const option = computed<ECOption>(() => {
 <template>
     <VChart
         :ref="adapter.chartRef"
-        :key="adapter.granularity.value"
+        :key="`${adapter.granularity.value}-${adapter.chartType?.value ?? 'line'}`"
         :option="option"
         :init-options="initOptions"
         :loading="adapter.pending.value"

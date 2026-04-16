@@ -4,7 +4,7 @@ import YearPicker from "./yearPicker.vue";
 import DayPicker from "./dayPicker.vue";
 import SliceType from "./sliceType.vue";
 import RecordsPeriodSlice from "./recordsPeriodSlice.vue";
-import ExportMenu from "../exportMenu.vue";
+import ExportMenu from "~/components/ui/commons/exportMenu.vue";
 import type {
     GranularityType,
     SelectBarAdapter,
@@ -24,10 +24,14 @@ const localEndDate = props.adapter.pickedDateEnd;
 const dates = useCustomDate();
 
 // Granularity Selection values
-const granularityValues = reactive([
+const granularityValues = computed(() => [
     { label: "Jour", value: "day" },
     { label: "Mois", value: "month" },
-    { label: "Année", value: "year" },
+    {
+        label: "Année",
+        value: "year",
+        disabled: props.adapter.chartType?.value === "stacked",
+    },
 ]);
 </script>
 
@@ -82,11 +86,12 @@ const granularityValues = reactive([
             />
         </div>
 
-        <div id="right-side" class="flex md:flex-1 gap-6 items-center">
+        <div id="right-side" class="flex flex-1 gap-6 items-center">
             <template
                 v-if="
                     (adapter.features.hasSliceType &&
-                        adapter.chartType?.value !== 'calendar') ||
+                        adapter.chartType?.value !== 'calendar' &&
+                        adapter.chartType?.value !== 'stacked') ||
                     adapter.features.hasRecordsPeriodSlice
                 "
             >

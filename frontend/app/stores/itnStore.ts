@@ -1,8 +1,12 @@
-import type { NationalIndicatorParams } from "~/types/api";
+import type {
+    NationalIndicatorParams,
+    NationalIndicatorResponse,
+} from "~/types/api";
 import { useCustomDate, dateToStringYMD } from "#imports";
 import type {
     GranularityType,
     SliceType,
+    ChartType,
 } from "~/components/ui/commons/selectBar/types";
 
 const dates = useCustomDate();
@@ -21,6 +25,60 @@ export const useItnStore = defineStore("itnStore", () => {
 
     const sliceDatepickerDate = ref(new Date(2006, 0, 1));
 
+    const chartType = ref<ChartType>("line");
+
+    // Stacked mode: années sélectionnées et données fusionnées
+    const selectedYears = ref<number[]>([new Date().getFullYear()]);
+    const stackedData = ref<NationalIndicatorResponse | null>(null);
+    const stackedPending = ref(false);
+
+    const { apiFetch } = useApiClient();
+
+    async function fetchStackedData() {
+        if (selectedYears.value.length === 0) {
+            stackedData.value = null;
+            return;
+        }
+        stackedPending.value = true;
+        try {
+            const responses = await Promise.all(
+                selectedYears.value.map((year) =>
+                    apiFetch<NationalIndicatorResponse>(
+                        "/temperature/national-indicator",
+                        {
+                            query: {
+                                date_start: `${year}-01-01`,
+                                date_end: `${year}-12-31`,
+                                granularity: granularity.value,
+                                slice_type: "full",
+                            },
+                        },
+                    ),
+                ),
+            );
+            stackedData.value = {
+                metadata: responses[0]!.metadata,
+                time_series: responses.flatMap((r) => r.time_series),
+            };
+        } catch {
+            stackedData.value = null;
+        } finally {
+            stackedPending.value = false;
+        }
+    }
+
+    watch(
+        [selectedYears, granularity],
+        () => {
+            if (chartType.value === "stacked") fetchStackedData();
+        },
+        { deep: true },
+    );
+
+    watch(chartType, (val) => {
+        if (val === "stacked") fetchStackedData();
+    });
+
     const month_of_year = computed<undefined | number>(() =>
         granularity.value === "year" && sliceType.value !== "full"
             ? sliceDatepickerDate.value.getMonth() + 1
@@ -35,7 +93,8 @@ export const useItnStore = defineStore("itnStore", () => {
 
     const setGranularity = (value: GranularityType) => {
         sliceType.value = "full";
-        granularity.value = value;
+        granularity.value =
+            chartType.value === "stacked" && value === "year" ? "month" : value;
         if (value === "day") {
             sliceTypeSwitchEnabled.value = false;
             pickedDateStart.value = dates.lastYear.value;
@@ -51,6 +110,15 @@ export const useItnStore = defineStore("itnStore", () => {
             pickedDateStart.value = dates.absoluteMinDataDate.value;
             pickedDateEnd.value = dates.lastYear.value;
             maxDate.value = dates.lastYear.value;
+        }
+    };
+
+    const setChartType = (value: ChartType) => {
+        chartType.value = value;
+        if (value === "stacked") {
+            if (granularity.value === "year") granularity.value = "month";
+            sliceTypeSwitchEnabled.value = false;
+            sliceType.value = "full";
         }
     };
 
@@ -71,6 +139,15 @@ export const useItnStore = defineStore("itnStore", () => {
 
     const { data: itnData, pending, error } = useNationalIndicator(params);
 
+    const effectiveData = computed(() =>
+        chartType.value === "stacked"
+            ? (stackedData.value ?? undefined)
+            : (itnData.value ?? undefined),
+    );
+    const effectivePending = computed(() =>
+        chartType.value === "stacked" ? stackedPending.value : pending.value,
+    );
+
     return {
         itnChartRef,
         pickedDateStart,
@@ -82,9 +159,14 @@ export const useItnStore = defineStore("itnStore", () => {
         sliceDatepickerDate,
         month_of_year,
         day_of_month,
+        chartType,
+        selectedYears,
         setGranularity,
+        setChartType,
         turnOffSliceType,
         itnData,
+        effectiveData,
+        effectivePending,
         pending,
         error,
     };

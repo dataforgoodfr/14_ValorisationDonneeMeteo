@@ -10,7 +10,14 @@ import type {
 
 export type GranularityType = "year" | "month" | "day";
 export type SliceType = "full" | "month_of_year" | "day_of_month";
-export type ChartType = "line" | "bar" | "scatter" | "pyramid" | "calendar";
+
+export type ChartType =
+    | "line"
+    | "bar"
+    | "scatter"
+    | "pyramid"
+    | "calendar"
+    | "stacked";
 
 export interface SelectBarAdapter<
     T =
@@ -51,6 +58,8 @@ export interface SelectBarAdapter<
 
     // Records kind toggle (absolute = current record per station, historical = all beaten)
     recordKind?: Ref<"absolute" | "historical">;
+    // Year multi-select (optional, stacked mode)
+    selectedYears?: Ref<number[]>;
 
     // Methods
     setGranularity: (value: GranularityType) => void;
