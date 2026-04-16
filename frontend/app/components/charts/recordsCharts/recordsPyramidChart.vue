@@ -28,47 +28,16 @@ const initOptions = computed(() => ({
 }));
 provide(INIT_OPTIONS_KEY, initOptions);
 
-interface CategoryAxisInput {
-    data?: (string | number)[];
-    gridIndex?: number;
-    axisLabel?: {
-        show?: boolean;
-        margin?: number;
-        align?: "left" | "center" | "right";
-        fontSize?: number;
-        fontWeight?: "normal" | "bold" | "bolder" | "lighter" | number;
-    };
-    axisLine?: {
-        show?: boolean;
-        lineStyle?: { color?: string; width?: number };
-    };
-    axisTick?: { show?: boolean };
-    axisPointer?: { type?: "line" | "shadow" | "none" };
+function coldYAxis(opts: Partial<YAXisOption>): YAXisOption {
+    return { type: "category", position: "right", ...opts } as YAXisOption;
 }
 
-interface ValueAxisInput {
-    min?: number;
-    max?: number;
-    minInterval?: number;
-    splitLine?: {
-        lineStyle?: {
-            type?: "solid" | "dotted" | "dashed" | number | number[];
-        };
-    };
-    gridIndex?: number;
-    inverse?: boolean;
+function hotYAxis(opts: Partial<YAXisOption>): YAXisOption {
+    return { type: "category", position: "left", ...opts } as YAXisOption;
 }
 
-function coldYAxis(opts: CategoryAxisInput): YAXisOption {
-    return { type: "category", position: "right", ...opts };
-}
-
-function hotYAxis(opts: CategoryAxisInput): YAXisOption {
-    return { type: "category", position: "left", ...opts };
-}
-
-function valueXAxis(opts: ValueAxisInput): XAXisOption {
-    return { type: "value", ...opts };
+function valueXAxis(opts: Partial<XAXisOption>): XAXisOption {
+    return { type: "value", ...opts } as XAXisOption;
 }
 
 const option = computed<ECOption>(() => {
@@ -115,7 +84,7 @@ const option = computed<ECOption>(() => {
     const gridBottom = (i: number) =>
         i === N - 1 ? "12%" : `${(N - 1 - i) * slotSize + 4}%`;
 
-    const xAxisBase: Omit<ValueAxisInput, "gridIndex" | "inverse"> = {
+    const xAxisBase: Partial<XAXisOption> = {
         min: 0,
         max: globalMax,
         minInterval: 1,
