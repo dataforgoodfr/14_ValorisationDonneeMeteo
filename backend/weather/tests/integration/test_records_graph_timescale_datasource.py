@@ -169,6 +169,75 @@ def test_fetch_graph_filter_by_department():
 
 
 @pytest.mark.django_db
+def test_fetch_graph_all_aggregates_hot_and_cold():
+    insert_mv_record(
+        station_code="98010001",
+        station_name="S1",
+        period_type="all_time",
+        period_value=None,
+        record_type="TX",
+        value=42.0,
+        date=dt.date(2020, 7, 1),
+        department=75,
+    )
+    insert_mv_record(
+        station_code="98010002",
+        station_name="S2",
+        period_type="all_time",
+        period_value=None,
+        record_type="TN",
+        value=-15.0,
+        date=dt.date(2020, 1, 5),
+        department=75,
+    )
+
+    ds = TimescaleRecordsGraphDataSource()
+    result = ds.fetch_graph(
+        _req(
+            date_start=dt.date(2020, 1, 1),
+            date_end=dt.date(2020, 12, 31),
+            granularity="year",
+            type_records="all",
+        )
+    )
+
+    bucket_2020 = next(b for b in result.buckets if b.bucket == "2020")
+    assert bucket_2020.nb_records_battus == 2  # 1 hot + 1 cold
+
+
+@pytest.mark.django_db
+def test_fetch_graph_records_match_inserted_data():
+    insert_mv_record(
+        station_code="98011001",
+        station_name="TestStation",
+        period_type="all_time",
+        period_value=None,
+        record_type="TX",
+        value=39.5,
+        date=dt.date(2021, 8, 15),
+        department=69,
+    )
+
+    ds = TimescaleRecordsGraphDataSource()
+    result = ds.fetch_graph(
+        _req(
+            date_start=dt.date(2021, 1, 1),
+            date_end=dt.date(2021, 12, 31),
+            granularity="year",
+            type_records="hot",
+        )
+    )
+
+    assert len(result.records) >= 1
+    match = next((r for r in result.records if r.station_id == "98011001"), None)
+    assert match is not None
+    assert match.station_name == "TestStation"
+    assert match.type_records == "hot"
+    assert match.valeur == 39.5
+    assert match.date == dt.date(2021, 8, 15)
+
+
+@pytest.mark.django_db
 def test_fetch_graph_period_type_month():
     insert_mv_record(
         station_code="98004001",

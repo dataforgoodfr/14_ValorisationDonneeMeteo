@@ -151,6 +151,43 @@ def test_graph_territoire_without_id_returns_400(client: APIClient):
 
 
 @pytest.mark.usefixtures("fake_records_graph_dep")
+def test_graph_type_records_all(client: APIClient):
+    resp = client.get(
+        "/api/v1/records/graph",
+        {"date_start": "1940-01-01", "date_end": "2025-12-31", "granularity": "year", "type_records": "all"},
+    )
+    assert resp.status_code == 200
+    body = resp.json()
+    assert "buckets" in body
+    assert "records" in body
+    # "all" doit agréger hot + cold → plus de records que hot seul
+    total_all = sum(b["nb_records_battus"] for b in body["buckets"])
+    resp_hot = client.get(
+        "/api/v1/records/graph",
+        {"date_start": "1940-01-01", "date_end": "2025-12-31", "granularity": "year", "type_records": "hot"},
+    )
+    total_hot = sum(b["nb_records_battus"] for b in resp_hot.json()["buckets"])
+    assert total_all > total_hot
+
+
+@pytest.mark.usefixtures("fake_records_graph_dep")
+def test_graph_records_have_expected_fields(client: APIClient):
+    resp = client.get(
+        "/api/v1/records/graph",
+        {"date_start": "1940-01-01", "date_end": "2025-12-31", "granularity": "year"},
+    )
+    assert resp.status_code == 200
+    records = resp.json()["records"]
+    assert len(records) > 0
+    for r in records:
+        assert "date" in r
+        assert "station_id" in r
+        assert "station_name" in r
+        assert "type_records" in r and r["type_records"] in ("hot", "cold")
+        assert "valeur" in r
+
+
+@pytest.mark.usefixtures("fake_records_graph_dep")
 def test_graph_period_type_month_requires_month(client: APIClient):
     resp = client.get(
         "/api/v1/records/graph",
