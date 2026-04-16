@@ -52,7 +52,7 @@ const items = computed<NavigationMenuItem[]>(() => [
 <template>
     <UHeader
         mode="slideover"
-        title="InfoClimat"
+        title="DataClimat"
         :ui="{ left: 'lg:flex-initial', title: 'lg:flex-initial' }"
     >
         <template #title>
@@ -74,12 +74,12 @@ const items = computed<NavigationMenuItem[]>(() => [
         </template>
 
         <template #right>
-            <UTooltip text="Accedez au site InfoClimat">
+            <UTooltip text="Accedez au site Infoclimat.fr">
                 <UButton
                     color="neutral"
                     variant="outline"
                     icon="i-lucide-cloud-sun-rain"
-                    label="Tout InfoClimat"
+                    label="Tout Infoclimat"
                     to="https://www.infoclimat.fr/"
                     target="_blank"
                     aria-label="infoclimat"

@@ -5,7 +5,7 @@ export const CHART_ATTRIBUTION_GRAPHIC: GraphicComponentOption = {
     right: 10,
     bottom: 0,
     style: {
-        text: "Source : Météo-France opensource data\nCrédit : InfoClimat, DataForGood",
+        text: "Source : Météo-France opensource data\nCrédit : Infoclimat, DataForGood",
         fill: "#3e3e3e",
         fontSize: 10,
     },
