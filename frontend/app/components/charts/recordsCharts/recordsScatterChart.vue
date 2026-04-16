@@ -3,11 +3,7 @@ import * as echarts from "echarts/core";
 import langFR from "~/i18n/langFR.js";
 import type { SelectBarAdapter } from "~/components/ui/commons/selectBar/types";
 import type { TemperatureRecordsResponse } from "~/types/api";
-import type {
-    EChartsOption,
-    ScatterSeriesOption,
-    BarSeriesOption,
-} from "echarts";
+import type { EChartsOption } from "echarts";
 import {
     GridComponent,
     TitleComponent,
@@ -20,10 +16,11 @@ import { CanvasRenderer } from "echarts/renderers";
 import { UniversalTransition } from "echarts/features";
 import { recordsChartTooltipFormatter } from "~/components/charts/tooltipFormatters/recordsChartTooltipFormatter";
 import {
+    barSeries,
+    buildTerritoryPlots,
     countByPeriod,
-    flattenColdRecords,
-    flattenHotRecords,
-} from "./recordsChartUtils";
+    scatterSeries,
+} from "~/utils/recordsChartUtils";
 
 echarts.registerLocale("FR", langFR);
 echarts.use([
@@ -53,35 +50,6 @@ const initOptions = computed(() => ({
 }));
 provide(INIT_OPTIONS_KEY, initOptions);
 
-function scatterSeries(
-    opts: Omit<ScatterSeriesOption, "type">,
-): ScatterSeriesOption {
-    return { type: "scatter", ...opts };
-}
-
-function barSeries(opts: Omit<BarSeriesOption, "type">): BarSeriesOption {
-    return { type: "bar", ...opts };
-}
-
-function buildTerritoryPlot(
-    territory: { type: string; id: string; value: string },
-    data: TemperatureRecordsResponse,
-) {
-    const stations =
-        territory.type === "STATION"
-            ? data.stations.filter((station) => station.id === territory.id)
-            : territory.type === "DEPARTMENT"
-              ? data.stations.filter(
-                    (station) => station.departement === Number(territory.id),
-                )
-              : data.stations;
-    return {
-        name: territory.value,
-        hot: flattenHotRecords({ ...data, stations }),
-        cold: flattenColdRecords({ ...data, stations }),
-    };
-}
-
 const option = computed<EChartsOption>(() => {
     const data = props.adapter.data.value;
     if (!data) return {};
@@ -90,19 +58,7 @@ const option = computed<EChartsOption>(() => {
     const selectedCount = selectedTerritories.length;
     const showStackedBar = selectedCount <= 1;
 
-    // Défini les données
-    const territoryPlots =
-        selectedCount === 0
-            ? [
-                  {
-                      name: "France Métropolitaine",
-                      hot: flattenHotRecords(data),
-                      cold: flattenColdRecords(data),
-                  },
-              ]
-            : selectedTerritories.map((territory) =>
-                  buildTerritoryPlot(territory, data),
-              );
+    const territoryPlots = buildTerritoryPlots(selectedTerritories, data);
 
     const plots = showStackedBar
         ? ["scatter", "bar"]

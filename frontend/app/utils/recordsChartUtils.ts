@@ -1,7 +1,21 @@
 import type { TemperatureRecordsResponse } from "~/types/api";
 import type { GranularityType } from "~/components/ui/commons/selectBar/types";
+import type { SeriesOption } from "echarts";
 
-interface RecordEntry {
+type ScatterSeriesOption = Extract<SeriesOption, { type?: "scatter" }>;
+type BarSeriesOption = Extract<SeriesOption, { type?: "bar" }>;
+
+export function scatterSeries(
+    opts: Partial<ScatterSeriesOption>,
+): SeriesOption {
+    return { type: "scatter", ...opts };
+}
+
+export function barSeries(opts: Partial<BarSeriesOption>): SeriesOption {
+    return { type: "bar", ...opts };
+}
+
+export interface RecordEntry {
     date: string;
     value: number;
     station: string;
@@ -62,4 +76,39 @@ export function countByPeriod(
         },
         {} as Record<string, number>,
     );
+}
+
+export function buildTerritoryPlots(
+    selectedTerritories: Array<{ type: string; id: string; value: string }>,
+    data: TemperatureRecordsResponse,
+): { name: string; hot: RecordEntry[]; cold: RecordEntry[] }[] {
+    if (selectedTerritories.length === 0) {
+        return [
+            {
+                name: "France Métropolitaine",
+                hot: flattenHotRecords(data),
+                cold: flattenColdRecords(data),
+            },
+        ];
+    }
+    return selectedTerritories.map((t) => buildTerritoryPlot(t, data));
+}
+
+function buildTerritoryPlot(
+    territory: { type: string; id: string; value: string },
+    data: TemperatureRecordsResponse,
+): { name: string; hot: RecordEntry[]; cold: RecordEntry[] } {
+    const stations =
+        territory.type === "STATION"
+            ? data.stations.filter((station) => station.id === territory.id)
+            : territory.type === "DEPARTMENT"
+              ? data.stations.filter(
+                    (station) => station.departement === Number(territory.id),
+                )
+              : data.stations;
+    return {
+        name: territory.value,
+        hot: flattenHotRecords({ ...data, stations }),
+        cold: flattenColdRecords({ ...data, stations }),
+    };
 }
