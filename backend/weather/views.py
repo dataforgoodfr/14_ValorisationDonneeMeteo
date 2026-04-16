@@ -265,12 +265,10 @@ class TemperatureMinMaxGraphAPIView(APIView):
     permission_classes = []
 
     @extend_schema(
-        summary="Moyennes Tmin/Tmax (graphe)",
         description=(
             "Retourne la moyenne de Tmin et Tmax par période "
             "selon la granularité (jour/mois/année) et le territoire."
         ),
-        tags=["MinMax"],
     )
     def get(self, request):
         q = TemperatureMinMaxGraphQuerySerializer(data=request.query_params)
