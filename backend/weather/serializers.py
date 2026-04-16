@@ -675,3 +675,28 @@ class RecordsGraphRecordSerializer(serializers.Serializer):
 class RecordsGraphResponseSerializer(serializers.Serializer):
     buckets = RecordsGraphBucketSerializer(many=True)
     records = RecordsGraphRecordSerializer(many=True)
+class TemperatureMinMaxGraphQuerySerializer(serializers.Serializer):
+    date_start = serializers.DateField(required=True)
+    date_end = serializers.DateField(required=True)
+
+    granularity = serializers.ChoiceField(
+        choices=["day", "month", "year"], required=True
+    )
+
+    station_ids = CommaSeparatedStringListField(required=False)
+    departments = CommaSeparatedStringListField(required=False)
+    regions = CommaSeparatedStringListField(required=False)
+
+    def validate(self, attrs):
+        ds = attrs["date_start"]
+        de = attrs["date_end"]
+        if ds > de:
+            raise serializers.ValidationError(
+                {"date_end": "date_end doit être >= date_start."}
+            )
+
+        attrs["station_ids"] = attrs.get("station_ids", ())
+        attrs["departments"] = attrs.get("departments", ())
+        attrs["regions"] = attrs.get("regions", ())
+
+        return attrs

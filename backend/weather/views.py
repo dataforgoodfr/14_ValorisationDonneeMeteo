@@ -41,6 +41,7 @@ from .serializers import (
     TemperatureDeviationOverviewQuerySerializer,
     TemperatureDeviationOverviewResponseSerializer,
     TemperatureDeviationResponseSerializer,
+    TemperatureMinMaxGraphQuerySerializer,
     TemperatureRecordEntrySerializer,
     TemperatureRecordsQuerySerializer,
 )
@@ -251,6 +252,46 @@ class TemperatureRecordsAPIView(APIView):
         )
 
         return Response(serializer.data, status=status.HTTP_200_OK)
+
+
+class TemperatureMinMaxGraphAPIView(APIView):
+    """
+    GET /api/v1/temperature/minmax/graph
+    Retourne la moyenne de Tmin et Tmax sur une période,
+    selon la granularité et le territoire sélectionnés.
+    """
+
+    authentication_classes = []
+    permission_classes = []
+
+    @extend_schema(
+        summary="Moyennes Tmin/Tmax (graphe)",
+        description=(
+            "Retourne la moyenne de Tmin et Tmax par période "
+            "selon la granularité (jour/mois/année) et le territoire."
+        ),
+        tags=["MinMax"],
+    )
+    def get(self, request):
+        q = TemperatureMinMaxGraphQuerySerializer(data=request.query_params)
+        if not q.is_valid():
+            return Response(
+                ErrorSerializer.build(
+                    code="INVALID_PARAMETER",
+                    message="Paramètre invalide ou manquant",
+                    details=q.errors,
+                ),
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        # validation OK, logique métier pas encore implémentée
+        return Response(
+            ErrorSerializer.build(
+                code="NOT_IMPLEMENTED",
+                message="Endpoint en cours d'implémentation",
+            ),
+            status=status.HTTP_501_NOT_IMPLEMENTED,
+        )
 
 
 class TemperatureDeviationOverviewAPIView(APIView):
