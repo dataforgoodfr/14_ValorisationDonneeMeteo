@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import Card from "./Card.vue";
 
-
 const {
     yesterday,
     yesterdayTemperature,
