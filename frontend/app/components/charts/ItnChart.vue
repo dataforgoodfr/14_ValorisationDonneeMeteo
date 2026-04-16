@@ -6,6 +6,7 @@ import type { NationalIndicatorResponse } from "~/types/api";
 import { CHART_ATTRIBUTION_GRAPHIC } from "~/constants/chartAttribution";
 import { ITN_SERIES } from "~/constants/itn";
 import { itnChartTooltipFormatter } from "./tooltipFormatters/itnChartTooltipFormatter";
+import { itnStackedTooltipFormatter } from "./tooltipFormatters/itnStackedTooltipFormatter";
 
 import {
     TitleComponent,
@@ -194,11 +195,18 @@ function buildStackedOption(
             type: "category",
             data: allPositions,
             axisLabel: {
-                formatter: (val: string) =>
-                    granularity === "month"
-                        ? (MONTH_SHORT[parseInt(val, 10) - 1] ?? val)
-                        : val.replace("-", "/"),
-                interval: granularity === "day" ? 30 : 0,
+                interval:
+                    granularity === "day"
+                        ? (_index: number, value: string) =>
+                              value.endsWith("-01")
+                        : 0,
+                formatter: (val: string) => {
+                    if (granularity === "month") {
+                        return MONTH_SHORT[parseInt(val, 10) - 1] ?? val;
+                    }
+                    const [mm] = val.split("-");
+                    return `01-${MONTH_SHORT[parseInt(mm!, 10) - 1] ?? val}`;
+                },
             },
         },
         yAxis: {
@@ -219,7 +227,11 @@ function buildStackedOption(
             bottom: 85,
         },
         title: { text: "Indicateur thermique national", left: "center" },
-        tooltip: { trigger: "axis" },
+        tooltip: {
+            trigger: "axis",
+            formatter: (params) =>
+                itnStackedTooltipFormatter(params, granularity),
+        },
         emphasis: { focus: "none", disabled: true },
         graphic: CHART_ATTRIBUTION_GRAPHIC,
     };
@@ -287,7 +299,20 @@ const option = computed<ECOption>(() => {
             bottom: 150,
             containLabel: true,
         },
-        xAxis: { type: "time" },
+        xAxis: {
+            type: "time",
+            ...(props.adapter.granularity.value === "day"
+                ? {
+                      axisLabel: {
+                          formatter: (value: number) => {
+                              const d = new Date(value);
+                              const dd = String(d.getDate()).padStart(2, "0");
+                              return `${dd}-${MONTH_SHORT[d.getMonth()]}`;
+                          },
+                      },
+                  }
+                : {}),
+        },
         yAxis: {
             type: "value",
             name: "Température (°C)",
