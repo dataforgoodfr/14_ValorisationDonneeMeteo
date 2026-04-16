@@ -834,12 +834,13 @@ class HybridTemperatureRecordsDataSource:
             request.territoire, request.territoire_id
         )
 
-        date_filter_clauses = ""
+        date_filter_parts = []
         if request.date_start:
-            date_filter_clauses += '\n            AND o."AAAAMMJJ" >= %(date_start)s'
+            date_filter_parts.append('AND o."AAAAMMJJ" >= %(date_start)s')
         if request.date_end:
-            date_filter_clauses += '\n            AND o."AAAAMMJJ" <= %(date_end)s'
-        terr_filter_clause = f"\n            AND {terr_clause}" if terr_clause else ""
+            date_filter_parts.append('AND o."AAAAMMJJ" <= %(date_end)s')
+        date_filter_clauses = "\n              ".join(date_filter_parts)
+        terr_filter_clause = f"AND {terr_clause}" if terr_clause else ""
 
         sql = f"""
             WITH mv_seeds AS (
@@ -883,7 +884,9 @@ class HybridTemperatureRecordsDataSource:
                 vs.alt
             FROM ordered o
             JOIN public.v_station vs ON vs.station_code = o."NUM_POSTE"
-            WHERE o."{col}" {cmp} o.prev_val{date_filter_clauses}{terr_filter_clause}
+            WHERE o."{col}" {cmp} o.prev_val
+              {date_filter_clauses}
+              {terr_filter_clause}
             ORDER BY vs.name, o."AAAAMMJJ"
         """
 
