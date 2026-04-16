@@ -500,9 +500,9 @@ paths:
         "400":
           $ref: "#/components/responses/BadRequest"
 
-  /records/graph:
+  /temperature/records/graph:
     get:
-      summary: Graphe du nombre de records battus
+      summary: Graphe des records de température battus
       description: |
         Retourne le nombre de records de température battus par bucket temporel (jour/mois/année).
 
@@ -512,7 +512,7 @@ paths:
         **Filtres disponibles :**
         - `granularity` : découpage de l'axe X (`day`, `month`, `year`)
         - `period_type` : restriction aux records d'un mois ou d'une saison donnée
-        - `type_records` : records chauds (`hot`) ou froids (`cold`)
+        - `type_records` : records chauds (`hot`), froids (`cold`) ou les deux (`all`)
         - `territoire` / `territoire_id` : filtre géographique
 
         **Combinaisons valides pour `period_type` :**
@@ -521,7 +521,7 @@ paths:
         - `season` : records pour une saison donnée (`season` requis)
 
         Les buckets sans record retournent `nb_records_battus: 0`.
-      operationId: getRecordsGraph
+      operationId: getTemperatureRecordsGraph
       tags:
         - Temperature
       parameters:
@@ -591,12 +591,13 @@ paths:
           required: false
           schema:
             type: string
-            enum: [hot, cold]
-            default: hot
+            enum: [hot, cold, all]
+            default: all
           description: |
             Type de records :
-            - `hot` : records chauds de TX (défaut)
-            - `cold` : records froids de TN
+            - `all` : records chauds et froids (défaut)
+            - `hot` : records chauds de TX uniquement
+            - `cold` : records froids de TN uniquement
         - name: territoire
           in: query
           required: false
