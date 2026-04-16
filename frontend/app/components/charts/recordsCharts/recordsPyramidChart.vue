@@ -3,7 +3,7 @@ import * as echarts from "echarts/core";
 import langFR from "~/i18n/langFR.js";
 import type { SelectBarAdapter } from "~/components/ui/commons/selectBar/types";
 import type { TemperatureRecordsResponse } from "~/types/api";
-import type { YAXisOption, XAXisOption } from "echarts/types/dist/shared";
+import type { XAXisOption, YAXisOption } from "echarts/types/dist/shared";
 import {
     barSeries,
     buildTerritoryPlots,
@@ -11,6 +11,9 @@ import {
     niceMax,
 } from "~/utils/recordsChartUtils";
 import { recordsPyramidTooltipFormatter } from "~/components/charts/tooltipFormatters/recordsPyramidTooltipFormatter";
+
+type CategoryYAxisOption = Extract<YAXisOption, { type?: "category" }>;
+type ValueXAxisOption = Extract<XAXisOption, { type?: "value" }>;
 
 echarts.registerLocale("FR", langFR);
 
@@ -28,16 +31,16 @@ const initOptions = computed(() => ({
 }));
 provide(INIT_OPTIONS_KEY, initOptions);
 
-function coldYAxis(opts: Partial<YAXisOption>): YAXisOption {
-    return { type: "category", position: "right", ...opts } as YAXisOption;
+function coldYAxis(opts: Partial<CategoryYAxisOption>): YAXisOption {
+    return { type: "category", position: "right", ...opts };
 }
 
-function hotYAxis(opts: Partial<YAXisOption>): YAXisOption {
-    return { type: "category", position: "left", ...opts } as YAXisOption;
+function hotYAxis(opts: Partial<CategoryYAxisOption>): YAXisOption {
+    return { type: "category", position: "left", ...opts };
 }
 
-function valueXAxis(opts: Partial<XAXisOption>): XAXisOption {
-    return { type: "value", ...opts } as XAXisOption;
+function valueXAxis(opts: Partial<ValueXAxisOption>): XAXisOption {
+    return { type: "value", ...opts };
 }
 
 const option = computed<ECOption>(() => {
@@ -84,7 +87,7 @@ const option = computed<ECOption>(() => {
     const gridBottom = (i: number) =>
         i === N - 1 ? "12%" : `${(N - 1 - i) * slotSize + 4}%`;
 
-    const xAxisBase: Partial<XAXisOption> = {
+    const xAxisBase: Partial<ValueXAxisOption> = {
         min: 0,
         max: globalMax,
         minInterval: 1,
