@@ -29,6 +29,7 @@ cd ..
 ```
 
 ## Données Simulées
+
 Il est possible de lancer le projet sans utiliser de base de données.
 Les données servies par l'API sont alors des données simulées.
 Pour ce faire, mettre dans .env :
@@ -39,7 +40,7 @@ MOCKED_DATA=true
 
 Si au contraire on souhaite utiliser une vraie base de données, voir la section Initialiser la base de développement ci-dessous.
 
-*Note* : Même si l'on souhaite utiliser des données simulées, il convient de lancer timescaledb comme indiqué au paragraphe précédent.
+_Note_ : Même si l'on souhaite utiliser des données simulées, il convient de lancer timescaledb comme indiqué au paragraphe précédent.
 
 ## Initialiser la base de développement
 
@@ -51,6 +52,8 @@ Elle est alimentée par :
 - un schéma SQL
 - un dump des stations
 - un export CSV des données quotidiennes (2024–2025)
+- un export CSV des stations classées
+- un export CSV des stations avec leur date de création et fermeture
 - des vues SQL utilisées par Django
 - des baselines climatologiques pré-calculées (1991–2020) importées depuis des CSV
 
@@ -68,7 +71,8 @@ Liste des fichiers attendus :
 - itn_baseline_monthly_9120.csv
 - itn_baseline_yearly_9120.csv
 - baseline_stations_daily_mean_9120.csv
--
+- station_classe.csv
+- station_creation_date.csv
 
 ⚠️ Si un de ces fichiers est absent, le seed échouera.
 
@@ -80,8 +84,9 @@ docker compose run --rm db-seed
 ```
 
 Ce que fait le script
+
 - recrée le schéma public
-- crée les tables sources (Station, Quotidienne)
+- crée les tables sources (Station, Quotidienne, station_classe, station_creation_date)
 - importe les données : stations, données quotidiennes
 - applique les vues SQL utilisées par l’API
 - importe les baselines climatologiques depuis des CSV :
@@ -104,6 +109,7 @@ L'API est disponible sur http://localhost:8000
 Le backend ne manipule pas directement les tables sources via l'ORM Django.
 
 Les modèles Django sont basés sur des views SQL.
+
 ```
 Station (table source)
 Quotidienne (table source)
@@ -148,12 +154,12 @@ npx swagger-ui-watcher openapi/target-specs/openapi.yaml
 
 La documentation est alors disponible sur `http://localhost:8000`
 
-| Endpoint                  | Description                   |
-|---------------------------|-------------------------------|
-| `/api/v1/stations/`       | Liste des stations meteo      |
-| `/api/v1/temperature/national-indicator`    | Indicateur thermique national
-| `/api/v1/temperature/deviation`       | Ecart à la normale      |
-| `/api/v1/temperature/records`         | Records de température par station |
+| Endpoint                                 | Description                        |
+| ---------------------------------------- | ---------------------------------- |
+| `/api/v1/stations/`                      | Liste des stations meteo           |
+| `/api/v1/temperature/national-indicator` | Indicateur thermique national      |
+| `/api/v1/temperature/deviation`          | Ecart à la normale                 |
+| `/api/v1/temperature/records`            | Records de température par station |
 
 ## Exemples de requetes
 
@@ -216,11 +222,12 @@ curl "http://localhost:8000/api/v1/temperature/records?period_type=month&month=7
     ├── utils
     └── views.py
 ```
+
 ## Developpement
 
 ### Pre-commit hooks
 
-*L'installation des hooks est décrite dans le [README.md](../README.md) à la racine*
+_L'installation des hooks est décrite dans le [README.md](../README.md) à la racine_
 
 Pour exécuter les hooks backend uniquement :
 
@@ -236,7 +243,6 @@ uv run pre-commit run --all-files --config=.pre-commit-config.yaml
 uv run pytest
 ```
 
-
 ### Linting
 
 ```bash
@@ -244,13 +250,12 @@ uv run ruff check .
 uv run ruff format .
 ```
 
-
 ## Configuration
 
 Les variables d'environnement sont definies dans `.env` :
 
 | Variable               | Description        | Defaut                  |
-|------------------------|--------------------|-------------------------|
+| ---------------------- | ------------------ | ----------------------- |
 | `DEBUG`                | Mode debug         | `true`                  |
 | `SECRET_KEY`           | Cle secrete Django | -                       |
 | `DB_HOST`              | Hote PostgreSQL    | `localhost`             |
@@ -259,7 +264,6 @@ Les variables d'environnement sont definies dans `.env` :
 | `DB_USER`              | Utilisateur        | `infoclimat`            |
 | `DB_PASSWORD`          | Mot de passe       | `infoclimat2026`        |
 | `CORS_ALLOWED_ORIGINS` | Origins CORS       | `http://localhost:5173` |
-
 
 ### Connexion directe a la base de dev
 
