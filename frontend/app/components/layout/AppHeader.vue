@@ -67,7 +67,7 @@ const items = computed<NavigationMenuItem[]>(() => [
                 :items="items"
                 :ui="{
                     content: 'min-w-fit',
-                    link: 'border border-default rounded-md text-black',
+                    link: 'border rounded-md',
                     list: 'gap-2',
                 }"
             />

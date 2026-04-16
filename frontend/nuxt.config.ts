@@ -7,16 +7,16 @@ export default defineNuxtConfig({
     devtools: { enabled: true }, // false for production
 
     modules: [
-        "@nuxt/eslint",
-        "@nuxt/test-utils",
-        "@nuxt/ui",
-        "@nuxt/image",
-        "@nuxt/fonts",
-        "@nuxt/icon",
-        "nuxt-echarts",
-        "@pinia/nuxt",
-        "@primevue/nuxt-module",
-        "nuxt-maplibre",
+      "@nuxt/eslint",
+      "@nuxt/test-utils",
+      "@nuxt/ui",
+      "@nuxt/image",
+      "@nuxt/fonts",
+      "@nuxt/icon",
+      "nuxt-echarts",
+      "@pinia/nuxt",
+      "@primevue/nuxt-module",
+      "nuxt-maplibre",
     ],
     maplibre: {
         css: false,
@@ -28,7 +28,7 @@ export default defineNuxtConfig({
     },
     css: ["~/assets/css/main.css"],
     ui: {
-        colorMode: false,
+        colorMode: true,
     },
     fonts: {
         provider: "google",
@@ -41,6 +41,7 @@ export default defineNuxtConfig({
             title: "DataClimat - Dashboard",
             htmlAttrs: {
                 lang: "fr",
+                class: "dark"
             },
             link: [
                 { rel: "icon", type: "image/x-icon", href: "/favicon.ico" },

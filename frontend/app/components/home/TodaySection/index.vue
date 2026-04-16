@@ -15,10 +15,4 @@ const today = new Date();
     </div>
 </template>
 <style lang="css" scoped>
-.red {
-    color: #ff6467;
-}
-.blue {
-    color: #82c4e8;
-}
 </style>

@@ -10,9 +10,6 @@ export default defineAppConfig({
                 header: "p-4 pb-0 sm:p-4 sm:pb-0",
                 body: "p-4 sm:p-4",
             },
-            defaultVariants: {
-                variant: "solid",
-            },
         },
     },
 });

@@ -8,55 +8,52 @@ const {
     yesterdayLastYear,
     temperatureChangeYearOverYear,
 } = useHomeData();
+
 </script>
 <template>
 
    <Card
-                :title="`ITN Hier -  ${yesterday?.toLocaleDateString('fr-FR', { dateStyle: 'long' })}`"
-                :tooltip-text="'L\'Indicateur Thermique National correspond à la température moyenne mesurée en France Métropolitaine à partir de 30 stations définies par MétéoFrance.'"
+      :title="`ITN Hier -  ${yesterday?.toLocaleDateString('fr-FR', { dateStyle: 'long' })}`"
+      :tooltip-text="'L\'Indicateur Thermique National correspond à la température moyenne mesurée en France Métropolitaine à partir de 30 stations définies par MétéoFrance.'"
+    >
+        <template #kpi>
+            <p
+                class="font-semibold text-4xl mb-1"
+                :class="
+                    (yesterdayTemperature ?? 0) > 0 ? 'text-red-450' : 'text-blue-350'"
             >
-                <template #kpi>
-                    <p
-                        class="font-semibold text-4xl mb-1"
-                        :class="{
-                            red: yesterdayTemperature ?? 0 >= 0,
-                            blue: yesterdayTemperature ?? 0 < 0,
-                        }"
-                    >
-                        {{ yesterdayTemperature?.toFixed(1) }} °C
-                    </p>
-                </template>
-                <template #kpi-context-box>
-                    {{ gap?.toFixed(1) }}°C vs normale 1991-2020
-                </template>
-                <template #variation>
-                    <span class="text-sm">
-                        {{ temperatureChangeYearOverYear?.toFixed(1) }}°C
-                    </span>
-                    <UIcon
-                        v-if="temperatureChangeYearOverYear ?? 0 < 0"
-                        name="i-lucide-arrow-down-right"
-                        class="blue"
-                    />
-                    <UIcon
-                        v-if="temperatureChangeYearOverYear ?? 0 > 0"
-                        name="i-lucide-arrow-up-right"
-                        class="red"
-                    />
-                    vs
-                    {{
-                        toValue(yesterdayLastYear).toLocaleDateString("fr-FR", {
-                            dateStyle: "long",
-                        })
-                    }}
-                </template>
-            </Card>
+                {{ yesterdayTemperature?.toFixed(1) }} °C
+            </p>
+        </template>
+        <template #kpi-context-box>
+            {{ gap?.toFixed(1) }}°C vs normale 1991-2020
+        </template>
+        <template #variation>
+          
+          <UIcon
+                v-if="(temperatureChangeYearOverYear ?? 0) < 0"
+                name="i-lucide-arrow-down-right font-semibold"
+                class="text-blue-450"
+            /> 
+            <UIcon
+                v-if="(temperatureChangeYearOverYear ?? 0) > 0"
+                name="i-lucide-arrow-up-right font-semibold"
+                class="text-red-450"
+            />
+              <span
+                class="text-sm font-semibold" 
+                :class="{
+                    'text-blue-450': (temperatureChangeYearOverYear ?? 0) < 0,
+                    'text-red-450': (temperatureChangeYearOverYear ?? 0) > 0,
+                }">
+                {{ temperatureChangeYearOverYear?.toFixed(1) }}°C
+            </span>
+            vs
+            {{
+                toValue(yesterdayLastYear).toLocaleDateString("fr-FR", {
+                    dateStyle: "long",
+                })
+            }}
+        </template>
+    </Card>
 </template>
-<style lang="css" scoped>
-.red {
-    color: #ff6467;
-}
-.blue {
-    color: #82c4e8;
-}
-</style>
