@@ -39,7 +39,12 @@ from weather.services.records.types import (
     StationRecords,
     TemperatureRecord,
 )
-from weather.services.records_graph.types import RecordsGraphBucket, RecordsGraphRequest
+from weather.services.records_graph.types import (
+    RecordsGraphBucket,
+    RecordsGraphRecord,
+    RecordsGraphRequest,
+    RecordsGraphResult,
+)
 from weather.services.temperature_deviation.protocols import (
     TemperatureDeviationDailyDataSource,
     TemperatureDeviationOverviewDataSource,
@@ -1136,9 +1141,16 @@ class TimescaleRecordsGraphDataSource:
             ORDER BY bucket_date
         """
 
+        sql_records = f"""
+            SELECT station_code, station_name, record_value, record_date, record_type
+            FROM public.mv_records_battus
+            WHERE {where}
+            ORDER BY record_date
+        """
+
         with connection.cursor() as cur:
             cur.execute(sql, params)
-            rows = {
+            bucket_rows = {
                 row[0].strftime(
                     "%Y-%m-%d"
                     if date_trunc == "day"
@@ -1148,11 +1160,24 @@ class TimescaleRecordsGraphDataSource:
                 ): row[1]
                 for row in cur.fetchall()
             }
+            cur.execute(sql_records, params)
+            record_rows = cur.fetchall()
 
         all_buckets = _generate_buckets(
             request.date_start, request.date_end, request.granularity
         )
-        return [
-            RecordsGraphBucket(bucket=b, nb_records_battus=rows.get(b, 0))
+        buckets = [
+            RecordsGraphBucket(bucket=b, nb_records_battus=bucket_rows.get(b, 0))
             for b in all_buckets
         ]
+        records = [
+            RecordsGraphRecord(
+                date=row[3],
+                station_id=row[0],
+                station_name=row[1],
+                type_records="hot" if row[4] == "TX" else "cold",
+                valeur=float(row[2]),
+            )
+            for row in record_rows
+        ]
+        return RecordsGraphResult(buckets=buckets, records=records)

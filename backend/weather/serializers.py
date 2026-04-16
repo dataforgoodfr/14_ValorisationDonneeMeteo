@@ -531,3 +531,16 @@ class RecordsGraphQuerySerializer(serializers.Serializer):
 class RecordsGraphBucketSerializer(serializers.Serializer):
     bucket = serializers.CharField()
     nb_records_battus = serializers.IntegerField()
+
+
+class RecordsGraphRecordSerializer(serializers.Serializer):
+    date = serializers.DateField()
+    station_id = serializers.CharField()
+    station_name = serializers.CharField()
+    type_records = serializers.ChoiceField(choices=["hot", "cold"])
+    valeur = serializers.FloatField()
+
+
+class RecordsGraphResponseSerializer(serializers.Serializer):
+    buckets = RecordsGraphBucketSerializer(many=True)
+    records = RecordsGraphRecordSerializer(many=True)

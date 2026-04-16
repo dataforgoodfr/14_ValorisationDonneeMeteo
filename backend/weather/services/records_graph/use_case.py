@@ -1,14 +1,14 @@
 from __future__ import annotations
 
 from .protocols import RecordsGraphDataSource
-from .types import RecordsGraphBucket, RecordsGraphRequest
+from .types import RecordsGraphRequest, RecordsGraphResult
 
 
 def get_records_graph(
     *,
     request: RecordsGraphRequest,
     data_source: RecordsGraphDataSource,
-) -> list[RecordsGraphBucket]:
+) -> RecordsGraphResult:
     if request.period_type == "month" and request.month is None:
         raise ValueError("month is required when period_type is 'month'")
     if request.period_type == "season" and request.season is None:

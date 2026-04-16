@@ -32,7 +32,7 @@ def test_fetch_graph_returns_one_bucket_per_year():
         _req(date_start=dt.date(2019, 1, 1), date_end=dt.date(2021, 12, 31))
     )
 
-    buckets = [b.bucket for b in result]
+    buckets = [b.bucket for b in result.buckets]
     assert buckets == ["2019", "2020", "2021"]
 
 
@@ -68,7 +68,7 @@ def test_fetch_graph_counts_hot_records():
         )
     )
 
-    bucket_2019 = next(b for b in result if b.bucket == "2019")
+    bucket_2019 = next(b for b in result.buckets if b.bucket == "2019")
     assert bucket_2019.nb_records_battus == 2
 
 
@@ -95,7 +95,7 @@ def test_fetch_graph_cold_records_not_counted_as_hot():
         )
     )
 
-    bucket_2012 = next(b for b in result if b.bucket == "2012")
+    bucket_2012 = next(b for b in result.buckets if b.bucket == "2012")
     assert bucket_2012.nb_records_battus == 0
 
 
@@ -110,7 +110,7 @@ def test_fetch_graph_month_granularity_buckets():
         )
     )
 
-    buckets = [b.bucket for b in result]
+    buckets = [b.bucket for b in result.buckets]
     assert buckets == ["2019-01", "2019-02", "2019-03"]
 
 
@@ -125,9 +125,9 @@ def test_fetch_graph_empty_buckets_return_zero():
         )
     )
 
-    assert len(result) == 1
-    assert result[0].bucket == "1900"
-    assert result[0].nb_records_battus == 0
+    assert len(result.buckets) == 1
+    assert result.buckets[0].bucket == "1900"
+    assert result.buckets[0].nb_records_battus == 0
 
 
 @pytest.mark.django_db
@@ -164,7 +164,7 @@ def test_fetch_graph_filter_by_department():
         )
     )
 
-    bucket_2019 = next(b for b in result if b.bucket == "2019")
+    bucket_2019 = next(b for b in result.buckets if b.bucket == "2019")
     assert bucket_2019.nb_records_battus == 1
 
 
@@ -203,5 +203,5 @@ def test_fetch_graph_period_type_month():
         )
     )
 
-    bucket_2019 = next(b for b in result if b.bucket == "2019")
+    bucket_2019 = next(b for b in result.buckets if b.bucket == "2019")
     assert bucket_2019.nb_records_battus == 1

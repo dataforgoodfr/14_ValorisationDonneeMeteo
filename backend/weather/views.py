@@ -33,8 +33,8 @@ from .serializers import (
     NationalIndicatorKpiResponseSerializer,
     NationalIndicatorQuerySerializer,
     NationalIndicatorResponseSerializer,
-    RecordsGraphBucketSerializer,
     RecordsGraphQuerySerializer,
+    RecordsGraphResponseSerializer,
     StationDetailSerializer,
     StationSerializer,
     TemperatureDeviationGraphQuerySerializer,
@@ -355,8 +355,9 @@ class NationalIndicatorKpiAPIView(APIView):
 
 class RecordsGraphAPIView(APIView):
     """
-    GET /api/v1/records/graph
-    Retourne le nombre de records battus par bucket temporel (jour/mois/année).
+    GET /api/v1/temperature/records/graph
+    Retourne les records de température battus : compte par bucket (histogramme)
+    et liste des records individuels (scatter plot).
     """
 
     authentication_classes = []
@@ -390,7 +391,7 @@ class RecordsGraphAPIView(APIView):
         )
 
         try:
-            buckets = get_records_graph(request=req, data_source=ds)
+            result = get_records_graph(request=req, data_source=ds)
         except ValueError as exc:
             return Response(
                 ErrorSerializer.build(
@@ -400,11 +401,20 @@ class RecordsGraphAPIView(APIView):
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
-        serializer = RecordsGraphBucketSerializer(
-            [
+        serializer = RecordsGraphResponseSerializer({
+            "buckets": [
                 {"bucket": b.bucket, "nb_records_battus": b.nb_records_battus}
-                for b in buckets
+                for b in result.buckets
             ],
-            many=True,
-        )
+            "records": [
+                {
+                    "date": r.date,
+                    "station_id": r.station_id,
+                    "station_name": r.station_name,
+                    "type_records": r.type_records,
+                    "valeur": r.valeur,
+                }
+                for r in result.records
+            ],
+        })
         return Response(serializer.data, status=status.HTTP_200_OK)

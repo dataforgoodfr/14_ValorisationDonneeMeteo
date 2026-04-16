@@ -27,10 +27,11 @@ def test_graph_happy_path_year(client: APIClient):
 
     assert resp.status_code == 200
     body = resp.json()
-    assert isinstance(body, list)
-    assert len(body) == 2025 - 1940 + 1
+    assert "buckets" in body
+    assert "records" in body
+    assert len(body["buckets"]) == 2025 - 1940 + 1
 
-    first = body[0]
+    first = body["buckets"][0]
     assert first["bucket"] == "1940"
     assert "nb_records_battus" in first
     assert isinstance(first["nb_records_battus"], int)
@@ -49,9 +50,9 @@ def test_graph_happy_path_month(client: APIClient):
 
     assert resp.status_code == 200
     body = resp.json()
-    assert len(body) == 12
-    assert body[0]["bucket"] == "2019-01"
-    assert body[-1]["bucket"] == "2019-12"
+    assert len(body["buckets"]) == 12
+    assert body["buckets"][0]["bucket"] == "2019-01"
+    assert body["buckets"][-1]["bucket"] == "2019-12"
 
 
 @pytest.mark.usefixtures("fake_records_graph_dep")
@@ -69,7 +70,7 @@ def test_graph_returns_nonzero_for_known_record_dates(client: APIClient):
 
     assert resp.status_code == 200
     body = resp.json()
-    july = next(b for b in body if b["bucket"] == "2019-07")
+    july = next(b for b in body["buckets"] if b["bucket"] == "2019-07")
     assert july["nb_records_battus"] > 0
 
 
@@ -89,7 +90,7 @@ def test_graph_territoire_department(client: APIClient):
 
     assert resp.status_code == 200
     body = resp.json()
-    total = sum(b["nb_records_battus"] for b in body)
+    total = sum(b["nb_records_battus"] for b in body["buckets"])
     assert total > 0
 
 
@@ -108,7 +109,7 @@ def test_graph_territoire_unknown_department_returns_zeros(client: APIClient):
 
     assert resp.status_code == 200
     body = resp.json()
-    assert all(b["nb_records_battus"] == 0 for b in body)
+    assert all(b["nb_records_battus"] == 0 for b in body["buckets"])
 
 
 def test_graph_missing_required_params(client: APIClient):

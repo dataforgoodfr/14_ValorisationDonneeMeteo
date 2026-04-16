@@ -620,28 +620,26 @@ paths:
           example: "75"
       responses:
         "200":
-          description: Série temporelle du nombre de records battus par bucket.
+          description: Buckets temporels (histogramme) et liste des records individuels (scatter).
           content:
             application/json:
               schema:
-                type: array
-                items:
-                  $ref: "#/components/schemas/RecordsGraphBucket"
+                $ref: "#/components/schemas/RecordsGraphResponse"
               examples:
                 par_annee:
                   summary: Granularité année
                   value:
-                    - bucket: "2019"
-                      nb_records_battus: 142
-                    - bucket: "2020"
-                      nb_records_battus: 37
-                par_mois:
-                  summary: Granularité mois
-                  value:
-                    - bucket: "2019-07"
-                      nb_records_battus: 89
-                    - bucket: "2019-08"
-                      nb_records_battus: 12
+                    buckets:
+                      - bucket: "2019"
+                        nb_records_battus: 142
+                      - bucket: "2020"
+                        nb_records_battus: 37
+                    records:
+                      - date: "2019-07-25"
+                        station_id: "07149"
+                        station_name: "ORLY"
+                        type_records: "hot"
+                        valeur: 42.6
         "400":
           $ref: "#/components/responses/BadRequest"
 
@@ -944,6 +942,55 @@ components:
           minimum: 0
           description: Nombre de records de température battus dans ce bucket.
           example: 89
+
+    RecordsGraphRecord:
+      type: object
+      required:
+        - date
+        - station_id
+        - station_name
+        - type_records
+        - valeur
+      properties:
+        date:
+          type: string
+          format: date
+          description: Date du record (YYYY-MM-DD).
+          example: "2019-07-25"
+        station_id:
+          type: string
+          description: Identifiant de la station.
+          example: "07149"
+        station_name:
+          type: string
+          description: Nom de la station.
+          example: "ORLY"
+        type_records:
+          type: string
+          enum: [hot, cold]
+          description: Type de record — chaud (TX) ou froid (TN).
+          example: "hot"
+        valeur:
+          type: number
+          description: Valeur du record en °C.
+          example: 42.6
+
+    RecordsGraphResponse:
+      type: object
+      required:
+        - buckets
+        - records
+      properties:
+        buckets:
+          type: array
+          items:
+            $ref: "#/components/schemas/RecordsGraphBucket"
+          description: Série temporelle agrégée par bucket (histogramme).
+        records:
+          type: array
+          items:
+            $ref: "#/components/schemas/RecordsGraphRecord"
+          description: Liste des records individuels (scatter plot).
 
     Coordinates:
       type: object

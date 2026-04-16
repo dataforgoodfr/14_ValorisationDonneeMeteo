@@ -6,7 +6,12 @@ from weather.data_sources.temperature_records_fake import (
 )
 from weather.data_sources.timescale import _generate_buckets
 from weather.regions import departments_for_region
-from weather.services.records_graph.types import RecordsGraphBucket, RecordsGraphRequest
+from weather.services.records_graph.types import (
+    RecordsGraphBucket,
+    RecordsGraphRecord,
+    RecordsGraphRequest,
+    RecordsGraphResult,
+)
 
 
 class FakeRecordsGraphDataSource:
@@ -15,13 +20,18 @@ class FakeRecordsGraphDataSource:
     Agrège les fake records par bucket temporel.
     """
 
-    def fetch_graph(self, request: RecordsGraphRequest) -> list[RecordsGraphBucket]:
+    def fetch_graph(self, request: RecordsGraphRequest) -> RecordsGraphResult:
         if request.type_records == "all":
-            base = list(_FAKE_HOT_RECORDS) + list(_FAKE_COLD_RECORDS)
+            hot_base = list(_FAKE_HOT_RECORDS)
+            cold_base = list(_FAKE_COLD_RECORDS)
         elif request.type_records == "hot":
-            base = list(_FAKE_HOT_RECORDS)
+            hot_base = list(_FAKE_HOT_RECORDS)
+            cold_base = []
         else:
-            base = list(_FAKE_COLD_RECORDS)
+            hot_base = []
+            cold_base = list(_FAKE_COLD_RECORDS)
+
+        base = hot_base + cold_base
 
         entries = [
             e for e in base if request.date_start <= e.record_date <= request.date_end
@@ -48,7 +58,20 @@ class FakeRecordsGraphDataSource:
         all_buckets = _generate_buckets(
             request.date_start, request.date_end, request.granularity
         )
-        return [
+        buckets = [
             RecordsGraphBucket(bucket=b, nb_records_battus=counts.get(b, 0))
             for b in all_buckets
         ]
+
+        hot_ids = {id(e) for e in hot_base}
+        records = [
+            RecordsGraphRecord(
+                date=e.record_date,
+                station_id=e.station_id,
+                station_name=e.station_name,
+                type_records="hot" if id(e) in hot_ids else "cold",
+                valeur=e.record_value,
+            )
+            for e in entries
+        ]
+        return RecordsGraphResult(buckets=buckets, records=records)

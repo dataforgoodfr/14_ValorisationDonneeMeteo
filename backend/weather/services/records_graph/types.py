@@ -21,3 +21,18 @@ class RecordsGraphRequest:
 class RecordsGraphBucket:
     bucket: str  # formatted date string (YYYY-MM-DD / YYYY-MM / YYYY)
     nb_records_battus: int
+
+
+@dataclass(frozen=True)
+class RecordsGraphRecord:
+    date: dt.date
+    station_id: str
+    station_name: str
+    type_records: str  # "hot" | "cold"
+    valeur: float
+
+
+@dataclass(frozen=True)
+class RecordsGraphResult:
+    buckets: list[RecordsGraphBucket]
+    records: list[RecordsGraphRecord]
