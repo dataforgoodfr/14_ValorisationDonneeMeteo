@@ -1,12 +1,18 @@
 import type { TemperatureRecordsResponse } from "~/types/api";
 import type { GranularityType } from "~/components/ui/commons/selectBar/types";
+import type { SeriesOption } from "echarts";
 
-export function scatterSeries(opts: object) {
-    return { type: "scatter" as const, ...opts };
+type ScatterSeriesOption = Extract<SeriesOption, { type?: "scatter" }>;
+type BarSeriesOption = Extract<SeriesOption, { type?: "bar" }>;
+
+export function scatterSeries(
+    opts: Partial<ScatterSeriesOption>,
+): SeriesOption {
+    return { type: "scatter", ...opts };
 }
 
-export function barSeries(opts: object) {
-    return { type: "bar" as const, ...opts };
+export function barSeries(opts: Partial<BarSeriesOption>): SeriesOption {
+    return { type: "bar", ...opts };
 }
 
 export interface RecordEntry {
