@@ -1172,7 +1172,7 @@ class TimescaleRecordsGraphDataSource:
         ]
         records = [
             RecordsGraphRecord(
-                date=row[3],
+                date=row[3].date() if hasattr(row[3], "date") else row[3],
                 station_id=row[0],
                 station_name=row[1],
                 type_records="hot" if row[4] == "TX" else "cold",

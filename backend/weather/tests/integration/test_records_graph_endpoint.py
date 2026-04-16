@@ -154,7 +154,12 @@ def test_graph_territoire_without_id_returns_400(client: APIClient):
 def test_graph_type_records_all(client: APIClient):
     resp = client.get(
         "/api/v1/records/graph",
-        {"date_start": "1940-01-01", "date_end": "2025-12-31", "granularity": "year", "type_records": "all"},
+        {
+            "date_start": "1940-01-01",
+            "date_end": "2025-12-31",
+            "granularity": "year",
+            "type_records": "all",
+        },
     )
     assert resp.status_code == 200
     body = resp.json()
@@ -164,7 +169,12 @@ def test_graph_type_records_all(client: APIClient):
     total_all = sum(b["nb_records_battus"] for b in body["buckets"])
     resp_hot = client.get(
         "/api/v1/records/graph",
-        {"date_start": "1940-01-01", "date_end": "2025-12-31", "granularity": "year", "type_records": "hot"},
+        {
+            "date_start": "1940-01-01",
+            "date_end": "2025-12-31",
+            "granularity": "year",
+            "type_records": "hot",
+        },
     )
     total_hot = sum(b["nb_records_battus"] for b in resp_hot.json()["buckets"])
     assert total_all > total_hot

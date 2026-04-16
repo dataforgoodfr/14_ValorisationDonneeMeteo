@@ -401,20 +401,22 @@ class RecordsGraphAPIView(APIView):
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
-        serializer = RecordsGraphResponseSerializer({
-            "buckets": [
-                {"bucket": b.bucket, "nb_records_battus": b.nb_records_battus}
-                for b in result.buckets
-            ],
-            "records": [
-                {
-                    "date": r.date,
-                    "station_id": r.station_id,
-                    "station_name": r.station_name,
-                    "type_records": r.type_records,
-                    "valeur": r.valeur,
-                }
-                for r in result.records
-            ],
-        })
+        serializer = RecordsGraphResponseSerializer(
+            {
+                "buckets": [
+                    {"bucket": b.bucket, "nb_records_battus": b.nb_records_battus}
+                    for b in result.buckets
+                ],
+                "records": [
+                    {
+                        "date": r.date,
+                        "station_id": r.station_id,
+                        "station_name": r.station_name,
+                        "type_records": r.type_records,
+                        "valeur": r.valeur,
+                    }
+                    for r in result.records
+                ],
+            }
+        )
         return Response(serializer.data, status=status.HTTP_200_OK)
