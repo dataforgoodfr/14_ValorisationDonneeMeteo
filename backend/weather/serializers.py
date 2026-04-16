@@ -271,6 +271,16 @@ class TemperatureRecordsQuerySerializer(serializers.Serializer):
     )
     page = serializers.IntegerField(required=False, default=1)
     page_size = serializers.IntegerField(required=False, default=50)
+    sort_by = serializers.ChoiceField(
+        choices=["record_value", "station_name", "record_date", "department"],
+        required=False,
+        default="record_value",
+    )
+    sort_order = serializers.ChoiceField(
+        choices=["asc", "desc"],
+        required=False,
+        default="desc",
+    )
 
     def validate(self, attrs):
         period_type = attrs.get("period_type", "all_time")

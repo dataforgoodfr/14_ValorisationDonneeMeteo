@@ -23,6 +23,10 @@ class TemperatureRecordsRequest:
     territoire_id: str | None = None
     page: int = 1
     page_size: int = 50
+    sort_by: str = (
+        "record_value"  # "record_value" | "station_name" | "record_date" | "department"
+    )
+    sort_order: str = "desc"  # "asc" | "desc"
 
 
 @dataclass(frozen=True)

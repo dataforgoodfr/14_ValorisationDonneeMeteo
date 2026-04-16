@@ -201,6 +201,8 @@ class TemperatureRecordsAPIView(APIView):
             season=params.get("season"),
             page=params.get("page", 1),
             page_size=params.get("page_size", 50),
+            sort_by=params.get("sort_by", "record_value"),
+            sort_order=params.get("sort_order", "desc"),
         )
 
         try:

@@ -558,6 +558,19 @@ class TimescaleTemperatureRecordsDataSource:
 
         period_clause, params = self._period_clause(request)
 
+        # Build ORDER BY clause based on sort_by and sort_order
+        sort_order_sql = "DESC" if request.sort_order == "desc" else "ASC"
+        if request.sort_by == "record_value":
+            order_sql = f'o."{col}" {sort_order_sql}, s.name ASC'
+        elif request.sort_by == "station_name":
+            order_sql = f's.name {sort_order_sql}, o."{col}" DESC'
+        elif request.sort_by == "record_date":
+            order_sql = f'o."AAAAMMJJ" {sort_order_sql}, s.name ASC'
+        elif request.sort_by == "department":
+            order_sql = f's.departement {sort_order_sql}, o."{col}" DESC'
+        else:
+            order_sql = f'o."{col}" {sort_order_sql}, s.name ASC'
+
         base_sql = f"""
             WITH ordered AS (
                 SELECT
@@ -607,7 +620,7 @@ class TimescaleTemperatureRecordsDataSource:
               ON s.station_code = o."NUM_POSTE"
             WHERE o.prev_val IS NULL
                OR o."{col}" {cmp} o.prev_val
-            ORDER BY s.name, o."AAAAMMJJ"
+            ORDER BY {order_sql}
             LIMIT %s OFFSET %s
         """
         )
@@ -699,13 +712,31 @@ class MaterializedTemperatureRecordsDataSource:
         else:
             period_value = None
 
-        sql = """
+        sort_order_sql = "DESC" if request.sort_order == "desc" else "ASC"
+        if request.sort_by == "record_value":
+            order_sql = (
+                f"record_value {sort_order_sql}, station_name ASC, record_date ASC"
+            )
+        elif request.sort_by == "station_name":
+            order_sql = f"station_name {sort_order_sql}, record_date ASC"
+        elif request.sort_by == "record_date":
+            order_sql = f"record_date {sort_order_sql}, station_name ASC"
+        elif request.sort_by == "department":
+            order_sql = (
+                f"department {sort_order_sql}, station_name ASC, record_date ASC"
+            )
+        else:
+            order_sql = (
+                f"record_value {sort_order_sql}, station_name ASC, record_date ASC"
+            )
+
+        sql = f"""
             SELECT station_code, station_name, department, record_value, record_date
             FROM public.mv_records_battus
             WHERE record_type = %s
               AND period_type = %s
-              AND period_value IS NOT DISTINCT FROM %s
-            ORDER BY station_name, record_date
+                            AND period_value IS NOT DISTINCT FROM %s
+            ORDER BY {order_sql}
         """
 
         with connection.cursor() as cur:
@@ -763,6 +794,20 @@ class HybridTemperatureRecordsDataSource:
         entries: list[TemperatureRecordEntry],
         request: TemperatureRecordsRequest,
     ) -> TemperatureRecordsResult:
+        if request.sort_by or request.sort_order:
+            reverse = request.sort_order == "desc"
+
+            def _sort_key(entry: TemperatureRecordEntry):
+                if request.sort_by == "station_name":
+                    return entry.station_name
+                if request.sort_by == "record_date":
+                    return entry.record_date
+                if request.sort_by == "department":
+                    return entry.department
+                return entry.record_value
+
+            entries = sorted(entries, key=_sort_key, reverse=reverse)
+
         total_count = len(entries)
         page = request.page
         page_size = request.page_size
