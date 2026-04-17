@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import GoToDataLink from "../GoToDataLink.vue";
+import ITNCard from "../ImportantInformationSection/ITNCard.vue";
 import Section from "../Section.vue";
 
 const today = new Date();
@@ -6,13 +8,22 @@ const today = new Date();
 <template>
     <div>
         <Section :title="`AUJOURD'HUI - ${formatDateLongForDisplay(today)}`">
-            <p class="text-sm text-gray-600">
-                Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed
-                euismod, nunc ut laoreet tincidunt, nunc nisl aliquam nunc, eget
-                aliquam nisl nunc euismod nunc.
-            </p>
+            <h2 class="text-primary pb-2">MIN-MAX DU JOUR</h2>
+            <div class="flex flex-col gap-2">
+                <ITNCard />
+                <ITNCard />
+            </div>
+            <GoToDataLink :data-url="'/itn'" />
+
+            <div class="border-b to-slate-200" />
+
+            <h2 class="text-primary pb-2 pt-1">RECORDS DE TEMPERATURE</h2>
+            <div class="flex gap-2 md:flex-row flex-col">
+                <ITNCard />
+                <ITNCard />
+            </div>
+            <GoToDataLink :data-url="'/records'" />
         </Section>
     </div>
 </template>
-<style lang="css" scoped>
-</style>
+<style lang="css" scoped></style>

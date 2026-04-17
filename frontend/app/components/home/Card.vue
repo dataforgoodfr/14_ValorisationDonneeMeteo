@@ -8,7 +8,7 @@ const props = defineProps<Props>();
 </script>
 <template>
     <UCard class="border border-blue-350 flex flex-col">
-        <template  #default>
+        <template #default>
             <div class="flex items-center justify-between pb-2">
                 <h1 class="text-sm font-semibold text-blue-350">
                     {{ props.title }}
