@@ -432,7 +432,7 @@ paths:
             - `season` : records pour une saison donnée (paramètre `season` requis)
           schema:
             type: string
-            enum: [ all_time, month, season ]
+            enum: [all_time, month, season]
             default: all_time
         - name: month
           in: query
@@ -455,7 +455,7 @@ paths:
             - `winter` : hiver (décembre–février)
           schema:
             type: string
-            enum: [ spring, summer, autumn, winter ]
+            enum: [spring, summer, autumn, winter]
         - name: type_records
           in: query
           required: false
@@ -465,7 +465,7 @@ paths:
             - `cold` : records froids
           schema:
             type: string
-            enum: [ hot, cold ]
+            enum: [hot, cold]
             default: hot
       responses:
         "200":
@@ -620,6 +620,58 @@ paths:
       responses:
         "200":
           description: Série temporelle de l'indicateur thermique national.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/NationalIndicatorResponse"
+        "400":
+          description: Paramètre invalide ou manquant.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /temperature/national-indicator-kpi:
+    get:
+      tags:
+        - Temperature
+      summary: Pic de chaud/froid à partir de l'indicateur thermique national (ITN)
+      description: >
+        Retourne une liste de jours de pic (chaud ou froid) ainsi que le nombre de pics (i.e jours) sur la période
+        Un pic de chaud correspond à une journée ou la température de l'itn >= mean_baseline + 2*std_baseline
+      operationId: getNationalIndicator
+      parameters:
+        - name: date_start
+          in: query
+          required: true
+          schema:
+            type: string
+            format: date
+          description: Date de début incluse (YYYY-MM-DD).
+          example: "1990-01-01"
+
+        - name: date_end
+          in: query
+          required: true
+          schema:
+            type: string
+            format: date
+          description: Date de fin incluse (YYYY-MM-DD).
+          example: "2024-12-31"
+        - name: type_records
+          in: query
+          required: true
+          description: |
+            Type de pics à retourner :
+            - `hot` : pic de chauds (défaut)
+            - `cold` : records froids
+          schema:
+            type: string
+            enum: [hot, cold]
+          example: "hot"
+      responses:
+        "200":
+          description: Série temporelle du nombre de.
           content:
             application/json:
               schema:
@@ -839,6 +891,42 @@ components:
                 type: number
                 format: float
                 description: "Température minimale observée sur la période 1991-2020"
+
+    NationalIndicatorKpiResponse:
+      type: object
+      required:
+        - count
+        - days
+      properties:
+        count:
+          type: integer
+          description: "Nombre de jours de pic"
+        days:
+          type: array
+          description: "Liste des jours de pic"
+          items:
+            type: object
+            required:
+              - date
+              - temperature
+              - baseline_mean
+              - baseline_std_dev
+            properties:
+              date:
+                type: string
+                format: date
+              temperature:
+                type: number
+                format: float
+                description: "Température ITN du jour"
+              baseline_mean:
+                type: number
+                format: float
+                description: "Température moyenne de référence 1991-2020"
+              baseline_std_dev:
+                type: number
+                format: float
+                description: "Écart-type (baseline_std_dev_upper - baseline_mean)"
 
     StationsResponse:
       type: object
