@@ -29,3 +29,6 @@ class TemperatureRecordEntry:
     lat: float
     lon: float
     alt: float
+    classe: str | None = None
+    date_debut: int | None = None
+    date_fin: int | None = None

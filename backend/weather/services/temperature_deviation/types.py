@@ -110,6 +110,9 @@ class TemperatureDeviationOverviewStation:
     alt: float | None
     department: str | None
     region: str | None
+    classe: str | None = None
+    date_debut: int | None = None
+    date_fin: int | None = None
 
 
 @dataclass(frozen=True)

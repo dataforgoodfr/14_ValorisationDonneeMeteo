@@ -134,6 +134,9 @@ export interface TemperatureDeviationStation {
     lon: number;
     department: string;
     region: string;
+    classe: string | null;
+    date_debut: number | null;
+    date_fin: number | null;
 }
 
 export interface TemperatureDeviationResponse {
@@ -218,6 +221,9 @@ export interface TemperatureRecordFlatEntry {
     department: string;
     record_value: number;
     record_date: string;
+    classe: string | null;
+    date_debut: number | null;
+    date_fin: number | null;
 }
 
 export interface TemperatureRecordStation {

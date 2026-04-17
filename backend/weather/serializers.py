@@ -295,6 +295,9 @@ class TemperatureRecordEntrySerializer(serializers.Serializer):
     lat = serializers.FloatField()
     lon = serializers.FloatField()
     alt = serializers.FloatField()
+    classe = serializers.CharField(allow_null=True, required=False)
+    date_debut = serializers.IntegerField(allow_null=True, required=False)
+    date_fin = serializers.IntegerField(allow_null=True, required=False)
 
 
 class TemperatureDeviationOverviewQuerySerializer(serializers.Serializer):
@@ -419,6 +422,9 @@ class TemperatureDeviationOverviewStationSerializer(serializers.Serializer):
     department = serializers.CharField(allow_null=True)
     alt = serializers.FloatField(allow_null=True)
     region = serializers.CharField(allow_null=True)
+    classe = serializers.CharField(allow_null=True, required=False)
+    date_debut = serializers.IntegerField(allow_null=True, required=False)
+    date_fin = serializers.IntegerField(allow_null=True, required=False)
 
 
 class TemperatureDeviationOverviewMetadataSerializer(serializers.Serializer):

@@ -457,7 +457,10 @@ class TimescaleTemperatureDeviationDailyDataSource(
                     COALESCE(r.region, 'Autre') AS region,
                     a.temperature_mean,
                     a.baseline_mean,
-                    (a.temperature_mean - a.baseline_mean) AS deviation
+                    (a.temperature_mean - a.baseline_mean) AS deviation,
+                    s.classe_recente AS classe,
+                    s.annee_de_creation AS date_debut,
+                    s.annee_de_fermeture AS date_fin
                 FROM station_agg a
                     LEFT JOIN v_station s
                         ON s.station_code = a.station_id
@@ -490,7 +493,10 @@ class TimescaleTemperatureDeviationDailyDataSource(
                 region,
                 temperature_mean,
                 baseline_mean,
-                deviation
+                deviation,
+                classe,
+                date_debut,
+                date_fin
             FROM station_enriched
             {filtered_where_sql}
             ORDER BY {order_sql}
@@ -520,6 +526,9 @@ class TimescaleTemperatureDeviationDailyDataSource(
                 temperature_mean=float(row["temperature_mean"]),
                 baseline_mean=float(row["baseline_mean"]),
                 deviation=float(row["deviation"]),
+                classe=row["classe"],
+                date_debut=row["date_debut"],
+                date_fin=row["date_fin"],
             )
             for row in rows
         ]
@@ -573,7 +582,10 @@ class TimescaleTemperatureRecordsDataSource:
                 o."AAAAMMJJ",
                 s.lat,
                 s.lon,
-                s.alt
+                s.alt,
+                s.classe_recente,
+                s.annee_de_creation,
+                s.annee_de_fermeture
             FROM ordered o
             JOIN public.v_station s ON s.station_code = o."NUM_POSTE"
             WHERE o.prev_val IS NULL OR o."{col}" {cmp} o.prev_val
@@ -599,6 +611,9 @@ class TimescaleTemperatureRecordsDataSource:
                 lat=row["lat"],
                 lon=row["lon"],
                 alt=row["alt"],
+                classe=row["classe_recente"],
+                date_debut=row["annee_de_creation"],
+                date_fin=row["annee_de_fermeture"],
             )
             for row in rows
         ]
@@ -662,7 +677,8 @@ class MaterializedTemperatureRecordsDataSource:
             period_value = None
 
         sql = """
-            SELECT m.station_code, m.station_name, m.department, m.record_value, m.record_date, vs.lat, vs.lon, vs.alt
+            SELECT m.station_code, m.station_name, m.department, m.record_value, m.record_date,
+                   vs.lat, vs.lon, vs.alt, vs.classe_recente, vs.annee_de_creation, vs.annee_de_fermeture
                 FROM public.mv_records_battus m
             LEFT JOIN public.v_station vs ON vs.station_code = m.station_code
             WHERE record_type = %s
@@ -690,6 +706,9 @@ class MaterializedTemperatureRecordsDataSource:
                 lat=row["lat"],
                 lon=row["lon"],
                 alt=row["alt"],
+                classe=row["classe_recente"],
+                date_debut=row["annee_de_creation"],
+                date_fin=row["annee_de_fermeture"],
             )
             for row in rows
         ]
@@ -793,7 +812,10 @@ class HybridTemperatureRecordsDataSource:
                 o."AAAAMMJJ",
                 vs.lat,
                 vs.lon,
-                vs.alt
+                vs.alt,
+                vs.classe_recente,
+                vs.annee_de_creation,
+                vs.annee_de_fermeture
             FROM ordered o
             JOIN public.v_station vs ON vs.station_code = o."NUM_POSTE"
             WHERE o."{col}" {cmp} o.prev_val
@@ -827,6 +849,9 @@ class HybridTemperatureRecordsDataSource:
                 lat=row["lat"],
                 lon=row["lon"],
                 alt=row["alt"],
+                classe=row["classe_recente"],
+                date_debut=row["annee_de_creation"],
+                date_fin=row["annee_de_fermeture"],
             )
             for row in rows
         ]
