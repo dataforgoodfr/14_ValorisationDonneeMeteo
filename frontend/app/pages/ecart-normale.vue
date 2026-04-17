@@ -22,10 +22,9 @@ const tableStore = useDeviationTableStore();
 const { dateStart, dateEnd } = storeToRefs(tableStore);
 const dates = useCustomDate();
 
-const mapDateStart = computed(() =>
-    dateStart.value.toISOString().substring(0, 10),
-);
-const mapDateEnd = computed(() => dateEnd.value.toISOString().substring(0, 10));
+const toISODate = (date: Date) => date.toISOString().substring(0, 10);
+const mapDateStart = computed(() => toISODate(dateStart.value));
+const mapDateEnd = computed(() => toISODate(dateEnd.value));
 
 const heroData = {
     title: "Écart à la normale",

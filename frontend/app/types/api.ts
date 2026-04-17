@@ -163,10 +163,10 @@ export interface DeviationMapStation {
     temperature_mean: number;
     baseline_mean: number;
     deviation: number;
-    lat: number | null;
-    lon: number | null;
+    lat: number;
+    lon: number;
     department: string | null;
-    alt: number | null;
+    alt: number;
     region: string | null;
 }
 
@@ -310,40 +310,6 @@ export interface DeviationMapParams {
 
 export interface DeviationMapNational {
     deviation_mean: number;
-}
-
-export interface DeviationMapStation {
-    station_id: string;
-    station_name: string;
-    temperature_mean: number;
-    baseline_mean: number;
-    deviation: number;
-    lat: number | null;
-    lon: number | null;
-    department: string | null;
-    alt: number | null;
-    region: string | null;
-}
-
-export interface DeviationMapMetadata {
-    date_start: string;
-    date_end: string;
-    baseline: string;
-    filters: Record<string, unknown>;
-    ordering: string;
-}
-
-export interface DeviationMapPagination {
-    total_count: number;
-    limit: number;
-    offset: number;
-}
-
-export interface DeviationMapResponse {
-    metadata: DeviationMapMetadata;
-    national: DeviationMapNational;
-    pagination: DeviationMapPagination;
-    stations: DeviationMapStation[];
 }
 
 // ===== API Error type =====

@@ -133,26 +133,24 @@ const BLANK_STYLE: maplibregl.StyleSpecification = {
     ],
 };
 
-const DOM_REG_CODES = ["01", "02", "03", "04", "06"];
+const DOM_REGION_CODES = ["01", "02", "03", "04", "06"];
 
 function stationsToGeoJSON(
     stations: DeviationMapStation[],
 ): FeatureCollection<Geometry> {
     return {
         type: "FeatureCollection",
-        features: stations
-            .filter((s) => s.lat != null && s.lon != null)
-            .map((s) => ({
-                type: "Feature",
-                geometry: {
-                    type: "Point",
-                    coordinates: [s.lon as number, s.lat as number],
-                },
-                properties: {
-                    deviation: s.deviation,
-                    station_name: s.station_name,
-                },
-            })),
+        features: stations.map((s) => ({
+            type: "Feature",
+            geometry: {
+                type: "Point",
+                coordinates: [s.lon as number, s.lat as number],
+            },
+            properties: {
+                deviation: s.deviation,
+                station_name: s.station_name,
+            },
+        })),
     };
 }
 
@@ -219,14 +217,14 @@ onMounted(async () => {
     const res = await fetch("/json/France_2024_WGS84_DEP.json");
     const topoData = (await res.json()) as FranceTopology;
 
-    const geojsonDEP = topojson.feature(topoData, topoData.objects.DEP);
-    const geojsonREG = topojson.feature(topoData, topoData.objects.REG);
+    const geojsonDepartment = topojson.feature(topoData, topoData.objects.DEP);
+    const geojsonRegion = topojson.feature(topoData, topoData.objects.REG);
 
-    const depFeatures = geojsonDEP.features.filter(
+    const depFeatures = geojsonDepartment.features.filter(
         (f) => !f.properties.code.startsWith("97"),
     );
-    const regFeatures = geojsonREG.features.filter(
-        (f) => !DOM_REG_CODES.includes(f.properties.code),
+    const regFeatures = geojsonRegion.features.filter(
+        (f) => !DOM_REGION_CODES.includes(f.properties.code),
     );
 
     map = new maplibregl.Map({
