@@ -42,7 +42,7 @@ export const useDeviationTableStore = defineStore("deviationTableStore", () => {
             label: `${d.code} - ${d.name}`,
         })),
         region: regions.map((d) => ({
-            value: d.name,
+            value: d.code,
             label: `${d.name}`,
         })),
     };
@@ -185,11 +185,6 @@ export const useDeviationTableStore = defineStore("deviationTableStore", () => {
         error,
     } = useTemperatureDeviation(params, undefined, false);
 
-    const exportParams = computed<TemperatureDeviationParams>(() => {
-        const { limit: _limit, offset: _offset, ...rest } = params.value;
-        return rest;
-    });
-
     return {
         page,
         pageSize,
@@ -198,7 +193,6 @@ export const useDeviationTableStore = defineStore("deviationTableStore", () => {
         setFilter,
         clearFilter,
         deviationData,
-        exportParams,
         pending,
         error,
         dateStart,

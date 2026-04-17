@@ -21,13 +21,10 @@ const toISODate = (date: Date) => dateToStringYMD(date);
 export function useFormatFileName(
     chartName: string,
     granularity: string,
+    dateStart: Date,
+    dateEnd: Date,
     fileFormat: string,
-    dateStart: Date | undefined = undefined,
-    dateEnd: Date | undefined = undefined,
 ) {
-    const datePart =
-        dateStart && dateEnd
-            ? `_${toISODate(dateStart)}_to_${toISODate(dateEnd)}`
-            : "";
-    return `${nowDateFormatted()}_${chartName}_${granularity}${datePart}.${fileFormat}`;
+    const fileName = `${nowDateFormatted()}_${chartName}_${granularity}_${toISODate(dateStart)}_to_${toISODate(dateEnd)}.${fileFormat}`;
+    return fileName;
 }

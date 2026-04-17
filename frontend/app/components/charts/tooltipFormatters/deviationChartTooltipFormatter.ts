@@ -47,12 +47,12 @@ export function deviationChartTooltipFormatter(
         const data = serie.data as DeviationChartTooltipParam;
 
         if (
-            serie.seriesName === "Écart positif" &&
+            serie.seriesName === "Ecart positif" &&
             data?.deviation_positive === null
         )
             return [];
         if (
-            serie.seriesName === "Écart négatif" &&
+            serie.seriesName === "Ecart négatif" &&
             data?.deviation_negative === null
         )
             return [];

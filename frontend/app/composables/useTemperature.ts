@@ -3,6 +3,8 @@ import type {
     TemperatureDeviationGraphResponse,
     TemperatureDeviationParams,
     TemperatureDeviationResponse,
+    DeviationMapParams,
+    DeviationMapResponse,
     TemperatureRecordsParams,
     TemperatureRecordsResponse,
 } from "~/types/api";
@@ -43,6 +45,7 @@ export function useTemperatureDeviation(
     watch(
         [isEnabled, hasRequiredParams, params],
         ([enabled, hasParams]) => {
+            console.log("watch triggered", { enabled, hasParams });
             if (enabled && hasParams) {
                 result.execute();
             } else if (!hasParams) {
@@ -105,7 +108,7 @@ export function useTemperatureExtremes(
 }
 
 export function useTemperatureRecords(
-    params: MaybeRef<TemperatureRecordsParams>,
+    params?: MaybeRef<TemperatureRecordsParams>,
     enabled?: MaybeRef<boolean>,
 ) {
     const { useApiFetch } = useApiClient();
@@ -122,7 +125,7 @@ export function useTemperatureRecords(
         "/temperature/records",
         {
             query: params,
-            immediate: isEnabled.value,
+            imediate: isEnabled.value,
             watch: false,
         },
     );
@@ -141,4 +144,17 @@ export function useCumulativeRecords(
 ) {
     const { useApiFetch } = useApiClient();
     return useApiFetch("/temperature/records/cumulative", { query: params });
+}
+
+export function useTemperatureDeviationMap(
+    params: MaybeRef<DeviationMapParams>,
+    key?: string,
+) {
+    const { useApiFetch } = useApiClient();
+    return useApiFetch<DeviationMapResponse>("/temperature/deviation", {
+        query: params,
+        immediate: false,
+        watch: false,
+        ...(key ? { key } : {}),
+    });
 }

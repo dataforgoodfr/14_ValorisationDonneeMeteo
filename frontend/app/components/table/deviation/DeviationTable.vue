@@ -7,43 +7,21 @@ import { useDeviationTableStore } from "~/stores/deviationTableStore";
 import DeviationFilterBar from "~/components/table/deviation/DeviationFilterBar.vue";
 import DayPicker from "~/components/ui/commons/selectBar/dayPicker.vue";
 import { useCustomDate } from "~/composables/useCustomDate";
-import type { TemperatureDeviationResponse } from "~/types/api";
-import { buildDeviationCsv } from "~/utils/deviationCsv";
 
 const store = useDeviationTableStore();
 const {
     page,
     pageSize,
     deviationData,
-    exportParams,
     pending,
     error,
     dateStart,
     dateEnd,
     ordering,
 } = storeToRefs(store);
-
-const { apiFetch } = useApiClient();
-
-async function downloadCsv() {
-    if (!import.meta.client) return;
-    const data = await apiFetch<TemperatureDeviationResponse>(
-        "/temperature/deviation",
-        { query: exportParams.value },
-    );
-    const csv = buildDeviationCsv(data.stations);
-    const a = document.createElement("a");
-    a.href = `data:text/csv;charset=utf-8,${encodeURIComponent(csv)}`;
-    a.download = useFormatFileName(
-        "tableau-ecart-normale",
-        "", // non utile pour deviation
-        "csv",
-        dateStart.value,
-        dateEnd.value,
-    );
-    a.click();
-}
 const { setOrdering } = store;
+
+withDefaults(defineProps<{ showFilters?: boolean }>(), { showFilters: true });
 
 interface TableRow {
     station_name: string;
@@ -196,23 +174,15 @@ const dates = useCustomDate();
 
 <template>
     <div class="flex flex-col gap-4">
-        <div class="flex items-end justify-between gap-4">
+        <template v-if="showFilters">
             <DayPicker
                 v-model:start-date="dateStart"
                 v-model:end-date="dateEnd"
                 :min-date="dates.absoluteMinDataDate.value"
-                :max-date="dates.yesterday.value"
+                :max-date="dates.twoDaysAgo.value"
             />
-            <UButton
-                label="Exporter CSV"
-                icon="i-lucide-download"
-                color="neutral"
-                :disabled="pending"
-                @click="downloadCsv"
-            />
-        </div>
-
-        <DeviationFilterBar />
+            <DeviationFilterBar />
+        </template>
 
         <div v-if="error" class="px-4 py-3 bg-error/10 text-error rounded">
             Erreur de chargement : {{ error }}

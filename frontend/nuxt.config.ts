@@ -38,7 +38,7 @@ export default defineNuxtConfig({
     },
     app: {
         head: {
-            title: "DataClimat - Dashboard",
+            title: "InfoClimat - Dashboard",
             htmlAttrs: {
                 lang: "fr",
             },

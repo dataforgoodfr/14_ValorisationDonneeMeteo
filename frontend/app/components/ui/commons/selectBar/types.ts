@@ -1,8 +1,7 @@
 import type { ShallowRef } from "vue";
 import type {
-    NationalIndicatorDataPoint,
-    NationalIndicatorResponse,
     TemperatureDeviationGraphResponse,
+    NationalIndicatorResponse,
     TemperatureRecordsResponse,
 } from "~/types/api";
 
@@ -17,7 +16,6 @@ export interface SelectBarAdapter<
         | NationalIndicatorResponse
         | TemperatureDeviationGraphResponse
         | TemperatureRecordsResponse,
-    C = NationalIndicatorDataPoint | Record<string, unknown>,
 > {
     // Date
     granularity: Ref<GranularityType>;
@@ -51,7 +49,7 @@ export interface SelectBarAdapter<
     exportConfig: {
         chartName: string;
         csvHeaders: string[];
-        getCsvRows: () => C[] | undefined;
+        getCsvRows: () => unknown[] | undefined;
     };
 
     features: {

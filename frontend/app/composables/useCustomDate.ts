@@ -1,10 +1,9 @@
 export function useCustomDate() {
-    const today = computed(() => new Date());
+    const twoDaysAgo = computed(() => {
+        const todayDate = new Date();
+        todayDate.setDate(todayDate.getDate() - 2);
 
-    const yesterday = computed(() => {
-        const d = new Date();
-        d.setDate(d.getDate() - 1);
-        return d;
+        return new Date(todayDate);
     });
 
     const lastYear = computed(() => {
@@ -21,8 +20,7 @@ export function useCustomDate() {
     });
 
     return {
-        today,
-        yesterday,
+        twoDaysAgo,
         lastYear,
         absoluteMinDataDate,
     };

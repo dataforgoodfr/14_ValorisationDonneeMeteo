@@ -20,7 +20,6 @@
         "test:all": "vitest run --no-file-parallelism",
         "test:ci": "vitest run --no-file-parallelism",
         "coverage": "vitest run --coverage",
-        "typecheck": "vue-tsc --noEmit -p .nuxt/tsconfig.json",
         "check": "npm run lint:fix && npm run format && npm run lint && npm run test:unit"
     },
     "dependencies": {
@@ -37,6 +36,7 @@
         "nuxt-maplibre": "^1.2.2",
         "primevue": "^4.5.4",
         "tailwindcss": "^4.1.18",
+        "topojson-client": "^3.1.0",
         "typescript": "^5.9.3",
         "vue": "^3.5.27",
         "vue-router": "^4.6.4"
@@ -46,6 +46,8 @@
         "@nuxt/eslint": "^1.12.1",
         "@nuxt/test-utils": "^3.23.0",
         "@primevue/nuxt-module": "^4.5.4",
+        "@types/d3": "^7.4.3",
+        "@types/topojson-client": "^3.1.5",
         "@vue/test-utils": "^2.4.6",
         "eslint": "^9.39.2",
         "eslint-config-prettier": "^10.1.8",
