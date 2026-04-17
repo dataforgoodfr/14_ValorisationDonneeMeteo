@@ -26,15 +26,6 @@
             </div>
         </div>
 
-        <USelect
-            v-model="activeMode"
-            :items="modeOptions"
-            value-key="value"
-            label-key="label"
-            size="sm"
-            class="w-full"
-        />
-
         <div class="relative">
             <div
                 ref="mapContainer"
@@ -82,21 +73,6 @@ type FranceTopology = Topology<{
     REG: GeometryCollection<DepartmentProperties>;
 }>;
 
-const props = withDefaults(
-    defineProps<{
-        mode?: "points" | "heatmap";
-        dateStart: string;
-        dateEnd: string;
-    }>(),
-    { mode: "points" },
-);
-
-const activeMode = ref<"points" | "heatmap">(props.mode);
-const modeOptions = [
-    { label: "Stations", value: "points" },
-    { label: "Carte de chaleur", value: "heatmap" },
-];
-
 const DEVIATION_MIN = -8;
 const DEVIATION_MAX = 8;
 
@@ -113,7 +89,6 @@ const COLOR_STOPS: [number, string][] = [
 
 const LEGEND_GRADIENT = COLOR_STOPS.map(([, color]) => color).join(", ");
 
-// MapLibre interpolate expression for circle-color / heatmap-weight
 const deviationColorExpr: maplibregl.ExpressionSpecification = [
     "interpolate",
     ["linear"],
@@ -123,6 +98,11 @@ const deviationColorExpr: maplibregl.ExpressionSpecification = [
 
 // ─── Data ────────────────────────────────────────────────────────────────────
 
+const props = defineProps<{
+    dateStart: string;
+    dateEnd: string;
+}>();
+
 const params = computed<DeviationMapParams>(() => ({
     date_start: props.dateStart,
     date_end: props.dateEnd,
@@ -130,7 +110,7 @@ const params = computed<DeviationMapParams>(() => ({
 }));
 
 const { data: stationsData, execute: fetchStations } =
-    useTemperatureDeviationMap(params, `deviation-map-${props.mode}`);
+    useTemperatureDeviationMap(params, "deviation-map");
 
 const nationalDeviation = computed(
     () => stationsData.value?.national.deviation_mean ?? null,
@@ -189,29 +169,34 @@ function setStationsData(stations: DeviationMapStation[]) {
     source?.setData(stationsToGeoJSON(stations));
 }
 
-function syncLayerVisibility() {
+function initLayers() {
     if (!map) return;
-    map.setLayoutProperty(
-        "stations-circles",
-        "visibility",
-        activeMode.value === "points" ? "visible" : "none",
-    );
-    map.setLayoutProperty(
-        "stations-heatmap-blur",
-        "visibility",
-        activeMode.value === "heatmap" ? "visible" : "none",
-    );
-}
 
-function addTooltipEvents(layerId: string) {
-    if (!map) return;
+    map.addSource("stations", {
+        type: "geojson",
+        data: { type: "FeatureCollection", features: [] },
+    });
+
+    map.addLayer({
+        id: "stations-circles",
+        type: "circle",
+        source: "stations",
+        paint: {
+            "circle-radius": 5,
+            "circle-color": deviationColorExpr,
+            "circle-stroke-width": 0.5,
+            "circle-stroke-color": "rgba(255,255,255,0.5)",
+            "circle-opacity": 0.9,
+        },
+    });
+
     const popup = new maplibregl.Popup({
         closeButton: false,
         closeOnClick: false,
         offset: 8,
     });
 
-    map.on("mouseenter", layerId, (e) => {
+    map.on("mouseenter", "stations-circles", (e) => {
         map!.getCanvas().style.cursor = "pointer";
         const feature = e.features?.[0];
         if (!feature) return;
@@ -229,53 +214,10 @@ function addTooltipEvents(layerId: string) {
             .addTo(map!);
     });
 
-    map.on("mouseleave", layerId, () => {
+    map.on("mouseleave", "stations-circles", () => {
         map!.getCanvas().style.cursor = "";
         popup.remove();
     });
-}
-
-function initLayers() {
-    if (!map) return;
-
-    map.addSource("stations", {
-        type: "geojson",
-        data: { type: "FeatureCollection", features: [] },
-    });
-
-    // Points layer
-    map.addLayer({
-        id: "stations-circles",
-        type: "circle",
-        source: "stations",
-        layout: { visibility: "visible" },
-        paint: {
-            "circle-radius": 5,
-            "circle-color": deviationColorExpr,
-            "circle-stroke-width": 0.5,
-            "circle-stroke-color": "rgba(255,255,255,0.5)",
-            "circle-opacity": 0.9,
-        },
-    });
-
-    // Heatmap layer — large blurry circles colored by actual deviation value
-    map.addLayer({
-        id: "stations-heatmap-blur",
-        type: "circle",
-        source: "stations",
-        layout: { visibility: "none" },
-        paint: {
-            "circle-radius": 35,
-            "circle-color": deviationColorExpr,
-            "circle-blur": 1,
-            "circle-opacity": 0.35,
-        },
-    });
-
-    addTooltipEvents("stations-circles");
-    addTooltipEvents("stations-heatmap-blur");
-
-    syncLayerVisibility();
 }
 
 onMounted(async () => {
@@ -309,7 +251,6 @@ onMounted(async () => {
 
     map.once("load", () => {
         map!.resize();
-        // Fit to mainland France bounds with padding
         map!.fitBounds(
             [
                 [-5.2, 41.3],
@@ -320,7 +261,6 @@ onMounted(async () => {
     });
 
     map.on("load", async () => {
-        // France departments fill
         map!.addSource("france-dep", {
             type: "geojson",
             data: { type: "FeatureCollection", features: depFeatures },
@@ -341,7 +281,6 @@ onMounted(async () => {
             },
         });
 
-        // Region borders (thicker)
         map!.addSource("france-reg", {
             type: "geojson",
             data: { type: "FeatureCollection", features: regFeatures },
@@ -383,6 +322,4 @@ watch(
         if (stations) setStationsData(stations);
     },
 );
-
-watch(activeMode, syncLayerVisibility);
 </script>

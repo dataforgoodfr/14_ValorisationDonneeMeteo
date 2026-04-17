@@ -53,11 +53,7 @@ const heroData = {
 
             <div class="flex items-start gap-8">
                 <ClientOnly>
-                    <MapD3
-                        mode="points"
-                        :date-start="mapDateStart"
-                        :date-end="mapDateEnd"
-                    />
+                    <MapD3 :date-start="mapDateStart" :date-end="mapDateEnd" />
                 </ClientOnly>
                 <div class="flex flex-col flex-1 min-w-0 gap-4">
                     <DeviationFilterBar />
