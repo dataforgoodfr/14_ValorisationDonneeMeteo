@@ -7,7 +7,7 @@ from weather.services.national_indicator.protocols import (
     NationalIndicatorBaselineDataSource,
     NationalIndicatorObservedDataSource,
 )
-from weather.services.national_indicator.types import DailySeriesQuery
+from weather.services.national_indicator.types import BaselinePoint, DailySeriesQuery
 
 
 @dataclass(frozen=True)
@@ -22,6 +22,12 @@ class KpiDay:
 class NationalIndicatorKpiResult:
     days: list[KpiDay]
     count: int
+
+
+def is_peak(temperature: float, baseline: BaselinePoint, peak_type: str) -> bool:
+    if peak_type == "hot":
+        return temperature > baseline.baseline_std_dev_upper
+    return temperature < baseline.baseline_std_dev_lower
 
 
 def get_national_indicator_kpi(
@@ -43,18 +49,7 @@ def get_national_indicator_kpi(
 
         std_dev = baseline.baseline_std_dev_upper - baseline.baseline_mean
 
-        if peak_type == "hot" and point.temperature > baseline.baseline_std_dev_upper:
-            peak_days.append(
-                KpiDay(
-                    date=point.date,
-                    temperature=point.temperature,
-                    baseline_mean=baseline.baseline_mean,
-                    baseline_std_dev=std_dev,
-                )
-            )
-        elif (
-            peak_type == "cold" and point.temperature < baseline.baseline_std_dev_lower
-        ):
+        if is_peak(point.temperature, baseline, peak_type):
             peak_days.append(
                 KpiDay(
                     date=point.date,
