@@ -51,6 +51,7 @@ const temperatureBadgeColor = computed(() =>
 interface TableRow {
     name: string;
     departement: string;
+    classe: string | null;
     record: number;
     recordDate: string;
 }
@@ -59,6 +60,7 @@ const tableData = computed<TableRow[]>(() =>
     pagedStations.value.map((s) => ({
         name: s.station_name,
         departement: s.department,
+        classe: s.classe,
         record: s.record_value,
         recordDate: s.record_date,
     })),
@@ -67,6 +69,7 @@ const tableData = computed<TableRow[]>(() =>
 const columns = computed<TableColumn<TableRow>[]>(() => [
     { accessorKey: "name", header: "Station" },
     { accessorKey: "departement", header: "Département" },
+    { accessorKey: "classe", header: "Classe" },
     {
         accessorKey: "record",
         header: "Record",

@@ -49,6 +49,7 @@ interface TableRow {
     station_name: string;
     departement: string | undefined;
     region: string | undefined;
+    classe: string | null;
     // altitude: number | undefined;
     deviation: number | undefined;
     temperatureMean: number | undefined;
@@ -59,6 +60,7 @@ const tableData = computed<TableRow[]>(() =>
         station_name: s.station_name,
         departement: s.department,
         region: s.region,
+        classe: s.classe,
         // altitude: s.alt,
         deviation: s.deviation,
         temperatureMean: s.temperature_mean,
@@ -120,6 +122,11 @@ const columns: TableColumn<TableRow>[] = [
                 class: "-mx-2.5 font-semibold text-highlighted w-full justify-center",
                 onClick: () => setOrdering("region"),
             }),
+        meta: { class: { td: "text-center" } },
+    },
+    {
+        accessorKey: "classe",
+        header: "Classe",
         meta: { class: { td: "text-center" } },
     },
     // {
