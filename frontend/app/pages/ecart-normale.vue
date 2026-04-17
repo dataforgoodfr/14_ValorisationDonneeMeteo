@@ -6,7 +6,6 @@ import { useDeviationSelectBarAdapter } from "~/adapters/deviationSelectBarAdapt
 import SelectBar from "~/components/ui/commons/selectBar/selectBar.vue";
 import DeviationChart from "~/components/charts/DeviationChart.vue";
 import DeviationTable from "~/components/table/deviation/DeviationTable.vue";
-import DeviationFilterBar from "~/components/table/deviation/DeviationFilterBar.vue";
 import DayPicker from "~/components/ui/commons/selectBar/dayPicker.vue";
 import type { ChartType } from "~/components/ui/commons/selectBar/types";
 import MapD3 from "~/components/charts/MapD3.vue";
@@ -55,7 +54,6 @@ const heroData = {
                     <MapD3 :date-start="mapDateStart" :date-end="mapDateEnd" />
                 </ClientOnly>
                 <div class="flex flex-col flex-1 min-w-0 gap-4">
-                    <DeviationFilterBar />
                     <DeviationTable :show-filters="false" />
                 </div>
             </div>
