@@ -18,7 +18,7 @@ export const useDeviationStore = defineStore("deviationStore", () => {
     const deviationChartRef = shallowRef();
 
     const pickedDateStart = ref(dates.lastYear.value);
-    const pickedDateEnd = ref(dates.twoDaysAgo.value);
+    const pickedDateEnd = ref(dates.yesterday.value);
 
     const granularity: Ref<GranularityType> = ref<GranularityType>("month");
     const sliceTypeSwitchEnabled = ref(false);

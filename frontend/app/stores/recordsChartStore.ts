@@ -29,7 +29,7 @@ export const useRecordsChartStore = defineStore("recordChartStore", () => {
 
     // Date range
     const pickedDateStart = ref(new Date(1950, 0, 1));
-    const pickedDateEnd = ref(dates.twoDaysAgo.value);
+    const pickedDateEnd = ref(dates.today.value);
     const debouncedStartDate = refDebounced(pickedDateStart, debounceDuration);
     const debouncedEndDate = refDebounced(pickedDateEnd, debounceDuration);
 
