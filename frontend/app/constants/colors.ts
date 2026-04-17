@@ -1,6 +1,25 @@
 export const COLORS = {
     background: "#FFFFFF",
-    foregound: "#000000",
+    foreground: "#000000",
     negative: "#1976D2",
     positive: "#d32F2F",
-} as const;
+};
+
+const deviationMin = -5;
+const deviationMax = 5;
+
+const deviationStops: [number, string][] = [
+    [deviationMin, COLORS.negative],
+    [deviationMin * 0.6, "hsl(210, 85%, 75%)"],
+    [deviationMin * 0.2, "hsl(210, 95%, 90%)"],
+    [0, "#ffffff"],
+    [deviationMax * 0.2, "hsl(0, 95%, 90%)"],
+    [deviationMax * 0.6, "hsl(0, 85%, 75%)"],
+    [deviationMax, COLORS.positive],
+];
+
+export const DEVIATION_MAP_COLORS = {
+    min: deviationMin,
+    max: deviationMax,
+    stops: deviationStops,
+};
