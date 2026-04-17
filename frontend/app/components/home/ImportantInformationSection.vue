@@ -27,7 +27,7 @@ const {
                 {{ yesterdayTemperature?.toFixed(1) }} °C
             </p>
         </template>
-        <template #kpi-context-box>
+        <template v-if="gap" #kpi-context-box>
             {{ gap?.toFixed(1) }}°C vs normale 1991-2020
         </template>
         <template #variation>
