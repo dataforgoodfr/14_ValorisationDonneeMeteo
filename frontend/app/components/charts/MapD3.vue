@@ -1,5 +1,5 @@
 <template>
-    <div class="flex flex-col gap-2">
+    <div class="flex flex-col gap-2 w-[500px] flex-shrink-0">
         <div class="flex flex-col gap-0.5">
             <div class="flex items-baseline gap-2">
                 <span class="text-sm text-muted">Écart à la normale moyen</span>
@@ -35,19 +35,40 @@
             class="w-full"
         />
 
-        <canvas
-            ref="canvas"
-            :width="width * dpr"
-            :height="height * dpr"
-            :style="{ width: width + 'px', height: height + 'px' }"
-        ></canvas>
+        <div class="relative">
+            <div
+                ref="mapContainer"
+                class="w-full rounded-lg overflow-hidden"
+                style="height: 480px"
+            />
+            <div
+                class="absolute bottom-4 left-1/2 -translate-x-1/2 flex flex-col items-center gap-1 pointer-events-none"
+            >
+                <span class="text-xs text-white/80"
+                    >Écart à la normale (°C)</span
+                >
+                <div
+                    class="rounded-full"
+                    :style="{
+                        width: '160px',
+                        height: '12px',
+                        background: `linear-gradient(to right, ${LEGEND_GRADIENT})`,
+                    }"
+                />
+                <div class="flex justify-between w-full text-xs text-white/70">
+                    <span>{{ DEVIATION_MIN }}°C</span>
+                    <span>+{{ DEVIATION_MAX }}°C</span>
+                </div>
+            </div>
+        </div>
     </div>
 </template>
 
 <script setup lang="ts">
-import * as d3 from "d3";
+import maplibregl from "maplibre-gl";
+import "maplibre-gl/dist/maplibre-gl.css";
 import * as topojson from "topojson-client";
-import type { Feature, FeatureCollection, Geometry } from "geojson";
+import type { FeatureCollection, Geometry } from "geojson";
 import type { Topology, GeometryCollection } from "topojson-specification";
 import type { DeviationMapParams, DeviationMapStation } from "~/types/api";
 
@@ -59,8 +80,6 @@ type FranceTopology = Topology<{
     DEP: GeometryCollection<DepartmentProperties>;
     REG: GeometryCollection<DepartmentProperties>;
 }>;
-
-type GeoFeature = Feature<Geometry, DepartmentProperties>;
 
 const props = withDefaults(
     defineProps<{
@@ -76,6 +95,32 @@ const modeOptions = [
     { label: "Stations", value: "points" },
     { label: "Carte de chaleur", value: "heatmap" },
 ];
+
+const DEVIATION_MIN = -8;
+const DEVIATION_MAX = 8;
+
+// RdYlBu-like stops: cold=blue, neutral=yellow, hot=red
+const COLOR_STOPS: [number, string][] = [
+    [-8, "#3288bd"],
+    [-4, "#99d594"],
+    [-1, "#e6f598"],
+    [0, "#ffffbf"],
+    [1, "#fee08b"],
+    [4, "#fc8d59"],
+    [8, "#d53e4f"],
+];
+
+const LEGEND_GRADIENT = COLOR_STOPS.map(([, color]) => color).join(", ");
+
+// MapLibre interpolate expression for circle-color / heatmap-weight
+const deviationColorExpr: maplibregl.ExpressionSpecification = [
+    "interpolate",
+    ["linear"],
+    ["get", "deviation"],
+    ...COLOR_STOPS.flat(),
+];
+
+// ─── Data ────────────────────────────────────────────────────────────────────
 
 const params = computed<DeviationMapParams>(() => ({
     date_start: props.dateStart,
@@ -95,267 +140,210 @@ const baseline = computed(() => {
     return b.replace("-", " – ");
 });
 
-const width = 500;
-const height = 500;
-const dpr = 2;
-const mapPadding = 10;
-const footer = 80;
+// ─── MapLibre ────────────────────────────────────────────────────────────────
 
-const canvas = ref<HTMLCanvasElement | null>(null);
+const mapContainer = ref<HTMLDivElement | null>(null);
+let map: maplibregl.Map | null = null;
 
-let featuresDEP: GeoFeature[] = [];
-let featuresREG: GeoFeature[] = [];
-let projection: d3.GeoProjection | null = null;
-let pathFn: d3.GeoPath | null = null;
-let ctxRef: CanvasRenderingContext2D | null = null;
+const BLANK_STYLE: maplibregl.StyleSpecification = {
+    version: 8,
+    sources: {},
+    layers: [
+        {
+            id: "background",
+            type: "background",
+            paint: { "background-color": "#202d43" },
+        },
+    ],
+};
 
-/** Fixed scale [-8, 8]°C as per design spec. Values outside this range are clamped. */
-const DEVIATION_MIN = -8;
-const DEVIATION_MAX = 8;
+const DOM_REG_CODES = ["01", "02", "03", "04", "06"];
 
-function colorForDeviation(deviation: number): string {
-    const t = Math.max(
-        0,
-        Math.min(
-            1,
-            (deviation - DEVIATION_MIN) / (DEVIATION_MAX - DEVIATION_MIN),
-        ),
-    );
-    return d3.interpolateRdYlBu(1 - t);
-}
-
-function drawBasemap(
-    context: CanvasRenderingContext2D,
-    path: d3.GeoPath,
-): void {
-    context.strokeStyle = "#ffffff";
-    context.lineWidth = 0.4;
-    context.fillStyle = "#202d43";
-    featuresDEP.forEach((feature) => {
-        context.beginPath();
-        path(feature);
-        context.fill();
-        context.stroke();
-    });
-    context.strokeStyle = "#ffffff";
-    context.lineWidth = 0.8;
-    featuresREG.forEach((feature) => {
-        context.beginPath();
-        path(feature);
-        context.stroke();
-    });
-}
-
-function drawLegend(context: CanvasRenderingContext2D): void {
-    const legendW = (width - (mapPadding + 20) * 2) / 2;
-    const legendX = mapPadding + 20 + (width - (mapPadding + 20) * 2) / 4;
-    const legendY = height - footer + 20;
-    const legendH = 14;
-
-    context.fillStyle = "#ffffff";
-    context.font = "11px sans-serif";
-    context.textAlign = "center";
-    context.fillText(
-        "Écart à la normale (°C)",
-        legendX + legendW / 2,
-        legendY - 6,
-    );
-
-    const gradient = context.createLinearGradient(
-        legendX,
-        0,
-        legendX + legendW,
-        0,
-    );
-    for (let i = 0; i <= 10; i++) {
-        gradient.addColorStop(i / 10, d3.interpolateRdYlBu(1 - i / 10));
-    }
-    const radius = legendH / 2;
-    context.beginPath();
-    context.roundRect(legendX, legendY, legendW, legendH, radius);
-    context.fillStyle = gradient;
-    context.fill();
-
-    context.beginPath();
-    context.roundRect(legendX, legendY, legendW, legendH, radius);
-    context.strokeStyle = "rgba(255,255,255,0.4)";
-    context.lineWidth = 0.5;
-    context.stroke();
-
-    context.fillStyle = "#ffffff";
-    context.font = "11px sans-serif";
-    context.textAlign = "left";
-    context.fillText(`${DEVIATION_MIN}°C`, legendX, legendY + legendH + 14);
-    context.textAlign = "right";
-    context.fillText(
-        `+${DEVIATION_MAX}°C`,
-        legendX + legendW,
-        legendY + legendH + 14,
-    );
-}
-
-function drawPoints(
-    context: CanvasRenderingContext2D,
+function stationsToGeoJSON(
     stations: DeviationMapStation[],
-    proj: d3.GeoProjection,
-): void {
-    stations.forEach(({ lon, lat, deviation }) => {
-        if (lon == null || lat == null) return;
-        const coords = proj([lon, lat]);
-        if (!coords) return;
-        const [x, y] = coords;
-        context.beginPath();
-        context.arc(x, y, 3, 0, 2 * Math.PI);
-        context.fillStyle = colorForDeviation(deviation);
-        context.fill();
-        context.strokeStyle = "rgba(255,255,255,0.5)";
-        context.lineWidth = 0.4;
-        context.stroke();
-    });
+): FeatureCollection<Geometry> {
+    return {
+        type: "FeatureCollection",
+        features: stations
+            .filter((s) => s.lat != null && s.lon != null)
+            .map((s) => ({
+                type: "Feature",
+                geometry: {
+                    type: "Point",
+                    coordinates: [s.lon as number, s.lat as number],
+                },
+                properties: { deviation: s.deviation },
+            })),
+    };
 }
 
-function drawHeatmap(
-    context: CanvasRenderingContext2D,
-    stations: DeviationMapStation[],
-    path: d3.GeoPath,
-    proj: d3.GeoProjection,
-): void {
-    const projectedPoints = stations
-        .filter(
-            (s): s is DeviationMapStation & { lat: number; lon: number } =>
-                s.lat != null && s.lon != null,
-        )
-        .flatMap((s) => {
-            const coords = proj([s.lon, s.lat]);
-            if (!coords) return [];
-            const [px, py] = coords;
-            return [{ px, py, deviation: s.deviation }];
-        });
-
-    const mapAreaH = height - footer;
-    const offscreen = document.createElement("canvas");
-    offscreen.width = width;
-    offscreen.height = mapAreaH;
-    const offCtx = offscreen.getContext("2d")!;
-    const imageData = offCtx.createImageData(width, mapAreaH);
-
-    const sigma = 40;
-    for (let y = 0; y < mapAreaH; y++) {
-        for (let x = 0; x < width; x++) {
-            let sumWeight = 0;
-            let sumDev = 0;
-            for (const { px, py, deviation } of projectedPoints) {
-                const dist2 = (x - px) ** 2 + (y - py) ** 2;
-                const w = Math.exp(-dist2 / (2 * sigma ** 2));
-                sumWeight += w;
-                sumDev += w * deviation;
-            }
-            const dev = sumDev / sumWeight;
-            const col = d3.rgb(colorForDeviation(dev));
-            const idx = (y * width + x) * 4;
-            imageData.data[idx] = col.r;
-            imageData.data[idx + 1] = col.g;
-            imageData.data[idx + 2] = col.b;
-            imageData.data[idx + 3] = 210;
-        }
-    }
-    offCtx.putImageData(imageData, 0, 0);
-
-    const svgPath = d3.geoPath().projection(proj);
-    const clipPath = new Path2D();
-    featuresDEP.forEach((feature) => {
-        const d = svgPath(feature);
-        if (d) clipPath.addPath(new Path2D(d));
-    });
-    context.save();
-    context.clip(clipPath);
-    context.drawImage(offscreen, 0, 0);
-    context.restore();
-
-    context.strokeStyle = "rgba(255,255,255,0.5)";
-    context.lineWidth = 0.4;
-    featuresDEP.forEach((feature) => {
-        context.beginPath();
-        path(feature);
-        context.stroke();
-    });
-    context.strokeStyle = "#ffffff";
-    context.lineWidth = 0.9;
-    featuresREG.forEach((feature) => {
-        context.beginPath();
-        path(feature);
-        context.stroke();
-    });
+function setStationsData(stations: DeviationMapStation[]) {
+    if (!map) return;
+    const source = map.getSource("stations") as
+        | maplibregl.GeoJSONSource
+        | undefined;
+    source?.setData(stationsToGeoJSON(stations));
 }
 
-function draw(): void {
-    if (!ctxRef || !projection || !pathFn) return;
-    const stations = stationsData.value?.stations;
-    if (!stations) return;
+function syncLayerVisibility() {
+    if (!map) return;
+    map.setLayoutProperty(
+        "stations-circles",
+        "visibility",
+        activeMode.value === "points" ? "visible" : "none",
+    );
+    map.setLayoutProperty(
+        "stations-heatmap-blur",
+        "visibility",
+        activeMode.value === "heatmap" ? "visible" : "none",
+    );
+}
 
-    ctxRef.clearRect(0, 0, width, height);
-    ctxRef.fillStyle = "#202d43";
-    ctxRef.fillRect(0, 0, width, height);
+function initLayers() {
+    if (!map) return;
 
-    if (activeMode.value === "points") {
-        drawBasemap(ctxRef, pathFn);
-        drawPoints(ctxRef, stations, projection);
-        drawLegend(ctxRef);
-    }
-    if (activeMode.value === "heatmap") {
-        drawHeatmap(ctxRef, stations, pathFn, projection);
-        drawLegend(ctxRef);
-    }
+    map.addSource("stations", {
+        type: "geojson",
+        data: { type: "FeatureCollection", features: [] },
+    });
+
+    // Points layer
+    map.addLayer({
+        id: "stations-circles",
+        type: "circle",
+        source: "stations",
+        layout: { visibility: "visible" },
+        paint: {
+            "circle-radius": 5,
+            "circle-color": deviationColorExpr,
+            "circle-stroke-width": 0.5,
+            "circle-stroke-color": "rgba(255,255,255,0.5)",
+            "circle-opacity": 0.9,
+        },
+    });
+
+    // Heatmap layer — large blurry circles colored by actual deviation value
+    map.addLayer({
+        id: "stations-heatmap-blur",
+        type: "circle",
+        source: "stations",
+        layout: { visibility: "none" },
+        paint: {
+            "circle-radius": 35,
+            "circle-color": deviationColorExpr,
+            "circle-blur": 1,
+            "circle-opacity": 0.35,
+        },
+    });
+
+    syncLayerVisibility();
 }
 
 onMounted(async () => {
     const res = await fetch("/json/France_2024_WGS84_DEP.json");
     const topoData = (await res.json()) as FranceTopology;
 
-    const geojsonREG = topojson.feature(topoData, topoData.objects.REG);
     const geojsonDEP = topojson.feature(topoData, topoData.objects.DEP);
+    const geojsonREG = topojson.feature(topoData, topoData.objects.REG);
 
-    const DOM_REG_CODES = ["01", "02", "03", "04", "06"];
-    featuresDEP = geojsonDEP.features.filter(
+    const depFeatures = geojsonDEP.features.filter(
         (f) => !f.properties.code.startsWith("97"),
     );
-    featuresREG = geojsonREG.features.filter(
+    const regFeatures = geojsonREG.features.filter(
         (f) => !DOM_REG_CODES.includes(f.properties.code),
     );
 
-    const mapExtent: [[number, number], [number, number]] = [
-        [mapPadding, mapPadding],
-        [width - mapPadding, height - mapPadding - footer],
-    ];
-    const featureCollection: FeatureCollection<Geometry, DepartmentProperties> =
-        {
-            type: "FeatureCollection",
-            features: featuresDEP,
-        };
-    projection = d3.geoMercator().fitExtent(mapExtent, featureCollection);
+    map = new maplibregl.Map({
+        container: mapContainer.value!,
+        style: BLANK_STYLE,
+        center: [2.5, 46.5],
+        zoom: 4,
+        minZoom: 3,
+        maxZoom: 9,
+        maxBounds: [
+            [-7, 40],
+            [12, 53],
+        ],
+        attributionControl: false,
+        interactive: true,
+    });
 
-    ctxRef = canvas.value!.getContext("2d")!;
-    ctxRef.scale(dpr, dpr);
-    pathFn = d3.geoPath().projection(projection).context(ctxRef);
+    map.once("load", () => {
+        map!.resize();
+        // Fit to mainland France bounds with padding
+        map!.fitBounds(
+            [
+                [-5.2, 41.3],
+                [9.6, 51.1],
+            ],
+            { padding: 20, duration: 0 },
+        );
+    });
 
-    await fetchStations();
-    draw();
+    map.on("load", async () => {
+        // France departments fill
+        map!.addSource("france-dep", {
+            type: "geojson",
+            data: { type: "FeatureCollection", features: depFeatures },
+        });
+        map!.addLayer({
+            id: "france-dep-fill",
+            type: "fill",
+            source: "france-dep",
+            paint: { "fill-color": "#202d43", "fill-opacity": 1 },
+        });
+        map!.addLayer({
+            id: "france-dep-border",
+            type: "line",
+            source: "france-dep",
+            paint: {
+                "line-color": "rgba(255,255,255,0.35)",
+                "line-width": 0.5,
+            },
+        });
+
+        // Region borders (thicker)
+        map!.addSource("france-reg", {
+            type: "geojson",
+            data: { type: "FeatureCollection", features: regFeatures },
+        });
+        map!.addLayer({
+            id: "france-reg-border",
+            type: "line",
+            source: "france-reg",
+            paint: {
+                "line-color": "rgba(255,255,255,0.8)",
+                "line-width": 1,
+            },
+        });
+
+        initLayers();
+
+        await fetchStations();
+        setStationsData(stationsData.value?.stations ?? []);
+    });
+});
+
+onUnmounted(() => {
+    map?.remove();
+    map = null;
 });
 
 watch(
     params,
     async () => {
         await fetchStations();
-        draw();
+        setStationsData(stationsData.value?.stations ?? []);
     },
     { deep: true },
 );
+
 watch(
-    stationsData,
-    (data) => {
-        if (data) draw();
+    () => stationsData.value?.stations,
+    (stations) => {
+        if (stations) setStationsData(stations);
     },
-    { deep: true },
 );
-watch(activeMode, draw);
+
+watch(activeMode, syncLayerVisibility);
 </script>
