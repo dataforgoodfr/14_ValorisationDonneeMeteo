@@ -638,7 +638,7 @@ paths:
       summary: Pic de chaud/froid à partir de l'indicateur thermique national (ITN)
       description: >
         Retourne une liste de jours de pic (chaud ou froid) ainsi que le nombre de pics (i.e jours) sur la période
-        Un pic de chaud correspond à une journée ou la température de l'itn >= mean_baseline + 2*std_baseline
+        Un pic de chaud correspond à une journée ou la température de l'itn >= mean_baseline + std_baseline
       operationId: getNationalIndicator
       parameters:
         - name: date_start
@@ -671,7 +671,7 @@ paths:
           example: "hot"
       responses:
         "200":
-          description: Série temporelle du nombre de.
+          description: Success
           content:
             application/json:
               schema:
