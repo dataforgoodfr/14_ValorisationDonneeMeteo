@@ -2,24 +2,28 @@
 import * as echarts from "echarts/core";
 import langFR from "~/i18n/langFR.js";
 import type { SelectBarAdapter } from "~/components/ui/commons/selectBar/types";
-import type { NationalIndicatorResponse } from "~/types/api";
+import type {
+    NationalIndicatorDataPoint,
+    NationalIndicatorResponse,
+} from "~/types/api";
 import { CHART_ATTRIBUTION_GRAPHIC } from "~/constants/chartAttribution";
 import { ITN_SERIES } from "~/constants/itn";
 import { itnChartTooltipFormatter } from "./tooltipFormatters/itnChartTooltipFormatter";
 import { itnStackedTooltipFormatter } from "./tooltipFormatters/itnStackedTooltipFormatter";
 
 import {
+    DataZoomComponent,
+    GraphicComponent,
+    GridComponent,
+    LegendComponent,
     TitleComponent,
     ToolboxComponent,
     TooltipComponent,
-    GridComponent,
-    DataZoomComponent,
-    LegendComponent,
-    GraphicComponent,
 } from "echarts/components";
 import { LineChart } from "echarts/charts";
 import { UniversalTransition } from "echarts/features";
 import { CanvasRenderer } from "echarts/renderers";
+
 echarts.registerLocale("FR", langFR);
 echarts.use([
     TitleComponent,
@@ -68,7 +72,7 @@ const MONTH_SHORT = [
 ];
 
 function buildStackedOption(
-    timeSeries: NonNullable<typeof props.adapter.data.value>["time_series"],
+    timeSeries: NationalIndicatorDataPoint[],
     granularity: "month" | "day",
 ): ECOption {
     function getXKey(dateStr: string): string {
@@ -84,7 +88,7 @@ function buildStackedOption(
     ].sort();
 
     // Baseline: première occurrence par position (identique pour toutes les années)
-    const baselineByPos = new Map<string, (typeof timeSeries)[0]>();
+    const baselineByPos = new Map<string, NationalIndicatorDataPoint>();
     for (const p of timeSeries) {
         const k = getXKey(p.date);
         if (!baselineByPos.has(k)) baselineByPos.set(k, p);
@@ -216,7 +220,7 @@ function buildStackedOption(
             nameLocation: "middle",
             nameGap: 40,
         },
-        series: [...(baselineSeries as []), ...(yearSeries as [])],
+        series: [...baselineSeries, ...yearSeries],
         legend: {
             data: [
                 "Extrêmes",
