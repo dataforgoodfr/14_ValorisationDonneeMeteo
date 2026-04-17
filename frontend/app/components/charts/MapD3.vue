@@ -35,7 +35,7 @@
             <div
                 class="absolute bottom-4 left-1/2 -translate-x-1/2 flex flex-col items-center gap-1 pointer-events-none"
             >
-                <span class="text-xs text-white/80"
+                <span class="text-xs" :style="{ color: COLORS.foreground }"
                     >Écart à la normale (°C)</span
                 >
                 <div
@@ -46,7 +46,10 @@
                         background: `linear-gradient(to right, ${LEGEND_GRADIENT})`,
                     }"
                 />
-                <div class="flex justify-between w-full text-xs text-white/70">
+                <div
+                    class="flex justify-between w-full text-xs"
+                    :style="{ color: COLORS.foreground }"
+                >
                     <span>{{ DEVIATION_MIN }}°C</span>
                     <span>+{{ DEVIATION_MAX }}°C</span>
                 </div>
@@ -63,6 +66,7 @@ import type { FeatureCollection, Geometry, Point } from "geojson";
 import type { Topology, GeometryCollection } from "topojson-specification";
 import type { DeviationMapParams, DeviationMapStation } from "~/types/api";
 import { formatDeviationMapTooltip } from "~/components/charts/tooltipFormatters/deviationMapTooltipFormatter";
+import { COLORS, DEVIATION_MAP_COLORS } from "~/constants/colors";
 
 interface DepartmentProperties {
     code: string;
@@ -73,27 +77,18 @@ type FranceTopology = Topology<{
     REG: GeometryCollection<DepartmentProperties>;
 }>;
 
-const DEVIATION_MIN = -8;
-const DEVIATION_MAX = 8;
+const DEVIATION_MIN = DEVIATION_MAP_COLORS.min;
+const DEVIATION_MAX = DEVIATION_MAP_COLORS.max;
 
-// RdYlBu-like stops: cold=blue, neutral=yellow, hot=red
-const COLOR_STOPS: [number, string][] = [
-    [-8, "#3288bd"],
-    [-4, "#99d594"],
-    [-1, "#e6f598"],
-    [0, "#ffffbf"],
-    [1, "#fee08b"],
-    [4, "#fc8d59"],
-    [8, "#d53e4f"],
-];
-
-const LEGEND_GRADIENT = COLOR_STOPS.map(([, color]) => color).join(", ");
+const LEGEND_GRADIENT = DEVIATION_MAP_COLORS.stops
+    .map(([, color]) => color)
+    .join(", ");
 
 const deviationColorExpr: maplibregl.ExpressionSpecification = [
     "interpolate",
     ["linear"],
     ["get", "deviation"],
-    ...COLOR_STOPS.flat(),
+    ...DEVIATION_MAP_COLORS.stops.flat(),
 ];
 
 // ─── Data ────────────────────────────────────────────────────────────────────
@@ -133,7 +128,7 @@ const BLANK_STYLE: maplibregl.StyleSpecification = {
         {
             id: "background",
             type: "background",
-            paint: { "background-color": "#202d43" },
+            paint: { "background-color": COLORS.background },
         },
     ],
 };
@@ -182,7 +177,7 @@ function initLayers() {
         type: "circle",
         source: "stations",
         paint: {
-            "circle-radius": 5,
+            "circle-radius": 3,
             "circle-color": deviationColorExpr,
             "circle-stroke-width": 0.5,
             "circle-stroke-color": "rgba(255,255,255,0.5)",
@@ -256,7 +251,7 @@ onMounted(async () => {
                 [-5.2, 41.3],
                 [9.6, 51.1],
             ],
-            { padding: 20, duration: 0 },
+            { padding: 40, duration: 0 },
         );
     });
 
@@ -269,15 +264,18 @@ onMounted(async () => {
             id: "france-dep-fill",
             type: "fill",
             source: "france-dep",
-            paint: { "fill-color": "#202d43", "fill-opacity": 1 },
+            paint: {
+                "fill-color": COLORS.background,
+                "fill-opacity": 1,
+            },
         });
         map!.addLayer({
             id: "france-dep-border",
             type: "line",
             source: "france-dep",
             paint: {
-                "line-color": "rgba(255,255,255,0.35)",
-                "line-width": 0.5,
+                "line-color": COLORS.foreground,
+                "line-width": 0.3,
             },
         });
 
@@ -290,7 +288,7 @@ onMounted(async () => {
             type: "line",
             source: "france-reg",
             paint: {
-                "line-color": "rgba(255,255,255,0.8)",
+                "line-color": COLORS.foreground,
                 "line-width": 1,
             },
         });
