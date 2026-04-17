@@ -32,12 +32,9 @@ const sidebarOpen = ref(false);
                 >
                     <span>Sélection de stations</span>
                     <UIcon
-                        :name="
-                            sidebarOpen
-                                ? 'i-lucide-chevron-up'
-                                : 'i-lucide-chevron-down'
-                        "
-                        class="size-4"
+                        name="i-lucide-chevron-down"
+                        class="size-4 transition-transform duration-300"
+                        :class="{ 'rotate-180': sidebarOpen }"
                     />
                 </button>
                 <Transition
