@@ -43,5 +43,5 @@ class Pagination:
 
 @dataclass(frozen=True)
 class RecordsResult:
-    stations: list[StationRecords]
+    entries: list[StationRecords]
     pagination: Pagination

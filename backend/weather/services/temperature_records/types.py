@@ -26,7 +26,7 @@ class TemperatureRecordsRequest:
     sort_by: str = (
         "record_value"  # "record_value" | "station_name" | "record_date" | "department"
     )
-    sort_order: str = "desc"  # "asc" | "desc"
+    sort_order: str = "asc"  # "asc" | "desc"
 
 
 @dataclass(frozen=True)

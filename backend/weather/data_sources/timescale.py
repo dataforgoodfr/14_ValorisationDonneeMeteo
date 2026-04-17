@@ -34,6 +34,9 @@ from weather.services.national_indicator.types import (
     ObservedPoint as NationalObservedPoint,
 )
 from weather.services.records.types import (
+    Pagination as paginationRecordType,
+)
+from weather.services.records.types import (
     RecordsQuery,
     RecordsResult,
     StationRecords,
@@ -645,7 +648,7 @@ class TimescaleTemperatureRecordsDataSource:
         ]
 
         return TemperatureRecordsResult(
-            stations=results,
+            entries=results,
             pagination=paginationRecord(
                 total_count=total_count,
                 page=page,
@@ -968,11 +971,11 @@ class TimescaleRecordsDataSource:
                 month=query.month,
                 season=query.season,
             )
-            entries = self._hybrid.fetch_records(req)
+            result_obj = self._hybrid.fetch_records(req)
             if type_records == "hot":
-                hot_entries = entries
+                hot_entries = result_obj.entries
             else:
-                cold_entries = entries
+                cold_entries = result_obj.entries
 
         station_hot: dict[str, list[TemperatureRecordEntry]] = defaultdict(list)
         station_cold: dict[str, list[TemperatureRecordEntry]] = defaultdict(list)
@@ -1045,8 +1048,8 @@ class TimescaleRecordsDataSource:
         total_pages = (total_count + query.page_size - 1) // query.page_size
 
         return RecordsResult(
-            stations=paginated,
-            pagination=Pagination(
+            entries=paginated,
+            pagination=paginationRecordType(
                 total_count=total_count,
                 page=query.page,
                 page_size=query.page_size,

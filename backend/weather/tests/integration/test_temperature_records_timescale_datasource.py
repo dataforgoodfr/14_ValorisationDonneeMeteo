@@ -30,10 +30,18 @@ def test_fetch_records_hot_month_happy_path():
     insert_quotidienne(dt.date(2020, 7, 10), station_code, tx=35.0, tn=19.0)
 
     ds = TimescaleTemperatureRecordsDataSource()
-    req = TemperatureRecordsRequest(period_type="month", type_records="hot", month=7)
+    req = TemperatureRecordsRequest(
+        period_type="month",
+        type_records="hot",
+        month=7,
+        sort_by="record_value",
+        sort_order="asc",
+    )
     result = ds.fetch_records(req)
 
-    station_entries = [e for e in result if e.station_id.strip() == station_code]
+    station_entries = [
+        e for e in result.entries if e.station_id.strip() == station_code
+    ]
     # 2 records progressifs : 38.0 (2003) et 42.6 (2019)
     assert len(station_entries) == 2
 
@@ -60,7 +68,9 @@ def test_fetch_records_cold_month_happy_path():
     req = TemperatureRecordsRequest(period_type="month", type_records="cold", month=1)
     result = ds.fetch_records(req)
 
-    station_entries = [e for e in result if e.station_id.strip() == station_code]
+    station_entries = [
+        e for e in result.entries if e.station_id.strip() == station_code
+    ]
     assert len(station_entries) == 1
 
     entry = station_entries[0]
@@ -85,11 +95,17 @@ def test_fetch_records_season_aggregates_across_months():
 
     ds = TimescaleTemperatureRecordsDataSource()
     req = TemperatureRecordsRequest(
-        period_type="season", type_records="hot", season="summer"
+        period_type="season",
+        type_records="hot",
+        season="summer",
+        sort_by="record_date",
+        sort_order="asc",
     )
     result = ds.fetch_records(req)
 
-    station_entries = [e for e in result if e.station_id.strip() == station_code]
+    station_entries = [
+        e for e in result.entries if e.station_id.strip() == station_code
+    ]
     # 2 records progressifs : 40.0 (2003-08) et 44.0 (2019-06)
     assert len(station_entries) == 2
 
@@ -116,7 +132,9 @@ def test_fetch_records_all_time_returns_entries():
     req = TemperatureRecordsRequest(period_type="all_time", type_records="hot")
     result = ds.fetch_records(req)
 
-    station_entries = [e for e in result if e.station_id.strip() == station_code]
+    station_entries = [
+        e for e in result.entries if e.station_id.strip() == station_code
+    ]
     # 2 records progressifs : 0.0 (1985) et 42.6 (2019)
     assert len(station_entries) == 2
     assert station_entries[-1].record_value == 42.6
@@ -133,7 +151,9 @@ def test_fetch_records_returns_correct_types():
     req = TemperatureRecordsRequest(period_type="all_time", type_records="hot")
     result = ds.fetch_records(req)
 
-    station_entries = [e for e in result if e.station_id.strip() == station_code]
+    station_entries = [
+        e for e in result.entries if e.station_id.strip() == station_code
+    ]
     assert len(station_entries) >= 1
 
     entry = station_entries[0]
