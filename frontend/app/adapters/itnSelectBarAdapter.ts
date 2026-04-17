@@ -2,10 +2,7 @@ import type {
     NationalIndicatorDataPoint,
     NationalIndicatorResponse,
 } from "~/types/api";
-import type {
-    SelectBarAdapter,
-    ChartType,
-} from "~/components/ui/commons/selectBar/types";
+import type { SelectBarAdapter } from "~/components/ui/commons/selectBar/types";
 import { useItnStore } from "#imports";
 
 export const useItnSelectBarAdapter = (): SelectBarAdapter<
@@ -45,12 +42,12 @@ export const useItnSelectBarAdapter = (): SelectBarAdapter<
         chartTypeOptions: [
             {
                 label: "Continu",
-                value: "line" as ChartType,
+                value: "line",
                 icon: "i-lucide-chart-line",
             },
             {
                 label: "Superposé",
-                value: "stacked" as ChartType,
+                value: "stacked",
                 icon: "i-lucide-square-stack",
             },
         ],
