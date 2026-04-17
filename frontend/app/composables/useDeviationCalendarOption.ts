@@ -16,21 +16,7 @@ import type {
 } from "~/types/api";
 import type { GranularityType } from "~/components/ui/commons/selectBar/types";
 import type { DeviationStationIdAndName } from "~/types/common";
-
-const SHORT_FRENCH_MONTHS = [
-    "Jan",
-    "Fév",
-    "Mar",
-    "Avr",
-    "Mai",
-    "Jun",
-    "Jul",
-    "Aoû",
-    "Sep",
-    "Oct",
-    "Nov",
-    "Déc",
-];
+import { MONTH_SHORT } from "~/constants/months";
 
 // transforme "Jan-2024" en nombre comparable
 function toMonthNumber(monthLabel: string): number {
@@ -40,7 +26,7 @@ function toMonthNumber(monthLabel: string): number {
         throw new Error(`Invalid month label: ${monthLabel}`);
     }
 
-    const monthIndex = SHORT_FRENCH_MONTHS.indexOf(monthShortName);
+    const monthIndex = MONTH_SHORT.indexOf(monthShortName);
     const fullYear = parseInt(year, 10);
 
     return fullYear * 12 + monthIndex;
@@ -54,7 +40,7 @@ function buildCategoriesForYear(allDates: string[]): {
 
     return {
         xCategories: years,
-        yCategories: SHORT_FRENCH_MONTHS,
+        yCategories: MONTH_SHORT,
     };
 }
 
@@ -72,7 +58,7 @@ function buildCategoriesForMonth(allDates: string[]): {
                 }
                 const monthIndex = parseInt(month, 10) - 1;
 
-                return `${SHORT_FRENCH_MONTHS[monthIndex]}-${year}`;
+                return `${MONTH_SHORT[monthIndex]}-${year}`;
             }),
         ),
     ].sort((monthLabelA, monthLabelB) => {
@@ -126,7 +112,7 @@ function getMonthIndex(month: string): number {
 }
 
 function buildMonthLabel(year: string, monthIndex: number): string {
-    return `${SHORT_FRENCH_MONTHS[monthIndex]}-${year}`;
+    return `${MONTH_SHORT[monthIndex]}-${year}`;
 }
 
 function dateToXYYearMode(
