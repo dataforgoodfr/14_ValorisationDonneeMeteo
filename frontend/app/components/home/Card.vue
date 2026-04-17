@@ -29,7 +29,7 @@ const props = defineProps<Props>();
             </div>
             <div v-if="$slots['kpi-context-text']" class="mt-2">
                 <span
-                    class="kpi-context-text text-xs text-gray-500 leading-none"
+                    class="kpi-context-text text-xs text-slate-300 leading-none"
                 >
                     <slot name="kpi-context-text" />
                 </span>
@@ -45,7 +45,6 @@ const props = defineProps<Props>();
 
 <style lang="css" scoped>
 .kpi-context-text {
-    color: #90a1b9;
     font-family: Fira Code;
 }
 </style>

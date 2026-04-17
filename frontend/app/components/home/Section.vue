@@ -9,18 +9,15 @@ const props = defineProps<Props>();
         <h3 class="flex items-center gap-2 text-slate-500 font-bold">
             {{ props.title }}
         </h3>
-        <div class="wrapper py-8 px-4 rounded-xl"><slot name="default" /></div>
+        <div class="wrapper py-8 px-4 rounded-xl bg-dark-850"><slot name="default" /></div>
     </div>
 </template>
 <style>
-h3::after {
-    content: "";
-    flex: 1;
-    height: 1px;
-    background: currentColor;
-    opacity: 0.2;
-}
-.wrapper {
-    background-color: #202d43;
-}
+  h3::after {
+      content: "";
+      flex: 1;
+      height: 1px;
+      background: currentColor;
+      opacity: 0.2;
+  }
 </style>
