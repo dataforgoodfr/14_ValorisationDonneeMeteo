@@ -9,8 +9,11 @@ import type {
 import { CHART_ATTRIBUTION_GRAPHIC } from "~/constants/chartAttribution";
 import { ITN_SERIES } from "~/constants/itn";
 import { itnChartTooltipFormatter } from "./tooltipFormatters/itnChartTooltipFormatter";
-import { itnStackedTooltipFormatter } from "./tooltipFormatters/itnStackedTooltipFormatter";
-
+import {
+    itnStackedTooltipFormatter,
+    formatStackedAxisLabel,
+    formatContinuousAxisLabel,
+} from "./tooltipFormatters/itnStackedTooltipFormatter";
 import {
     DataZoomComponent,
     GraphicComponent,
@@ -23,7 +26,6 @@ import {
 import { LineChart } from "echarts/charts";
 import { UniversalTransition } from "echarts/features";
 import { CanvasRenderer } from "echarts/renderers";
-import { XX } from "~/utils/string";
 
 echarts.registerLocale("FR", langFR);
 echarts.use([
@@ -56,21 +58,6 @@ provide(INIT_OPTIONS_KEY, initOptions);
 
 const colorEcartType = "rgba(175, 175, 175, 1)";
 const colorExtremes = "rgba(100, 100, 100, 0.2)";
-
-const MONTH_SHORT = [
-    "Janv.",
-    "Févr.",
-    "Mars",
-    "Avr.",
-    "Mai",
-    "Juin",
-    "Juil.",
-    "Août",
-    "Sept.",
-    "Oct.",
-    "Nov.",
-    "Déc.",
-];
 
 function buildStackedOption(
     timeSeries: NationalIndicatorDataPoint[],
@@ -205,13 +192,8 @@ function buildStackedOption(
                         ? (_index: number, value: string) =>
                               value.endsWith("-01")
                         : 0,
-                formatter: (val: string) => {
-                    if (granularity === "month") {
-                        return MONTH_SHORT[parseInt(val, 10) - 1] ?? val;
-                    }
-                    const [mm] = val.split("-");
-                    return `01-${MONTH_SHORT[parseInt(mm!, 10) - 1] ?? val}`;
-                },
+                formatter: (val: string) =>
+                    formatStackedAxisLabel(val, granularity),
             },
         },
         yAxis: {
@@ -309,11 +291,7 @@ const option = computed<ECOption>(() => {
             ...(props.adapter.granularity.value === "day"
                 ? {
                       axisLabel: {
-                          formatter: (value: number) => {
-                              const date = new Date(value);
-                              const DD = XX(date.getDate());
-                              return `${DD}-${MONTH_SHORT[date.getMonth()]}`;
-                          },
+                          formatter: formatContinuousAxisLabel,
                       },
                   }
                 : {}),
