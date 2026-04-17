@@ -3,7 +3,6 @@ import datetime as dt
 from weather.services.national_indicator.kpi_use_case import get_national_indicator_kpi
 from weather.services.national_indicator.types import (
     BaselinePoint,
-    DailySeriesQuery,
     ObservedPoint,
 )
 
@@ -14,23 +13,11 @@ class StubObservedDataSource:
     def __init__(self, points: list[ObservedPoint]):
         self._points = points
 
-    def fetch_daily_series(self, query: DailySeriesQuery) -> list[ObservedPoint]:
-        return self._points
-
 
 class StubBaselineDataSource:
     def __init__(self, baselines: dict[tuple[int, int], BaselinePoint]):
         # clé = (month, day_of_month)
         self._baselines = baselines
-
-    def fetch_daily_baseline(self, day: dt.date) -> BaselinePoint:
-        return self._baselines[(day.month, day.day)]
-
-    def fetch_monthly_baseline(self, month: int) -> BaselinePoint:
-        raise NotImplementedError
-
-    def fetch_yearly_baseline(self) -> BaselinePoint:
-        raise NotImplementedError
 
 
 def _baseline(mean: float, std_dev: float) -> BaselinePoint:
