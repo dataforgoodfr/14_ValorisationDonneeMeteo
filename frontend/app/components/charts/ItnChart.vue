@@ -7,7 +7,7 @@ import type {
     NationalIndicatorResponse,
 } from "~/types/api";
 import { CHART_ATTRIBUTION_GRAPHIC } from "~/constants/chartAttribution";
-import { ITN_SERIES } from "~/constants/itn";
+import { ITN_SERIES, ITN_COLORS } from "~/constants/itn";
 import { itnChartTooltipFormatter } from "./tooltipFormatters/itnChartTooltipFormatter";
 import {
     itnStackedTooltipFormatter,
@@ -56,8 +56,8 @@ const initOptions = computed(() => ({
 }));
 provide(INIT_OPTIONS_KEY, initOptions);
 
-const colorEcartType = "rgba(175, 175, 175, 1)";
-const colorExtremes = "rgba(100, 100, 100, 0.2)";
+const colorEcartType = ITN_COLORS.ECART_TYPE;
+const colorExtremes = ITN_COLORS.EXTREMES;
 
 function buildStackedOption(
     timeSeries: NationalIndicatorDataPoint[],
@@ -116,7 +116,7 @@ function buildStackedOption(
             tooltip: { show: false },
         },
         {
-            name: "Extrêmes",
+            name: ITN_SERIES.extremes,
             type: "line",
             encode: { x: "position", y: "baseline_band" },
             stack: "extreme",
@@ -137,7 +137,7 @@ function buildStackedOption(
             tooltip: { show: false },
         },
         {
-            name: "Écart-type",
+            name: ITN_SERIES.stdDev,
             type: "line",
             encode: { x: "position", y: "baseline_std_dev_band" },
             stack: "std",
@@ -148,7 +148,7 @@ function buildStackedOption(
             areaStyle: { color: colorEcartType },
         },
         {
-            name: "Indicateur MF",
+            name: ITN_SERIES.temperature,
             type: "line",
             encode: { x: "position", y: "baseline_mean" },
             symbol: "none",
@@ -206,9 +206,9 @@ function buildStackedOption(
         series: [...baselineSeries, ...yearSeries],
         legend: {
             data: [
-                "Extrêmes",
-                "Écart-type",
-                "Indicateur MF",
+                ITN_SERIES.extremes,
+                ITN_SERIES.baseline,
+                ITN_SERIES.temperature,
                 ...years.map(String),
             ],
             bottom: 85,

@@ -4,3 +4,8 @@ export const ITN_SERIES = {
     extremes: "Extrêmes",
     stdDev: "Écart-type",
 } satisfies Record<string, string>;
+
+export const ITN_COLORS = {
+    EXTREMES: "rgba(100, 100, 100, 0.2)",
+    ECART_TYPE: "rgba(175, 175, 175, 1)",
+};

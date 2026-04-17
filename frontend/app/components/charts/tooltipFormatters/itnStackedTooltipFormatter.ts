@@ -2,6 +2,7 @@ import type { TooltipComponentFormatterCallbackParams } from "echarts";
 import type { GranularityType } from "~/components/ui/commons/selectBar/types";
 import { MONTH_SHORT } from "~/constants/months";
 import { XX } from "~/utils/string";
+import { ITN_SERIES } from "~/constants/itn";
 
 interface BaselineRow {
     baseline_mean?: number;
@@ -29,18 +30,18 @@ function formatBaselineLines(
     const lines: string[] = [];
     if (row.baseline_mean !== undefined)
         lines.push(
-            `${String(param.marker ?? "")}Indicateur MF : ${fmt(row.baseline_mean)}`,
+            `${String(param.marker ?? "")}${ITN_SERIES.INDICATEUR_MF} : ${fmt(row.baseline_mean)}`,
         );
     if (row.baseline_min !== undefined && row.baseline_band !== undefined)
         lines.push(
-            `Extrêmes : [${fmt(row.baseline_min)} – ${fmt(row.baseline_min + row.baseline_band)}]`,
+            `${ITN_SERIES.EXTREMES} : [${fmt(row.baseline_min)} – ${fmt(row.baseline_min + row.baseline_band)}]`,
         );
     if (
         row.baseline_std_dev_lower !== undefined &&
         row.baseline_std_dev_band !== undefined
     )
         lines.push(
-            `Écart-type : [${fmt(row.baseline_std_dev_lower)} – ${fmt(row.baseline_std_dev_lower + row.baseline_std_dev_band)}]`,
+            `${ITN_SERIES.ECART_TYPE} : [${fmt(row.baseline_std_dev_lower)} – ${fmt(row.baseline_std_dev_lower + row.baseline_std_dev_band)}]`,
         );
     return lines;
 }
@@ -93,14 +94,20 @@ export function itnStackedTooltipFormatter(
     const fmt = (v: number) => `${v.toFixed(1)}°C`;
     const lines: string[] = [`<strong>${header}</strong>`];
 
-    const mfParam = params.find((p) => p.seriesName === "Indicateur MF");
+    const mfParam = params.find(
+        (p) => p.seriesName === ITN_SERIES.INDICATEUR_MF,
+    );
     if (mfParam) lines.push(...formatBaselineLines(mfParam, fmt));
 
     // One entry per selected year (inline data: [position, temperature])
     for (const p of params) {
         if (
             !p.seriesName ||
-            ["Extrêmes", "Écart-type", "Indicateur MF"].includes(p.seriesName)
+            [
+                ITN_SERIES.EXTREMES,
+                ITN_SERIES.ECART_TYPE,
+                ITN_SERIES.INDICATEUR_MF,
+            ].includes(p.seriesName)
         )
             continue;
         const val = Array.isArray(p.value) ? p.value[1] : null;
