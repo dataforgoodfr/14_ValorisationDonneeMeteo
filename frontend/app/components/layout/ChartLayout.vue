@@ -40,14 +40,18 @@ const sidebarOpen = ref(false);
                         class="size-4"
                     />
                 </button>
-                <div
-                    :class="[
-                        'md:block md:h-full',
-                        sidebarOpen ? 'block' : 'hidden',
-                    ]"
+                <Transition
+                    enter-active-class="transition-all duration-300 ease-out overflow-hidden"
+                    enter-from-class="opacity-0 -translate-y-2"
+                    enter-to-class="opacity-100 translate-y-0"
+                    leave-active-class="transition-all duration-200 ease-in overflow-hidden"
+                    leave-from-class="opacity-100 translate-y-0"
+                    leave-to-class="opacity-0 -translate-y-2"
                 >
-                    <slot name="sidebar" />
-                </div>
+                    <div v-show="sidebarOpen" class="md:block! md:h-full">
+                        <slot name="sidebar" />
+                    </div>
+                </Transition>
             </aside>
 
             <div class="flex-1 min-w-0 px-3 py-2">
