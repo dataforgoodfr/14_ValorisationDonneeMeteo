@@ -68,9 +68,10 @@
 import maplibregl from "maplibre-gl";
 import "maplibre-gl/dist/maplibre-gl.css";
 import * as topojson from "topojson-client";
-import type { FeatureCollection, Geometry } from "geojson";
+import type { FeatureCollection, Geometry, Point } from "geojson";
 import type { Topology, GeometryCollection } from "topojson-specification";
 import type { DeviationMapParams, DeviationMapStation } from "~/types/api";
+import { formatDeviationMapTooltip } from "~/components/charts/tooltipFormatters/deviationMapTooltipFormatter";
 
 interface DepartmentProperties {
     code: string;
@@ -172,7 +173,10 @@ function stationsToGeoJSON(
                     type: "Point",
                     coordinates: [s.lon as number, s.lat as number],
                 },
-                properties: { deviation: s.deviation },
+                properties: {
+                    deviation: s.deviation,
+                    station_name: s.station_name,
+                },
             })),
     };
 }
@@ -197,6 +201,38 @@ function syncLayerVisibility() {
         "visibility",
         activeMode.value === "heatmap" ? "visible" : "none",
     );
+}
+
+function addTooltipEvents(layerId: string) {
+    if (!map) return;
+    const popup = new maplibregl.Popup({
+        closeButton: false,
+        closeOnClick: false,
+        offset: 8,
+    });
+
+    map.on("mouseenter", layerId, (e) => {
+        map!.getCanvas().style.cursor = "pointer";
+        const feature = e.features?.[0];
+        if (!feature) return;
+        const { station_name, deviation } = feature.properties as {
+            station_name: string;
+            deviation: number;
+        };
+        const coords = (feature.geometry as Point).coordinates.slice() as [
+            number,
+            number,
+        ];
+        popup
+            .setLngLat(coords)
+            .setHTML(formatDeviationMapTooltip(station_name, deviation))
+            .addTo(map!);
+    });
+
+    map.on("mouseleave", layerId, () => {
+        map!.getCanvas().style.cursor = "";
+        popup.remove();
+    });
 }
 
 function initLayers() {
@@ -235,6 +271,9 @@ function initLayers() {
             "circle-opacity": 0.35,
         },
     });
+
+    addTooltipEvents("stations-circles");
+    addTooltipEvents("stations-heatmap-blur");
 
     syncLayerVisibility();
 }
