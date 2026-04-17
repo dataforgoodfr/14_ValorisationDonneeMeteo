@@ -23,6 +23,7 @@ import {
 import { LineChart } from "echarts/charts";
 import { UniversalTransition } from "echarts/features";
 import { CanvasRenderer } from "echarts/renderers";
+import { XX } from "~/utils/string";
 
 echarts.registerLocale("FR", langFR);
 echarts.use([
@@ -309,9 +310,9 @@ const option = computed<ECOption>(() => {
                 ? {
                       axisLabel: {
                           formatter: (value: number) => {
-                              const d = new Date(value);
-                              const dd = String(d.getDate()).padStart(2, "0");
-                              return `${dd}-${MONTH_SHORT[d.getMonth()]}`;
+                              const date = new Date(value);
+                              const DD = XX(date.getDate());
+                              return `${DD}-${MONTH_SHORT[date.getMonth()]}`;
                           },
                       },
                   }
