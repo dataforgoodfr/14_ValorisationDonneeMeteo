@@ -18,7 +18,7 @@ SELECT DISTINCT ON (s."id")
   scd."annee_de_creation" AS annee_de_creation,
   scd."annee_de_fermeture" AS annee_de_fermeture
 FROM public."Station" s
- JOIN public."station_creation_date" scd
+ LEFT JOIN public."station_creation_date" scd
   ON s."id" = scd."station_code"
  LEFT JOIN station_classe_recente scr
   ON s."id" = scr."station_code"
