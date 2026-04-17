@@ -11,8 +11,8 @@ def test_fake_records_hot_returns_non_empty_list():
     req = TemperatureRecordsRequest(period_type="all_time", type_records="hot")
     result = ds.fetch_records(req)
 
-    assert len(result) >= 5
-    assert all(e.record_value >= 30 for e in result)
+    assert len(result.entries) >= 5
+    assert all(e.record_value >= 30 for e in result.entries)
 
 
 def test_fake_records_cold_returns_non_empty_list():
@@ -20,8 +20,8 @@ def test_fake_records_cold_returns_non_empty_list():
     req = TemperatureRecordsRequest(period_type="all_time", type_records="cold")
     result = ds.fetch_records(req)
 
-    assert len(result) >= 5
-    assert all(e.record_value <= 0 for e in result)
+    assert len(result.entries) >= 5
+    assert all(e.record_value <= 0 for e in result.entries)
 
 
 def test_fake_records_month_period_type_does_not_raise():
@@ -29,7 +29,7 @@ def test_fake_records_month_period_type_does_not_raise():
     req = TemperatureRecordsRequest(period_type="month", type_records="hot", month=7)
     result = ds.fetch_records(req)
 
-    assert len(result) >= 1
+    assert len(result.entries) >= 1
 
 
 def test_fake_records_season_period_type_does_not_raise():
@@ -39,7 +39,7 @@ def test_fake_records_season_period_type_does_not_raise():
     )
     result = ds.fetch_records(req)
 
-    assert len(result) >= 1
+    assert len(result.entries) >= 1
 
 
 def test_fake_records_all_time_period_type_does_not_raise():
@@ -47,7 +47,7 @@ def test_fake_records_all_time_period_type_does_not_raise():
     req = TemperatureRecordsRequest(period_type="all_time", type_records="hot")
     result = ds.fetch_records(req)
 
-    assert len(result) >= 1
+    assert len(result.entries) >= 1
 
 
 def test_fake_records_entries_have_correct_shape():
@@ -55,7 +55,7 @@ def test_fake_records_entries_have_correct_shape():
     req = TemperatureRecordsRequest(period_type="all_time", type_records="hot")
     result = ds.fetch_records(req)
 
-    for entry in result:
+    for entry in result.entries:
         assert isinstance(entry.station_id, str)
         assert isinstance(entry.station_name, str)
         assert isinstance(entry.department, str)
