@@ -11,6 +11,7 @@ def insert_station(
     lat: float = 0.0,
     lon: float = 0.0,
     alt: float = 0.0,
+    annee_de_creation: int = 2000,
 ) -> None:
     now = dt.datetime.now()
 
@@ -38,4 +39,13 @@ def insert_station(
                 "lon": lon,
                 "alt": alt,
             },
+        )
+        cur.execute(
+            """
+            INSERT INTO public."station_creation_date"
+                ("station_code", "annee_de_creation")
+            VALUES (%(code)s, %(annee)s)
+            ON CONFLICT ("station_code") DO NOTHING
+            """,
+            {"code": code, "annee": annee_de_creation},
         )
