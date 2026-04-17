@@ -434,3 +434,28 @@ class TemperatureDeviationOverviewResponseSerializer(serializers.Serializer):
     national = TemperatureDeviationOverviewNationalSerializer()
     pagination = PaginationMetadataSerializer()
     stations = TemperatureDeviationOverviewStationSerializer(many=True)
+
+
+class NationalIndicatorKpiQuerySerializer(serializers.Serializer):
+    date_start = serializers.DateField(required=True)
+    date_end = serializers.DateField(required=True)
+    type = serializers.ChoiceField(choices=["hot", "cold"], required=True)
+
+    def validate(self, attrs):
+        if attrs["date_start"] > attrs["date_end"]:
+            raise serializers.ValidationError(
+                {"date_end": "date_end doit être >= date_start."}
+            )
+        return attrs
+
+
+class NationalIndicatorKpiDaySerializer(serializers.Serializer):
+    date = serializers.DateField()
+    temperature = serializers.FloatField()
+    baseline_mean = serializers.FloatField()
+    baseline_std_dev = serializers.FloatField()
+
+
+class NationalIndicatorKpiResponseSerializer(serializers.Serializer):
+    count = serializers.IntegerField()
+    days = NationalIndicatorKpiDaySerializer(many=True)

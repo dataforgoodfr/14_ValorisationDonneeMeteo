@@ -13,6 +13,7 @@ from weather.bootstrap_temperature_deviation import (
     TemperatureDeviationOverviewDependencyProvider,
 )
 from weather.bootstrap_temperature_records import TemperatureRecordsDependencyProvider
+from weather.services.national_indicator.kpi_use_case import get_national_indicator_kpi
 from weather.services.national_indicator.use_case import get_national_indicator
 from weather.services.temperature_deviation.use_case import (
     get_temperature_deviation,
@@ -25,6 +26,8 @@ from .filters import StationFilter
 from .models import Station
 from .serializers import (
     ErrorSerializer,
+    NationalIndicatorKpiQuerySerializer,
+    NationalIndicatorKpiResponseSerializer,
     NationalIndicatorQuerySerializer,
     NationalIndicatorResponseSerializer,
     StationDetailSerializer,
@@ -284,6 +287,58 @@ class TemperatureDeviationOverviewAPIView(APIView):
         }
 
         out = TemperatureDeviationOverviewResponseSerializer(data=full_payload)
+        out.is_valid(raise_exception=True)
+
+        return Response(out.data, status=status.HTTP_200_OK)
+
+
+class NationalIndicatorKpiAPIView(APIView):
+    """
+    GET /api/v1/temperature/national-indicator/kpi
+    Retourne les jours de pic chaud ou froid sur une période donnée.
+    Un pic = jour où l'ITN dépasse la moyenne ± écart-type de la baseline 1991-2020.
+    """
+
+    authentication_classes = []
+    permission_classes = []
+
+    def get(self, request):
+        q = NationalIndicatorKpiQuerySerializer(data=request.query_params)
+        if not q.is_valid():
+            return Response(
+                ErrorSerializer.build(
+                    code="INVALID_PARAMETER",
+                    message="Paramètre invalide ou manquant",
+                    details=q.errors,
+                ),
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        params = q.validated_data
+        deps = ITNDependencyProvider.get_dep()
+
+        result = get_national_indicator_kpi(
+            observed_data_source=deps.observed_data_source,
+            baseline_data_source=deps.baseline_data_source,
+            date_start=params["date_start"],
+            date_end=params["date_end"],
+            peak_type=params["type"],
+        )
+
+        payload = {
+            "count": result.count,
+            "days": [
+                {
+                    "date": d.date,
+                    "temperature": d.temperature,
+                    "baseline_mean": d.baseline_mean,
+                    "baseline_std_dev": d.baseline_std_dev,
+                }
+                for d in result.days
+            ],
+        }
+
+        out = NationalIndicatorKpiResponseSerializer(data=payload)
         out.is_valid(raise_exception=True)
 
         return Response(out.data, status=status.HTTP_200_OK)
