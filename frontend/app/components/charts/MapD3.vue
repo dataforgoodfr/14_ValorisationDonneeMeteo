@@ -35,166 +35,12 @@
             class="w-full"
         />
 
-        <svg
-            :width="width"
-            :height="height"
-            :viewBox="`0 0 ${width} ${height}`"
-        >
-            <defs>
-                <clipPath id="france-clip">
-                    <path
-                        v-for="f in featuresDEP"
-                        :key="f.properties?.code"
-                        :d="geoPath(f) ?? ''"
-                    />
-                </clipPath>
-
-                <filter
-                    id="heatmap-blur"
-                    x="-30%"
-                    y="-30%"
-                    width="160%"
-                    height="160%"
-                    color-interpolation-filters="sRGB"
-                >
-                    <feGaussianBlur in="SourceGraphic" stdDeviation="20" />
-                </filter>
-
-                <linearGradient
-                    id="legend-gradient"
-                    x1="0"
-                    x2="1"
-                    y1="0"
-                    y2="0"
-                >
-                    <stop
-                        v-for="stop in legendStops"
-                        :key="stop.offset"
-                        :offset="stop.offset"
-                        :stop-color="stop.color"
-                    />
-                </linearGradient>
-            </defs>
-
-            <rect :width="width" :height="height" fill="#202d43" />
-
-            <!-- Mode points : fond avec contours -->
-            <g v-if="activeMode === 'points'">
-                <path
-                    v-for="f in featuresDEP"
-                    :key="f.properties?.code"
-                    :d="geoPath(f) ?? ''"
-                    fill="#202d43"
-                    stroke="white"
-                    stroke-width="0.4"
-                />
-                <path
-                    v-for="f in featuresREG"
-                    :key="f.properties?.code"
-                    :d="geoPath(f) ?? ''"
-                    fill="none"
-                    stroke="white"
-                    stroke-width="0.8"
-                />
-            </g>
-
-            <!-- Mode heatmap : cercles flous clippés sur la France -->
-            <g v-if="activeMode === 'heatmap'">
-                <g clip-path="url(#france-clip)" filter="url(#heatmap-blur)">
-                    <circle
-                        v-for="(s, i) in projectedStations"
-                        :key="i"
-                        :cx="s.x"
-                        :cy="s.y"
-                        r="50"
-                        :fill="s.color"
-                        opacity="0.9"
-                    />
-                </g>
-                <path
-                    v-for="f in featuresDEP"
-                    :key="f.properties?.code"
-                    :d="geoPath(f) ?? ''"
-                    fill="none"
-                    stroke="rgba(255,255,255,0.5)"
-                    stroke-width="0.4"
-                />
-                <path
-                    v-for="f in featuresREG"
-                    :key="f.properties?.code"
-                    :d="geoPath(f) ?? ''"
-                    fill="none"
-                    stroke="white"
-                    stroke-width="0.9"
-                />
-            </g>
-
-            <!-- Mode points : cercles stations -->
-            <g v-if="activeMode === 'points'" clip-path="url(#france-clip)">
-                <circle
-                    v-for="(s, i) in projectedStations"
-                    :key="i"
-                    :cx="s.x"
-                    :cy="s.y"
-                    r="3"
-                    :fill="s.color"
-                    stroke="rgba(255,255,255,0.5)"
-                    stroke-width="0.4"
-                />
-            </g>
-
-            <!-- Légende -->
-            <g :transform="`translate(${legendX}, ${height - footer + 20})`">
-                <text
-                    :x="legendW / 2"
-                    y="-6"
-                    text-anchor="middle"
-                    fill="white"
-                    font-size="11"
-                    font-family="sans-serif"
-                >
-                    Écart à la normale (°C)
-                </text>
-                <rect
-                    x="0"
-                    y="0"
-                    :width="legendW"
-                    :height="legendH"
-                    :rx="legendH / 2"
-                    fill="url(#legend-gradient)"
-                />
-                <rect
-                    x="0"
-                    y="0"
-                    :width="legendW"
-                    :height="legendH"
-                    :rx="legendH / 2"
-                    fill="none"
-                    stroke="rgba(255,255,255,0.4)"
-                    stroke-width="0.5"
-                />
-                <text
-                    x="0"
-                    :y="legendH + 14"
-                    text-anchor="start"
-                    fill="white"
-                    font-size="11"
-                    font-family="sans-serif"
-                >
-                    {{ DEVIATION_MIN }}°C
-                </text>
-                <text
-                    :x="legendW"
-                    :y="legendH + 14"
-                    text-anchor="end"
-                    fill="white"
-                    font-size="11"
-                    font-family="sans-serif"
-                >
-                    +{{ DEVIATION_MAX }}°C
-                </text>
-            </g>
-        </svg>
+        <canvas
+            ref="canvas"
+            :width="width * dpr"
+            :height="height * dpr"
+            :style="{ width: width + 'px', height: height + 'px' }"
+        ></canvas>
     </div>
 </template>
 
@@ -251,19 +97,21 @@ const baseline = computed(() => {
 
 const width = 500;
 const height = 500;
+const dpr = 2;
 const mapPadding = 10;
 const footer = 80;
-const legendH = 14;
-const legendW = (width - (mapPadding + 20) * 2) / 2;
-const legendX = mapPadding + 20 + (width - (mapPadding + 20) * 2) / 4;
 
+const canvas = ref<HTMLCanvasElement | null>(null);
+
+let featuresDEP: GeoFeature[] = [];
+let featuresREG: GeoFeature[] = [];
+let projection: d3.GeoProjection | null = null;
+let pathFn: d3.GeoPath | null = null;
+let ctxRef: CanvasRenderingContext2D | null = null;
+
+/** Fixed scale [-8, 8]°C as per design spec. Values outside this range are clamped. */
 const DEVIATION_MIN = -8;
 const DEVIATION_MAX = 8;
-
-const legendStops = Array.from({ length: 11 }, (_, i) => ({
-    offset: `${i * 10}%`,
-    color: d3.interpolateRdYlBu(1 - i / 10),
-}));
 
 function colorForDeviation(deviation: number): string {
     const t = Math.max(
@@ -276,40 +124,189 @@ function colorForDeviation(deviation: number): string {
     return d3.interpolateRdYlBu(1 - t);
 }
 
-const featuresDEP = ref<GeoFeature[]>([]);
-const featuresREG = ref<GeoFeature[]>([]);
-const projection = shallowRef<d3.GeoProjection | null>(null);
-
-const geoPath = computed(() => {
-    if (!projection.value) return (_: GeoFeature) => null;
-    return d3.geoPath().projection(projection.value);
-});
-
-interface ProjectedStation {
-    x: number;
-    y: number;
-    color: string;
+function drawBasemap(
+    context: CanvasRenderingContext2D,
+    path: d3.GeoPath,
+): void {
+    context.strokeStyle = "#ffffff";
+    context.lineWidth = 0.4;
+    context.fillStyle = "#202d43";
+    featuresDEP.forEach((feature) => {
+        context.beginPath();
+        path(feature);
+        context.fill();
+        context.stroke();
+    });
+    context.strokeStyle = "#ffffff";
+    context.lineWidth = 0.8;
+    featuresREG.forEach((feature) => {
+        context.beginPath();
+        path(feature);
+        context.stroke();
+    });
 }
 
-const projectedStations = computed<ProjectedStation[]>(() => {
-    if (!projection.value || !stationsData.value?.stations) return [];
-    return stationsData.value.stations
+function drawLegend(context: CanvasRenderingContext2D): void {
+    const legendW = (width - (mapPadding + 20) * 2) / 2;
+    const legendX = mapPadding + 20 + (width - (mapPadding + 20) * 2) / 4;
+    const legendY = height - footer + 20;
+    const legendH = 14;
+
+    context.fillStyle = "#ffffff";
+    context.font = "11px sans-serif";
+    context.textAlign = "center";
+    context.fillText(
+        "Écart à la normale (°C)",
+        legendX + legendW / 2,
+        legendY - 6,
+    );
+
+    const gradient = context.createLinearGradient(
+        legendX,
+        0,
+        legendX + legendW,
+        0,
+    );
+    for (let i = 0; i <= 10; i++) {
+        gradient.addColorStop(i / 10, d3.interpolateRdYlBu(1 - i / 10));
+    }
+    const radius = legendH / 2;
+    context.beginPath();
+    context.roundRect(legendX, legendY, legendW, legendH, radius);
+    context.fillStyle = gradient;
+    context.fill();
+
+    context.beginPath();
+    context.roundRect(legendX, legendY, legendW, legendH, radius);
+    context.strokeStyle = "rgba(255,255,255,0.4)";
+    context.lineWidth = 0.5;
+    context.stroke();
+
+    context.fillStyle = "#ffffff";
+    context.font = "11px sans-serif";
+    context.textAlign = "left";
+    context.fillText(`${DEVIATION_MIN}°C`, legendX, legendY + legendH + 14);
+    context.textAlign = "right";
+    context.fillText(
+        `+${DEVIATION_MAX}°C`,
+        legendX + legendW,
+        legendY + legendH + 14,
+    );
+}
+
+function drawPoints(
+    context: CanvasRenderingContext2D,
+    stations: DeviationMapStation[],
+    proj: d3.GeoProjection,
+): void {
+    stations.forEach(({ lon, lat, deviation }) => {
+        if (lon == null || lat == null) return;
+        const coords = proj([lon, lat]);
+        if (!coords) return;
+        const [x, y] = coords;
+        context.beginPath();
+        context.arc(x, y, 3, 0, 2 * Math.PI);
+        context.fillStyle = colorForDeviation(deviation);
+        context.fill();
+        context.strokeStyle = "rgba(255,255,255,0.5)";
+        context.lineWidth = 0.4;
+        context.stroke();
+    });
+}
+
+function drawHeatmap(
+    context: CanvasRenderingContext2D,
+    stations: DeviationMapStation[],
+    path: d3.GeoPath,
+    proj: d3.GeoProjection,
+): void {
+    const projectedPoints = stations
         .filter(
             (s): s is DeviationMapStation & { lat: number; lon: number } =>
                 s.lat != null && s.lon != null,
         )
         .flatMap((s) => {
-            const coords = projection.value!([s.lon, s.lat]);
+            const coords = proj([s.lon, s.lat]);
             if (!coords) return [];
-            return [
-                {
-                    x: coords[0],
-                    y: coords[1],
-                    color: colorForDeviation(s.deviation),
-                },
-            ];
+            const [px, py] = coords;
+            return [{ px, py, deviation: s.deviation }];
         });
-});
+
+    const mapAreaH = height - footer;
+    const offscreen = document.createElement("canvas");
+    offscreen.width = width;
+    offscreen.height = mapAreaH;
+    const offCtx = offscreen.getContext("2d")!;
+    const imageData = offCtx.createImageData(width, mapAreaH);
+
+    const sigma = 40;
+    for (let y = 0; y < mapAreaH; y++) {
+        for (let x = 0; x < width; x++) {
+            let sumWeight = 0;
+            let sumDev = 0;
+            for (const { px, py, deviation } of projectedPoints) {
+                const dist2 = (x - px) ** 2 + (y - py) ** 2;
+                const w = Math.exp(-dist2 / (2 * sigma ** 2));
+                sumWeight += w;
+                sumDev += w * deviation;
+            }
+            const dev = sumDev / sumWeight;
+            const col = d3.rgb(colorForDeviation(dev));
+            const idx = (y * width + x) * 4;
+            imageData.data[idx] = col.r;
+            imageData.data[idx + 1] = col.g;
+            imageData.data[idx + 2] = col.b;
+            imageData.data[idx + 3] = 210;
+        }
+    }
+    offCtx.putImageData(imageData, 0, 0);
+
+    const svgPath = d3.geoPath().projection(proj);
+    const clipPath = new Path2D();
+    featuresDEP.forEach((feature) => {
+        const d = svgPath(feature);
+        if (d) clipPath.addPath(new Path2D(d));
+    });
+    context.save();
+    context.clip(clipPath);
+    context.drawImage(offscreen, 0, 0);
+    context.restore();
+
+    context.strokeStyle = "rgba(255,255,255,0.5)";
+    context.lineWidth = 0.4;
+    featuresDEP.forEach((feature) => {
+        context.beginPath();
+        path(feature);
+        context.stroke();
+    });
+    context.strokeStyle = "#ffffff";
+    context.lineWidth = 0.9;
+    featuresREG.forEach((feature) => {
+        context.beginPath();
+        path(feature);
+        context.stroke();
+    });
+}
+
+function draw(): void {
+    if (!ctxRef || !projection || !pathFn) return;
+    const stations = stationsData.value?.stations;
+    if (!stations) return;
+
+    ctxRef.clearRect(0, 0, width, height);
+    ctxRef.fillStyle = "#202d43";
+    ctxRef.fillRect(0, 0, width, height);
+
+    if (activeMode.value === "points") {
+        drawBasemap(ctxRef, pathFn);
+        drawPoints(ctxRef, stations, projection);
+        drawLegend(ctxRef);
+    }
+    if (activeMode.value === "heatmap") {
+        drawHeatmap(ctxRef, stations, pathFn, projection);
+        drawLegend(ctxRef);
+    }
+}
 
 onMounted(async () => {
     const res = await fetch("/json/France_2024_WGS84_DEP.json");
@@ -319,10 +316,10 @@ onMounted(async () => {
     const geojsonDEP = topojson.feature(topoData, topoData.objects.DEP);
 
     const DOM_REG_CODES = ["01", "02", "03", "04", "06"];
-    featuresDEP.value = geojsonDEP.features.filter(
+    featuresDEP = geojsonDEP.features.filter(
         (f) => !f.properties.code.startsWith("97"),
     );
-    featuresREG.value = geojsonREG.features.filter(
+    featuresREG = geojsonREG.features.filter(
         (f) => !DOM_REG_CODES.includes(f.properties.code),
     );
 
@@ -333,18 +330,32 @@ onMounted(async () => {
     const featureCollection: FeatureCollection<Geometry, DepartmentProperties> =
         {
             type: "FeatureCollection",
-            features: featuresDEP.value,
+            features: featuresDEP,
         };
-    projection.value = d3.geoMercator().fitExtent(mapExtent, featureCollection);
+    projection = d3.geoMercator().fitExtent(mapExtent, featureCollection);
+
+    ctxRef = canvas.value!.getContext("2d")!;
+    ctxRef.scale(dpr, dpr);
+    pathFn = d3.geoPath().projection(projection).context(ctxRef);
 
     await fetchStations();
+    draw();
 });
 
 watch(
     params,
     async () => {
         await fetchStations();
+        draw();
     },
     { deep: true },
 );
+watch(
+    stationsData,
+    (data) => {
+        if (data) draw();
+    },
+    { deep: true },
+);
+watch(activeMode, draw);
 </script>
