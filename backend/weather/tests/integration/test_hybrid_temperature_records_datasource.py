@@ -34,7 +34,7 @@ def test_no_cutoff_returns_mv_only():
         TemperatureRecordsRequest(period_type="all_time", type_records="hot")
     )
 
-    entries = [e for e in result if e.station_id.strip() == code]
+    entries = [e for e in result.entries if e.station_id.strip() == code]
     assert len(entries) == 1
     assert entries[0].record_value == 38.0
 
@@ -57,7 +57,7 @@ def test_cutoff_future_no_new_data():
         TemperatureRecordsRequest(period_type="all_time", type_records="hot")
     )
 
-    entries = [e for e in result if e.station_id.strip() == code]
+    entries = [e for e in result.entries if e.station_id.strip() == code]
     assert len(entries) == 1
     assert entries[0].record_value == 38.0
 
@@ -80,7 +80,7 @@ def test_new_hot_record_after_cutoff_is_added():
         TemperatureRecordsRequest(period_type="all_time", type_records="hot")
     )
 
-    entries = [e for e in result if e.station_id.strip() == code]
+    entries = [e for e in result.entries if e.station_id.strip() == code]
     values = [e.record_value for e in entries]
     assert 38.0 in values
     assert 45.0 in values
@@ -104,7 +104,7 @@ def test_value_below_seed_not_added():
         TemperatureRecordsRequest(period_type="all_time", type_records="hot")
     )
 
-    entries = [e for e in result if e.station_id.strip() == code]
+    entries = [e for e in result.entries if e.station_id.strip() == code]
     assert len(entries) == 1
     assert entries[0].record_value == 42.0
 
@@ -123,7 +123,7 @@ def test_new_station_after_cutoff_gets_first_record():
         TemperatureRecordsRequest(period_type="all_time", type_records="hot")
     )
 
-    entries = [e for e in result if e.station_id.strip() == code]
+    entries = [e for e in result.entries if e.station_id.strip() == code]
     assert len(entries) == 1
     assert entries[0].record_value == 22.0
     assert entries[0].record_date == dt.date(2026, 3, 15)
@@ -146,7 +146,7 @@ def test_new_cold_record_after_cutoff():
         TemperatureRecordsRequest(period_type="all_time", type_records="cold")
     )
 
-    entries = [e for e in result if e.station_id.strip() == code]
+    entries = [e for e in result.entries if e.station_id.strip() == code]
     values = [e.record_value for e in entries]
     assert -20.0 in values
     assert -25.0 in values
@@ -169,7 +169,7 @@ def test_cold_above_seed_not_added():
         TemperatureRecordsRequest(period_type="all_time", type_records="cold")
     )
 
-    entries = [e for e in result if e.station_id.strip() == code]
+    entries = [e for e in result.entries if e.station_id.strip() == code]
     assert len(entries) == 1
     assert entries[0].record_value == -20.0
 
@@ -192,7 +192,7 @@ def test_month_filter_respected():
         TemperatureRecordsRequest(period_type="month", type_records="hot", month=7)
     )
 
-    entries = [e for e in result if e.station_id.strip() == code]
+    entries = [e for e in result.entries if e.station_id.strip() == code]
     assert len(entries) == 1
     assert entries[0].record_value == 38.0
 
@@ -217,7 +217,7 @@ def test_season_filter_respected():
         )
     )
 
-    entries = [e for e in result if e.station_id.strip() == code]
+    entries = [e for e in result.entries if e.station_id.strip() == code]
     assert len(entries) == 1
     assert entries[0].record_value == 40.0
 
@@ -241,6 +241,6 @@ def test_meta_table_absent_falls_back_to_mv():
             TemperatureRecordsRequest(period_type="all_time", type_records="hot")
         )
 
-    entries = [e for e in result if e.station_id.strip() == code]
+    entries = [e for e in result.entries if e.station_id.strip() == code]
     assert len(entries) == 1
     assert entries[0].record_value == 38.0
