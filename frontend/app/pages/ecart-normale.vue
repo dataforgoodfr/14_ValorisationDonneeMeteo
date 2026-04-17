@@ -46,7 +46,7 @@ const heroData = {
                 v-model:start-date="dateStart"
                 v-model:end-date="dateEnd"
                 :min-date="dates.absoluteMinDataDate.value"
-                :max-date="dates.twoDaysAgo.value"
+                :max-date="dates.yesterday.value"
             />
 
             <hr class="border-accented" />
