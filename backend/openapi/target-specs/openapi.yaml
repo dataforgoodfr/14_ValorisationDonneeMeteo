@@ -485,11 +485,17 @@ paths:
                       department: "94"
                       record_value: 40.4
                       record_date: "2019-07-25"
+                      lat: 48.718
+                      lon: 2.397
+                      alt: 86.0
                     - station_id: "07156"
                       station_name: "Paris-Montsouris"
                       department: "75"
                       record_value: 39.7
                       record_date: "2019-07-25"
+                      lat: 48.821667
+                      lon: 2.337833
+                      alt: 75.0
 
         "400":
           $ref: "#/components/responses/BadRequest"
@@ -1012,6 +1018,9 @@ components:
         - department
         - record_value
         - record_date
+        - lat
+        - lon
+        - alt
       properties:
         station_id:
           type: string
@@ -1029,6 +1038,18 @@ components:
           type: string
           format: date
           description: Date à laquelle le record a été enregistré
+        lat:
+          type: number
+          format: double
+          description: Latitude de la station (degrés décimaux)
+        lon:
+          type: number
+          format: double
+          description: Longitude de la station (degrés décimaux)
+        alt:
+          type: number
+          format: double
+          description: Altitude de la station (mètres)
     TemperatureDeviationOverviewResponse:
       type: object
       required:

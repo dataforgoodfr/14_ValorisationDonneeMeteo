@@ -56,7 +56,7 @@ const granularityValues = reactive([
                 v-model:start-date="localStartDate"
                 v-model:end-date="localEndDate"
                 :min-date="dates.absoluteMinDataDate.value"
-                :max-date="dates.twoDaysAgo.value"
+                :max-date="dates.yesterday.value"
             />
             <MonthPicker v-if="adapter.granularity.value === 'month'" />
             <YearPicker v-if="adapter.granularity.value === 'year'" />

@@ -8,6 +8,7 @@ import {
     periodOptions,
 } from "~/stores/recordsTableStore";
 import RecordsFilterBar from "~/components/table/records/RecordsFilterBar.vue";
+import { buildRecordsCsv } from "~/utils/recordsCsv";
 
 const store = useRecordsTableStore();
 const {
@@ -16,10 +17,25 @@ const {
     typeRecords,
     periodSelection,
     pagedStations,
+    filteredRecords,
     filteredCount,
     pending,
     error,
 } = storeToRefs(store);
+
+function downloadCsv() {
+    if (!import.meta.client) return;
+    const csv = buildRecordsCsv(filteredRecords.value);
+    const a = document.createElement("a");
+    a.href = `data:text/csv;charset=utf-8,${encodeURIComponent(csv)}`;
+    a.download = useFormatFileName(
+        `tableau-records-${typeRecords.value}`,
+        periodSelection.value,
+        "csv",
+    );
+    a.click();
+    a.remove();
+}
 
 // Track the record type that corresponds to the data currently displayed,
 // so the badge color only flips once the new data has arrived.
@@ -91,6 +107,14 @@ const columns = computed<TableColumn<TableRow>[]>(() => [
                     @click="typeRecords = 'cold'"
                 />
             </UButtonGroup>
+            <UButton
+                class="ml-auto"
+                label="Exporter CSV"
+                icon="i-lucide-download"
+                color="neutral"
+                :disabled="pending"
+                @click="downloadCsv"
+            />
         </div>
 
         <!-- Filter bar -->

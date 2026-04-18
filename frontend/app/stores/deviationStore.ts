@@ -18,7 +18,7 @@ export const useDeviationStore = defineStore("deviationStore", () => {
     const deviationChartRef = shallowRef();
 
     const pickedDateStart = ref(dates.lastYear.value);
-    const pickedDateEnd = ref(dates.twoDaysAgo.value);
+    const pickedDateEnd = ref(dates.yesterday.value);
 
     const granularity: Ref<GranularityType> = ref<GranularityType>("month");
     const sliceTypeSwitchEnabled = ref(false);
@@ -33,15 +33,20 @@ export const useDeviationStore = defineStore("deviationStore", () => {
     const selectedStations = ref<Station[]>([]);
     const includeNational = ref<boolean>(true);
 
-    const isGranularityYear = computed(() => granularity.value === "year");
+    const isGranularityYear = computed<boolean>(
+        () => granularity.value === "year",
+    );
 
     const selectedStationsAndNational = computed<DeviationStationIdAndName[]>(
         () => {
-            const stations = selectedStations.value.map((s) => ({
-                station_id: s.code,
-                station_name: s.nom,
-                departement: String(s.departement),
-            }));
+            const stations = selectedStations.value.map((station) => {
+                return {
+                    station_id: station.code,
+                    station_name: `${station.nom} (${station.departement})`,
+                    departement: String(station.departement),
+                };
+            });
+
             return includeNational.value
                 ? [
                       {
@@ -58,7 +63,12 @@ export const useDeviationStore = defineStore("deviationStore", () => {
     const params = computed<TemperatureDeviationGraphParams>(() => ({
         date_start: dateToStringYMD(pickedDateStart.value),
         date_end: dateToStringYMD(pickedDateEnd.value),
-        granularity: granularity.value,
+        granularity:
+            chartType.value === "calendar"
+                ? granularity.value === "month"
+                    ? "day" // calendrier mois → données journalières (y-axis = jours)
+                    : "month" // calendrier année → données mensuelles (y-axis = mois)
+                : granularity.value,
         station_ids: stationIds.value.join(","),
         include_national: includeNational.value,
     }));

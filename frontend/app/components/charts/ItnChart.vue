@@ -3,6 +3,7 @@ import * as echarts from "echarts/core";
 import langFR from "~/i18n/langFR.js";
 import type { SelectBarAdapter } from "~/components/ui/commons/selectBar/types";
 import type { NationalIndicatorResponse } from "~/types/api";
+import { CHART_ATTRIBUTION_GRAPHIC } from "~/constants/chartAttribution";
 import { itnChartTooltipFormatter } from "./tooltipFormatters/itnChartTooltipFormatter";
 
 import {
@@ -12,6 +13,7 @@ import {
     GridComponent,
     DataZoomComponent,
     LegendComponent,
+    GraphicComponent,
 } from "echarts/components";
 import { LineChart } from "echarts/charts";
 import { UniversalTransition } from "echarts/features";
@@ -27,6 +29,7 @@ echarts.use([
     UniversalTransition,
     LegendComponent,
     DataZoomComponent,
+    GraphicComponent,
 ]);
 
 interface Props {
@@ -114,6 +117,7 @@ const option = computed<ECOption>(() => {
                 type: "line",
                 encode: { x: "date", y: "baseline_min" },
                 stack: "extreme",
+                stackStrategy: "all",
                 symbol: "none",
                 lineStyle: { opacity: 0 },
                 areaStyle: { color: "transparent" },
@@ -125,6 +129,7 @@ const option = computed<ECOption>(() => {
                 type: "line",
                 encode: { x: "date", y: "baseline_band" },
                 stack: "extreme",
+                stackStrategy: "all",
                 symbol: "none",
                 color: colorExtremes,
                 lineStyle: { opacity: 0 },
@@ -135,6 +140,7 @@ const option = computed<ECOption>(() => {
                 type: "line",
                 encode: { x: "date", y: "baseline_std_dev_lower" },
                 stack: "std",
+                stackStrategy: "all",
                 symbol: "none",
                 lineStyle: { opacity: 0 },
                 areaStyle: { color: "transparent" },
@@ -146,6 +152,7 @@ const option = computed<ECOption>(() => {
                 type: "line",
                 encode: { x: "date", y: "baseline_std_dev_band" },
                 stack: "std",
+                stackStrategy: "all",
                 symbol: "none",
                 color: colorEcartType,
                 lineStyle: { opacity: 0 },
@@ -174,6 +181,7 @@ const option = computed<ECOption>(() => {
                 type: "line",
                 encode: { x: "date", y: "hot_cold_invisible_band" },
                 stack: "hot_cold",
+                stackStrategy: "all",
                 symbol: "none",
                 lineStyle: { opacity: 0 },
                 areaStyle: { color: "transparent" },
@@ -185,6 +193,7 @@ const option = computed<ECOption>(() => {
                 type: "line",
                 encode: { x: "date", y: "hot_red_band" },
                 stack: "hot_cold",
+                stackStrategy: "all",
                 symbol: "none",
                 color: "#f00",
                 lineStyle: { opacity: 0 },
@@ -197,6 +206,7 @@ const option = computed<ECOption>(() => {
                 type: "line",
                 encode: { x: "date", y: "cold_blue_band" },
                 stack: "hot_cold",
+                stackStrategy: "all",
                 symbol: "none",
                 color: "#00f",
                 lineStyle: { opacity: 0 },
@@ -234,6 +244,7 @@ const option = computed<ECOption>(() => {
             focus: "none",
             disabled: true, // disables all emphasis state changes on hover
         },
+        graphic: CHART_ATTRIBUTION_GRAPHIC,
     };
 });
 </script>

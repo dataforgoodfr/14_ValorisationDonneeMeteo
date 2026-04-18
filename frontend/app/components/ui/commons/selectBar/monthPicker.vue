@@ -95,7 +95,7 @@ const pt = {
             <DatePicker
                 v-model="adapter.pickedDateEnd.value"
                 :min-date="adapter.pickedDateStart.value"
-                :max-date="dates.twoDaysAgo.value"
+                :max-date="dates.yesterday.value"
                 view="month"
                 date-format="mm/yy"
                 :pt="pt"

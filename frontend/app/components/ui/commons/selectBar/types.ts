@@ -1,7 +1,9 @@
 import type { ShallowRef } from "vue";
 import type {
-    TemperatureDeviationGraphResponse,
+    NationalIndicatorDataPoint,
     NationalIndicatorResponse,
+    TemperatureDeviationGraphResponse,
+    TemperatureRecordsResponse,
 } from "~/types/api";
 
 export type GranularityType = "year" | "month" | "day";
@@ -11,7 +13,11 @@ export type SliceType = "full" | "month_of_year" | "day_of_month";
 export type ChartType = "line" | "bar" | "scatter" | "pyramid" | "calendar";
 
 export interface SelectBarAdapter<
-    T = NationalIndicatorResponse | TemperatureDeviationGraphResponse,
+    T =
+        | NationalIndicatorResponse
+        | TemperatureDeviationGraphResponse
+        | TemperatureRecordsResponse,
+    C = NationalIndicatorDataPoint | Record<string, unknown>,
 > {
     // Date
     granularity: Ref<GranularityType>;
@@ -29,9 +35,12 @@ export interface SelectBarAdapter<
     // Chart type
     chartTypeSwitchEnabled?: Ref<boolean>;
     chartType?: Ref<ChartType>;
-    chartTypes?: { label: string; value: ChartType; icon: string }[];
+    chartTypeOptions?: { label: string; value: ChartType; icon: string }[];
 
     pending: Ref<boolean>;
+
+    // Territory filters (optional, specific to records)
+    selectedElements?: Ref<{ value: string; id: string; type: string }[]>;
 
     // Methods
     setGranularity: (value: GranularityType) => void;
@@ -42,7 +51,7 @@ export interface SelectBarAdapter<
     exportConfig: {
         chartName: string;
         csvHeaders: string[];
-        getCsvRows: () => unknown[] | undefined;
+        getCsvRows: () => C[] | undefined;
     };
 
     features: {

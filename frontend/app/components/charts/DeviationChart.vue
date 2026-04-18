@@ -3,11 +3,14 @@ import * as echarts from "echarts/core";
 import langFR from "~/i18n/langFR.js";
 import type { TemperatureDeviationGraphResponse } from "~/types/api";
 import type { SelectBarAdapter } from "~/components/ui/commons/selectBar/types";
+import { COLORS } from "~/constants/colors";
 import type { EChartsOption } from "echarts";
 import { useDeviationStore } from "#imports";
+import { CHART_ATTRIBUTION_GRAPHIC } from "~/constants/chartAttribution";
 import { deviationChartTooltipFormatter } from "./tooltipFormatters/deviationChartTooltipFormatter";
 import {
     DataZoomComponent,
+    GraphicComponent,
     GridComponent,
     LegendComponent,
     TitleComponent,
@@ -18,7 +21,6 @@ import { BarChart, HeatmapChart } from "echarts/charts";
 import { UniversalTransition } from "echarts/features";
 import { CanvasRenderer } from "echarts/renderers";
 import { useDeviationCalendarOption } from "~/composables/useDeviationCalendarOption";
-import { COLORS } from "~/constants/colors";
 
 echarts.registerLocale("FR", langFR);
 echarts.use([
@@ -32,6 +34,7 @@ echarts.use([
     VisualMapComponent,
     UniversalTransition,
     CanvasRenderer,
+    GraphicComponent,
 ]);
 
 interface Props {
@@ -63,7 +66,7 @@ const barOption = computed<ECOption>(() => {
         deviationStore.stationsAndNationalFormatted(data);
     const plotAmountToDisplay = stationsAndNational.length || 1;
 
-    return {
+    const option: ECOption = {
         dataset: stationsAndNational.map((stationOrNational) => ({
             dimensions: [
                 "date",
@@ -99,7 +102,7 @@ const barOption = computed<ECOption>(() => {
             type: "value",
             gridIndex: index,
             splitNumber: 3,
-            name: "Ecart à la normale (°C)",
+            name: "Écart à la normale (°C)",
             nameRotate: 90,
             nameLocation: "middle",
             nameGap: 40,
@@ -109,7 +112,7 @@ const barOption = computed<ECOption>(() => {
         })),
         series: stationsAndNational.flatMap((_, index) => [
             {
-                name: "Ecart positif",
+                name: "Écart positif",
                 type: "bar",
                 stack: `deviation-${index}`,
                 datasetIndex: index,
@@ -120,7 +123,7 @@ const barOption = computed<ECOption>(() => {
                 yAxisIndex: index,
             },
             {
-                name: "Ecart négatif",
+                name: "Écart négatif",
                 type: "bar",
                 stack: `deviation-${index}`,
                 datasetIndex: index,
@@ -155,8 +158,11 @@ const barOption = computed<ECOption>(() => {
                 );
             },
         },
+        // TODO: xAxisIndex must be a number, what does "all" mean ? Refer to : https://echarts.apache.org/en/option.html#dataZoom
         dataZoom: [{ xAxisIndex: "all", type: "inside", minSpan: 20 }],
+        graphic: CHART_ATTRIBUTION_GRAPHIC,
     };
+    return option;
 });
 
 const calendarOption = computed<ECOption | EChartsOption>(() => {

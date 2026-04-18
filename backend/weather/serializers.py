@@ -292,6 +292,9 @@ class TemperatureRecordEntrySerializer(serializers.Serializer):
     department = serializers.CharField()
     record_value = serializers.FloatField()
     record_date = serializers.DateField()
+    lat = serializers.FloatField()
+    lon = serializers.FloatField()
+    alt = serializers.FloatField()
 
 
 class TemperatureDeviationOverviewQuerySerializer(serializers.Serializer):

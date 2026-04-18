@@ -55,7 +55,7 @@ describe("deviationChartTooltipFormatter", () => {
                     componentSubType: "bar",
                     componentIndex: 0,
                     axisIndex: 0,
-                    seriesName: "Ecart positif",
+                    seriesName: "Écart positif",
                     name: "",
                     dataIndex: 2,
                     data: {
@@ -79,7 +79,7 @@ describe("deviationChartTooltipFormatter", () => {
                     componentSubType: "bar",
                     componentIndex: 1,
                     axisIndex: 0,
-                    seriesName: "Ecart négatif",
+                    seriesName: "Écart négatif",
                     name: "",
                     dataIndex: 2,
                     data: {
@@ -114,7 +114,7 @@ describe("deviationChartTooltipFormatter", () => {
                     componentSubType: "bar",
                     componentIndex: 0,
                     axisIndex: 0,
-                    seriesName: "Ecart positif",
+                    seriesName: "Écart positif",
                     name: "",
                     dataIndex: 12,
                     data: {
@@ -139,7 +139,7 @@ describe("deviationChartTooltipFormatter", () => {
                     componentIndex: 1,
                     seriesType: "bar",
                     axisIndex: 0,
-                    seriesName: "Ecart négatif",
+                    seriesName: "Écart négatif",
                     name: "",
                     dataIndex: 12,
                     data: {
@@ -173,7 +173,7 @@ describe("deviationChartTooltipFormatter", () => {
                     componentIndex: 0,
                     seriesType: "bar",
                     axisIndex: 0,
-                    seriesName: "Ecart positif",
+                    seriesName: "Écart positif",
                     name: "",
                     dataIndex: 1,
                     data: {
@@ -198,7 +198,7 @@ describe("deviationChartTooltipFormatter", () => {
                     componentIndex: 1,
                     seriesType: "bar",
                     axisIndex: 0,
-                    seriesName: "Ecart négatif",
+                    seriesName: "Écart négatif",
                     name: "",
                     dataIndex: 1,
                     data: {
@@ -228,7 +228,7 @@ describe("deviationChartTooltipFormatter", () => {
     describe("Date formatting by granularity", () => {
         it("formats date with month and year for 'month' granularity", () => {
             const params = [
-                makeParam("Ecart positif", {
+                makeParam("Écart positif", {
                     date: "2024-06-15",
                     deviation_positive: 1.5,
                 }),
@@ -249,7 +249,7 @@ describe("deviationChartTooltipFormatter", () => {
 
         it("formats date with year only for 'year' granularity", () => {
             const params = [
-                makeParam("Ecart positif", {
+                makeParam("Écart positif", {
                     date: "2024-06-15",
                     deviation_positive: 2.0,
                 }),
@@ -266,7 +266,7 @@ describe("deviationChartTooltipFormatter", () => {
         it("formats date with weekday, day, month and year for 'day' granularity", () => {
             // 2024-06-17 is a Monday (lun. in French)
             const params = [
-                makeParam("Ecart positif", {
+                makeParam("Écart positif", {
                     date: "2024-06-17",
                     deviation_positive: 0.8,
                 }),
@@ -284,15 +284,15 @@ describe("deviationChartTooltipFormatter", () => {
     });
 
     describe("Positive deviation", () => {
-        it("uses 'Ecart positif' series and '+' sign for positive deviation", () => {
+        it("uses 'Écart positif' series and '+' sign for positive deviation", () => {
             const marker = `<span>▲</span>`;
             const params = [
                 makeParam(
-                    "Ecart positif",
+                    "Écart positif",
                     { date: "2024-01-01", deviation_positive: 3.7 },
                     marker,
                 ),
-                makeParam("Ecart négatif", {
+                makeParam("Écart négatif", {
                     date: "2024-01-01",
                     deviation_negative: 0,
                 }),
@@ -308,7 +308,7 @@ describe("deviationChartTooltipFormatter", () => {
 
         it("formats positive deviation with one decimal place", () => {
             const params = [
-                makeParam("Ecart positif", {
+                makeParam("Écart positif", {
                     date: "2024-01-01",
                     deviation_positive: 3,
                 }),
@@ -323,12 +323,12 @@ describe("deviationChartTooltipFormatter", () => {
     });
 
     describe("Negative deviation", () => {
-        it("uses 'Ecart négatif' series and no '+' sign for negative deviation", () => {
+        it("uses 'Écart négatif' series and no '+' sign for negative deviation", () => {
             const marker = `<span>▼</span>`;
             // Only deviation_negative is set: deviation_positive is absent so ?? falls through
             const params = [
                 makeParam(
-                    "Ecart négatif",
+                    "Écart négatif",
                     { date: "2024-01-01", deviation_negative: -2.3 },
                     marker,
                 ),
@@ -345,7 +345,7 @@ describe("deviationChartTooltipFormatter", () => {
 
         it("formats negative deviation with one decimal place", () => {
             const params = [
-                makeParam("Ecart négatif", {
+                makeParam("Écart négatif", {
                     date: "2024-01-01",
                     deviation_negative: -1,
                 }),
@@ -360,11 +360,11 @@ describe("deviationChartTooltipFormatter", () => {
     });
 
     describe("Zero deviation", () => {
-        it("treats zero deviation as neutral (no sign, 'Ecart positif' series)", () => {
+        it("treats zero deviation as neutral (no sign, 'Écart positif' series)", () => {
             const marker = `<span>◆</span>`;
             const params = [
                 makeParam(
-                    "Ecart positif",
+                    "Écart positif",
                     { date: "2024-01-01", deviation_positive: 0 },
                     marker,
                 ),
@@ -383,7 +383,7 @@ describe("deviationChartTooltipFormatter", () => {
         it("falls back to empty string when matching series has no marker", () => {
             const params = [
                 makeParam(
-                    "Ecart positif",
+                    "Écart positif",
                     { date: "2024-01-01", deviation_positive: 1.0 },
                     undefined as unknown as string,
                 ),
@@ -406,7 +406,7 @@ describe("deviationChartTooltipFormatter", () => {
     describe("Output structure ", () => {
         it("joins date and value lines with <br/>", () => {
             const params = [
-                makeParam("Ecart positif", {
+                makeParam("Écart positif", {
                     date: "2024-06-01",
                     deviation_positive: 1.2,
                 }),

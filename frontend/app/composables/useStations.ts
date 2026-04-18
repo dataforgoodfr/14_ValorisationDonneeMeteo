@@ -6,7 +6,7 @@ import type {
 } from "~/types/api";
 
 export function useStations(
-    filters?: MaybeRef<StationFilters>,
+    filters: MaybeRef<StationFilters>,
     options?: Record<string, unknown>,
 ) {
     const { useApiFetch } = useApiClient();
@@ -20,7 +20,7 @@ export function useStations(
 }
 
 export function useStationsWithInfiniteScroll(
-    filters?: MaybeRef<StationFilters>,
+    filters: MaybeRef<StationFilters>,
 ) {
     const allStations = ref<Station[]>([]);
     const hasMore = ref<boolean>(false);

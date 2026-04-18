@@ -8,7 +8,7 @@ const items = computed<NavigationMenuItem[]>(() => [
         label: "Températures",
         children: [
             {
-                label: "Ecart à la normale",
+                label: "Écart à la normale",
                 to: "/ecart-normale",
                 icon: "i-lucide-move-horizontal",
                 active: route.path.startsWith("/ecart-normale"),
@@ -52,13 +52,13 @@ const items = computed<NavigationMenuItem[]>(() => [
 <template>
     <UHeader
         mode="slideover"
-        title="InfoClimat"
+        title="DataClimat"
         :ui="{ left: 'lg:flex-initial', title: 'lg:flex-initial' }"
     >
         <template #title>
             <div class="flex gap-2 mr-12">
                 <UIcon name="i-lucide-hexagon" class="size-7" />
-                <h1 class="font-title font-normal">Infoclimat</h1>
+                <h1 class="font-title font-normal">DataClimat</h1>
             </div>
         </template>
         <template #default>
@@ -74,12 +74,12 @@ const items = computed<NavigationMenuItem[]>(() => [
         </template>
 
         <template #right>
-            <UTooltip text="Accedez au site InfoClimat">
+            <UTooltip text="Accedez au site Infoclimat.fr">
                 <UButton
                     color="neutral"
                     variant="outline"
                     icon="i-lucide-cloud-sun-rain"
-                    label="Tout InfoClimat"
+                    label="Tout Infoclimat"
                     to="https://www.infoclimat.fr/"
                     target="_blank"
                     aria-label="infoclimat"

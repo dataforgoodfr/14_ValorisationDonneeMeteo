@@ -1,6 +1,4 @@
-import type { TemperatureDeviationGraphStationSerie } from "./api";
-
-export type DeviationStationIdAndName = Omit<
-    TemperatureDeviationGraphStationSerie,
-    "data"
->;
+export type DeviationStationIdAndName = {
+    station_id: string;
+    station_name: string;
+};

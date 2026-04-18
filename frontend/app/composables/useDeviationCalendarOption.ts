@@ -196,7 +196,12 @@ export function useDeviationCalendarOption(
     const series: SeriesOption[] = [];
     const titles: TitleOption[] = [];
 
-    const labelInterval = granularity === "day" ? 1 : 0;
+    // Cible ~12 labels max pour éviter le chevauchement sur les longues périodes
+    const maxLabels = granularity === "year" ? 15 : 12;
+    const labelInterval = Math.max(
+        0,
+        Math.ceil(xCategories.length / maxLabels) - 1,
+    );
     const labelRotate = granularity === "year" ? 0 : 45;
     const xAxisName = granularity === "year" ? "Année" : "Mois";
     const yAxisName = granularity === "year" ? "Mois" : "Jour";

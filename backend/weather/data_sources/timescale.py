@@ -570,7 +570,10 @@ class TimescaleTemperatureRecordsDataSource:
                 s.name,
                 s.departement,
                 o."{col}",
-                o."AAAAMMJJ"
+                o."AAAAMMJJ",
+                s.lat,
+                s.lon,
+                s.alt
             FROM ordered o
             JOIN public.v_station s ON s.station_code = o."NUM_POSTE"
             WHERE o.prev_val IS NULL OR o."{col}" {cmp} o.prev_val
@@ -593,6 +596,9 @@ class TimescaleTemperatureRecordsDataSource:
                 record_date=row["AAAAMMJJ"].date()
                 if isinstance(row["AAAAMMJJ"], dt.datetime)
                 else row["AAAAMMJJ"],
+                lat=row["lat"],
+                lon=row["lon"],
+                alt=row["alt"],
             )
             for row in rows
         ]
@@ -656,8 +662,9 @@ class MaterializedTemperatureRecordsDataSource:
             period_value = None
 
         sql = """
-            SELECT station_code, station_name, department, record_value, record_date
-            FROM public.mv_records_battus
+            SELECT m.station_code, m.station_name, m.department, m.record_value, m.record_date, vs.lat, vs.lon, vs.alt
+                FROM public.mv_records_battus m
+            LEFT JOIN public.v_station vs ON vs.station_code = m.station_code
             WHERE record_type = %s
               AND period_type = %s
               AND period_value IS NOT DISTINCT FROM %s
@@ -680,6 +687,9 @@ class MaterializedTemperatureRecordsDataSource:
                 record_date=row["record_date"].date()
                 if isinstance(row["record_date"], dt.datetime)
                 else row["record_date"],
+                lat=row["lat"],
+                lon=row["lon"],
+                alt=row["alt"],
             )
             for row in rows
         ]
@@ -780,7 +790,10 @@ class HybridTemperatureRecordsDataSource:
                 vs.name,
                 vs.departement,
                 o."{col}",
-                o."AAAAMMJJ"
+                o."AAAAMMJJ",
+                vs.lat,
+                vs.lon,
+                vs.alt
             FROM ordered o
             JOIN public.v_station vs ON vs.station_code = o."NUM_POSTE"
             WHERE o."{col}" {cmp} o.prev_val
@@ -811,6 +824,9 @@ class HybridTemperatureRecordsDataSource:
                 record_date=row["AAAAMMJJ"].date()
                 if isinstance(row["AAAAMMJJ"], dt.datetime)
                 else row["AAAAMMJJ"],
+                lat=row["lat"],
+                lon=row["lon"],
+                alt=row["alt"],
             )
             for row in rows
         ]

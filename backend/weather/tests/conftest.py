@@ -32,6 +32,15 @@ def insert_station(code: str, name: str = "Station test", department: int = 1) -
                 "dept": department,
             },
         )
+        cur.execute(
+            """
+            INSERT INTO public."station_creation_date"
+                ("station_code", "annee_de_creation")
+            VALUES (%(code)s, 2000)
+            ON CONFLICT ("station_code") DO NOTHING
+            """,
+            {"code": code},
+        )
 
 
 def insert_quotidienne(

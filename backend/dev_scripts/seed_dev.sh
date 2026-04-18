@@ -20,6 +20,10 @@ ITN_BASELINE_CSV="${ROOT_DIR}/db_data/itn_baseline_9120.csv"
 STATION_BASELINE_CSV="${ROOT_DIR}/db_data/baseline_stations_daily_mean_9120.csv"
 ITN_BASELINE_MONTHLY_CSV="${ROOT_DIR}/db_data/itn_baseline_monthly_9120.csv"
 ITN_BASELINE_YEARLY_CSV="${ROOT_DIR}/db_data/itn_baseline_yearly_9120.csv"
+STATION_CLASSE_CSV="${ROOT_DIR}/db_data/station_classe.csv"
+STATION_CREATION_DATE_CSV="${ROOT_DIR}/db_data/station_creation_date.csv"
+
+
 
 for f in \
   "${SCHEMA_SQL}" \
@@ -28,6 +32,8 @@ for f in \
   "${ITN_BASELINE_CSV}" \
   "${ITN_BASELINE_MONTHLY_CSV}" \
   "${ITN_BASELINE_YEARLY_CSV}" \
+  "${STATION_CLASSE_CSV}" \
+  "${STATION_CREATION_DATE_CSV}" \
   "${STATION_BASELINE_CSV}"
 do
   [[ -f "${f}" ]] || { echo "Missing file: ${f}" >&2; exit 1; }
@@ -54,6 +60,12 @@ echo "== Import Station (SQL dump) =="
 echo "== Import Quotidienne (CSV) =="
 "${psql_base[@]}" -c "\copy public.\"Quotidienne\" FROM '${QUOTIDIENNE_CSV}' WITH (FORMAT csv, HEADER true)"
 
+echo "== Import Station classe (CSV) =="
+"${psql_base[@]}" -c "\copy public.\"station_classe\" FROM '${STATION_CLASSE_CSV}' WITH (FORMAT csv, HEADER true)"
+
+echo "== Import Station classe (CSV) =="
+"${psql_base[@]}" -c "\copy public.\"station_creation_date\" FROM '${STATION_CREATION_DATE_CSV}' WITH (FORMAT csv, HEADER true)"
+
 echo "== Apply views =="
 bash "${ROOT_DIR}/dev_scripts/apply_views.sh"
 
@@ -77,6 +89,8 @@ echo "== Sanity checks =="
 "${psql_base[@]}" -c 'SELECT * FROM public.ref_department_region ORDER BY departement LIMIT 5;'
 "${psql_base[@]}" -c 'SELECT COUNT(*) AS station_count FROM public."Station";'
 "${psql_base[@]}" -c 'SELECT COUNT(*) AS quotidienne_count FROM public."Quotidienne";'
+"${psql_base[@]}" -c 'SELECT COUNT(*) AS station_classe_count FROM public.station_classe;'
+"${psql_base[@]}" -c 'SELECT COUNT(*) AS station_creation_date_count FROM public.station_creation_date;'
 "${psql_base[@]}" -c 'SELECT COUNT(*) AS v_station_count FROM public.v_station;'
 "${psql_base[@]}" -c 'SELECT COUNT(*) AS v_quotidienne_itn_count FROM public.v_quotidienne_itn;'
 "${psql_base[@]}" -c 'SELECT MIN(date), MAX(date) FROM public.v_quotidienne_itn;'

@@ -1,9 +1,9 @@
 import { refDebounced } from "@vueuse/core";
 import type { TemperatureDeviationParams } from "~/types/api";
 import type {
-    StringFilterValue,
-    RangeFilterValue,
     FilterValue,
+    RangeFilterValue,
+    StringFilterValue,
 } from "~/components/ui/commons/filterBarTypes";
 import { departements } from "~/data/records/departements";
 import { regions } from "~/data/records/regions";
@@ -42,7 +42,7 @@ export const useDeviationTableStore = defineStore("deviationTableStore", () => {
             label: `${d.code} - ${d.name}`,
         })),
         region: regions.map((d) => ({
-            value: d.code,
+            value: d.name,
             label: `${d.name}`,
         })),
     };
@@ -136,8 +136,8 @@ export const useDeviationTableStore = defineStore("deviationTableStore", () => {
         debounceDuration,
     );
 
-    const dateStart = ref<Date>(new Date("1950-03-01"));
-    const dateEnd = ref<Date>(new Date("2026-03-31"));
+    const dateStart = ref<Date>(new Date("2026-03-01"));
+    const dateEnd = ref<Date>(new Date());
     const ordering = ref<string>("-deviation");
 
     const params = computed<TemperatureDeviationParams>(() => {
@@ -185,6 +185,11 @@ export const useDeviationTableStore = defineStore("deviationTableStore", () => {
         error,
     } = useTemperatureDeviation(params, undefined, false);
 
+    const exportParams = computed<TemperatureDeviationParams>(() => {
+        const { limit: _limit, offset: _offset, ...rest } = params.value;
+        return rest;
+    });
+
     return {
         page,
         pageSize,
@@ -193,6 +198,7 @@ export const useDeviationTableStore = defineStore("deviationTableStore", () => {
         setFilter,
         clearFilter,
         deviationData,
+        exportParams,
         pending,
         error,
         dateStart,

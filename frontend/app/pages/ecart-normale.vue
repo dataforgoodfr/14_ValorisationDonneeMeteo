@@ -14,7 +14,7 @@ const chartType = computed<ChartType>(
 );
 
 const heroData = {
-    title: "Ecart à la normale",
+    title: "Écart à la normale",
     description:
         'L\'écart à la normale est la différence entre la moyenne des températures sur une période, et les températures normales. Les " normales " sont calculées sur 30 ans et mises à jour toutes les décennies.',
 };

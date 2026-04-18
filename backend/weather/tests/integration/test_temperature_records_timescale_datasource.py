@@ -8,7 +8,8 @@ from weather.data_sources.timescale import (
     TimescaleTemperatureRecordsDataSource,
 )
 from weather.services.temperature_records.types import TemperatureRecordsRequest
-from weather.tests.conftest import insert_quotidienne, insert_station
+from weather.tests.conftest import insert_quotidienne
+from weather.tests.helpers.stations import insert_station
 
 # =========================
 # Tests
@@ -19,7 +20,14 @@ from weather.tests.conftest import insert_quotidienne, insert_station
 def test_fetch_records_hot_month_happy_path():
     station_code = "99001001"
 
-    insert_station(station_code, "Station Records Test", department=99)
+    insert_station(
+        station_code,
+        "Station Records Test",
+        departement=99,
+        lat=48.0,
+        lon=2.0,
+        alt=100.0,
+    )
 
     # Insert TX data for July across several years
     # 2003: 38.0 → premier record (prev_max=NULL)
@@ -45,13 +53,18 @@ def test_fetch_records_hot_month_happy_path():
     assert station_entries[-1].record_date == dt.date(2019, 7, 25)
     assert station_entries[0].station_name == "Station Records Test"
     assert station_entries[0].department == "99"
+    assert station_entries[0].lat == 48.0
+    assert station_entries[0].lon == 2.0
+    assert station_entries[0].alt == 100.0
 
 
 @pytest.mark.django_db
 def test_fetch_records_cold_month_happy_path():
     station_code = "99002001"
 
-    insert_station(station_code, "Station Cold Test", department=99)
+    insert_station(
+        station_code, "Station Cold Test", departement=99, lat=48.0, lon=2.0, alt=100.0
+    )
 
     insert_quotidienne(dt.date(1985, 1, 16), station_code, tx=0.0, tn=-20.5)
     insert_quotidienne(dt.date(2010, 1, 7), station_code, tx=2.0, tn=-10.0)
@@ -72,7 +85,14 @@ def test_fetch_records_cold_month_happy_path():
 def test_fetch_records_season_aggregates_across_months():
     station_code = "99003001"
 
-    insert_station(station_code, "Station Season Test", department=99)
+    insert_station(
+        station_code,
+        "Station Season Test",
+        departement=99,
+        lat=48.0,
+        lon=2.0,
+        alt=100.0,
+    )
 
     # Summer = months 6, 7, 8
     # Ordre chronologique :
@@ -104,7 +124,9 @@ def test_fetch_records_season_aggregates_across_months():
 def test_fetch_records_all_time_returns_entries():
     station_code = "99004001"
 
-    insert_station(station_code, "Station All Time", department=99)
+    insert_station(
+        station_code, "Station All Time", departement=99, lat=48.0, lon=2.0, alt=100.0
+    )
 
     # Ordre chronologique :
     # 1985-01-16: tx=0.0 → premier record all-time
@@ -126,7 +148,9 @@ def test_fetch_records_all_time_returns_entries():
 def test_fetch_records_returns_correct_types():
     station_code = "99005001"
 
-    insert_station(station_code, "Station Types Test", department=99)
+    insert_station(
+        station_code, "Station Types Test", departement=99, lat=48.0, lon=2.0, alt=100.0
+    )
     insert_quotidienne(dt.date(2019, 7, 25), station_code, tx=42.6, tn=22.0)
 
     ds = TimescaleTemperatureRecordsDataSource()
@@ -142,3 +166,6 @@ def test_fetch_records_returns_correct_types():
     assert isinstance(entry.department, str)
     assert isinstance(entry.record_value, float)
     assert isinstance(entry.record_date, dt.date)
+    assert isinstance(entry.lat, float)
+    assert isinstance(entry.lon, float)
+    assert isinstance(entry.alt, float)
