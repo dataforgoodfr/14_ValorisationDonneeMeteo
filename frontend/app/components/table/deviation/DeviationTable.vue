@@ -192,17 +192,24 @@ const columns: TableColumn<TableRow>[] = [
 ];
 
 const dates = useCustomDate();
+
+const props = withDefaults(defineProps<{ showFilters?: boolean }>(), {
+    showFilters: true,
+});
 </script>
 
 <template>
     <div class="flex flex-col gap-4">
-        <div class="flex items-end justify-between gap-4">
-            <DayPicker
-                v-model:start-date="dateStart"
-                v-model:end-date="dateEnd"
-                :min-date="dates.absoluteMinDataDate.value"
-                :max-date="dates.yesterday.value"
-            />
+        <DayPicker
+            v-if="props.showFilters"
+            v-model:start-date="dateStart"
+            v-model:end-date="dateEnd"
+            :min-date="dates.absoluteMinDataDate.value"
+            :max-date="dates.yesterday.value"
+        />
+
+        <div class="flex items-center justify-between gap-4">
+            <DeviationFilterBar />
             <UButton
                 label="Exporter CSV"
                 icon="i-lucide-download"
@@ -211,8 +218,6 @@ const dates = useCustomDate();
                 @click="downloadCsv"
             />
         </div>
-
-        <DeviationFilterBar />
 
         <div v-if="error" class="px-4 py-3 bg-error/10 text-error rounded">
             Erreur de chargement : {{ error }}

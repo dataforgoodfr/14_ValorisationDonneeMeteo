@@ -1,4 +1,6 @@
 import type {
+    DeviationMapParams,
+    DeviationMapResponse,
     TemperatureDeviationGraphParams,
     TemperatureDeviationGraphResponse,
     TemperatureDeviationParams,
@@ -46,7 +48,7 @@ export function useTemperatureDeviation(
             if (enabled && hasParams) {
                 result.execute();
             } else if (!hasParams) {
-                result.data.value = undefined;
+                result.data.value = null;
             }
         },
         { immediate: true, deep: true },
@@ -88,7 +90,7 @@ export function useTemperatureDeviationGraph(
             if (enabled && hasParams) {
                 result.execute();
             } else if (!hasParams) {
-                result.data.value = undefined;
+                result.data.value = null;
             }
         },
         { immediate: true },
@@ -141,4 +143,17 @@ export function useCumulativeRecords(
 ) {
     const { useApiFetch } = useApiClient();
     return useApiFetch("/temperature/records/cumulative", { query: params });
+}
+
+export function useTemperatureDeviationMap(
+    params: MaybeRef<DeviationMapParams>,
+    key?: string,
+) {
+    const { useApiFetch } = useApiClient();
+    return useApiFetch<DeviationMapResponse>("/temperature/deviation", {
+        query: params,
+        immediate: false,
+        watch: false,
+        ...(key ? { key } : {}),
+    });
 }

@@ -142,6 +142,55 @@ export interface TemperatureDeviationResponse {
     pagination: TemperatureDeviationPagination;
     stations: TemperatureDeviationStation[];
 }
+export interface DeviationMapParams {
+    date_start: string;
+    date_end: string;
+    limit?: number;
+    offset?: number;
+    station_ids?: string;
+    departments?: string;
+    regions?: string;
+    ordering?: string;
+}
+
+export interface DeviationMapNational {
+    deviation_mean: number;
+}
+
+export interface DeviationMapStation {
+    station_id: string;
+    station_name: string;
+    temperature_mean: number;
+    baseline_mean: number;
+    deviation: number;
+    lat: number;
+    lon: number;
+    department: string | null;
+    alt: number;
+    region: string | null;
+}
+
+export interface DeviationMapMetadata {
+    date_start: string;
+    date_end: string;
+    baseline: string;
+    filters: Record<string, unknown>;
+    ordering: string;
+}
+
+export interface DeviationMapPagination {
+    total_count: number;
+    limit: number;
+    offset: number;
+}
+
+export interface DeviationMapResponse {
+    metadata: DeviationMapMetadata;
+    national: DeviationMapNational;
+    pagination: DeviationMapPagination;
+    stations: DeviationMapStation[];
+}
+
 export interface TemperatureDeviationGraphParams {
     date_start: string;
     date_end: string;
