@@ -42,6 +42,9 @@ class Station(models.Model):
 
     is_public = models.BooleanField(null=True, blank=True)
 
+    annee_de_creation = models.IntegerField(null=True, blank=True)
+    annee_de_fermeture = models.IntegerField(null=True, blank=True)
+
     created_at = models.DateTimeField(null=True, blank=True)
     updated_at = models.DateTimeField(null=True, blank=True)
 

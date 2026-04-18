@@ -873,6 +873,7 @@ class HybridTemperatureRecordsDataSource:
             FROM ordered o
             JOIN public.v_station vs ON vs.station_code = o."NUM_POSTE"
             WHERE o."{col}" {cmp} o.prev_val
+              AND o."AAAAMMJJ" >= make_date(vs.annee_de_creation + 20, 1, 1)
               {date_filter_clauses}
               {terr_filter_clause}
             ORDER BY vs.name, o."AAAAMMJJ"

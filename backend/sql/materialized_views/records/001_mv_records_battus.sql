@@ -184,7 +184,8 @@ SELECT
     r."AAAAMMJJ"     AS record_date
 FROM tx_all r
 JOIN public.v_station s ON s.station_code = r."NUM_POSTE"
-WHERE r.prev_val IS NULL OR r.val > r.prev_val
+WHERE (r.prev_val IS NULL OR r.val > r.prev_val)
+  AND r."AAAAMMJJ" >= make_date(s.annee_de_creation + 20, 1, 1)
 
 UNION ALL
 
@@ -200,7 +201,8 @@ SELECT
     r."AAAAMMJJ"     AS record_date
 FROM tn_all r
 JOIN public.v_station s ON s.station_code = r."NUM_POSTE"
-WHERE r.prev_val IS NULL OR r.val < r.prev_val
+WHERE (r.prev_val IS NULL OR r.val < r.prev_val)
+  AND r."AAAAMMJJ" >= make_date(s.annee_de_creation + 20, 1, 1)
 
 UNION ALL
 
@@ -216,7 +218,8 @@ SELECT
     r."AAAAMMJJ"         AS record_date
 FROM tx_monthly r
 JOIN public.v_station s ON s.station_code = r."NUM_POSTE"
-WHERE r.prev_val IS NULL OR r.val > r.prev_val
+WHERE (r.prev_val IS NULL OR r.val > r.prev_val)
+  AND r."AAAAMMJJ" >= make_date(s.annee_de_creation + 20, 1, 1)
 
 UNION ALL
 
@@ -232,7 +235,8 @@ SELECT
     r."AAAAMMJJ"         AS record_date
 FROM tn_monthly r
 JOIN public.v_station s ON s.station_code = r."NUM_POSTE"
-WHERE r.prev_val IS NULL OR r.val < r.prev_val
+WHERE (r.prev_val IS NULL OR r.val < r.prev_val)
+  AND r."AAAAMMJJ" >= make_date(s.annee_de_creation + 20, 1, 1)
 
 UNION ALL
 
@@ -248,7 +252,8 @@ SELECT
     r."AAAAMMJJ"     AS record_date
 FROM tx_seasonal r
 JOIN public.v_station s ON s.station_code = r."NUM_POSTE"
-WHERE r.prev_val IS NULL OR r.val > r.prev_val
+WHERE (r.prev_val IS NULL OR r.val > r.prev_val)
+  AND r."AAAAMMJJ" >= make_date(s.annee_de_creation + 20, 1, 1)
 
 UNION ALL
 
@@ -264,7 +269,8 @@ SELECT
     r."AAAAMMJJ"     AS record_date
 FROM tn_seasonal r
 JOIN public.v_station s ON s.station_code = r."NUM_POSTE"
-WHERE r.prev_val IS NULL OR r.val < r.prev_val;
+WHERE (r.prev_val IS NULL OR r.val < r.prev_val)
+  AND r."AAAAMMJJ" >= make_date(s.annee_de_creation + 20, 1, 1);
 
 -- ============================================================================
 -- INDEX
