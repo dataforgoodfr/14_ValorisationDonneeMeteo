@@ -17,6 +17,7 @@ type DeviationTableFilters = {
     temperatureMean?: RangeFilterValue;
 };
 
+const dates = useCustomDate();
 const debounceDuration = 300;
 
 export const useDeviationTableStore = defineStore("deviationTableStore", () => {
@@ -136,8 +137,8 @@ export const useDeviationTableStore = defineStore("deviationTableStore", () => {
         debounceDuration,
     );
 
-    const dateStart = ref<Date>(new Date("2026-03-01"));
-    const dateEnd = ref<Date>(new Date());
+    const dateStart = ref(dates.lastMonth.value);
+    const dateEnd = ref(dates.today.value);
     const ordering = ref<string>("-deviation");
 
     const params = computed<TemperatureDeviationParams>(() => {

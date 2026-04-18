@@ -28,7 +28,7 @@ export const useRecordsChartStore = defineStore("recordChartStore", () => {
     const recordsChartRef = shallowRef();
 
     // Date range
-    const pickedDateStart = ref(new Date(1950, 0, 1));
+    const pickedDateStart = ref(dates.absoluteMinDataDate.value);
     const pickedDateEnd = ref(dates.today.value);
     const debouncedStartDate = refDebounced(pickedDateStart, debounceDuration);
     const debouncedEndDate = refDebounced(pickedDateEnd, debounceDuration);

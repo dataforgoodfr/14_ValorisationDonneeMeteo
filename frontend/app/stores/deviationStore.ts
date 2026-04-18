@@ -17,7 +17,7 @@ const dates = useCustomDate();
 export const useDeviationStore = defineStore("deviationStore", () => {
     const deviationChartRef = shallowRef();
 
-    const pickedDateStart = ref(dates.lastYear.value);
+    const pickedDateStart = ref(dates.last10Year.value);
     const pickedDateEnd = ref(dates.yesterday.value);
 
     const granularity: Ref<GranularityType> = ref<GranularityType>("month");

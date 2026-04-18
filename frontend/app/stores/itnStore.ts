@@ -14,7 +14,7 @@ export const useItnStore = defineStore("itnStore", () => {
     const pickedDateStart = ref(dates.lastYear.value);
     const pickedDateEnd = ref(dates.yesterday.value);
 
-    const granularity: Ref<GranularityType> = ref<GranularityType>("month");
+    const granularity: Ref<GranularityType> = ref<GranularityType>("day");
     const sliceTypeSwitchEnabled = ref(false);
     const sliceType: Ref<SliceType> = ref<SliceType>("full");
 
@@ -37,6 +37,15 @@ export const useItnStore = defineStore("itnStore", () => {
         granularity.value = value;
         if (value === "day") {
             sliceTypeSwitchEnabled.value = false;
+            pickedDateEnd.value = dates.yesterday.value;
+        }
+        if (value === "month") {
+            pickedDateEnd.value = dates.lastMonth.value;
+        }
+        if (value === "year") {
+            const currentYear = new Date().getFullYear();
+            pickedDateStart.value = new Date(currentYear - 10, 0, 1);
+            pickedDateEnd.value = new Date(currentYear - 1, 11, 31);
         }
     };
 
