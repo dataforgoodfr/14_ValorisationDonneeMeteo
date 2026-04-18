@@ -178,7 +178,7 @@ const option = computed<ECOption>(() => {
             },
             // hot_cold_invisible_band
             {
-                name: "Température",
+                name: ITN_SERIES.temperature,
                 type: "line",
                 encode: { x: "date", y: "hot_cold_invisible_band" },
                 stack: "hot_cold",
@@ -190,7 +190,7 @@ const option = computed<ECOption>(() => {
             },
             // hot_red_band
             {
-                name: "Température",
+                name: ITN_SERIES.temperature,
                 type: "line",
                 encode: { x: "date", y: "hot_red_band" },
                 stack: "hot_cold",
@@ -203,7 +203,7 @@ const option = computed<ECOption>(() => {
             },
             // cold_blue_band
             {
-                name: "Température",
+                name: ITN_SERIES.temperature,
                 type: "line",
                 encode: { x: "date", y: "cold_blue_band" },
                 stack: "hot_cold",
@@ -220,7 +220,12 @@ const option = computed<ECOption>(() => {
             left: "center",
         },
         legend: {
-            data: ["Température", "Indicateur MF", "Écart-type", "Extrêmes"],
+            data: [
+                ITN_SERIES.temperature,
+                ITN_SERIES.baseline,
+                ITN_SERIES.stdDev,
+                ITN_SERIES.extremes,
+            ],
             bottom: 85,
         },
         tooltip: {

@@ -3,6 +3,9 @@ import DatePicker from "primevue/datepicker";
 import { useCustomDate } from "#imports";
 import type { SelectBarAdapter } from "~/components/ui/commons/selectBar/types";
 
+const localStartDate = defineModel<Date | undefined>("startDate");
+const localEndDate = defineModel<Date | undefined>("endDate");
+
 const adapter = inject<SelectBarAdapter>("selectBarAdapter")!;
 const dates = useCustomDate();
 
@@ -59,9 +62,9 @@ const pt = {
         <div class="flex flex-col text-center gap-1">
             <p class="text-sm text-default">Année de début</p>
             <DatePicker
-                v-model="adapter.pickedDateStart.value"
+                v-model="localStartDate"
                 :min-date="dates.absoluteMinDataDate.value"
-                :max-date="adapter.pickedDateEnd.value"
+                :max-date="localEndDate"
                 view="year"
                 date-format="yy"
                 :pt="pt"
@@ -77,9 +80,11 @@ const pt = {
         <div class="flex flex-col text-center gap-1">
             <p class="text-sm text-default">Année de fin</p>
             <DatePicker
-                v-model="adapter.pickedDateEnd.value"
-                :min-date="adapter.pickedDateStart.value"
-                :max-date="dates.yesterday.value"
+                v-model="localEndDate"
+                :min-date="localStartDate"
+                :max-date="adapter.maxDate?.value"
+                ??
+                dates.today.value
                 view="year"
                 date-format="yy"
                 :pt="pt"

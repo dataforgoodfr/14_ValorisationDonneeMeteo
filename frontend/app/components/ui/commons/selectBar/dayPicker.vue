@@ -1,13 +1,28 @@
 <script setup lang="ts">
 import DatePicker from "primevue/datepicker";
+import { useCustomDate } from "#imports";
+import type { SelectBarAdapter } from "~/components/ui/commons/selectBar/types";
 
 const localStartDate = defineModel<Date | undefined>("startDate");
 const localEndDate = defineModel<Date | undefined>("endDate");
 
-const props = defineProps<{
-    minDate?: Date;
-    maxDate?: Date;
-}>();
+const adapter = inject<SelectBarAdapter>("selectBarAdapter")!;
+const dates = useCustomDate();
+
+const minStartDate = computed(() => {
+    if (!localEndDate.value) return dates.absoluteMinDataDate.value;
+    const d = new Date(localEndDate.value);
+    d.setFullYear(d.getFullYear() - 2);
+    return d;
+});
+
+const maxEndDate = computed(() => {
+    if (!localStartDate.value) return dates.today.value;
+    const d = new Date(localStartDate.value);
+    d.setFullYear(d.getFullYear() + 2);
+    const max = adapter.maxDate?.value ?? dates.today.value;
+    return d < max ? d : max;
+});
 
 const pt = {
     root: { class: "relative w-36" },
@@ -103,7 +118,7 @@ const pt = {
             <p class="text-sm text-default">Jour de début</p>
             <DatePicker
                 v-model="localStartDate"
-                :min-date="props.minDate"
+                :min-date="minStartDate"
                 :max-date="localEndDate"
                 date-format="dd/mm/yy"
                 :pt="pt"
@@ -121,7 +136,7 @@ const pt = {
             <DatePicker
                 v-model="localEndDate"
                 :min-date="localStartDate"
-                :max-date="props.maxDate"
+                :max-date="maxEndDate"
                 date-format="dd/mm/yy"
                 :pt="pt"
                 unstyled
