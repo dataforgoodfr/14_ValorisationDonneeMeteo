@@ -295,23 +295,6 @@ export interface TemperatureRecordsResponse {
     stations: TemperatureRecordStation[];
 }
 
-// ===== Deviation Map (overview) types — endpoint: /temperature/deviation =====
-
-export interface DeviationMapParams {
-    date_start: string;
-    date_end: string;
-    limit?: number;
-    offset?: number;
-    station_ids?: string;
-    departments?: string;
-    regions?: string;
-    ordering?: string;
-}
-
-export interface DeviationMapNational {
-    deviation_mean: number;
-}
-
 // ===== API Error type =====
 
 export interface ApiError {
