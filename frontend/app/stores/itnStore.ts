@@ -8,6 +8,7 @@ import type {
     SliceType,
     ChartType,
 } from "~/components/ui/commons/selectBar/types";
+import { fetchNationalIndicatorForYear } from "~/utils/nationalIndicatorFetcher";
 
 const dates = useCustomDate();
 
@@ -49,16 +50,10 @@ export const useItnStore = defineStore("itnStore", () => {
                         return stackedDataCache.get(year);
                     }
 
-                    const result = await apiFetch<NationalIndicatorResponse>(
-                        "/temperature/national-indicator",
-                        {
-                            query: {
-                                date_start: `${year}-01-01`,
-                                date_end: `${year}-12-31`,
-                                granularity: granularity.value,
-                                slice_type: "full",
-                            },
-                        },
+                    const result = await fetchNationalIndicatorForYear(
+                        apiFetch,
+                        year,
+                        granularity.value,
                     );
 
                     stackedDataCache.set(year, result);
