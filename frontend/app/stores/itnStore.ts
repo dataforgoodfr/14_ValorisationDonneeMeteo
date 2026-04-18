@@ -31,19 +31,25 @@ export const useItnStore = defineStore("itnStore", () => {
     const selectedYears = ref<number[]>([new Date().getFullYear()]);
     const stackedData = ref<NationalIndicatorResponse | null>(null);
     const stackedPending = ref(false);
+    const stackedDataCache = new Map<number, NationalIndicatorResponse>();
 
     const { apiFetch } = useApiClient();
 
-    async function fetchStackedData() {
+    async function fetchStackedData(): Promise<void> {
         if (selectedYears.value.length === 0) {
             stackedData.value = null;
             return;
         }
         stackedPending.value = true;
+
         try {
             const responses = await Promise.all(
-                selectedYears.value.map((year) =>
-                    apiFetch<NationalIndicatorResponse>(
+                selectedYears.value.map(async (year) => {
+                    if (stackedDataCache.has(year)) {
+                        return stackedDataCache.get(year);
+                    }
+
+                    const result = await apiFetch<NationalIndicatorResponse>(
                         "/temperature/national-indicator",
                         {
                             query: {
@@ -53,9 +59,14 @@ export const useItnStore = defineStore("itnStore", () => {
                                 slice_type: "full",
                             },
                         },
-                    ),
-                ),
+                    );
+
+                    stackedDataCache.set(year, result);
+
+                    return result;
+                }),
             );
+
             stackedData.value = {
                 metadata: responses[0]!.metadata,
                 time_series: responses.flatMap((r) => r.time_series),
