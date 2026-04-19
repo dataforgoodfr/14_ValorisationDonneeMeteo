@@ -1083,7 +1083,9 @@ class TimescaleTemperatureMinMaxDataSource(MinMaxGraphDataSource):
             station_names[sid] = row["station_name"]
             grouped[sid].append(
                 DailyMinMaxPoint(
-                    date=row["date"],
+                    date=row["date"].date()
+                    if isinstance(row["date"], dt.datetime)
+                    else row["date"],
                     tmin=float(row["tmin"]) if row["tmin"] is not None else None,
                     tmax=float(row["tmax"]) if row["tmax"] is not None else None,
                 )
@@ -1121,7 +1123,9 @@ class TimescaleTemperatureMinMaxDataSource(MinMaxGraphDataSource):
 
         return [
             DailyMinMaxPoint(
-                date=row["date"],
+                date=row["date"].date()
+                if isinstance(row["date"], dt.datetime)
+                else row["date"],
                 tmin=float(row["tmin"]),
                 tmax=float(row["tmax"]),
             )

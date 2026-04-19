@@ -2,7 +2,7 @@
 DRF ViewSets for weather data API endpoints.
 """
 
-from drf_spectacular.utils import extend_schema, extend_schema_view
+from drf_spectacular.utils import OpenApiParameter, extend_schema, extend_schema_view
 from rest_framework import status, viewsets
 from rest_framework.response import Response
 from rest_framework.views import APIView
@@ -268,10 +268,20 @@ class TemperatureMinMaxGraphAPIView(APIView):
     permission_classes = []
 
     @extend_schema(
-        description=(
-            "Retourne la moyenne de Tmin et Tmax par période "
-            "selon la granularité (jour/mois/année) et le territoire."
-        ),
+        parameters=[
+            OpenApiParameter("date_start", str, OpenApiParameter.QUERY, required=True),
+            OpenApiParameter("date_end", str, OpenApiParameter.QUERY, required=True),
+            OpenApiParameter(
+                "granularity",
+                str,
+                OpenApiParameter.QUERY,
+                required=True,
+                enum=["day", "month", "year"],
+            ),
+            OpenApiParameter("station_ids", str, OpenApiParameter.QUERY, required=False),
+            OpenApiParameter("departments", str, OpenApiParameter.QUERY, required=False),
+            OpenApiParameter("regions", str, OpenApiParameter.QUERY, required=False),
+        ]
     )
     def get(self, request):
         q = TemperatureMinMaxGraphQuerySerializer(data=request.query_params)
