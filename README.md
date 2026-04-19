@@ -22,6 +22,57 @@ Consultez les README de chaque sous-projet :
 - [Backend](backend/README.md)
 - [Frontend](frontend/README.md)
 
+## CI/CD - Livrables
+
+La pipeline CI produit maintenant automatiquement les artefacts suivants :
+
+- `backend-reports` :
+  - `pytest-report.xml` (test report)
+  - `coverage.xml` (coverage report)
+  - `ruff-report.json` (scan code report)
+- `trivy-reports` :
+  - `results.sarif` (Trivy SARIF)
+  - `trivy-report.json` (Trivy JSON)
+  - `trivy.vex.json` (VEX format OpenVEX)
+
+Le build Docker est fait dans la CI, et le push registry est verrouille sur la branche `main` via le workflow CD.
+
+### Verification demandee "pipeline testing"
+
+1. Casser volontairement un test (ex: assertion incorrecte).
+2. Ouvrir une PR et verifier que la CI echoue.
+3. Corriger le test.
+4. Verifier que la CI repasse au vert.
+
+## Observabilite locale (Prometheus + Grafana)
+
+### Lancer la stack
+
+```bash
+docker compose -f docker-compose.dev.yml up -d
+```
+
+### Interfaces
+
+- App : http://localhost
+- Prometheus : http://localhost:9090
+- Grafana : http://localhost:3001 (admin/admin)
+
+### Sources de metriques
+
+- Endpoint backend expose : `/metrics/`
+- Target Prometheus configuree : `backend:8000`
+- Dashboard Grafana provisionne automatiquement : `Meteo API Overview`
+
+## Docker Hardened Image (DHI)
+
+Les Dockerfiles backend et frontend utilisent des `ARG` de base image pour faciliter le passage vers des images durcies DHI :
+
+- Backend : `PYTHON_BASE_IMAGE`
+- Frontend : `NODE_BUILD_IMAGE` et `NODE_RUNTIME_IMAGE`
+
+Pour utiliser DHI, remplace les valeurs par les images Python/Node recommandees depuis https://dhi.io.
+
 ## Contribuer
 
 Ce projet fait partie de la saison 14 de Data For Good.

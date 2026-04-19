@@ -3,7 +3,7 @@ name: CI
 on:
   pull_request:
   push:
-    branches: [main, master]
+    branches: [ main, master ]
   workflow_dispatch:
 
 permissions:
@@ -11,12 +11,15 @@ permissions:
   actions: read
   security-events: write
 
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: "true"
+
 jobs:
   test-backend:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        python-version: ["3.12"]
+        python-version: [ "3.12" ]
 
     services:
       timescaledb:
@@ -26,10 +29,8 @@ jobs:
           POSTGRES_PASSWORD: infoclimat2026
           POSTGRES_DB: meteodb
         options: >-
-          --health-cmd "pg_isready -U infoclimat -d meteodb"
-          --health-interval 10s
-          --health-timeout 5s
-          --health-retries 5
+          --health-cmd "pg_isready -U infoclimat -d meteodb" --health-interval
+          10s --health-timeout 5s --health-retries 5
         ports:
           - 5432:5432
 
@@ -52,12 +53,22 @@ jobs:
       - name: Lint with Ruff
         run: |
           cd backend
-          uv run ruff check .
+          uv run ruff check . --output-format json --output-file ruff-report.json
 
       - name: Tests with pytest
         run: |
           cd backend
-          uv run pytest
+          uv run pytest --junitxml=pytest-report.xml --cov=weather --cov-report=xml --cov-report=term
+
+      - name: Upload backend reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: backend-reports
+          path: |
+            backend/ruff-report.json
+            backend/pytest-report.xml
+            backend/coverage.xml
 
   test-frontend:
     runs-on: ubuntu-latest
@@ -88,9 +99,14 @@ jobs:
           cd frontend
           npm run build
 
+      - name: Run frontend tests
+        run: |
+          cd frontend
+          npm run test:unit --if-present
+
   trivy-scan:
     runs-on: ubuntu-latest
-    needs: [test-backend, test-frontend]
+    needs: [ test-backend, test-frontend ]
 
     steps:
       - name: Checkout
@@ -104,7 +120,86 @@ jobs:
           output: results.sarif
           severity: CRITICAL,HIGH
 
+      - name: Trivy JSON report
+        run: |
+          trivy fs --severity CRITICAL,HIGH --format json --output trivy-report.json .
+
+      - name: Generate OpenVEX file
+        run: |
+          jq -n \
+            --arg repo "${{ github.repository }}" \
+            --arg sha "${{ github.sha }}" \
+            --arg timestamp "$(date -u +%Y-%m-%dT%H:%M:%SZ)" \
+            --slurpfile report trivy-report.json '
+              {
+                "@context": "https://openvex.dev/ns",
+                "@id": ("https://github.com/" + $repo + "/attestations/vex-" + $sha),
+                "author": "github-actions",
+                "timestamp": $timestamp,
+                "version": 1,
+                "tooling": "trivy",
+                "statements": (
+                  [
+                    ($report[0].Results // [])[]
+                    | . as $result
+                    | ($result.Vulnerabilities // [])[]
+                    | {
+                        vulnerability: { name: .VulnerabilityID },
+                        products: [
+                          {
+                            "@id": (
+                              .PkgIdentifier.PURL
+                              // ("pkg:generic/" + ((.PkgName // "unknown") | ascii_downcase))
+                            )
+                          }
+                        ],
+                        status: "under_investigation",
+                        justification: "component_not_present"
+                      }
+                  ]
+                )
+              }
+            ' > trivy.vex.json
+
+      - name: Upload trivy reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: trivy-reports
+          path: |
+            results.sarif
+            trivy-report.json
+            trivy.vex.json
+
       - name: Upload to GitHub Security
         uses: github/codeql-action/upload-sarif@v4
         with:
           sarif_file: results.sarif
+
+  docker-build:
+    runs-on: ubuntu-latest
+    needs: [ test-backend, test-frontend, trivy-scan ]
+    strategy:
+      matrix:
+        include:
+          - service: backend
+            dockerfile: ./backend/Dockerfile
+            context: ./backend
+          - service: frontend
+            dockerfile: ./frontend/Dockerfile
+            context: ./frontend
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build Docker image for ${{ matrix.service }}
+        uses: docker/build-push-action@v6
+        with:
+          context: ${{ matrix.context }}
+          file: ${{ matrix.dockerfile }}
+          push: false
+          tags: local/${{ matrix.service }}:ci
