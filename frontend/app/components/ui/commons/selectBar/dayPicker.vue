@@ -6,7 +6,7 @@ import type { SelectBarAdapter } from "~/components/ui/commons/selectBar/types";
 const localStartDate = defineModel<Date | undefined>("startDate");
 const localEndDate = defineModel<Date | undefined>("endDate");
 
-const adapter = inject<SelectBarAdapter>("selectBarAdapter")!;
+const adapter = inject<SelectBarAdapter>("selectBarAdapter");
 const dates = useCustomDate();
 
 const minStartDate = computed(() => {
@@ -17,7 +17,7 @@ const minStartDate = computed(() => {
 });
 
 const maxEndDate = computed(() => {
-    const ceiling = adapter.maxDate?.value ?? dates.yesterday.value;
+    const ceiling = adapter?.maxDate?.value ?? dates.yesterday.value;
     if (!localStartDate.value) return ceiling;
     const d = new Date(localStartDate.value);
     d.setFullYear(d.getFullYear() + 2);
