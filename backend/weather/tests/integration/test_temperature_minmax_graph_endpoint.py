@@ -4,7 +4,7 @@ from rest_framework.test import APIClient
 from weather.bootstrap_temperature_minmax import TemperatureMinMaxDependencyProvider
 from weather.data_sources.temperature_minmax_fake import FakeTemperatureMinMaxDataSource
 
-URL = "/api/v1/temperature/minmax/graph"
+URL = "/api/v1/temperature/extremes/graph"
 
 
 @pytest.fixture

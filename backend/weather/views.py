@@ -259,7 +259,7 @@ class TemperatureRecordsAPIView(APIView):
 
 class TemperatureMinMaxGraphAPIView(APIView):
     """
-    GET /api/v1/temperature/minmax/graph
+    GET /api/v1/temperature/extremes/graph
     Retourne la moyenne de Tmin et Tmax sur une période,
     selon la granularité et le territoire sélectionnés.
     """
@@ -278,8 +278,12 @@ class TemperatureMinMaxGraphAPIView(APIView):
                 required=True,
                 enum=["day", "month", "year"],
             ),
-            OpenApiParameter("station_ids", str, OpenApiParameter.QUERY, required=False),
-            OpenApiParameter("departments", str, OpenApiParameter.QUERY, required=False),
+            OpenApiParameter(
+                "station_ids", str, OpenApiParameter.QUERY, required=False
+            ),
+            OpenApiParameter(
+                "departments", str, OpenApiParameter.QUERY, required=False
+            ),
             OpenApiParameter("regions", str, OpenApiParameter.QUERY, required=False),
         ]
     )

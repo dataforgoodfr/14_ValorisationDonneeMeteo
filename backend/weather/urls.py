@@ -37,9 +37,9 @@ urlpatterns = [
         name="temperature-records",
     ),
     path(
-        "temperature/minmax/graph",
+        "temperature/extremes/graph",
         TemperatureMinMaxGraphAPIView.as_view(),
-        name="temperature-minmax-graph",
+        name="temperature-extremes-graph",
     ),
     path(
         "temperature/deviation/graph",
