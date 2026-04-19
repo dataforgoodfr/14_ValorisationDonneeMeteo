@@ -9,14 +9,10 @@ import DayPicker from "~/components/ui/commons/selectBar/dayPicker.vue";
 import { useCustomDate } from "~/composables/useCustomDate";
 import type { TemperatureDeviationResponse } from "~/types/api";
 import { buildDeviationCsv } from "~/utils/deviationCsv";
-import type { SelectBarAdapter } from "~/components/ui/commons/selectBar/types";
-
 const store = useDeviationTableStore();
 
 const dates = useCustomDate();
-provide("selectBarAdapter", {
-    maxDate: dates.yesterday,
-} as unknown as SelectBarAdapter);
+provide("selectBarAdapter", { maxDate: dates.yesterday });
 const {
     page,
     pageSize,
