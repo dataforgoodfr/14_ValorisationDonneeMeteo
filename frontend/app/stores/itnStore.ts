@@ -8,7 +8,10 @@ import type {
     SliceType,
     ChartType,
 } from "~/components/ui/commons/selectBar/types";
-import { fetchNationalIndicatorForYear } from "~/utils/nationalIndicatorFetcher";
+import {
+    fetchNationalIndicatorForYear,
+    fetchStackedData,
+} from "~/utils/nationalIndicatorFetcher";
 
 const dates = useCustomDate();
 
@@ -36,53 +39,35 @@ export const useItnStore = defineStore("itnStore", () => {
 
     const { apiFetch } = useApiClient();
 
-    async function fetchStackedData(): Promise<void> {
-        if (selectedYears.value.length === 0) {
-            stackedData.value = null;
-            return;
-        }
+    const generateStakedData = async (): Promise<void> => {
         stackedPending.value = true;
-
-        try {
-            const responses = await Promise.all(
-                selectedYears.value.map(async (year) => {
-                    if (stackedDataCache.has(year)) {
-                        return stackedDataCache.get(year);
-                    }
-
-                    const result = await fetchNationalIndicatorForYear(
-                        apiFetch,
-                        year,
-                        granularity.value,
-                    );
-
-                    stackedDataCache.set(year, result);
-
-                    return result;
-                }),
-            );
-
-            stackedData.value = {
-                metadata: responses[0]!.metadata,
-                time_series: responses.flatMap((r) => r.time_series),
-            };
-        } catch {
-            stackedData.value = null;
-        } finally {
-            stackedPending.value = false;
-        }
-    }
+        stackedData.value = await fetchStackedData(
+            selectedYears.value,
+            stackedDataCache,
+            (year) =>
+                fetchNationalIndicatorForYear(
+                    apiFetch,
+                    year,
+                    granularity.value,
+                ),
+        );
+        stackedPending.value = false;
+    };
 
     watch(
         [selectedYears, granularity],
-        () => {
-            if (chartType.value === "stacked") fetchStackedData();
+        async () => {
+            if (chartType.value === "stacked") {
+                await generateStakedData();
+            }
         },
         { deep: true },
     );
 
-    watch(chartType, (val) => {
-        if (val === "stacked") fetchStackedData();
+    watch(chartType, async (val) => {
+        if (val === "stacked") {
+            await generateStakedData();
+        }
     });
 
     const month_of_year = computed<undefined | number>(() =>

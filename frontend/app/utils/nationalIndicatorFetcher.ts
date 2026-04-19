@@ -20,3 +20,39 @@ export async function fetchNationalIndicatorForYear(
         },
     );
 }
+
+export async function fetchStackedData(
+    years: number[],
+    cache: Map<number, NationalIndicatorResponse>,
+    fetchFn: (year: number) => Promise<NationalIndicatorResponse>,
+): Promise<NationalIndicatorResponse | null> {
+    if (years.length === 0) {
+        return null;
+    }
+
+    const uniqueYears = [...new Set(years)];
+
+    try {
+        const responses = await Promise.all(
+            uniqueYears.map(async (year) => {
+                const cached = cache.get(year);
+
+                if (cached) {
+                    return cached;
+                }
+
+                const result = await fetchFn(year);
+                cache.set(year, result);
+
+                return result;
+            }),
+        );
+
+        return {
+            metadata: responses[0]!.metadata,
+            time_series: responses.flatMap((r) => r.time_series),
+        };
+    } catch {
+        return null;
+    }
+}

@@ -27,12 +27,12 @@ describe("fetchNationalIndicatorForYear", () => {
         );
     });
 
-    it("should return correct schema", async () => {
+    it("should return correct schema", () => {
         expect(apiResponse).toHaveProperty("metadata");
         expect(apiResponse).toHaveProperty("time_series");
     });
 
-    it("should return correct time_series for specific year", async () => {
+    it("should return correct time_series for specific year", () => {
         const result = {
             date_start: `${year}-01-01`,
             date_end: `${year}-12-31`,
@@ -44,10 +44,10 @@ describe("fetchNationalIndicatorForYear", () => {
         expect(apiResponse.metadata).toStrictEqual(result);
     });
 
-    it("should return correct time_series for specific year", async () => {
+    it("should return correct time_series for specific year", () => {
         const timeSeries = apiResponse.time_series;
 
-        expect(timeSeries.length).toBe(12);
+        expect(timeSeries).toHaveLength(12);
         expect(timeSeries[0]).toHaveProperty("date");
         expect(timeSeries[0]).toHaveProperty("temperature");
         expect(timeSeries[0]).toHaveProperty("baseline_mean");
