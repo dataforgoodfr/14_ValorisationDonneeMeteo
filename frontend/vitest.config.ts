@@ -23,9 +23,6 @@ export default defineConfig({
                     name: "integration",
                     include: ["app/**/*.integration.test.ts"],
                     testTimeout: 1 * 60 * 1000,
-                    env: {
-                        NUXT_PUBLIC_API_BASE: "http://localhost:8000/api/v1",
-                    },
                 },
             },
             {

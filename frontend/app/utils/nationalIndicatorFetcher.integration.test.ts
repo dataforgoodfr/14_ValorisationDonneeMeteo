@@ -5,12 +5,15 @@ import { fetchNationalIndicatorForYear } from "~/utils/nationalIndicatorFetcher"
 import type { GranularityType } from "~/components/ui/commons/selectBar/types";
 import type { NationalIndicatorResponse } from "~/types/api";
 
+const baseURL =
+    process.env.NUXT_PUBLIC_API_BASE ?? "http://localhost:8000/api/v1";
+
 const testApiFetch = <T>(
     endpoint: string,
     options?: Parameters<typeof $fetch<T>>[1],
 ): Promise<T> =>
     $fetch<T>(endpoint, {
-        baseURL: import.meta.env.NUXT_PUBLIC_API_BASE,
+        baseURL,
         ...options,
     });
 
