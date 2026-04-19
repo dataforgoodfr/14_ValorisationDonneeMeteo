@@ -9,6 +9,8 @@ const localEndDate = defineModel<Date | undefined>("endDate");
 const adapter = inject<SelectBarAdapter>("selectBarAdapter")!;
 const dates = useCustomDate();
 
+const maxDate = computed(() => adapter.maxDate?.value ?? dates.yesterday.value);
+
 const pt = {
     root: { class: "relative w-36" },
     pcInputText: {
@@ -82,9 +84,7 @@ const pt = {
             <DatePicker
                 v-model="localEndDate"
                 :min-date="localStartDate"
-                :max-date="adapter.maxDate?.value"
-                ??
-                dates.today.value
+                :max-date="maxDate"
                 view="year"
                 date-format="yy"
                 :pt="pt"
