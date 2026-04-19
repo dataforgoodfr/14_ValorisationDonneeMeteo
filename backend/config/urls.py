@@ -10,9 +10,13 @@ from drf_spectacular.views import (
     SpectacularSwaggerView,
 )
 
+from weather.metrics import metrics_view
+
 urlpatterns = [
     # Admin
     path("admin/", admin.site.urls),
+    # Prometheus metrics
+    path("metrics/", metrics_view, name="metrics"),
     # API v1
     path("api/v1/", include("weather.urls")),
     # OpenAPI schema and documentation

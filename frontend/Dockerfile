@@ -1,22 +1,27 @@
-FROM node:24-alpine AS build
+ARG NODE_BUILD_IMAGE=node:24-alpine
+ARG NODE_RUNTIME_IMAGE=node:24-alpine
+
+FROM ${NODE_BUILD_IMAGE} AS build
 
 WORKDIR /app
 
-COPY package*.json .
+COPY package*.json ./
 
-RUN npm install
+RUN npm ci
 
 COPY . .
 
 RUN npm run build
 
-FROM node:24-alpine AS prod
+FROM ${NODE_RUNTIME_IMAGE} AS prod
 
 WORKDIR /app
 
-COPY --from=build /app/.output /app/.output
+COPY --from=build --chown=node:node /app/.output /app/.output
 
 ENV NODE_ENV=production
+
+USER node
 
 EXPOSE 3000
 
