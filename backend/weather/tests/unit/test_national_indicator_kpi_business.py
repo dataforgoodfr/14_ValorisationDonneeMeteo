@@ -25,12 +25,6 @@ class StubBaselineDataSource:
     def fetch_daily_baseline(self, day: dt.date) -> BaselinePoint:
         return self._baselines[(day.month, day.day)]
 
-    def fetch_monthly_baseline(self, month: int) -> BaselinePoint:
-        raise NotImplementedError
-
-    def fetch_yearly_baseline(self) -> BaselinePoint:
-        raise NotImplementedError
-
 
 def _baseline(mean: float, std_dev: float) -> BaselinePoint:
     return BaselinePoint(
