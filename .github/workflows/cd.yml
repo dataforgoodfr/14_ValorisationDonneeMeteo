@@ -5,6 +5,8 @@ on:
     workflows: ["CI"]
     types:
       - completed
+    branches:
+      - main
 
 permissions:
   contents: read
@@ -13,7 +15,7 @@ permissions:
 jobs:
   build-and-push:
     runs-on: ubuntu-latest
-    if: ${{ github.event.workflow_run.conclusion == 'success' }}
+    if: ${{ github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.head_branch == 'main' }}
 
     strategy:
       matrix:
