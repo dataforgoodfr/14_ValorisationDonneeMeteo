@@ -4,16 +4,28 @@ import datetime as dt
 from collections import defaultdict
 
 from weather.utils.date_range import (
+    days_in_month_in_range,
     iter_days_intersecting,
     iter_month_starts_intersecting,
     iter_year_starts_intersecting,
+    monthly_points_in_range,
     period_start,
+    yearly_points_in_range,
 )
 
+from .aggregation import (
+    aggregate_observed,
+    aggregate_station_daily,
+)
 from .protocols import (
     TemperatureDeviationDailyDataSource,
     TemperatureDeviationOverviewDataSource,
 )
+from .slicing import (
+    apply_slice_to_observed,
+    apply_slice_to_station_daily,
+)
+from .source_window import compute_source_window
 from .types import (
     AggregatedDeviationPoint,
     DailyDeviationPoint,
@@ -291,19 +303,87 @@ def serialize_temperature_deviation_result(
     return payload
 
 
+def compute_target_dates(
+    *,
+    date_start: dt.date,
+    date_end: dt.date,
+    granularity: str,
+    slice_type: str,
+    month_of_year: int | None,
+    day_of_month: int | None,
+) -> tuple[dt.date, ...] | None:
+    if slice_type == "full":
+        return None
+
+    if slice_type == "month_of_year":
+        if month_of_year is None:
+            raise ValueError("month_of_year ne doit pas être None")
+
+        return tuple(
+            days_in_month_in_range(
+                date_start=date_start,
+                date_end=date_end,
+                month=month_of_year,
+            )
+        )
+
+    if day_of_month is None:
+        raise ValueError("day_of_month ne doit pas être None")
+
+    if granularity == "month":
+        return tuple(
+            monthly_points_in_range(
+                date_start=date_start,
+                date_end=date_end,
+                day_of_month=day_of_month,
+            )
+        )
+
+    if granularity == "year":
+        if month_of_year is None:
+            raise ValueError("month_of_year ne doit pas être None")
+
+        return tuple(
+            yearly_points_in_range(
+                date_start=date_start,
+                date_end=date_end,
+                month=month_of_year,
+                day_of_month=day_of_month,
+            )
+        )
+
+    raise ValueError(
+        f"Combinaison invalide granularity={granularity}, slice_type={slice_type}"
+    )
+
+
 def compute_temperature_deviation_series(
     *,
     data_source: TemperatureDeviationDailyDataSource,
     date_start: dt.date,
     date_end: dt.date,
     granularity: str,
+    slice_type: str = "full",
+    month_of_year: int | None = None,
+    day_of_month: int | None = None,
     station_ids: tuple[str, ...] = (),
     include_national: bool = True,
 ) -> TemperatureDeviationResult:
-    src_start, src_end = _compute_source_window(
+    src_start, src_end = compute_source_window(
         date_start=date_start,
         date_end=date_end,
         granularity=granularity,
+        slice_type=slice_type,
+        month_of_year=month_of_year,
+    )
+
+    target_dates = compute_target_dates(
+        date_start=src_start,
+        date_end=src_end,
+        granularity=granularity,
+        slice_type=slice_type,
+        month_of_year=month_of_year,
+        day_of_month=day_of_month,
     )
 
     query = DailyDeviationSeriesQuery(
@@ -311,35 +391,95 @@ def compute_temperature_deviation_series(
         date_end=src_end,
         station_ids=station_ids,
         include_national=include_national,
+        target_dates=target_dates,
     )
 
     national = None
+
     if include_national:
-        national_observed_daily = data_source.fetch_national_observed_series(query)
-        national_aggregated_observed = _aggregate_observed(
-            national_observed_daily,
+        observed_daily = data_source.fetch_national_observed_series(query)
+
+        sliced = apply_slice_to_observed(
+            observed_daily,
+            granularity=granularity,
+            slice_type=slice_type,
+            month_of_year=month_of_year,
+            day_of_month=day_of_month,
+        )
+
+        aggregated = aggregate_observed(
+            sliced,
             date_start=date_start,
             date_end=date_end,
             granularity=granularity,
+            slice_type=slice_type,
+            month_of_year=month_of_year,
         )
-        nat_points = _inject_national_baseline(
-            national_observed_daily,
-            national_aggregated_observed,
-            granularity=granularity,
-            data_source=data_source,
-        )
+
+        # baseline journalière
+        daily_baseline = {
+            (p.month, p.day_of_month): p.mean
+            for p in data_source.fetch_national_daily_baseline()
+        }
+
+        monthly_baseline = {
+            p.month: p.mean for p in data_source.fetch_national_monthly_baseline()
+        }
+
+        yearly_baseline = data_source.fetch_national_yearly_baseline()
+
+        nat_points = []
+
+        for p in aggregated:
+            if granularity == "day":
+                baseline_mean = daily_baseline[(p.date.month, p.date.day)]
+
+            elif granularity == "month":
+                if slice_type == "full":
+                    baseline_mean = monthly_baseline[p.date.month]
+                else:
+                    baseline_mean = daily_baseline[(p.date.month, p.date.day)]
+
+            elif granularity == "year":
+                if slice_type == "full":
+                    baseline_mean = yearly_baseline.mean
+                elif slice_type == "month_of_year":
+                    baseline_mean = monthly_baseline[p.date.month]
+                else:
+                    baseline_mean = daily_baseline[(p.date.month, p.date.day)]
+
+            else:
+                continue
+
+            nat_points.append(
+                AggregatedDeviationPoint(
+                    date=p.date,
+                    temperature=p.temperature,
+                    baseline_mean=baseline_mean,
+                )
+            )
+
         national = NationalDeviationSeries(data=nat_points)
 
     station_daily_series = data_source.fetch_stations_daily_series(query)
+
     stations = [
         StationDeviationSeries(
             station_id=station_series.station_id,
             station_name=station_series.station_name,
-            data=_aggregate(
-                station_series.points,
+            data=aggregate_station_daily(
+                apply_slice_to_station_daily(
+                    station_series.points,
+                    granularity=granularity,
+                    slice_type=slice_type,
+                    month_of_year=month_of_year,
+                    day_of_month=day_of_month,
+                ),
                 date_start=date_start,
                 date_end=date_end,
                 granularity=granularity,
+                slice_type=slice_type,
+                month_of_year=month_of_year,
             ),
         )
         for station_series in station_daily_series
@@ -357,6 +497,9 @@ def compute_temperature_deviation(
     date_start: dt.date,
     date_end: dt.date,
     granularity: str,
+    slice_type: str = "full",
+    month_of_year: int | None = None,
+    day_of_month: int | None = None,
     station_ids: tuple[str, ...] = (),
     include_national: bool = True,
 ) -> dict:
@@ -365,6 +508,9 @@ def compute_temperature_deviation(
         date_start=date_start,
         date_end=date_end,
         granularity=granularity,
+        slice_type=slice_type,
+        month_of_year=month_of_year,
+        day_of_month=day_of_month,
         station_ids=station_ids,
         include_national=include_national,
     )

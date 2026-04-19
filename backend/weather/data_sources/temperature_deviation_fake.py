@@ -145,14 +145,20 @@ class FakeTemperatureDeviationDailyDataSource(TemperatureDeviationDailyDataSourc
         self, query: DailyDeviationSeriesQuery
     ) -> list[ObservedPoint]:
         rng = random.Random(self._seed)
-        days = tuple(iter_days_intersecting(query.date_start, query.date_end))
+        if query.target_dates is not None:
+            days = tuple(sorted(query.target_dates))
+        else:
+            days = tuple(iter_days_intersecting(query.date_start, query.date_end))
 
         return [_generate_national_observed_point(day=d, rng=rng) for d in days]
 
     def fetch_stations_daily_series(
         self, query: DailyDeviationSeriesQuery
     ) -> list[StationDailySeries]:
-        days = tuple(iter_days_intersecting(query.date_start, query.date_end))
+        if query.target_dates is not None:
+            days = tuple(sorted(query.target_dates))
+        else:
+            days = tuple(iter_days_intersecting(query.date_start, query.date_end))
         out: list[StationDailySeries] = []
 
         for station_id in query.station_ids:

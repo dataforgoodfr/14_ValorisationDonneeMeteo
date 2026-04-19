@@ -250,6 +250,22 @@ paths:
         Récupère les données d'écart de température par rapport à la normale (baseline fixe 1991-2020).
         Permet de comparer l'écart à la normale moyen en France avec celui de stations spécifiques.
         La granularité temporelle est ajustable (jour, mois, année) pour s'adapter à l'axe des abscisses.
+        Un filtre intra-période optionnel est contrôlé par `slice_type` et paramètres associés.
+
+          Combinaisons valides (validation côté API) :
+
+          - granularity=year :
+            - slice_type=full (défaut) : agrégat sur l'année complète
+            - slice_type=month_of_year : agrégat sur un mois donné (month_of_year requis)
+            - slice_type=day_of_month : échantillon sur un jour précis de l'année (month_of_year + day_of_month requis)
+          - granularity=month :
+            - slice_type=full (défaut) : agrégat sur le mois complet
+            - slice_type=day_of_month : échantillon sur le N-ième jour de chaque mois (day_of_month requis)
+          - granularity=day :
+            - slice_type=full uniquement (slice_type doit être absent ou full)
+
+          Règle "jours inexistants" :
+          - si day_of_month n'existe pas dans un mois (ex: 30/02, 31/04), le dernier jour du mois est utilisé.
       operationId: getTemperatureDeviationGraph
       tags:
         - Temperature
@@ -310,6 +326,45 @@ paths:
             Si ce paramètre vaut 'true', la propriété `national` est présente dans la réponse.
             Si ce paramètre est défini à 'false', et que 'station_ids' est absent ou vide, l'API retourne une erreur 400.
 
+        - name: slice_type
+          in: query
+          required: false
+          schema:
+            type: string
+            enum: [ full, month_of_year, day_of_month ]
+            default: full
+          description: >
+            Filtre intra-période appliqué à chaque période (selon `granularity`).
+            - full : agrégat sur toute la période (défaut)
+            - month_of_year : agrégat sur un mois spécifique de l’année (month_of_year requis, granularity=year)
+            - day_of_month : échantillon sur un jour du mois (day_of_month requis, et si granularity=year alors month_of_year requis)
+
+        - name: month_of_year
+          in: query
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 12
+          description: >
+            Mois concerné (1..12).
+            Requis si slice_type=month_of_year.
+            Requis aussi si slice_type=day_of_month ET granularity=year (pour exprimer un jour précis de l’année).
+          example: 1
+
+        - name: day_of_month
+          in: query
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 31
+          description: >
+            Jour du mois concerné (1..31).
+            Requis si slice_type=day_of_month.
+            Si le jour n'existe pas dans un mois, le dernier jour du mois est utilisé.
+          example: 29
+
       responses:
         "200":
           description: Séries temporelles de l'écart à la normale pour la moyenne nationale (optionnelle) et les stations demandées.
@@ -326,6 +381,7 @@ paths:
                       date_end: "2025-02-02"
                       baseline: "1991-2020"
                       granularity: "day"
+                      slice_type: "full"
                     national:
                       data:
                         - date: "2025-02-01"
@@ -364,9 +420,10 @@ paths:
                   value:
                     metadata:
                       date_start: "2025-02-01"
-                      date_end: "2025-02-28"
+                      date_end: "2025-02-02"
                       baseline: "1991-2020"
                       granularity: "day"
+                      slice_type: "full"
                     stations:
                       - station_id: "07149"
                         station_name: "Orly"
@@ -375,6 +432,34 @@ paths:
                             deviation: 0.8
                             temperature: 7.9
                             baseline_mean: 7.1
+                yearly_february_slice:
+                  summary: Agrégation annuelle limitée au mois de février
+                  value:
+                    metadata:
+                      date_start: "2020-01-01"
+                      date_end: "2025-12-31"
+                      baseline: "1991-2020"
+                      granularity: "year"
+                      slice_type: "month_of_year"
+                      month_of_year: 2
+                    national:
+                      data:
+                        - date: "2020-02-01"
+                          deviation: 1.1
+                          temperature: 8.3
+                          baseline_mean: 7.2
+                        - date: "2021-02-01"
+                          deviation: 0.7
+                          temperature: 7.9
+                          baseline_mean: 7.2
+                    stations:
+                      - station_id: "07149"
+                        station_name: "Orly"
+                        data:
+                          - date: "2020-02-01"
+                            deviation: 0.9
+                            temperature: 7.8
+                            baseline_mean: 6.9
         "400":
           $ref: "#/components/responses/BadRequest"
 
@@ -993,6 +1078,14 @@ components:
         date:
           type: string
           format: date
+          description: |
+            Date du point de données.
+            - granularity=year, slice_type=full: premier jour de l'année (ex: "2024-01-01")
+            - granularity=year, slice_type=month_of_year: premier jour du mois sélectionné (ex: "2024-02-01")
+            - granularity=year, slice_type=day_of_month: date exacte du jour sélectionné (ex: "2024-02-29")
+            - granularity=month, slice_type=full: premier jour du mois
+            - granularity=month, slice_type=day_of_month: date exacte du jour sélectionné
+            - granularity=day: date exacte du jour
         deviation:
           type: number
           format: float
@@ -1000,11 +1093,11 @@ components:
         temperature:
           type: number
           format: float
-          description: "Température moyenne observée sur la période"
+          description: "Température observée (moyenne ou valeur selon slice_type)"
         baseline_mean:
           type: number
           format: float
-          description: "Température moyenne de référence 1991-2020 pour cette période"
+          description: "Température de référence 1991-2020 pour ce point (moyenne ou valeur selon slice_type)"
 
     NationalTemperatureDeviationSeries:
       type: object
@@ -1049,6 +1142,7 @@ components:
             - date_end
             - baseline
             - granularity
+            - slice_type
           properties:
             date_start:
               type: string
@@ -1062,8 +1156,25 @@ components:
               example: "1991-2020"
             granularity:
               type: string
-              enum: [year, month, day]
+              enum: [ year, month, day ]
               description: "Granularité de la série (axe X)."
+            slice_type:
+              type: string
+              enum: [ full, month_of_year, day_of_month ]
+              description: "Filtre intra-période appliqué à chaque période."
+              example: full
+            month_of_year:
+              type: integer
+              minimum: 1
+              maximum: 12
+              description: "Mois concerné si slice_type=month_of_year, ou si slice_type=day_of_month & granularity=year."
+            day_of_month:
+              type: integer
+              minimum: 1
+              maximum: 31
+              description: >
+                Jour du mois concerné si slice_type=day_of_month.
+                Si le jour n'existe pas dans un mois, le dernier jour du mois est utilisé.
         national:
           $ref: "#/components/schemas/NationalTemperatureDeviationSeries"
         stations:

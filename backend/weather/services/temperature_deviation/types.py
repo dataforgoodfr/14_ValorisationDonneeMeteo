@@ -16,6 +16,7 @@ class DailyDeviationSeriesQuery:
     date_end: dt.date
     station_ids: tuple[str, ...]
     include_national: bool = True
+    target_dates: tuple[dt.date, ...] | None = None
 
 
 @dataclass(frozen=True)

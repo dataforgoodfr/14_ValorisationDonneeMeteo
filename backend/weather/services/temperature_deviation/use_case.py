@@ -18,6 +18,9 @@ def get_temperature_deviation(
     date_start: dt.date,
     date_end: dt.date,
     granularity: str,
+    slice_type: str = "full",
+    month_of_year: int | None = None,
+    day_of_month: int | None = None,
     station_ids: tuple[str, ...] = (),
     include_national: bool = True,
 ) -> dict:
@@ -26,6 +29,9 @@ def get_temperature_deviation(
         date_start=date_start,
         date_end=date_end,
         granularity=granularity,
+        slice_type=slice_type,
+        month_of_year=month_of_year,
+        day_of_month=day_of_month,
         station_ids=station_ids,
         include_national=include_national,
     )

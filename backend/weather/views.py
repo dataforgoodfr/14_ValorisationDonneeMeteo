@@ -157,13 +157,22 @@ class TemperatureDeviationGraphAPIView(APIView):
                 ),
                 status=status.HTTP_501_NOT_IMPLEMENTED,
             )
+        metadata = {
+            "date_start": params["date_start"],
+            "date_end": params["date_end"],
+            "baseline": "1991-2020",
+            "granularity": params["granularity"],
+            "slice_type": params.get("slice_type", "full"),
+        }
+
+        if "month_of_year" in params:
+            metadata["month_of_year"] = params["month_of_year"]
+
+        if "day_of_month" in params:
+            metadata["day_of_month"] = params["day_of_month"]
+
         full_payload = {
-            "metadata": {
-                "date_start": params["date_start"],
-                "date_end": params["date_end"],
-                "baseline": "1991-2020",
-                "granularity": params["granularity"],
-            },
+            "metadata": metadata,
             **data,
         }
 

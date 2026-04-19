@@ -233,13 +233,17 @@ class TimescaleTemperatureDeviationDailyDataSource(
 
         baseline_sq = self._baseline_subquery()
 
+        qs = QuotidienneITN.objects.filter(
+            date__gte=query.date_start,
+            date__lte=query.date_end,
+            station_code__in=query.station_ids,
+        )
+
+        if query.target_dates is not None:
+            qs = qs.filter(date__in=query.target_dates)
+
         rows = (
-            QuotidienneITN.objects.filter(
-                date__gte=query.date_start,
-                date__lte=query.date_end,
-                station_code__in=query.station_ids,
-            )
-            .annotate(
+            qs.annotate(
                 month=ExtractMonth("date"),
                 day=ExtractDay("date"),
             )
@@ -287,7 +291,7 @@ class TimescaleTemperatureDeviationDailyDataSource(
                 DailySeriesQuery(
                     date_start=query.date_start,
                     date_end=query.date_end,
-                    target_dates=None,
+                    target_dates=query.target_dates,
                 )
             )
         )

@@ -200,16 +200,93 @@ class TemperatureDeviationGraphQuerySerializer(serializers.Serializer):
     granularity = serializers.ChoiceField(
         choices=["year", "month", "day"], required=True
     )
+
+    slice_type = serializers.ChoiceField(
+        choices=["full", "month_of_year", "day_of_month"],
+        required=False,
+        default="full",
+    )
+
+    month_of_year = serializers.IntegerField(required=False, min_value=1, max_value=12)
+    day_of_month = serializers.IntegerField(required=False, min_value=1, max_value=31)
+
     station_ids = CommaSeparatedStringListField(required=False)
     include_national = serializers.BooleanField(required=False, default=True)
 
     def validate(self, attrs):
-        ds = attrs["date_start"]
-        de = attrs["date_end"]
-        if ds > de:
+        date_start = attrs["date_start"]
+        date_end = attrs["date_end"]
+        if date_start > date_end:
             raise serializers.ValidationError(
                 {"date_end": "date_end doit être >= date_start."}
             )
+
+        granularity = attrs["granularity"]
+        slice_type = attrs.get("slice_type", "full")
+        month_of_year = attrs.get("month_of_year")
+        day_of_month = attrs.get("day_of_month")
+
+        # granularity=day => slice_type doit être full + pas de month/day selectors
+        if granularity == "day":
+            if slice_type != "full":
+                raise serializers.ValidationError(
+                    {"slice_type": "Interdit si granularity=day (doit être full)."}
+                )
+            if month_of_year is not None:
+                raise serializers.ValidationError(
+                    {"month_of_year": "Interdit si granularity=day."}
+                )
+            if day_of_month is not None:
+                raise serializers.ValidationError(
+                    {"day_of_month": "Interdit si granularity=day."}
+                )
+
+        elif slice_type == "full":
+            if month_of_year is not None:
+                raise serializers.ValidationError(
+                    {"month_of_year": "Interdit si slice_type=full."}
+                )
+            if day_of_month is not None:
+                raise serializers.ValidationError(
+                    {"day_of_month": "Interdit si slice_type=full."}
+                )
+
+        elif slice_type == "month_of_year":
+            if granularity != "year":
+                raise serializers.ValidationError(
+                    {
+                        "slice_type": "month_of_year n'est valide que si granularity=year."
+                    }
+                )
+            if month_of_year is None:
+                raise serializers.ValidationError(
+                    {"month_of_year": "Requis si slice_type=month_of_year."}
+                )
+            if day_of_month is not None:
+                raise serializers.ValidationError(
+                    {"day_of_month": "Interdit si slice_type=month_of_year."}
+                )
+
+        else:
+            # slice_type == "day_of_month"
+            if day_of_month is None:
+                raise serializers.ValidationError(
+                    {"day_of_month": "Requis si slice_type=day_of_month."}
+                )
+
+            if granularity == "year":
+                if month_of_year is None:
+                    raise serializers.ValidationError(
+                        {
+                            "month_of_year": "Requis si granularity=year et slice_type=day_of_month."
+                        }
+                    )
+            else:
+                # granularity=month => month_of_year interdit
+                if month_of_year is not None:
+                    raise serializers.ValidationError(
+                        {"month_of_year": "Interdit si granularity=month."}
+                    )
 
         station_ids = attrs.get("station_ids", ())
         include_national = attrs.get("include_national", True)
@@ -245,6 +322,11 @@ class TemperatureDeviationMetadataSerializer(serializers.Serializer):
     date_end = serializers.DateField()
     baseline = serializers.CharField()
     granularity = serializers.ChoiceField(choices=["year", "month", "day"])
+    slice_type = serializers.ChoiceField(
+        choices=["full", "month_of_year", "day_of_month"]
+    )
+    month_of_year = serializers.IntegerField(required=False, min_value=1, max_value=12)
+    day_of_month = serializers.IntegerField(required=False, min_value=1, max_value=31)
 
 
 class TemperatureDeviationResponseSerializer(serializers.Serializer):
