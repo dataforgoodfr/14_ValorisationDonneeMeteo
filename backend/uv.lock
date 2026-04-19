@@ -667,6 +667,18 @@ wheels = [
 ]
 
 [[package]]
+name = "drf-spectacular-sidecar"
+version = "2026.4.14"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "django" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/ef/0a/6dcc9cf1a60fa4247b886e9d4249ea7d04e67fede20af6fd631ef74c84a0/drf_spectacular_sidecar-2026.4.14.tar.gz", hash = "sha256:d4c299a85f3be44e93eaff3d83e986f27b744bb9823ba034aff9fd267ebc9fea", size = 2466204, upload-time = "2026-04-14T16:06:46.818Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/42/e7/23cb71e9348af587c2d34d6e548e0f02af21432cdf50afabf379d5649ee8/drf_spectacular_sidecar-2026.4.14-py3-none-any.whl", hash = "sha256:a040d360ada2592722e90f40c2cf744376d9a30cccb3caaa5423bad791dec0aa", size = 2488555, upload-time = "2026-04-14T16:06:45.097Z" },
+]
+
+[[package]]
 name = "executing"
 version = "2.2.1"
 source = { registry = "https://pypi.org/simple" }
@@ -1427,6 +1439,7 @@ dependencies = [
     { name = "django-filter" },
     { name = "djangorestframework" },
     { name = "drf-spectacular" },
+    { name = "drf-spectacular-sidecar" },
     { name = "gunicorn" },
     { name = "numpy" },
     { name = "psycopg", extra = ["binary"] },
@@ -1461,6 +1474,7 @@ requires-dist = [
     { name = "django-filter", specifier = ">=24.0" },
     { name = "djangorestframework", specifier = ">=3.15.0" },
     { name = "drf-spectacular", specifier = ">=0.27.0" },
+    { name = "drf-spectacular-sidecar", specifier = ">=2024.7.1" },
     { name = "factory-boy", marker = "extra == 'dev'", specifier = ">=3.3.0" },
     { name = "gunicorn", specifier = ">=25.0.0" },
     { name = "ipython", marker = "extra == 'dev'", specifier = ">=8.26.0" },

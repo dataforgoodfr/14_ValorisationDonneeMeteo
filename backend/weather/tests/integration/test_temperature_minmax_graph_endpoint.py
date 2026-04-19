@@ -113,7 +113,7 @@ def test_station_filter_returns_station_series(client: APIClient):
 
 
 @pytest.mark.usefixtures("fake_minmax_dep")
-def test_department_filter_returns_station_series(client: APIClient):
+def test_department_filter_returns_aggregated_series(client: APIClient):
     resp = client.get(
         URL,
         {
@@ -127,15 +127,10 @@ def test_department_filter_returns_station_series(client: APIClient):
     assert resp.status_code == 200
     body = resp.json()
 
-    assert "national" not in body
-    assert len(body["stations"]) > 0
+    assert "national" in body
+    assert body["stations"] == []
 
-    station = body["stations"][0]
-    assert "station_id" in station
-    assert "station_name" in station
-    assert "data" in station
-
-    data = station["data"]
+    data = body["national"]["data"]
     assert len(data) == 3
     assert "tmin_mean" in data[0]
     assert "tmax_mean" in data[0]

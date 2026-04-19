@@ -73,7 +73,7 @@ def compute_minmax_graph(
     national = None
     stations = []
 
-    if query.has_territory_filter:
+    if query.has_station_filter:
         station_series = data_source.fetch_daily_series(query)
         stations = [
             StationMinMaxSeries(
@@ -83,6 +83,10 @@ def compute_minmax_graph(
             )
             for s in station_series
         ]
+    elif query.has_territory_filter:
+        station_series = data_source.fetch_daily_series(query)
+        all_points = [p for s in station_series for p in s.points]
+        national = NationalMinMaxSeries(data=_aggregate(all_points, query))
     else:
         national_points = data_source.fetch_national_daily_series(query)
         national = NationalMinMaxSeries(data=_aggregate(national_points, query))

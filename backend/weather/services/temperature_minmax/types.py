@@ -14,8 +14,12 @@ class MinMaxGraphQuery:
     regions: tuple[str, ...] = ()
 
     @property
+    def has_station_filter(self) -> bool:
+        return bool(self.station_ids)
+
+    @property
     def has_territory_filter(self) -> bool:
-        return bool(self.station_ids or self.departments or self.regions)
+        return bool(self.departments or self.regions)
 
 
 @dataclass(frozen=True)

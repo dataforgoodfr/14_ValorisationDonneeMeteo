@@ -76,16 +76,10 @@ def test_with_station_ids_returns_stations():
     assert result["stations"][0]["station_id"] == "07149"
 
 
-def test_with_departments_filter_returns_stations():
+def test_with_departments_filter_returns_aggregated_series():
     ds = StubMinMaxDataSource(
-        station_series=[
-            StationDailyMinMaxSeries(
-                station_id="07149",
-                station_name="Paris",
-                points=[
-                    DailyMinMaxPoint(date=dt.date(2020, 1, 1), tmin=-2.0, tmax=5.0)
-                ],
-            )
+        national_points=[
+            DailyMinMaxPoint(date=dt.date(2020, 1, 1), tmin=-2.0, tmax=5.0),
         ]
     )
     query = MinMaxGraphQuery(
@@ -97,8 +91,8 @@ def test_with_departments_filter_returns_stations():
 
     result = compute_minmax_graph(data_source=ds, query=query)
 
-    assert "national" not in result
-    assert len(result["stations"]) == 1
+    assert "national" in result
+    assert result["stations"] == []
 
 
 def test_aggregation_granularity_month():
