@@ -1,15 +1,16 @@
 import datetime as dt
 
 from weather.services.national_indicator.kpi_use_case import get_national_indicator_kpi
+from weather.services.national_indicator.protocols import (
+    NationalIndicatorBaselineDataSource,
+)
 from weather.services.national_indicator.types import (
     BaselinePoint,
     ObservedPoint,
 )
 
-# ─── Stubs ───────────────────────────────────────────────────────────────────
 
-
-class StubObservedDataSource:
+class StubObservedDataSource(NationalIndicatorBaselineDataSource):
     def __init__(self, points: list[ObservedPoint]):
         self._points = points
 
@@ -17,7 +18,7 @@ class StubObservedDataSource:
         return self._points
 
 
-class StubBaselineDataSource:
+class StubBaselineDataSource(NationalIndicatorBaselineDataSource):
     def __init__(self, baselines: dict[tuple[int, int], BaselinePoint]):
         # clé = (month, day_of_month)
         self._baselines = baselines
