@@ -4,6 +4,7 @@ import datetime as dt
 from collections import defaultdict
 
 from weather.utils.date_range import (
+    clamp_day_to_month_end,
     days_in_month_in_range,
     iter_days_intersecting,
     iter_month_starts_intersecting,
@@ -436,20 +437,59 @@ def compute_temperature_deviation_series(
 
             elif granularity == "month":
                 if slice_type == "full":
-                    baseline_mean = monthly_baseline[p.date.month]
+                    # logique historique : bucket complet ou non
+                    month_points = [
+                        x
+                        for x in observed_daily
+                        if x.date.year == p.date.year and x.date.month == p.date.month
+                    ]
+
+                    expected_days = clamp_day_to_month_end(
+                        p.date.year, p.date.month, 31
+                    )
+
+                    if len(month_points) == expected_days:
+                        baseline_mean = monthly_baseline[p.date.month]
+                    else:
+                        baseline_mean = sum(
+                            daily_baseline[(x.date.month, x.date.day)]
+                            for x in month_points
+                        ) / len(month_points)
+
                 else:
+                    # slicing
                     baseline_mean = daily_baseline[(p.date.month, p.date.day)]
 
             elif granularity == "year":
                 if slice_type == "full":
-                    baseline_mean = yearly_baseline.mean
+                    year_points = [
+                        x for x in observed_daily if x.date.year == p.date.year
+                    ]
+
+                    # 365 ou 366
+                    expected_days = (
+                        366
+                        if dt.date(p.date.year, 12, 31).toordinal()
+                        - dt.date(p.date.year, 1, 1).toordinal()
+                        + 1
+                        == 366
+                        else 365
+                    )
+
+                    if len(year_points) == expected_days:
+                        baseline_mean = yearly_baseline.mean
+                    else:
+                        baseline_mean = sum(
+                            daily_baseline[(x.date.month, x.date.day)]
+                            for x in year_points
+                        ) / len(year_points)
+
                 elif slice_type == "month_of_year":
                     baseline_mean = monthly_baseline[p.date.month]
-                else:
-                    baseline_mean = daily_baseline[(p.date.month, p.date.day)]
 
-            else:
-                continue
+                else:
+                    # day_of_month
+                    baseline_mean = daily_baseline[(p.date.month, p.date.day)]
 
             nat_points.append(
                 AggregatedDeviationPoint(

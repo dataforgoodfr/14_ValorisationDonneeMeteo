@@ -5,10 +5,8 @@ from weather.data_sources.temperature_deviation_fake import (
 )
 from weather.services.temperature_deviation.types import (
     DailyBaselinePoint,
-    DailyDeviationPoint,
     MonthlyBaselinePoint,
     ObservedPoint,
-    StationDailySeries,
     YearlyBaselinePoint,
 )
 from weather.services.temperature_deviation.use_case import get_temperature_deviation
@@ -101,55 +99,6 @@ def test_temperature_deviation_graph__business_deviation_equals_temperature_minu
         point = station["data"][0]
         expected = round(point["temperature"] - point["baseline_mean"], 2)
         assert point["deviation"] == expected
-
-
-def test_temperature_deviation_graph__business_returns_expected_payload_on_simple_input():
-    class DeterministicTemperatureDeviationDataSource:
-        def fetch_national_observed_series(self, query):
-            return [
-                ObservedPoint(
-                    date=dt.date(2024, 1, 1),
-                    temperature=10.0,
-                ),
-                ObservedPoint(
-                    date=dt.date(2024, 1, 2),
-                    temperature=12.0,
-                ),
-            ]
-
-        def fetch_national_daily_baseline(self):
-            return [
-                DailyBaselinePoint(month=1, day_of_month=1, mean=8.0),
-                DailyBaselinePoint(month=1, day_of_month=2, mean=9.0),
-            ]
-
-        def fetch_national_monthly_baseline(self):
-            return [
-                MonthlyBaselinePoint(month=1, mean=8.5),
-            ]
-
-        def fetch_national_yearly_baseline(self):
-            return YearlyBaselinePoint(mean=8.5)
-
-        def fetch_stations_daily_series(self, query):
-            return [
-                StationDailySeries(
-                    station_id="07149",
-                    station_name="Station 07149",
-                    points=[
-                        DailyDeviationPoint(
-                            date=dt.date(2024, 1, 1),
-                            temperature=7.0,
-                            baseline_mean=6.0,
-                        ),
-                        DailyDeviationPoint(
-                            date=dt.date(2024, 1, 2),
-                            temperature=9.0,
-                            baseline_mean=8.5,
-                        ),
-                    ],
-                )
-            ]
 
 
 def test_temperature_deviation_graph_business_national_month_partial_uses_daily_baseline():
@@ -442,3 +391,200 @@ def test_temperature_deviation_graph_business_year_extends_source_window_to_full
 
     assert point["date"] == dt.date(2024, 1, 1)
     assert point["temperature"] == 12.0
+
+
+def test_temperature_deviation_graph_business_full_slice_keeps_target_dates_none():
+    class CaptureDS:
+        def __init__(self):
+            self.last_query = None
+
+        def fetch_national_observed_series(self, query):
+            self.last_query = query
+            return []
+
+        def fetch_stations_daily_series(self, query):
+            self.last_query = query
+            return []
+
+        def fetch_national_daily_baseline(self):
+            return []
+
+        def fetch_national_monthly_baseline(self):
+            return []
+
+        def fetch_national_yearly_baseline(self):
+            return None
+
+    ds = CaptureDS()
+
+    get_temperature_deviation(
+        data_source=ds,
+        date_start=dt.date(2024, 1, 1),
+        date_end=dt.date(2024, 1, 10),
+        granularity="day",
+    )
+
+    assert ds.last_query.target_dates is None
+
+
+def test_temperature_deviation_graph_business_month_day_of_month_sets_target_dates():
+    class CaptureDS:
+        def __init__(self):
+            self.last_query = None
+
+        def fetch_national_observed_series(self, query):
+            self.last_query = query
+            return []
+
+        def fetch_stations_daily_series(self, query):
+            self.last_query = query
+            return []
+
+        def fetch_national_daily_baseline(self):
+            return []
+
+        def fetch_national_monthly_baseline(self):
+            return []
+
+        def fetch_national_yearly_baseline(self):
+            return None
+
+    ds = CaptureDS()
+
+    get_temperature_deviation(
+        data_source=ds,
+        date_start=dt.date(2024, 1, 1),
+        date_end=dt.date(2024, 3, 31),
+        granularity="month",
+        slice_type="day_of_month",
+        day_of_month=31,
+    )
+
+    assert ds.last_query.target_dates is not None
+    assert len(ds.last_query.target_dates) == 3
+
+
+def test_temperature_deviation_graph_business_year_month_of_year_anchors_points():
+    class DS:
+        def fetch_national_observed_series(self, query):
+            return [
+                ObservedPoint(dt.date(2023, 2, 1), 10),
+                ObservedPoint(dt.date(2023, 2, 2), 20),
+                ObservedPoint(dt.date(2024, 2, 1), 30),
+                ObservedPoint(dt.date(2024, 2, 2), 40),
+            ]
+
+        def fetch_national_daily_baseline(self):
+            return [
+                DailyBaselinePoint(2, 1, 0),
+                DailyBaselinePoint(2, 2, 0),
+            ]
+
+        def fetch_national_monthly_baseline(self):
+            return [MonthlyBaselinePoint(2, 5)]
+
+        def fetch_national_yearly_baseline(self):
+            return YearlyBaselinePoint(100)
+
+        def fetch_stations_daily_series(self, query):
+            return []
+
+    ds = DS()
+
+    out = get_temperature_deviation(
+        data_source=ds,
+        date_start=dt.date(2023, 1, 1),
+        date_end=dt.date(2024, 12, 31),
+        granularity="year",
+        slice_type="month_of_year",
+        month_of_year=2,
+    )
+
+    dates = [p["date"] for p in out["national"]["data"]]
+
+    assert dates == [dt.date(2023, 2, 1), dt.date(2024, 2, 1)]
+
+
+def test_temperature_deviation_graph_business_month_day_of_month_returns_exact_day():
+    class DS:
+        def fetch_national_observed_series(self, query):
+            return [
+                ObservedPoint(dt.date(2024, 1, 31), 10),
+                ObservedPoint(dt.date(2024, 2, 29), 20),
+                ObservedPoint(dt.date(2024, 3, 31), 30),
+            ]
+
+        def fetch_national_daily_baseline(self):
+            return [
+                DailyBaselinePoint(1, 31, 1),
+                DailyBaselinePoint(2, 29, 1),
+                DailyBaselinePoint(3, 31, 1),
+            ]
+
+        def fetch_national_monthly_baseline(self):
+            return []
+
+        def fetch_national_yearly_baseline(self):
+            return None
+
+        def fetch_stations_daily_series(self, query):
+            return []
+
+    ds = DS()
+
+    out = get_temperature_deviation(
+        data_source=ds,
+        date_start=dt.date(2024, 1, 1),
+        date_end=dt.date(2024, 3, 31),
+        granularity="month",
+        slice_type="day_of_month",
+        day_of_month=31,
+    )
+
+    dates = [p["date"] for p in out["national"]["data"]]
+
+    assert dates == [
+        dt.date(2024, 1, 31),
+        dt.date(2024, 2, 29),
+        dt.date(2024, 3, 31),
+    ]
+
+
+def test_temperature_deviation_graph_business_year_day_of_month_clamps():
+    class DS:
+        def fetch_national_observed_series(self, query):
+            return [
+                ObservedPoint(dt.date(2020, 2, 29), 10),
+                ObservedPoint(dt.date(2021, 2, 28), 20),
+            ]
+
+        def fetch_national_daily_baseline(self):
+            return [
+                DailyBaselinePoint(2, 29, 1),
+                DailyBaselinePoint(2, 28, 1),
+            ]
+
+        def fetch_national_monthly_baseline(self):
+            return []
+
+        def fetch_national_yearly_baseline(self):
+            return None
+
+        def fetch_stations_daily_series(self, query):
+            return []
+
+    ds = DS()
+
+    out = get_temperature_deviation(
+        data_source=ds,
+        date_start=dt.date(2020, 1, 1),
+        date_end=dt.date(2021, 12, 31),
+        granularity="year",
+        slice_type="day_of_month",
+        month_of_year=2,
+        day_of_month=29,
+    )
+
+    dates = [p["date"] for p in out["national"]["data"]]
+
+    assert dates == [dt.date(2020, 2, 29), dt.date(2021, 2, 28)]

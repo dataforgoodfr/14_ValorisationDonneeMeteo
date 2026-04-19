@@ -7,6 +7,7 @@ import pytest
 from weather.data_sources.timescale import (
     TimescaleTemperatureDeviationDailyDataSource,
 )
+from weather.services.national_indicator.stations import ITN_STATION_CODES_FOR_QUERY
 from weather.services.temperature_deviation.types import (
     DailyDeviationSeriesQuery,
     TemperatureDeviationOverviewQuery,
@@ -438,3 +439,96 @@ def test_fetch_station_overview_orders_by_region():
         "Provence-Alpes-Côte d'Azur",
         "Île-de-France",
     ]
+
+
+@pytest.mark.django_db
+def test_fetch_stations_daily_series_respects_target_dates():
+    station_code = "01269001"
+
+    insert_station(station_code, "Station 01269001")
+
+    # baseline (>= 24 années requises)
+    insert_station_daily_baseline(station_code, 1, 1, 10.0)
+    insert_station_daily_baseline(station_code, 1, 2, 11.0)
+    insert_station_daily_baseline(station_code, 1, 3, 12.0)
+
+    # observations
+    insert_quotidienne(dt.date(2024, 1, 1), station_code, 14.0)
+    insert_quotidienne(dt.date(2024, 1, 2), station_code, 15.0)
+    insert_quotidienne(dt.date(2024, 1, 3), station_code, 16.0)
+
+    ds = TimescaleTemperatureDeviationDailyDataSource()
+
+    target_dates = (
+        dt.date(2024, 1, 1),
+        dt.date(2024, 1, 3),
+    )
+
+    query = DailyDeviationSeriesQuery(
+        date_start=dt.date(2024, 1, 1),
+        date_end=dt.date(2024, 1, 3),
+        station_ids=(station_code,),
+        include_national=False,
+        target_dates=target_dates,
+    )
+
+    result = ds.fetch_stations_daily_series(query)
+
+    assert len(result) == 1
+
+    points = result[0].points
+
+    assert [p.date for p in points] == list(target_dates)
+
+
+@pytest.mark.django_db
+def test_fetch_national_observed_series_respects_target_dates():
+    day1 = dt.date(2024, 1, 1)
+    day2 = dt.date(2024, 1, 2)
+    day3 = dt.date(2024, 1, 3)
+
+    insert_complete_itn_day(day1, 10.0)
+
+    for code in ITN_STATION_CODES_FOR_QUERY:
+        insert_quotidienne(day2, code, 11.0)
+        insert_quotidienne(day3, code, 12.0)
+
+    ds = TimescaleTemperatureDeviationDailyDataSource()
+
+    target_dates = (day1, day3)
+
+    query = DailyDeviationSeriesQuery(
+        date_start=day1,
+        date_end=day3,
+        station_ids=(),
+        include_national=True,
+        target_dates=target_dates,
+    )
+
+    result = ds.fetch_national_observed_series(query)
+
+    assert [p.date for p in result] == list(target_dates)
+
+
+@pytest.mark.django_db
+def test_fetch_stations_daily_series_target_dates_outside_range_returns_empty():
+    station_code = "01269001"
+
+    insert_station(station_code, "Station 01269001")
+    insert_station_daily_baseline(station_code, 1, 1, 10.0)
+
+    insert_quotidienne(dt.date(2024, 1, 1), station_code, 14.0)
+
+    ds = TimescaleTemperatureDeviationDailyDataSource()
+
+    query = DailyDeviationSeriesQuery(
+        date_start=dt.date(2024, 1, 1),
+        date_end=dt.date(2024, 1, 1),
+        station_ids=(station_code,),
+        include_national=False,
+        target_dates=(dt.date(2024, 1, 2),),
+    )
+
+    result = ds.fetch_stations_daily_series(query)
+
+    assert result == []

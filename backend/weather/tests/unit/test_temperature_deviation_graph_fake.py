@@ -87,3 +87,74 @@ def test_fake_temperature_deviation_yearly_baseline_returns_value():
 
     assert out is not None
     assert isinstance(out.mean, float)
+
+
+def test_fake_temperature_deviation_national_respects_target_dates():
+    ds = FakeTemperatureDeviationDailyDataSource()
+
+    target_dates = (
+        dt.date(2024, 1, 2),
+        dt.date(2024, 1, 5),
+        dt.date(2024, 1, 9),
+    )
+
+    query = DailyDeviationSeriesQuery(
+        date_start=dt.date(2024, 1, 1),
+        date_end=dt.date(2024, 1, 10),
+        station_ids=(),
+        include_national=True,
+        target_dates=target_dates,
+    )
+
+    result = ds.fetch_national_observed_series(query)
+
+    assert [p.date for p in result] == sorted(target_dates)
+
+
+def test_fake_temperature_deviation_station_respects_target_dates():
+    ds = FakeTemperatureDeviationDailyDataSource()
+
+    target_dates = (
+        dt.date(2024, 1, 3),
+        dt.date(2024, 1, 7),
+    )
+
+    query = DailyDeviationSeriesQuery(
+        date_start=dt.date(2024, 1, 1),
+        date_end=dt.date(2024, 1, 10),
+        station_ids=("07149",),
+        include_national=False,
+        target_dates=target_dates,
+    )
+
+    result = ds.fetch_stations_daily_series(query)
+
+    assert len(result) == 1
+
+    series = result[0]
+
+    assert [p.date for p in series.points] == sorted(target_dates)
+
+
+def test_fake_temperature_deviation_target_dates_are_sorted():
+    ds = FakeTemperatureDeviationDailyDataSource()
+
+    target_dates = (
+        dt.date(2024, 1, 10),
+        dt.date(2024, 1, 2),
+        dt.date(2024, 1, 5),
+    )
+
+    query = DailyDeviationSeriesQuery(
+        date_start=dt.date(2024, 1, 1),
+        date_end=dt.date(2024, 1, 10),
+        station_ids=("07149",),
+        include_national=False,
+        target_dates=target_dates,
+    )
+
+    result = ds.fetch_stations_daily_series(query)
+
+    dates = [p.date for p in result[0].points]
+
+    assert dates == sorted(target_dates)
