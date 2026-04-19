@@ -1153,18 +1153,20 @@ class TimescaleRecordsGraphDataSource:
 
         with connection.cursor() as cur:
             cur.execute(sql, params)
+            cols = [c[0] for c in cur.description]
             bucket_rows = {
-                row[0].strftime(
+                row["bucket_date"].strftime(
                     "%Y-%m-%d"
                     if date_trunc == "day"
                     else "%Y-%m"
                     if date_trunc == "month"
                     else "%Y"
-                ): row[1]
-                for row in cur.fetchall()
+                ): row["cnt"]
+                for row in (dict(zip(cols, r)) for r in cur.fetchall())
             }
             cur.execute(sql_records, params)
-            record_rows = cur.fetchall()
+            cols = [c[0] for c in cur.description]
+            record_rows = [dict(zip(cols, r)) for r in cur.fetchall()]
 
         all_buckets = _generate_buckets(
             request.date_start, request.date_end, request.granularity
@@ -1175,11 +1177,13 @@ class TimescaleRecordsGraphDataSource:
         ]
         records = [
             RecordsGraphRecord(
-                date=row[3].date() if hasattr(row[3], "date") else row[3],
-                station_id=row[0],
-                station_name=row[1],
-                type_records="hot" if row[4] == "TX" else "cold",
-                valeur=float(row[2]),
+                date=row["record_date"].date()
+                if hasattr(row["record_date"], "date")
+                else row["record_date"],
+                station_id=row["station_code"],
+                station_name=row["station_name"],
+                type_records="hot" if row["record_type"] == "TX" else "cold",
+                valeur=float(row["record_value"]),
             )
             for row in record_rows
         ]
