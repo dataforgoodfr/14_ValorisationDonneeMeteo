@@ -1162,11 +1162,11 @@ class TimescaleRecordsGraphDataSource:
                     if date_trunc == "month"
                     else "%Y"
                 ): row["cnt"]
-                for row in (dict(zip(cols, r)) for r in cur.fetchall())
+                for row in (dict(zip(cols, r, strict=False)) for r in cur.fetchall())
             }
             cur.execute(sql_records, params)
             cols = [c[0] for c in cur.description]
-            record_rows = [dict(zip(cols, r)) for r in cur.fetchall()]
+            record_rows = [dict(zip(cols, r, strict=False)) for r in cur.fetchall()]
 
         all_buckets = _generate_buckets(
             request.date_start, request.date_end, request.granularity
