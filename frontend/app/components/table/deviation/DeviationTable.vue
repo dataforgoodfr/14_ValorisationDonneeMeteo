@@ -9,8 +9,14 @@ import DayPicker from "~/components/ui/commons/selectBar/dayPicker.vue";
 import { useCustomDate } from "~/composables/useCustomDate";
 import type { TemperatureDeviationResponse } from "~/types/api";
 import { buildDeviationCsv } from "~/utils/deviationCsv";
+import type { SelectBarAdapter } from "~/components/ui/commons/selectBar/types";
 
 const store = useDeviationTableStore();
+
+const dates = useCustomDate();
+provide("selectBarAdapter", {
+    maxDate: dates.yesterday,
+} as unknown as SelectBarAdapter);
 const {
     page,
     pageSize,
@@ -190,26 +196,17 @@ const columns: TableColumn<TableRow>[] = [
             `${row.getValue<number>("temperatureMean").toFixed(1)}`,
     },
 ];
-
-const dates = useCustomDate();
-
-const props = withDefaults(defineProps<{ showFilters?: boolean }>(), {
-    showFilters: true,
-});
 </script>
 
 <template>
     <div class="flex flex-col gap-4">
-        <DayPicker
-            v-if="props.showFilters"
-            v-model:start-date="dateStart"
-            v-model:end-date="dateEnd"
-            :min-date="dates.absoluteMinDataDate.value"
-            :max-date="dates.yesterday.value"
-        />
-
-        <div class="flex items-center justify-between gap-4">
-            <DeviationFilterBar />
+        <div class="flex items-end justify-between gap-4">
+            <DayPicker
+                v-model:start-date="dateStart"
+                v-model:end-date="dateEnd"
+                :min-date="dates.absoluteMinDataDate.value"
+                :max-date="dates.yesterday.value"
+            />
             <UButton
                 label="Exporter CSV"
                 icon="i-lucide-download"
@@ -218,6 +215,8 @@ const props = withDefaults(defineProps<{ showFilters?: boolean }>(), {
                 @click="downloadCsv"
             />
         </div>
+
+        <DeviationFilterBar />
 
         <div v-if="error" class="px-4 py-3 bg-error/10 text-error rounded">
             Erreur de chargement : {{ error }}

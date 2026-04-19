@@ -11,7 +11,7 @@ const selectBarAdapter = useRecordsSelectBarAdapter();
 const heroData = {
     title: "Records",
     description:
-        "Tableau des stations météo ayant enregistrées un record de température sur une période donnée.",
+        "Les records de température correspondent aux valeurs extrêmes — maximales ou minimales — mesurées depuis la création d’une station disposant d’au moins 20 ans de données.",
 };
 </script>
 

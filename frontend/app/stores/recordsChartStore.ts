@@ -28,8 +28,9 @@ export const useRecordsChartStore = defineStore("recordChartStore", () => {
     const recordsChartRef = shallowRef();
 
     // Date range
-    const pickedDateStart = ref(new Date(1950, 0, 1));
+    const pickedDateStart = ref(dates.absoluteMinDataDate.value);
     const pickedDateEnd = ref(dates.today.value);
+    const maxDate = ref(dates.today.value);
     const debouncedStartDate = refDebounced(pickedDateStart, debounceDuration);
     const debouncedEndDate = refDebounced(pickedDateEnd, debounceDuration);
 
@@ -99,8 +100,17 @@ export const useRecordsChartStore = defineStore("recordChartStore", () => {
     const setGranularity = (value: GranularityType) => {
         sliceType.value = "full";
         granularity.value = value;
+        pickedDateEnd.value = dates.today.value;
+        maxDate.value = dates.today.value;
         if (value === "day") {
             sliceTypeSwitchEnabled.value = false;
+            pickedDateStart.value = dates.lastYear.value;
+        }
+        if (value === "month") {
+            pickedDateStart.value = dates.last10Year.value;
+        }
+        if (value === "year") {
+            pickedDateStart.value = dates.absoluteMinDataDate.value;
         }
     };
 
@@ -187,6 +197,7 @@ export const useRecordsChartStore = defineStore("recordChartStore", () => {
         recordsChartRef,
         pickedDateStart,
         pickedDateEnd,
+        maxDate,
         granularity,
         sliceTypeSwitchEnabled,
         sliceType,

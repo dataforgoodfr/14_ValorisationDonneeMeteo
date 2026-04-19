@@ -8,9 +8,9 @@ import { useItnSelectBarAdapter } from "~/adapters/itnSelectBarAdapter";
 const selectBarAdapter = useItnSelectBarAdapter();
 
 const heroData = {
-    title: "ITN",
+    title: "Indicateur Thermique National",
     description:
-        "L'Indicateur Thermique National est la température moyenne mesurée à l'échelle du pays (moyenne des températures minimales et maximales sur 30 stations météorologiques réparties de manière équilibrée en France).",
+        "L'Indicateur Thermique National (ITN) est la température moyenne mesurée à l'échelle du pays (moyenne des températures minimales et maximales sur 30 stations météorologiques réparties de manière équilibrée en France).",
 };
 </script>
 

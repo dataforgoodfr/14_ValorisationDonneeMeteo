@@ -4,6 +4,7 @@ import langFR from "~/i18n/langFR.js";
 import type { SelectBarAdapter } from "~/components/ui/commons/selectBar/types";
 import type { NationalIndicatorResponse } from "~/types/api";
 import { CHART_ATTRIBUTION_GRAPHIC } from "~/constants/chartAttribution";
+import { ITN_SERIES } from "~/constants/itn";
 import { itnChartTooltipFormatter } from "./tooltipFormatters/itnChartTooltipFormatter";
 
 import {
@@ -125,7 +126,7 @@ const option = computed<ECOption>(() => {
             },
             // extreme - baseline_band
             {
-                name: "Extrêmes",
+                name: ITN_SERIES.extremes,
                 type: "line",
                 encode: { x: "date", y: "baseline_band" },
                 stack: "extreme",
@@ -148,7 +149,7 @@ const option = computed<ECOption>(() => {
             },
             // ecart-type - baseline_std_dev_band
             {
-                name: "Écart-type",
+                name: ITN_SERIES.stdDev,
                 type: "line",
                 encode: { x: "date", y: "baseline_std_dev_band" },
                 stack: "std",
@@ -160,14 +161,14 @@ const option = computed<ECOption>(() => {
             },
             // Moyenne - baseline_mean
             {
-                name: "Indicateur MF",
+                name: ITN_SERIES.baseline,
                 type: "line",
                 encode: { x: "date", y: "baseline_mean" },
                 symbol: "none",
             },
             // Temperature - temperature
             {
-                name: "Température",
+                name: ITN_SERIES.temperature,
                 type: "line",
                 stack: "temperature",
                 encode: { x: "date", y: "temperature" },
@@ -177,7 +178,7 @@ const option = computed<ECOption>(() => {
             },
             // hot_cold_invisible_band
             {
-                name: "Température",
+                name: ITN_SERIES.temperature,
                 type: "line",
                 encode: { x: "date", y: "hot_cold_invisible_band" },
                 stack: "hot_cold",
@@ -189,7 +190,7 @@ const option = computed<ECOption>(() => {
             },
             // hot_red_band
             {
-                name: "Température",
+                name: ITN_SERIES.temperature,
                 type: "line",
                 encode: { x: "date", y: "hot_red_band" },
                 stack: "hot_cold",
@@ -202,7 +203,7 @@ const option = computed<ECOption>(() => {
             },
             // cold_blue_band
             {
-                name: "Température",
+                name: ITN_SERIES.temperature,
                 type: "line",
                 encode: { x: "date", y: "cold_blue_band" },
                 stack: "hot_cold",
@@ -219,7 +220,12 @@ const option = computed<ECOption>(() => {
             left: "center",
         },
         legend: {
-            data: ["Température", "Indicateur MF", "Écart-type", "Extrêmes"],
+            data: [
+                ITN_SERIES.temperature,
+                ITN_SERIES.baseline,
+                ITN_SERIES.stdDev,
+                ITN_SERIES.extremes,
+            ],
             bottom: 85,
         },
         tooltip: {

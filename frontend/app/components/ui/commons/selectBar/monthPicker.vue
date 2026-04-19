@@ -3,8 +3,26 @@ import DatePicker from "primevue/datepicker";
 import { useCustomDate } from "#imports";
 import type { SelectBarAdapter } from "~/components/ui/commons/selectBar/types";
 
+const localStartDate = defineModel<Date | undefined>("startDate");
+const localEndDate = defineModel<Date | undefined>("endDate");
+
 const adapter = inject<SelectBarAdapter>("selectBarAdapter")!;
 const dates = useCustomDate();
+
+const minStartDate = computed(() => {
+    if (!localEndDate.value) return dates.absoluteMinDataDate.value;
+    const d = new Date(localEndDate.value);
+    d.setFullYear(d.getFullYear() - 50);
+    return d;
+});
+
+const maxEndDate = computed(() => {
+    if (!localStartDate.value) return dates.today.value;
+    const d = new Date(localStartDate.value);
+    d.setFullYear(d.getFullYear() + 50);
+    const max = adapter.maxDate?.value ?? dates.today.value;
+    return d < max ? d : max;
+});
 
 const pt = {
     root: { class: "relative w-36" },
@@ -75,9 +93,9 @@ const pt = {
         <div class="flex flex-col text-center gap-1">
             <p class="text-sm text-default">Mois de début</p>
             <DatePicker
-                v-model="adapter.pickedDateStart.value"
-                :min-date="dates.absoluteMinDataDate.value"
-                :max-date="adapter.pickedDateEnd.value"
+                v-model="localStartDate"
+                :min-date="minStartDate"
+                :max-date="localEndDate"
                 view="month"
                 date-format="mm/yy"
                 :pt="pt"
@@ -93,9 +111,9 @@ const pt = {
         <div class="flex flex-col text-center gap-1">
             <p class="text-sm text-default">Mois de fin</p>
             <DatePicker
-                v-model="adapter.pickedDateEnd.value"
-                :min-date="adapter.pickedDateStart.value"
-                :max-date="dates.yesterday.value"
+                v-model="localEndDate"
+                :min-date="localStartDate"
+                :max-date="maxEndDate"
                 view="month"
                 date-format="mm/yy"
                 :pt="pt"

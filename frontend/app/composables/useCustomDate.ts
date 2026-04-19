@@ -7,9 +7,23 @@ export function useCustomDate() {
         return d;
     });
 
+    const lastMonth = computed(() => {
+        const todayDate = new Date();
+        todayDate.setMonth(todayDate.getMonth() - 1);
+
+        return new Date(todayDate);
+    });
+
     const lastYear = computed(() => {
         const todayDate = new Date();
         todayDate.setFullYear(todayDate.getFullYear() - 1);
+
+        return new Date(todayDate);
+    });
+
+    const last10Year = computed(() => {
+        const todayDate = new Date();
+        todayDate.setFullYear(todayDate.getFullYear() - 10);
 
         return new Date(todayDate);
     });
@@ -23,7 +37,9 @@ export function useCustomDate() {
     return {
         today,
         yesterday,
+        lastMonth,
         lastYear,
+        last10Year,
         absoluteMinDataDate,
     };
 }

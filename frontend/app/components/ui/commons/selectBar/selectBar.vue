@@ -56,10 +56,22 @@ const granularityValues = reactive([
                 v-model:start-date="localStartDate"
                 v-model:end-date="localEndDate"
                 :min-date="dates.absoluteMinDataDate.value"
-                :max-date="dates.yesterday.value"
+                :max-date="dates.today.value"
             />
-            <MonthPicker v-if="adapter.granularity.value === 'month'" />
-            <YearPicker v-if="adapter.granularity.value === 'year'" />
+            <MonthPicker
+                v-if="adapter.granularity.value === 'month'"
+                v-model:start-date="localStartDate"
+                v-model:end-date="localEndDate"
+                :min-date="dates.absoluteMinDataDate.value"
+                :max-date="dates.today.value"
+            />
+            <YearPicker
+                v-if="adapter.granularity.value === 'year'"
+                v-model:start-date="localStartDate"
+                v-model:end-date="localEndDate"
+                :min-date="dates.absoluteMinDataDate.value"
+                :max-date="dates.today.value"
+            />/>
             <SelectChartType v-if="adapter.features.hasChartTypeSelector" />
 
             <USeparator

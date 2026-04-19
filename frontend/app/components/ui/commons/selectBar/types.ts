@@ -23,6 +23,7 @@ export interface SelectBarAdapter<
     granularity: Ref<GranularityType>;
     pickedDateStart: Ref<Date>;
     pickedDateEnd: Ref<Date>;
+    maxDate?: Ref<Date>;
 
     // Slice type
     sliceTypeSwitchEnabled?: Ref<boolean>;

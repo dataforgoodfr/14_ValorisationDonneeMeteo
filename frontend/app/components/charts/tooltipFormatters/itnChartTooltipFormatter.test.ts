@@ -23,9 +23,9 @@ const baseValue = {
 };
 
 const makeDefaultParams = (overrides: Partial<typeof baseValue> = {}) => [
-    makeParam("Température", { ...baseValue, ...overrides }, `<span>T</span>`),
+    makeParam("ITN", { ...baseValue, ...overrides }, `<span>T</span>`),
     makeParam(
-        "Indicateur MF",
+        "ITN des normales",
         { ...baseValue, ...overrides },
         `<span>M</span>`,
     ),
@@ -152,7 +152,7 @@ describe("itnChartTooltipFormatter", () => {
         ];
         const result = itnChartTooltipFormatter(params, "day");
         expect(result).toBe(
-            'lun. 23 mars 2026<br/>Température : 17.3°C<br/>Indicateur MF : 18.5°C<br/>dummy-markerExtrêmes : [12.6°C – 24.4°C]<br/>dummy-marker"></span>Écart-type : [16.9°C – 20.1°C]',
+            'lun. 23 mars 2026<br/>ITN : 17.3°C<br/>ITN des normales : 18.5°C<br/>dummy-markerExtrêmes : [12.6°C – 24.4°C]<br/>dummy-marker"></span>Écart-type : [16.9°C – 20.1°C]',
         );
     });
 
@@ -241,7 +241,7 @@ describe("itnChartTooltipFormatter", () => {
         ];
         const result = itnChartTooltipFormatter(params, "month");
         expect(result).toBe(
-            'mars 2026<br/>Température : 18.0°C<br/>Indicateur MF : 17.9°C<br/>dummy-markerExtrêmes : [11.1°C – 24.4°C]<br/>dummy-marker"></span>Écart-type : [16.2°C – 19.6°C]',
+            'mars 2026<br/>ITN : 18.0°C<br/>ITN des normales : 17.9°C<br/>dummy-markerExtrêmes : [11.1°C – 24.4°C]<br/>dummy-marker"></span>Écart-type : [16.2°C – 19.6°C]',
         );
     });
 
@@ -330,7 +330,7 @@ describe("itnChartTooltipFormatter", () => {
         ];
         const result = itnChartTooltipFormatter(params, "year");
         expect(result).toBe(
-            '2026<br/>Température : 15.5°C<br/>Indicateur MF : 15.4°C<br/>dummy-markerExtrêmes : [4.7°C – 24.4°C]<br/>dummy-marker"></span>Écart-type : [13.7°C – 17.2°C]',
+            '2026<br/>ITN : 15.5°C<br/>ITN des normales : 15.4°C<br/>dummy-markerExtrêmes : [4.7°C – 24.4°C]<br/>dummy-marker"></span>Écart-type : [13.7°C – 17.2°C]',
         );
     });
 
@@ -386,41 +386,37 @@ describe("itnChartTooltipFormatter", () => {
 
     // --- Temperature line ---
 
-    it("includes Température with marker and formatted value", () => {
+    it("includes ITN with marker and formatted value", () => {
         const marker = `<span>T</span>`;
         const params = [
-            makeParam(
-                "Température",
-                { ...baseValue, temperature: 22.5 },
-                marker,
-            ),
+            makeParam("ITN", { ...baseValue, temperature: 22.5 }, marker),
             ...makeDefaultParams().slice(1),
         ];
         const result = itnChartTooltipFormatter(params, "day");
 
-        expect(result).toContain(`${marker}Température : 22.5°C`);
+        expect(result).toContain(`${marker}ITN : 22.5°C`);
     });
 
     it("formats temperature with one decimal place", () => {
         const params = makeDefaultParams({ temperature: 20 });
         const result = itnChartTooltipFormatter(params, "day");
 
-        expect(result).toContain("Température : 20.0°C");
+        expect(result).toContain("ITN : 20.0°C");
     });
 
-    // --- Indicateur MF line ---
+    // --- ITN des normales line ---
 
-    it("includes Indicateur MF with marker and formatted value", () => {
+    it("includes ITN des normales with marker and formatted value", () => {
         const marker = `<span>M</span>`;
         // All data is read from the first param's value, so override there
         const params = [
             makeParam(
-                "Température",
+                "ITN",
                 { ...baseValue, baseline_mean: 19.3 },
                 `<span>T</span>`,
             ),
             makeParam(
-                "Indicateur MF",
+                "ITN des normales",
                 { ...baseValue, baseline_mean: 19.3 },
                 marker,
             ),
@@ -429,14 +425,14 @@ describe("itnChartTooltipFormatter", () => {
         ];
         const result = itnChartTooltipFormatter(params, "day");
 
-        expect(result).toContain(`${marker}Indicateur MF : 19.3°C`);
+        expect(result).toContain(`${marker}ITN des normales : 19.3°C`);
     });
 
     it("formats baseline_mean with one decimal place", () => {
         const params = makeDefaultParams({ baseline_mean: 18 });
         const result = itnChartTooltipFormatter(params, "day");
 
-        expect(result).toContain("Indicateur MF : 18.0°C");
+        expect(result).toContain("ITN des normales : 18.0°C");
     });
 
     // --- Extrêmes line ---
@@ -446,12 +442,8 @@ describe("itnChartTooltipFormatter", () => {
         const overrides = { baseline_min: 10.0, baseline_max: 30.0 };
         // All data is read from the first param's value, so override there
         const params = [
-            makeParam(
-                "Température",
-                { ...baseValue, ...overrides },
-                `<span>T</span>`,
-            ),
-            makeParam("Indicateur MF", { ...baseValue }, `<span>M</span>`),
+            makeParam("ITN", { ...baseValue, ...overrides }, `<span>T</span>`),
+            makeParam("ITN des normales", { ...baseValue }, `<span>M</span>`),
             makeParam("Extrêmes", { ...baseValue, ...overrides }, marker),
             makeParam("Écart-type", { ...baseValue }, `<span>S</span>`),
         ];
@@ -480,12 +472,8 @@ describe("itnChartTooltipFormatter", () => {
         };
         // All data is read from the first param's value, so override there
         const params = [
-            makeParam(
-                "Température",
-                { ...baseValue, ...overrides },
-                `<span>T</span>`,
-            ),
-            makeParam("Indicateur MF", { ...baseValue }, `<span>M</span>`),
+            makeParam("ITN", { ...baseValue, ...overrides }, `<span>T</span>`),
+            makeParam("ITN des normales", { ...baseValue }, `<span>M</span>`),
             makeParam("Extrêmes", { ...baseValue }, `<span>E</span>`),
             makeParam("Écart-type", { ...baseValue, ...overrides }, marker),
         ];
@@ -513,16 +501,16 @@ describe("itnChartTooltipFormatter", () => {
         const result = itnChartTooltipFormatter(params, "day");
 
         // Output should still be produced; marker contribution is just empty
-        expect(result).toContain("Température :");
+        expect(result).toContain("ITN :");
     });
 
     it("falls back to empty string when a series is not found in params", () => {
-        // Only provide Température — other series are absent
-        const params = [makeParam("Température", { ...baseValue })];
+        // Only provide ITN — other series are absent
+        const params = [makeParam("ITN", { ...baseValue })];
         const result = itnChartTooltipFormatter(params, "day");
 
         // Lines for missing series have no marker, output still rendered
-        expect(result).toContain("Indicateur MF :");
+        expect(result).toContain("ITN des normales :");
         expect(result).toContain("Extrêmes :");
         expect(result).toContain("Écart-type :");
     });

@@ -17,8 +17,9 @@ const dates = useCustomDate();
 export const useDeviationStore = defineStore("deviationStore", () => {
     const deviationChartRef = shallowRef();
 
-    const pickedDateStart = ref(dates.lastYear.value);
+    const pickedDateStart = ref(dates.last10Year.value);
     const pickedDateEnd = ref(dates.yesterday.value);
+    const maxDate = ref(dates.yesterday.value);
 
     const granularity: Ref<GranularityType> = ref<GranularityType>("month");
     const sliceTypeSwitchEnabled = ref(false);
@@ -82,8 +83,17 @@ export const useDeviationStore = defineStore("deviationStore", () => {
     const setGranularity = (value: GranularityType) => {
         sliceType.value = "full";
         granularity.value = value;
+        pickedDateEnd.value = dates.yesterday.value;
+        maxDate.value = dates.yesterday.value;
         if (value === "day") {
             sliceTypeSwitchEnabled.value = false;
+            pickedDateStart.value = dates.lastYear.value;
+        }
+        if (value === "month") {
+            pickedDateStart.value = dates.last10Year.value;
+        }
+        if (value === "year") {
+            pickedDateStart.value = dates.absoluteMinDataDate.value;
         }
     };
 
@@ -128,6 +138,7 @@ export const useDeviationStore = defineStore("deviationStore", () => {
         includeNational,
         pickedDateStart,
         pickedDateEnd,
+        maxDate,
         granularity,
         sliceTypeSwitchEnabled,
         sliceType,

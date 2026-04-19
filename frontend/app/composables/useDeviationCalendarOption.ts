@@ -252,7 +252,7 @@ export function useDeviationCalendarOption(
             nameLocation: "middle",
             nameGap: granularity === "year" ? 25 : 38,
             nameTextStyle: {
-                color: COLORS.foregound,
+                color: COLORS.foreground,
                 fontSize: 12,
                 fontWeight: "bold",
             },
@@ -265,12 +265,12 @@ export function useDeviationCalendarOption(
             splitArea: { show: true },
             axisTick: { show: false },
             axisLine: { lineStyle: { color: "#3a5080" } },
-            axisLabel: { color: COLORS.foregound, fontSize: 11 },
+            axisLabel: { color: COLORS.foreground, fontSize: 11 },
             name: yAxisName,
             nameLocation: "middle",
             nameGap: 35,
             nameTextStyle: {
-                color: COLORS.foregound,
+                color: COLORS.foreground,
                 fontSize: 12,
                 fontWeight: "bold",
             },
@@ -283,7 +283,7 @@ export function useDeviationCalendarOption(
             textStyle: {
                 fontSize: 12,
                 fontWeight: "bold",
-                color: COLORS.foregound,
+                color: COLORS.foreground,
             },
         });
 
@@ -314,7 +314,7 @@ export function useDeviationCalendarOption(
         inRange: {
             color: [COLORS.negative, "#FFF", COLORS.positive],
         },
-        textStyle: { color: COLORS.foregound },
+        textStyle: { color: COLORS.foreground },
         handleStyle: { borderColor: "#3a5080" },
         seriesIndex: series.map((_, i) => i),
         text: ["+ chaud", "+ froid"],

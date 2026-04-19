@@ -11,6 +11,7 @@ export const useDeviationSelectBarAdapter =
             granularity,
             pickedDateStart,
             pickedDateEnd,
+            maxDate,
             sliceTypeSwitchEnabled, // Will be enabled in futur version
             sliceType, // Will be enabled in futur version
             sliceDatepickerDate, // Will be enabled in futur version
@@ -24,6 +25,7 @@ export const useDeviationSelectBarAdapter =
             granularity,
             pickedDateStart,
             pickedDateEnd,
+            maxDate,
             sliceTypeSwitchEnabled, // Will be enabled in futur version
             sliceType, // Will be enabled in futur version
             sliceDatepickerDate, // Will be enabled in futur version

@@ -48,7 +48,7 @@ export function useTemperatureDeviation(
             if (enabled && hasParams) {
                 result.execute();
             } else if (!hasParams) {
-                result.data.value = null;
+                result.data.value = undefined;
             }
         },
         { immediate: true, deep: true },
@@ -90,7 +90,7 @@ export function useTemperatureDeviationGraph(
             if (enabled && hasParams) {
                 result.execute();
             } else if (!hasParams) {
-                result.data.value = null;
+                result.data.value = undefined;
             }
         },
         { immediate: true },
