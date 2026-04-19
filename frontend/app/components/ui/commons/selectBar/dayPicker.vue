@@ -17,11 +17,11 @@ const minStartDate = computed(() => {
 });
 
 const maxEndDate = computed(() => {
-    if (!localStartDate.value) return dates.today.value;
+    const ceiling = adapter.maxDate?.value ?? dates.yesterday.value;
+    if (!localStartDate.value) return ceiling;
     const d = new Date(localStartDate.value);
     d.setFullYear(d.getFullYear() + 2);
-    const max = adapter.maxDate?.value ?? dates.today.value;
-    return d < max ? d : max;
+    return d < ceiling ? d : ceiling;
 });
 
 const pt = {
