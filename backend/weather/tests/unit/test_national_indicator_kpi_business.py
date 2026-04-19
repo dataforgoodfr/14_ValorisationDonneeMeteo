@@ -13,11 +13,23 @@ class StubObservedDataSource:
     def __init__(self, points: list[ObservedPoint]):
         self._points = points
 
+    def fetch_daily_series(self, _query) -> list[ObservedPoint]:
+        return self._points
+
 
 class StubBaselineDataSource:
     def __init__(self, baselines: dict[tuple[int, int], BaselinePoint]):
         # clé = (month, day_of_month)
         self._baselines = baselines
+
+    def fetch_daily_baseline(self, day: dt.date) -> BaselinePoint:
+        return self._baselines[(day.month, day.day)]
+
+    def fetch_monthly_baseline(self, month: int) -> BaselinePoint:
+        raise NotImplementedError
+
+    def fetch_yearly_baseline(self) -> BaselinePoint:
+        raise NotImplementedError
 
 
 def _baseline(mean: float, std_dev: float) -> BaselinePoint:
