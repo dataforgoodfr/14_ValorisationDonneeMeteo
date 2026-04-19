@@ -113,6 +113,35 @@ def test_station_filter_returns_station_series(client: APIClient):
 
 
 @pytest.mark.usefixtures("fake_minmax_dep")
+def test_department_filter_returns_station_series(client: APIClient):
+    resp = client.get(
+        URL,
+        {
+            "date_start": "2020-01-01",
+            "date_end": "2020-03-31",
+            "granularity": "month",
+            "departments": "75",
+        },
+    )
+
+    assert resp.status_code == 200
+    body = resp.json()
+
+    assert "national" not in body
+    assert len(body["stations"]) > 0
+
+    station = body["stations"][0]
+    assert "station_id" in station
+    assert "station_name" in station
+    assert "data" in station
+
+    data = station["data"]
+    assert len(data) == 3
+    assert "tmin_mean" in data[0]
+    assert "tmax_mean" in data[0]
+
+
+@pytest.mark.usefixtures("fake_minmax_dep")
 @pytest.mark.parametrize("granularity", ["day", "month", "year"])
 def test_all_granularities_return_200(client: APIClient, granularity: str):
     resp = client.get(
