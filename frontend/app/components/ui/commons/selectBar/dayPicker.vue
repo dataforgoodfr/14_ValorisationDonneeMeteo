@@ -9,19 +9,22 @@ const localEndDate = defineModel<Date | undefined>("endDate");
 const adapter = inject<SelectBarAdapter>("selectBarAdapter");
 const dates = useCustomDate();
 
-const minStartDate = computed(() => {
-    if (!localEndDate.value) return dates.absoluteMinDataDate.value;
-    const d = new Date(localEndDate.value);
-    d.setFullYear(d.getFullYear() - 2);
-    return d;
+const maxEndDate = adapter?.maxDate?.value ?? dates.today.value;
+
+watch(localStartDate, (newStart) => {
+    if (!newStart || !localEndDate.value) return;
+    const limit = new Date(newStart);
+    limit.setFullYear(limit.getFullYear() + 2);
+    const ceiling = adapter?.maxDate?.value ?? dates.today.value;
+    const cap = limit < ceiling ? limit : ceiling;
+    if (localEndDate.value > cap) localEndDate.value = cap;
 });
 
-const maxEndDate = computed(() => {
-    const ceiling = adapter?.maxDate?.value ?? dates.yesterday.value;
-    if (!localStartDate.value) return ceiling;
-    const d = new Date(localStartDate.value);
-    d.setFullYear(d.getFullYear() + 2);
-    return d < ceiling ? d : ceiling;
+watch(localEndDate, (newEnd) => {
+    if (!newEnd || !localStartDate.value) return;
+    const limit = new Date(newEnd);
+    limit.setFullYear(limit.getFullYear() - 2);
+    if (localStartDate.value < limit) localStartDate.value = limit;
 });
 
 const pt = {
@@ -118,7 +121,6 @@ const pt = {
             <p class="text-sm text-default">Jour de début</p>
             <DatePicker
                 v-model="localStartDate"
-                :min-date="minStartDate"
                 :max-date="localEndDate"
                 date-format="dd/mm/yy"
                 :pt="pt"
