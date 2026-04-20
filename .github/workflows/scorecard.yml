@@ -31,7 +31,7 @@ jobs:
           publish_results: true
 
       - name: Upload Scorecard artifact
-        uses: actions/upload-artifact@v5
+        uses: actions/upload-artifact@v6
         with:
           name: openssf-scorecard-sarif
           path: results.sarif

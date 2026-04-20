@@ -111,7 +111,7 @@ jobs:
 
       - name: Upload test report
         if: always()
-        uses: actions/upload-artifact@v5
+        uses: actions/upload-artifact@v6
         with:
           name: test-report
           path: backend/reports/test-report
@@ -119,7 +119,7 @@ jobs:
 
       - name: Upload scan code report
         if: always()
-        uses: actions/upload-artifact@v5
+        uses: actions/upload-artifact@v6
         with:
           name: scan-code-report-backend
           path: backend/reports/scan-code-report
@@ -174,7 +174,7 @@ jobs:
 
       - name: Upload test report
         if: always()
-        uses: actions/upload-artifact@v5
+        uses: actions/upload-artifact@v6
         with:
           name: test-report-frontend
           path: frontend/reports/test-report
@@ -182,7 +182,7 @@ jobs:
 
       - name: Upload scan code report
         if: always()
-        uses: actions/upload-artifact@v5
+        uses: actions/upload-artifact@v6
         with:
           name: scan-code-report-frontend
           path: frontend/reports/scan-code-report
@@ -345,7 +345,7 @@ jobs:
 
       - name: Upload security scan report
         if: always()
-        uses: actions/upload-artifact@v5
+        uses: actions/upload-artifact@v6
         with:
           name: security-scan-report
           path: reports/security-scan-report
@@ -353,7 +353,7 @@ jobs:
 
       - name: Upload Trivy report
         if: always()
-        uses: actions/upload-artifact@v5
+        uses: actions/upload-artifact@v6
         with:
           name: trivy-report
           path: reports/trivy-report
@@ -361,7 +361,7 @@ jobs:
 
       - name: Upload VEX file
         if: always()
-        uses: actions/upload-artifact@v5
+        uses: actions/upload-artifact@v6
         with:
           name: fichier-vex
           path: reports/fichier-vex
@@ -406,14 +406,14 @@ jobs:
           docker save "$REGISTRY/$IMAGE_REPOSITORY-frontend:$IMAGE_TAG" | gzip > reports/docker-image-frontend/frontend-image.tar.gz
 
       - name: Upload backend image artifact
-        uses: actions/upload-artifact@v5
+        uses: actions/upload-artifact@v6
         with:
           name: docker-image-backend
           path: reports/docker-image-backend
           if-no-files-found: warn
 
       - name: Upload frontend image artifact
-        uses: actions/upload-artifact@v5
+        uses: actions/upload-artifact@v6
         with:
           name: docker-image-frontend
           path: reports/docker-image-frontend
