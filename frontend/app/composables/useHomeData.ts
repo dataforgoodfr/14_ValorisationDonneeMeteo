@@ -30,17 +30,16 @@ export function useHomeData() {
         generateNationalIndicatorParams(yesterdayLastYear.value),
     );
 
-    const temperatureChangeYearOverYear = computed(() => {
+    const temperatureChangeYearOverYear = computed<number | undefined>(() => {
+        const lastYearTemperature =
+            yesterdayLastYearData.value?.time_series[0]?.temperature;
         if (
-            !yesterdayTemperature.value ||
-            !yesterdayLastYearData.value?.time_series[0]?.temperature
+            typeof yesterdayTemperature.value !== "number" ||
+            typeof lastYearTemperature !== "number"
         ) {
             return undefined;
         }
-        return (
-            yesterdayLastYearData.value?.time_series[0]?.temperature -
-            yesterdayTemperature.value
-        );
+        return lastYearTemperature - yesterdayTemperature.value;
     });
 
     return {

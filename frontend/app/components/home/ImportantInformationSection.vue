@@ -28,19 +28,19 @@ const {
             </p>
         </template>
         <template v-if="gap" #kpi-context-box>
-            {{ gap?.toFixed(1) }}°C vs normale 1991-2020
+            {{ gap.toFixed(1) }}°C vs normale 1991-2020
         </template>
-        <template #variation>
+        <template v-if="temperatureChangeYearOverYear" #variation>
             <span class="text-sm">
-                {{ temperatureChangeYearOverYear?.toFixed(1) }}°C
+                {{ temperatureChangeYearOverYear.toFixed(1) }}°C
             </span>
             <UIcon
-                v-if="temperatureChangeYearOverYear ?? 0 < 0"
+                v-if="temperatureChangeYearOverYear < 0"
                 name="i-lucide-arrow-down-right"
                 class="blue"
             />
             <UIcon
-                v-if="temperatureChangeYearOverYear ?? 0 > 0"
+                v-if="temperatureChangeYearOverYear > 0"
                 name="i-lucide-arrow-up-right"
                 class="red"
             />
