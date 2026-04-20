@@ -7,15 +7,15 @@ import type { NationalIndicatorResponse } from "~/types/api";
 
 const baseURL =
     process.env.NUXT_PUBLIC_API_BASE ?? "http://localhost:8000/api/v1";
-
-const testApiFetch = <T>(
+const testApiFetch = <NationalIndicatorResponse>(
     endpoint: string,
-    options?: Parameters<typeof $fetch<T>>[1],
-): Promise<T> =>
-    $fetch<T>(endpoint, {
+    options?: Parameters<typeof $fetch<NationalIndicatorResponse>>[1],
+): Promise<NationalIndicatorResponse> => {
+    return $fetch<NationalIndicatorResponse>(endpoint, {
         baseURL,
         ...options,
     });
+};
 
 describe("fetchNationalIndicatorForYear", () => {
     let apiResponse: NationalIndicatorResponse;
