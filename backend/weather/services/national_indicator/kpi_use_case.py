@@ -22,6 +22,7 @@ class KpiDay:
 class NationalIndicatorKpiResult:
     days: list[KpiDay]
     count: int
+    itn_mean: float | None
 
 
 def is_peak(temperature: float, baseline: BaselinePoint, peak_type: str) -> bool:
@@ -59,4 +60,10 @@ def get_national_indicator_kpi(
                 )
             )
 
-    return NationalIndicatorKpiResult(days=peak_days, count=len(peak_days))
+    itn_mean = (
+        sum(p.temperature for p in observed) / len(observed) if observed else None
+    )
+
+    return NationalIndicatorKpiResult(
+        days=peak_days, count=len(peak_days), itn_mean=itn_mean
+    )
