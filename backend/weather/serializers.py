@@ -336,7 +336,7 @@ class TemperatureDeviationOverviewQuerySerializer(serializers.Serializer):
     limit = serializers.IntegerField(
         required=False,
         min_value=1,
-        max_value=500,
+        max_value=5000,
         default=50,
     )
     offset = serializers.IntegerField(required=False, min_value=0, default=0)
