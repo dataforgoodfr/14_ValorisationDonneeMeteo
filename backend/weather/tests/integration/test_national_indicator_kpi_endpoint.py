@@ -214,6 +214,40 @@ def test_kpi_invalid_type_returns_400(client: APIClient):
 
 
 # ---------------------------------------------------------------------------
+# peak_type facultatif
+# ---------------------------------------------------------------------------
+
+
+def test_kpi_without_type_returns_empty_peaks_and_zero_count(client: APIClient):
+    _register({dt.date(2024, 1, 1): 25.0})  # serait un pic chaud si type fourni
+
+    resp = client.get(
+        reverse("temperature-national-indicator-kpi"),
+        {"date_start": "2024-01-01", "date_end": "2024-01-01"},
+    )
+
+    assert resp.status_code == 200
+    data = resp.json()
+    assert data["count"] == 0
+    assert data["days"] == []
+
+
+def test_kpi_without_type_still_returns_itn_mean_and_deviation(client: APIClient):
+    # baseline mean=10.0, temp=20.0 → itn_mean=20.0, deviation=10.0
+    _register({dt.date(2024, 1, 1): 20.0})
+
+    resp = client.get(
+        reverse("temperature-national-indicator-kpi"),
+        {"date_start": "2024-01-01", "date_end": "2024-01-01"},
+    )
+
+    assert resp.status_code == 200
+    data = resp.json()
+    assert data["itn_mean"] == pytest.approx(20.0)
+    assert data["deviation_from_normal"] == pytest.approx(10.0)
+
+
+# ---------------------------------------------------------------------------
 # itn_mean
 # ---------------------------------------------------------------------------
 

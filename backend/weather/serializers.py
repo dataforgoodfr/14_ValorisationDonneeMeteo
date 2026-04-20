@@ -590,7 +590,9 @@ class TemperatureDeviationOverviewResponseSerializer(serializers.Serializer):
 class NationalIndicatorKpiQuerySerializer(serializers.Serializer):
     date_start = serializers.DateField(required=True)
     date_end = serializers.DateField(required=True)
-    type = serializers.ChoiceField(choices=["hot", "cold"], required=True)
+    type = serializers.ChoiceField(
+        choices=["hot", "cold"], required=False, allow_null=True, default=None
+    )
 
     def validate(self, attrs):
         if attrs["date_start"] > attrs["date_end"]:

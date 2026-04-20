@@ -331,3 +331,46 @@ def test_deviation_from_normal_is_none_when_observed_series_is_empty():
     )
 
     assert result.deviation_from_normal is None
+
+
+# ─── Tests : peak_type facultatif ─────────────────────────────────────────────
+
+
+def test_no_peak_type_returns_empty_days_and_zero_count():
+    observed = [
+        ObservedPoint(date=dt.date(2024, 7, 1), temperature=25.0),
+        ObservedPoint(date=dt.date(2024, 7, 2), temperature=5.0),
+    ]
+    baseline = _baseline(mean=15.0, std_dev=2.0)
+    baselines = {(7, 1): baseline, (7, 2): baseline}
+
+    result = get_national_indicator_kpi(
+        observed_data_source=StubObservedDataSource(observed),
+        baseline_data_source=StubBaselineDataSource(baselines),
+        date_start=dt.date(2024, 7, 1),
+        date_end=dt.date(2024, 7, 2),
+        peak_type=None,
+    )
+
+    assert result.count == 0
+    assert result.days == []
+
+
+def test_no_peak_type_still_computes_itn_mean_and_deviation():
+    observed = [
+        ObservedPoint(date=dt.date(2024, 7, 1), temperature=20.0),
+        ObservedPoint(date=dt.date(2024, 7, 2), temperature=30.0),
+    ]
+    baseline = _baseline(mean=10.0, std_dev=2.0)
+    baselines = {(7, 1): baseline, (7, 2): baseline}
+
+    result = get_national_indicator_kpi(
+        observed_data_source=StubObservedDataSource(observed),
+        baseline_data_source=StubBaselineDataSource(baselines),
+        date_start=dt.date(2024, 7, 1),
+        date_end=dt.date(2024, 7, 2),
+        peak_type=None,
+    )
+
+    assert result.itn_mean == 25.0
+    assert result.deviation_from_normal == pytest.approx(15.0)

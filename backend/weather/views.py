@@ -340,7 +340,7 @@ class NationalIndicatorKpiAPIView(APIView):
             baseline_data_source=deps.baseline_data_source,
             date_start=params["date_start"],
             date_end=params["date_end"],
-            peak_type=params["type"],
+            peak_type=params.get("type"),
         )
 
         payload = {

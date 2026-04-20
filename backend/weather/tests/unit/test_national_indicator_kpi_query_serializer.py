@@ -50,14 +50,13 @@ def test_type_rejects_invalid_values(invalid_type):
     assert "type" in s.errors
 
 
-def test_missing_type_is_invalid():
+def test_missing_type_is_valid_and_defaults_to_none():
     s = NationalIndicatorKpiQuerySerializer(
         data={"date_start": "2024-01-01", "date_end": "2024-01-31"}
     )
 
-    ok = s.is_valid()
-    assert not ok
-    assert "type" in s.errors
+    assert s.is_valid(), s.errors
+    assert s.validated_data["type"] is None
 
 
 def test_missing_date_start_is_invalid():

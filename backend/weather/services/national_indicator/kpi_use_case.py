@@ -38,7 +38,7 @@ def get_national_indicator_kpi(
     baseline_data_source: NationalIndicatorBaselineDataSource,
     date_start: dt.date,
     date_end: dt.date,
-    peak_type: str,
+    peak_type: str | None,
 ) -> NationalIndicatorKpiResult:
     observed = observed_data_source.fetch_daily_series(
         DailySeriesQuery(date_start=date_start, date_end=date_end)
@@ -53,7 +53,7 @@ def get_national_indicator_kpi(
         std_dev = baseline.baseline_std_dev_upper - baseline.baseline_mean
         baseline_means.append(baseline.baseline_mean)
 
-        if is_peak(point.temperature, baseline, peak_type):
+        if peak_type is not None and is_peak(point.temperature, baseline, peak_type):
             peak_days.append(
                 KpiDay(
                     date=point.date,
