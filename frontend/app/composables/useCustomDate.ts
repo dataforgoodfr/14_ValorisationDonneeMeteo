@@ -34,6 +34,12 @@ export function useCustomDate() {
         return minDataDate;
     });
 
+    const yesterdayLastYear = computed(() => {
+        const date = new Date(yesterday.value);
+        date.setFullYear(date.getFullYear() - 1);
+        return date;
+    });
+
     return {
         today,
         yesterday,
@@ -41,5 +47,6 @@ export function useCustomDate() {
         lastYear,
         last10Year,
         absoluteMinDataDate,
+        yesterdayLastYear,
     };
 }

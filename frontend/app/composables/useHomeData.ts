@@ -1,18 +1,21 @@
 import type { NationalIndicatorParams } from "~/types/api";
 
-const { yesterday } = useCustomDate();
+const { yesterday, yesterdayLastYear } = useCustomDate();
+
+function generateNationalIndicatorParams(date: Date): NationalIndicatorParams {
+    return {
+        date_start: dateToStringYMD(date),
+        date_end: dateToStringYMD(date),
+        granularity: "day",
+        slice_type: "full",
+    };
+}
 
 export function useHomeData() {
     // Yesterday data
-    const yesterdayParams = computed<NationalIndicatorParams>(() => {
-        return {
-            date_start: dateToStringYMD(yesterday.value),
-            date_end: dateToStringYMD(yesterday.value),
-            granularity: "day",
-            slice_type: "full",
-        };
-    });
-    const { data: yesterdayData } = useNationalIndicator(yesterdayParams);
+    const { data: yesterdayData } = useNationalIndicator(
+        generateNationalIndicatorParams(yesterday.value),
+    );
 
     const yesterdayTemperature = computed(
         () => yesterdayData.value?.time_series[0]?.temperature,
@@ -23,22 +26,8 @@ export function useHomeData() {
         return result ? result.temperature - result.baseline_mean : undefined;
     });
 
-    // Yesterday Last Year data
-    const yesterdayLastYear = computed(() => {
-        const date = new Date(yesterday.value);
-        date.setFullYear(date.getFullYear() - 1);
-        return date;
-    });
-    const yesterdayLastYearParams = computed<NationalIndicatorParams>(() => {
-        return {
-            date_start: dateToStringYMD(yesterdayLastYear.value),
-            date_end: dateToStringYMD(yesterdayLastYear.value),
-            granularity: "day",
-            slice_type: "full",
-        };
-    });
     const { data: yesterdayLastYearData } = useNationalIndicator(
-        yesterdayLastYearParams,
+        generateNationalIndicatorParams(yesterdayLastYear.value),
     );
 
     const temperatureChangeYearOverYear = computed(() => {
