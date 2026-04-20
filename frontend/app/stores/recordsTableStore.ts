@@ -242,6 +242,7 @@ export const useRecordsTableStore = defineStore("recordsTableStore", () => {
         staticOptions,
         setFilter,
         clearFilter,
+        absoluteRecords,
         pagedStations,
         filteredRecords,
         filteredCount,

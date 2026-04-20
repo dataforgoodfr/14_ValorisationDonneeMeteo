@@ -6,12 +6,20 @@ import SearchByTerritoryType from "~/components/records/SearchByTerritoryType.vu
 import { useRecordsSelectBarAdapter } from "~/adapters/recordsSelectBarAdapter";
 import RecordsChart from "~/components/charts/recordsChart.vue";
 import SelectBar from "~/components/ui/commons/selectBar/selectBar.vue";
+import RecordsMap from "~/components/charts/RecordsMap.vue";
+import {
+    useRecordsTableStore,
+    periodOptions,
+} from "~/stores/recordsTableStore";
 
 const selectBarAdapter = useRecordsSelectBarAdapter();
+
+const store = useRecordsTableStore();
+
 const heroData = {
     title: "Records",
     description:
-        "Les records de température correspondent aux valeurs extrêmes — maximales ou minimales — mesurées depuis la création d’une station disposant d’au moins 20 ans de données.",
+        "Les records de température correspondent aux valeurs extrêmes — maximales ou minimales — mesurées depuis la création d'une station disposant d'au moins 20 ans de données.",
 };
 </script>
 
@@ -22,7 +30,51 @@ const heroData = {
             :description="heroData.description"
         />
         <div class="flex gap-24 flex-col">
-            <RecordsTable />
+            <div class="flex flex-col gap-4">
+                <div class="flex items-end gap-4">
+                    <div class="flex flex-col gap-1">
+                        <p class="text-sm text-muted">Période</p>
+                        <USelect
+                            v-model="store.periodSelection"
+                            :items="periodOptions"
+                        />
+                    </div>
+                    <UButtonGroup>
+                        <UButton
+                            color="neutral"
+                            :variant="
+                                store.typeRecords === 'hot'
+                                    ? 'subtle'
+                                    : 'outline'
+                            "
+                            label="Chaud"
+                            @click="store.typeRecords = 'hot'"
+                        />
+                        <UButton
+                            color="neutral"
+                            :variant="
+                                store.typeRecords === 'cold'
+                                    ? 'subtle'
+                                    : 'outline'
+                            "
+                            label="Froid"
+                            @click="store.typeRecords = 'cold'"
+                        />
+                    </UButtonGroup>
+                </div>
+
+                <hr class="border-accented" />
+
+                <div class="flex flex-col md:flex-row items-start gap-8">
+                    <ClientOnly>
+                        <RecordsMap />
+                    </ClientOnly>
+                    <div class="flex flex-col flex-1 min-w-0 gap-4">
+                        <RecordsTable />
+                    </div>
+                </div>
+            </div>
+
             <ChartLayout :has-sidebar="true">
                 <template #select-bar>
                     <SelectBar :adapter="selectBarAdapter" />

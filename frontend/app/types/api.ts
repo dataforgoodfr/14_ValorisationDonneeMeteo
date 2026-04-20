@@ -287,6 +287,9 @@ export interface TemperatureRecordFlatEntry {
     department: string;
     record_value: number;
     record_date: string;
+    lat: number;
+    lon: number;
+    alt: number;
 }
 
 export interface TemperatureRecordStation {
@@ -314,6 +317,30 @@ export interface TemperatureRecordsResponse {
     metadata: TemperatureRecordsMetadata;
     stations: TemperatureRecordStation[];
 }
+
+// ===== Map shared types =====
+
+export interface MappableStation {
+    lat: number;
+    lon: number;
+    station_name: string;
+    value: number;
+    record_date?: string;
+    department?: string;
+}
+
+export interface MapColorConfig {
+    min: number;
+    max: number;
+    stops: [number, string][];
+}
+
+export type MapTooltipFormatter = (properties: {
+    station_name: string;
+    value: number;
+    record_date: string | null;
+    department: string | null;
+}) => string;
 
 // ===== API Error type =====
 

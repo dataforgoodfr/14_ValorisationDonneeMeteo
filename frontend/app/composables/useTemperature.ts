@@ -6,7 +6,7 @@ import type {
     TemperatureDeviationParams,
     TemperatureDeviationResponse,
     TemperatureRecordsParams,
-    TemperatureRecordsResponse,
+    TemperatureRecordFlatEntry,
 } from "~/types/api";
 
 export function useTemperatureDeviation(
@@ -113,14 +113,17 @@ export function useTemperatureRecords(
     const { useApiFetch } = useApiClient();
 
     if (enabled === undefined) {
-        return useApiFetch<TemperatureRecordsResponse>("/temperature/records", {
-            query: params,
-        });
+        return useApiFetch<TemperatureRecordFlatEntry[]>(
+            "/temperature/records",
+            {
+                query: params,
+            },
+        );
     }
 
     const isEnabled = toRef(enabled);
 
-    const result = useApiFetch<TemperatureRecordsResponse>(
+    const result = useApiFetch<TemperatureRecordFlatEntry[]>(
         "/temperature/records",
         {
             query: params,

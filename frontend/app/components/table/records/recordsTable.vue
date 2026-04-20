@@ -3,10 +3,7 @@ import type { TableColumn } from "@nuxt/ui";
 import { h } from "vue";
 import { UBadge } from "#components";
 import { storeToRefs } from "pinia";
-import {
-    useRecordsTableStore,
-    periodOptions,
-} from "~/stores/recordsTableStore";
+import { useRecordsTableStore } from "~/stores/recordsTableStore";
 import RecordsFilterBar from "~/components/table/records/RecordsFilterBar.vue";
 import { buildRecordsCsv } from "~/utils/recordsCsv";
 
@@ -108,7 +105,6 @@ const columns = computed<TableColumn<TableRow>[]>(() => [
                 />
             </UButtonGroup>
             <UButton
-                class="ml-auto"
                 label="Exporter CSV"
                 icon="i-lucide-download"
                 color="neutral"
