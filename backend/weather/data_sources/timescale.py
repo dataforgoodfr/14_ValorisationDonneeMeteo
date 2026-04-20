@@ -614,7 +614,6 @@ class TimescaleTemperatureRecordsDataSource:
         return _temperature_records_period_clause(request)
 
 
-
 def _territoire_clause_named(
     territoire: str | None,
     territoire_id: str | None,
@@ -714,8 +713,10 @@ class MaterializedTemperatureRecordsDataSource:
             params["date_end"] = request.date_end
 
         terr_clause, terr_params = _territoire_clause_named(
-            request.territoire, request.territoire_id,
-            dept_col="department", station_col="station_code",
+            request.territoire,
+            request.territoire_id,
+            dept_col="department",
+            station_col="station_code",
         )
         if terr_clause:
             clauses.append(terr_clause)
@@ -1110,8 +1111,10 @@ class TimescaleRecordsGraphDataSource:
             params["record_type"] = record_type
 
         terr_clause, terr_params = _territoire_clause_named(
-            request.territoire, request.territoire_id,
-            dept_col="department", station_col="station_code",
+            request.territoire,
+            request.territoire_id,
+            dept_col="department",
+            station_col="station_code",
         )
         if terr_clause:
             clauses.append(terr_clause)
