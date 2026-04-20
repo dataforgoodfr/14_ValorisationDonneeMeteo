@@ -9,6 +9,10 @@ import DayPicker from "~/components/ui/commons/selectBar/dayPicker.vue";
 import { useCustomDate } from "~/composables/useCustomDate";
 import type { TemperatureDeviationResponse } from "~/types/api";
 import { buildDeviationCsv } from "~/utils/deviationCsv";
+const props = withDefaults(defineProps<{ showFilters?: boolean }>(), {
+    showFilters: true,
+});
+
 const store = useDeviationTableStore();
 
 const dates = useCustomDate();
@@ -198,6 +202,7 @@ const columns: TableColumn<TableRow>[] = [
     <div class="flex flex-col gap-4">
         <div class="flex items-end justify-between gap-4">
             <DayPicker
+                v-if="props.showFilters"
                 v-model:start-date="dateStart"
                 v-model:end-date="dateEnd"
                 :min-date="dates.absoluteMinDataDate.value"

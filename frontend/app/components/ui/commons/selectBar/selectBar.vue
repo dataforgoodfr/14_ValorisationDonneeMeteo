@@ -71,7 +71,7 @@ const granularityValues = reactive([
                 v-model:end-date="localEndDate"
                 :min-date="dates.absoluteMinDataDate.value"
                 :max-date="dates.today.value"
-            />/>
+            />
             <SelectChartType v-if="adapter.features.hasChartTypeSelector" />
 
             <USeparator
