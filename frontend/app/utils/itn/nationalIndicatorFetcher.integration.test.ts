@@ -1,19 +1,8 @@
-import { $fetch } from "ofetch";
-import { describe, it, expect, beforeAll } from "vitest";
-import { fetchNationalIndicatorForYear } from "~/utils/nationalIndicatorFetcher";
+import { beforeAll, describe, expect, it } from "vitest";
+import { fetchNationalIndicatorForYear } from "./nationalIndicatorFetcher.real";
 
 import type { GranularityType } from "~/components/ui/commons/selectBar/types";
 import type { NationalIndicatorResponse } from "~/types/api";
-
-const testApiFetch = <NationalIndicatorResponse>(
-    endpoint: string,
-    options?: Parameters<typeof $fetch<NationalIndicatorResponse>>[1],
-): Promise<NationalIndicatorResponse> => {
-    return $fetch<NationalIndicatorResponse>(endpoint, {
-        baseURL: import.meta.env.NUXT_PUBLIC_API_BASE as string,
-        ...options,
-    });
-};
 
 describe("fetchNationalIndicatorForYear", () => {
     let apiResponse: NationalIndicatorResponse;
@@ -21,11 +10,7 @@ describe("fetchNationalIndicatorForYear", () => {
     const year = 2025;
 
     beforeAll(async () => {
-        apiResponse = await fetchNationalIndicatorForYear(
-            testApiFetch,
-            2025,
-            granularity,
-        );
+        apiResponse = await fetchNationalIndicatorForYear(year, granularity);
     });
 
     it("should return correct schema", () => {

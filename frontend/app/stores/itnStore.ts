@@ -2,16 +2,13 @@ import type {
     NationalIndicatorParams,
     NationalIndicatorResponse,
 } from "~/types/api";
-import { useCustomDate, dateToStringYMD } from "#imports";
 import type {
+    ChartType,
     GranularityType,
     SliceType,
-    ChartType,
 } from "~/components/ui/commons/selectBar/types";
-import {
-    fetchNationalIndicatorForYear,
-    fetchStackedData,
-} from "~/utils/nationalIndicatorFetcher";
+import { fetchStackedData } from "~/utils/itn/nationalIndicatorFetcher";
+import { fetchNationalIndicatorForYear } from "~/utils/itn/nationalIndicatorFetcher.real";
 
 const dates = useCustomDate();
 
@@ -37,19 +34,14 @@ export const useItnStore = defineStore("itnStore", () => {
     const stackedPending = ref(false);
     const stackedDataCache = new Map<number, NationalIndicatorResponse>();
 
-    const { apiFetch } = useApiClient();
-
-    const generateStakedData = async (): Promise<void> => {
+    const generateStackedData = async (): Promise<void> => {
         stackedPending.value = true;
         stackedData.value = await fetchStackedData(
             selectedYears.value,
+            granularity.value,
             stackedDataCache,
-            (year) =>
-                fetchNationalIndicatorForYear(
-                    apiFetch,
-                    year,
-                    granularity.value,
-                ),
+            (year, granularity) =>
+                fetchNationalIndicatorForYear(year, granularity),
         );
         stackedPending.value = false;
     };
@@ -58,7 +50,7 @@ export const useItnStore = defineStore("itnStore", () => {
         [selectedYears, granularity],
         async () => {
             if (chartType.value === "stacked") {
-                await generateStakedData();
+                await generateStackedData();
             }
         },
         { deep: true },
@@ -66,7 +58,7 @@ export const useItnStore = defineStore("itnStore", () => {
 
     watch(chartType, async (val) => {
         if (val === "stacked") {
-            await generateStakedData();
+            await generateStackedData();
         }
     });
 

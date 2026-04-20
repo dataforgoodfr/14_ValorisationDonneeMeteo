@@ -1,34 +1,16 @@
 import type { NationalIndicatorResponse } from "~/types/api";
 import type { GranularityType } from "~/components/ui/commons/selectBar/types";
-import type { FetchOptions } from "ofetch";
 
-export type ApiFetchFn = <T>(
-    endpoint: string,
-    opts?: FetchOptions,
-) => Promise<T>;
-
-export async function fetchNationalIndicatorForYear(
-    apiFetch: ApiFetchFn,
+export type NationalIndicatorForYearFetcher = (
     year: number,
     granularity: GranularityType,
-): Promise<NationalIndicatorResponse> {
-    return apiFetch<NationalIndicatorResponse>(
-        "/temperature/national-indicator",
-        {
-            query: {
-                date_start: `${year}-01-01`,
-                date_end: `${year}-12-31`,
-                granularity,
-                slice_type: "full",
-            },
-        },
-    );
-}
+) => Promise<NationalIndicatorResponse>;
 
 export async function fetchStackedData(
     years: number[],
+    granularity: GranularityType,
     cache: Map<number, NationalIndicatorResponse>,
-    fetchFn: (year: number) => Promise<NationalIndicatorResponse>,
+    nationalIndicatorForYearFetcher: NationalIndicatorForYearFetcher,
 ): Promise<NationalIndicatorResponse | null> {
     if (years.length === 0) {
         return null;
@@ -40,12 +22,14 @@ export async function fetchStackedData(
         const responses = await Promise.all(
             uniqueYears.map(async (year) => {
                 const cached = cache.get(year);
-
                 if (cached) {
                     return cached;
                 }
 
-                const result = await fetchFn(year);
+                const result = await nationalIndicatorForYearFetcher(
+                    year,
+                    granularity,
+                );
                 cache.set(year, result);
 
                 return result;
