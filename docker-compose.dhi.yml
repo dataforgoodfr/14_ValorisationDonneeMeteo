@@ -1,0 +1,17 @@
+services:
+  backend:
+    image: meteo-backend:dhi
+    build:
+      context: ./backend
+      dockerfile: Dockerfile.dhi
+      args:
+        PYTHON_BUILD_IMAGE: dhi.io/python:3.12.13-debian13-dev
+        PYTHON_RUNTIME_IMAGE: dhi.io/python:3.12.13-debian13
+
+  frontend:
+    image: meteo-frontend:dhi
+    build:
+      context: ./frontend
+      args:
+        NODE_BUILD_IMAGE: dhi.io/node:24-alpine3.23-dev
+        NODE_RUNTIME_IMAGE: dhi.io/node:24-alpine3.23
