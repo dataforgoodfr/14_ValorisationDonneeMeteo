@@ -614,28 +614,6 @@ class TimescaleTemperatureRecordsDataSource:
         return _temperature_records_period_clause(request)
 
 
-def _territoire_clause_positional(
-    territoire: str | None, territoire_id: str | None, col: str = "department"
-) -> tuple[str, list]:
-    """
-    Retourne (clause SQL, params) pour filtrer par territoire sur une colonne département.
-    Utilise des placeholders positionnels (%s).
-    col : nom de la colonne département dans la requête courante.
-    """
-    if not territoire or territoire == "france":
-        return "", []
-    if territoire == "department":
-        return f"{col} = %s", [territoire_id]
-    if territoire == "station":
-        return "station_code = %s", [territoire_id]
-    if territoire == "region":
-        depts = departments_for_region(territoire_id or "")
-        if not depts:
-            return "FALSE", []
-        placeholders = ", ".join(["%s"] * len(depts))
-        return f"{col} IN ({placeholders})", depts
-    return "", []
-
 
 def _territoire_clause_named(
     territoire: str | None,
@@ -718,25 +696,30 @@ class MaterializedTemperatureRecordsDataSource:
             period_value = None
 
         clauses = [
-            "record_type = %s",
-            "period_type = %s",
-            "period_value IS NOT DISTINCT FROM %s",
+            "record_type = %(record_type)s",
+            "period_type = %(period_type)s",
+            "period_value IS NOT DISTINCT FROM %(period_value)s",
         ]
-        params: list = [record_type, request.period_type, period_value]
+        params: dict = {
+            "record_type": record_type,
+            "period_type": request.period_type,
+            "period_value": period_value,
+        }
 
         if request.date_start:
-            clauses.append("record_date >= %s")
-            params.append(request.date_start)
+            clauses.append("record_date >= %(date_start)s")
+            params["date_start"] = request.date_start
         if request.date_end:
-            clauses.append("record_date <= %s")
-            params.append(request.date_end)
+            clauses.append("record_date <= %(date_end)s")
+            params["date_end"] = request.date_end
 
-        terr_clause, terr_params = _territoire_clause_positional(
-            request.territoire, request.territoire_id
+        terr_clause, terr_params = _territoire_clause_named(
+            request.territoire, request.territoire_id,
+            dept_col="department", station_col="station_code",
         )
         if terr_clause:
             clauses.append(terr_clause)
-            params.extend(terr_params)
+            params.update(terr_params)
 
         where = " AND ".join(clauses)
         sql = f"""
@@ -1109,29 +1092,30 @@ class TimescaleRecordsGraphDataSource:
         date_trunc = self._GRANULARITY_TO_DATE_TRUNC[request.granularity]
 
         clauses = [
-            "period_type = %s",
-            "period_value IS NOT DISTINCT FROM %s",
-            "record_date >= %s",
-            "record_date <= %s",
+            "period_type = %(period_type)s",
+            "period_value IS NOT DISTINCT FROM %(period_value)s",
+            "record_date >= %(date_start)s",
+            "record_date <= %(date_end)s",
         ]
-        params: list = [
-            request.period_type,
-            period_value,
-            request.date_start,
-            request.date_end,
-        ]
+        params: dict = {
+            "period_type": request.period_type,
+            "period_value": period_value,
+            "date_start": request.date_start,
+            "date_end": request.date_end,
+        }
 
         if request.type_records != "all":
             record_type = "TX" if request.type_records == "hot" else "TN"
-            clauses.insert(0, "record_type = %s")
-            params.insert(0, record_type)
+            clauses.insert(0, "record_type = %(record_type)s")
+            params["record_type"] = record_type
 
-        terr_clause, terr_params = _territoire_clause_positional(
-            request.territoire, request.territoire_id
+        terr_clause, terr_params = _territoire_clause_named(
+            request.territoire, request.territoire_id,
+            dept_col="department", station_col="station_code",
         )
         if terr_clause:
             clauses.append(terr_clause)
-            params.extend(terr_params)
+            params.update(terr_params)
 
         where = " AND ".join(clauses)
         sql = f"""
