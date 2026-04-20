@@ -31,13 +31,11 @@ MOCKED_DATA = env("MOCKED_DATA", False)
 
 # Application definition
 INSTALLED_APPS = [
-    "django.contrib.staticfiles",
     # Third-party
     "rest_framework",
     "corsheaders",
     "django_filters",
     "drf_spectacular",
-    "drf_spectacular_sidecar",
     # Local apps
     "weather",
 ]
@@ -54,18 +52,6 @@ MIDDLEWARE = [
 
 ROOT_URLCONF = "config.urls"
 
-TEMPLATES = [
-    {
-        "BACKEND": "django.template.backends.django.DjangoTemplates",
-        "DIRS": [],
-        "APP_DIRS": True,
-        "OPTIONS": {
-            "context_processors": [
-                "django.template.context_processors.request",
-            ],
-        },
-    },
-]
 
 WSGI_APPLICATION = "config.wsgi.application"
 

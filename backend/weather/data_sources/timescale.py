@@ -75,6 +75,10 @@ from weather.services.temperature_records.types import (
 )
 
 
+def _float_or_none(value) -> float | None:
+    return float(value) if value is not None else None
+
+
 def _normalize_reims(
     day: dt.date, station_code_to_temp_map: dict[str, float]
 ) -> dict[str, float]:
@@ -1035,22 +1039,22 @@ class TimescaleTemperatureMinMaxDataSource(MinMaxGraphDataSource):
         self, query: MinMaxGraphQuery
     ) -> list[StationDailyMinMaxSeries]:
         where_clauses = [
-            'q."AAAAMMJJ" BETWEEN %s AND %s',
+            'q."AAAAMMJJ" BETWEEN %(date_start)s AND %(date_end)s',
             '(q."TN" IS NOT NULL OR q."TX" IS NOT NULL)',
         ]
-        params: list = [query.date_start, query.date_end]
+        params: dict = {"date_start": query.date_start, "date_end": query.date_end}
 
         if query.station_ids:
-            where_clauses.append('q."NUM_POSTE" = ANY(%s)')
-            params.append(list(query.station_ids))
+            where_clauses.append('q."NUM_POSTE" = ANY(%(station_ids)s)')
+            params["station_ids"] = list(query.station_ids)
 
         if query.departments:
-            where_clauses.append("s.departement = ANY(%s)")
-            params.append([int(d) for d in query.departments if d.isdigit()])
+            where_clauses.append("s.departement = ANY(%(departments)s)")
+            params["departments"] = [int(d) for d in query.departments if d.isdigit()]
 
         if query.regions:
-            where_clauses.append("r.region = ANY(%s)")
-            params.append(list(query.regions))
+            where_clauses.append("r.region = ANY(%(regions)s)")
+            params["regions"] = list(query.regions)
 
         where_sql = " AND ".join(where_clauses)
 
@@ -1086,8 +1090,8 @@ class TimescaleTemperatureMinMaxDataSource(MinMaxGraphDataSource):
                     date=row["date"].date()
                     if isinstance(row["date"], dt.datetime)
                     else row["date"],
-                    tmin=float(row["tmin"]) if row["tmin"] is not None else None,
-                    tmax=float(row["tmax"]) if row["tmax"] is not None else None,
+                    tmin=_float_or_none(row["tmin"]),
+                    tmax=_float_or_none(row["tmax"]),
                 )
             )
 
@@ -1109,7 +1113,7 @@ class TimescaleTemperatureMinMaxDataSource(MinMaxGraphDataSource):
                 AVG(q."TN")     AS tmin,
                 AVG(q."TX")     AS tmax
             FROM public."Quotidienne" q
-            WHERE q."AAAAMMJJ" BETWEEN %s AND %s
+            WHERE q."AAAAMMJJ" BETWEEN %(date_start)s AND %(date_end)s
               AND q."TN" IS NOT NULL
               AND q."TX" IS NOT NULL
             GROUP BY q."AAAAMMJJ"
@@ -1117,7 +1121,9 @@ class TimescaleTemperatureMinMaxDataSource(MinMaxGraphDataSource):
         """
 
         with connection.cursor() as cur:
-            cur.execute(sql, [query.date_start, query.date_end])
+            cur.execute(
+                sql, {"date_start": query.date_start, "date_end": query.date_end}
+            )
             cols = [c.name for c in cur.description]
             rows = [dict(zip(cols, row, strict=False)) for row in cur.fetchall()]
 
@@ -1126,8 +1132,8 @@ class TimescaleTemperatureMinMaxDataSource(MinMaxGraphDataSource):
                 date=row["date"].date()
                 if isinstance(row["date"], dt.datetime)
                 else row["date"],
-                tmin=float(row["tmin"]),
-                tmax=float(row["tmax"]),
+                tmin=_float_or_none(row["tmin"]),
+                tmax=_float_or_none(row["tmax"]),
             )
             for row in rows
         ]

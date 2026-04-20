@@ -30,23 +30,20 @@ def _bucket_starts(query: MinMaxGraphQuery) -> set:
     raise ValueError(f"Granularité non supportée : {query.granularity}")
 
 
-def _aggregate(
-    points: list[DailyMinMaxPoint],
-    query: MinMaxGraphQuery,
-) -> list[MinMaxGraphPoint]:
+def _bucket_points_by_period(points: list[DailyMinMaxPoint], granularity: str) -> dict:
     buckets: dict = defaultdict(lambda: {"tmin": [], "tmax": []})
-
     for p in points:
         if p.tmin is None and p.tmax is None:
             continue
-        start = period_start(p.date, query.granularity)
+        start = period_start(p.date, granularity)
         if p.tmin is not None:
             buckets[start]["tmin"].append(p.tmin)
         if p.tmax is not None:
             buckets[start]["tmax"].append(p.tmax)
+    return buckets
 
-    valid_starts = _bucket_starts(query)
 
+def _average_buckets(buckets: dict, valid_starts: set) -> list[MinMaxGraphPoint]:
     result = []
     for start_date in sorted(buckets.keys()):
         if start_date not in valid_starts:
@@ -63,6 +60,14 @@ def _aggregate(
             )
         )
     return result
+
+
+def _aggregate(
+    points: list[DailyMinMaxPoint],
+    query: MinMaxGraphQuery,
+) -> list[MinMaxGraphPoint]:
+    buckets = _bucket_points_by_period(points, query.granularity)
+    return _average_buckets(buckets, _bucket_starts(query))
 
 
 def compute_minmax_graph(
