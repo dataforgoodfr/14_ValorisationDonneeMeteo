@@ -98,7 +98,7 @@ const granularityValues = computed(() => [
                 <UTooltip
                     :disabled="adapter.granularity.value !== 'day'"
                     :disable-closing-trigger="true"
-                    arrow
+                    :arrow="true"
                     :delay-duration="0"
                     text="Changez la Granularité pour activer cette option."
                     :content="{
