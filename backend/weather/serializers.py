@@ -30,11 +30,8 @@ class StationSerializer(serializers.ModelSerializer):
 
 
 class StationDetailSerializer(StationSerializer):
-    created_at = serializers.DateTimeField(read_only=True)
-    updated_at = serializers.DateTimeField(read_only=True)
-
     class Meta(StationSerializer.Meta):
-        fields = [*StationSerializer.Meta.fields, "created_at", "updated_at"]
+        pass
 
 
 class ErrorSerializer(serializers.Serializer):
