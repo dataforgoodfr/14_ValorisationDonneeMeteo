@@ -5,13 +5,14 @@ import {
 } from "~/utils/nationalIndicatorFetcher";
 import type { GranularityType } from "~/components/ui/commons/selectBar/types";
 import type { NationalIndicatorResponse } from "~/types/api";
+import type { FetchOptions } from "ofetch";
 
 describe("fetchNationalIndicatorForYear", () => {
     let capturedEndpoint: string = "";
-    let capturedOpts: unknown;
+    let capturedOpts: FetchOptions | undefined;
     const fakeApiFetch = async <NationalIndicatorResponse>(
         endpoint: string,
-        options?: Parameters<typeof $fetch<NationalIndicatorResponse>>[1],
+        options?: FetchOptions,
     ): Promise<NationalIndicatorResponse> => {
         capturedEndpoint = endpoint;
         capturedOpts = options;
@@ -38,13 +39,11 @@ describe("fetchNationalIndicatorForYear", () => {
                 granularity as GranularityType,
             );
 
-            expect(capturedOpts).toEqual({
-                query: {
-                    granularity,
-                    date_start: `${year}-01-01`,
-                    date_end: `${year}-12-31`,
-                    slice_type: "full",
-                },
+            expect(capturedOpts?.query).toEqual({
+                granularity,
+                date_start: `${year}-01-01`,
+                date_end: `${year}-12-31`,
+                slice_type: "full",
             });
         },
     );

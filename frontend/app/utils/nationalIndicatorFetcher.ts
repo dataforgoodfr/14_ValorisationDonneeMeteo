@@ -1,7 +1,11 @@
 import type { NationalIndicatorResponse } from "~/types/api";
 import type { GranularityType } from "~/components/ui/commons/selectBar/types";
+import type { FetchOptions } from "ofetch";
 
-export type ApiFetchFn = <T>(endpoint: string, opts?: object) => Promise<T>;
+export type ApiFetchFn = <T>(
+    endpoint: string,
+    opts?: FetchOptions,
+) => Promise<T>;
 
 export async function fetchNationalIndicatorForYear(
     apiFetch: ApiFetchFn,
