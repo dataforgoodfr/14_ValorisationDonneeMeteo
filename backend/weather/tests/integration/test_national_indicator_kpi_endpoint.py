@@ -251,6 +251,28 @@ def test_kpi_itn_mean_is_average_over_all_days_including_non_peaks(client: APICl
     assert data["itn_mean"] == pytest.approx((10.0 + 10.0 + 13.0) / 3)
 
 
+def test_kpi_deviation_from_normal_is_difference_between_itn_mean_and_baseline_mean(
+    client: APIClient,
+):
+    # baseline fixe mean=10.0 → baseline_period_mean=10.0
+    # temps observées : 10, 10, 13 → itn_mean = 11.0
+    # deviation = 11.0 - 10.0 = 1.0
+    temps = {
+        dt.date(2024, 1, 1): 10.0,
+        dt.date(2024, 1, 2): 10.0,
+        dt.date(2024, 1, 3): 13.0,
+    }
+    _register(temps)
+
+    resp = client.get(
+        reverse("temperature-national-indicator-kpi"),
+        {"date_start": "2024-01-01", "date_end": "2024-01-03", "type": "hot"},
+    )
+
+    assert resp.status_code == 200
+    assert resp.json()["deviation_from_normal"] == pytest.approx(1.0)
+
+
 def test_kpi_itn_mean_is_null_when_no_observed_data(client: APIClient):
     # InMemoryKpiDependency retourne une série vide si date_start == date_end + 1 jour
     # On surcharge fetch_daily_series pour retourner []
@@ -282,3 +304,4 @@ def test_kpi_itn_mean_is_null_when_no_observed_data(client: APIClient):
 
     assert resp.status_code == 200
     assert resp.json()["itn_mean"] is None
+    assert resp.json()["deviation_from_normal"] is None

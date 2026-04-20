@@ -346,6 +346,7 @@ class NationalIndicatorKpiAPIView(APIView):
         payload = {
             "count": result.count,
             "itn_mean": result.itn_mean,
+            "deviation_from_normal": result.deviation_from_normal,
             "days": [
                 {
                     "date": d.date,

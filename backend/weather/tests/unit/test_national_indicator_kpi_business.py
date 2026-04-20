@@ -252,3 +252,82 @@ def test_itn_mean_with_single_day():
     )
 
     assert result.itn_mean == 15.5
+
+
+# ─── Tests : deviation_from_normal ────────────────────────────────────────────
+
+
+def test_deviation_from_normal_positive_when_warmer_than_baseline():
+    observed = [
+        ObservedPoint(date=dt.date(2024, 7, 1), temperature=22.0),
+        ObservedPoint(date=dt.date(2024, 7, 2), temperature=24.0),
+    ]
+    # baseline_mean = 20.0 pour les deux jours
+    baseline = _baseline(mean=20.0, std_dev=2.0)
+    baselines = {(7, 1): baseline, (7, 2): baseline}
+
+    result = get_national_indicator_kpi(
+        observed_data_source=StubObservedDataSource(observed),
+        baseline_data_source=StubBaselineDataSource(baselines),
+        date_start=dt.date(2024, 7, 1),
+        date_end=dt.date(2024, 7, 2),
+        peak_type="hot",
+    )
+
+    # itn_mean = 23.0, baseline_period_mean = 20.0
+    assert result.deviation_from_normal == pytest.approx(3.0)
+
+
+def test_deviation_from_normal_negative_when_colder_than_baseline():
+    observed = [
+        ObservedPoint(date=dt.date(2024, 1, 1), temperature=5.0),
+        ObservedPoint(date=dt.date(2024, 1, 2), temperature=7.0),
+    ]
+    baseline = _baseline(mean=10.0, std_dev=2.0)
+    baselines = {(1, 1): baseline, (1, 2): baseline}
+
+    result = get_national_indicator_kpi(
+        observed_data_source=StubObservedDataSource(observed),
+        baseline_data_source=StubBaselineDataSource(baselines),
+        date_start=dt.date(2024, 1, 1),
+        date_end=dt.date(2024, 1, 2),
+        peak_type="cold",
+    )
+
+    # itn_mean = 6.0, baseline_period_mean = 10.0
+    assert result.deviation_from_normal == pytest.approx(-4.0)
+
+
+def test_deviation_from_normal_uses_per_day_baseline_mean():
+    # Baselines différentes par jour pour vérifier que la moyenne porte sur tous les jours
+    observed = [
+        ObservedPoint(date=dt.date(2024, 7, 1), temperature=20.0),
+        ObservedPoint(date=dt.date(2024, 7, 2), temperature=20.0),
+    ]
+    baselines = {
+        (7, 1): _baseline(mean=10.0, std_dev=2.0),
+        (7, 2): _baseline(mean=30.0, std_dev=2.0),
+    }
+
+    result = get_national_indicator_kpi(
+        observed_data_source=StubObservedDataSource(observed),
+        baseline_data_source=StubBaselineDataSource(baselines),
+        date_start=dt.date(2024, 7, 1),
+        date_end=dt.date(2024, 7, 2),
+        peak_type="hot",
+    )
+
+    # itn_mean = 20.0, baseline_period_mean = (10 + 30) / 2 = 20.0
+    assert result.deviation_from_normal == pytest.approx(0.0)
+
+
+def test_deviation_from_normal_is_none_when_observed_series_is_empty():
+    result = get_national_indicator_kpi(
+        observed_data_source=StubObservedDataSource([]),
+        baseline_data_source=StubBaselineDataSource({}),
+        date_start=dt.date(2024, 7, 1),
+        date_end=dt.date(2024, 7, 3),
+        peak_type="hot",
+    )
+
+    assert result.deviation_from_normal is None

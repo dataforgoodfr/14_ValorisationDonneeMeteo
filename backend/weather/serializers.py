@@ -610,6 +610,7 @@ class NationalIndicatorKpiDaySerializer(serializers.Serializer):
 class NationalIndicatorKpiResponseSerializer(serializers.Serializer):
     count = serializers.IntegerField()
     itn_mean = serializers.FloatField(allow_null=True)
+    deviation_from_normal = serializers.FloatField(allow_null=True)
     days = NationalIndicatorKpiDaySerializer(many=True)
 
 
