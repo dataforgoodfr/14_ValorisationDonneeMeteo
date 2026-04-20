@@ -213,6 +213,87 @@ class TemperatureDeviationGraphQuerySerializer(serializers.Serializer):
     station_ids = CommaSeparatedStringListField(required=False)
     include_national = serializers.BooleanField(required=False, default=True)
 
+    def _validate_day_granularity_slice_constraints(
+        self,
+        *,
+        slice_type: str,
+        month_of_year: int | None,
+        day_of_month: int | None,
+    ) -> None:
+        if slice_type != "full":
+            raise serializers.ValidationError(
+                {"slice_type": "Interdit si granularity=day (doit être full)."}
+            )
+        if month_of_year is not None:
+            raise serializers.ValidationError(
+                {"month_of_year": "Interdit si granularity=day."}
+            )
+        if day_of_month is not None:
+            raise serializers.ValidationError(
+                {"day_of_month": "Interdit si granularity=day."}
+            )
+
+    def _validate_full_slice_constraints(
+        self,
+        *,
+        month_of_year: int | None,
+        day_of_month: int | None,
+    ) -> None:
+        if month_of_year is not None:
+            raise serializers.ValidationError(
+                {"month_of_year": "Interdit si slice_type=full."}
+            )
+        if day_of_month is not None:
+            raise serializers.ValidationError(
+                {"day_of_month": "Interdit si slice_type=full."}
+            )
+
+    def _validate_month_of_year_slice_constraints(
+        self,
+        *,
+        granularity: str,
+        month_of_year: int | None,
+        day_of_month: int | None,
+    ) -> None:
+        if granularity != "year":
+            raise serializers.ValidationError(
+                {"slice_type": "month_of_year n'est valide que si granularity=year."}
+            )
+        if month_of_year is None:
+            raise serializers.ValidationError(
+                {"month_of_year": "Requis si slice_type=month_of_year."}
+            )
+        if day_of_month is not None:
+            raise serializers.ValidationError(
+                {"day_of_month": "Interdit si slice_type=month_of_year."}
+            )
+
+    def _validate_day_of_month_slice_constraints(
+        self,
+        *,
+        granularity: str,
+        month_of_year: int | None,
+        day_of_month: int | None,
+    ) -> None:
+        if day_of_month is None:
+            raise serializers.ValidationError(
+                {"day_of_month": "Requis si slice_type=day_of_month."}
+            )
+
+        if granularity == "year":
+            if month_of_year is None:
+                raise serializers.ValidationError(
+                    {
+                        "month_of_year": "Requis si granularity=year et slice_type=day_of_month."
+                    }
+                )
+        else:
+            # granularity=month
+            if month_of_year is not None:
+                raise serializers.ValidationError(
+                    {"month_of_year": "Interdit si granularity=month."}
+                )
+
     def validate(self, attrs):
         date_start = attrs["date_start"]
         date_end = attrs["date_end"]
@@ -228,65 +309,32 @@ class TemperatureDeviationGraphQuerySerializer(serializers.Serializer):
 
         # granularity=day => slice_type doit être full + pas de month/day selectors
         if granularity == "day":
-            if slice_type != "full":
-                raise serializers.ValidationError(
-                    {"slice_type": "Interdit si granularity=day (doit être full)."}
-                )
-            if month_of_year is not None:
-                raise serializers.ValidationError(
-                    {"month_of_year": "Interdit si granularity=day."}
-                )
-            if day_of_month is not None:
-                raise serializers.ValidationError(
-                    {"day_of_month": "Interdit si granularity=day."}
-                )
+            self._validate_day_granularity_slice_constraints(
+                slice_type=slice_type,
+                month_of_year=month_of_year,
+                day_of_month=day_of_month,
+            )
 
         elif slice_type == "full":
-            if month_of_year is not None:
-                raise serializers.ValidationError(
-                    {"month_of_year": "Interdit si slice_type=full."}
-                )
-            if day_of_month is not None:
-                raise serializers.ValidationError(
-                    {"day_of_month": "Interdit si slice_type=full."}
-                )
+            self._validate_full_slice_constraints(
+                month_of_year=month_of_year,
+                day_of_month=day_of_month,
+            )
 
         elif slice_type == "month_of_year":
-            if granularity != "year":
-                raise serializers.ValidationError(
-                    {
-                        "slice_type": "month_of_year n'est valide que si granularity=year."
-                    }
-                )
-            if month_of_year is None:
-                raise serializers.ValidationError(
-                    {"month_of_year": "Requis si slice_type=month_of_year."}
-                )
-            if day_of_month is not None:
-                raise serializers.ValidationError(
-                    {"day_of_month": "Interdit si slice_type=month_of_year."}
-                )
+            self._validate_month_of_year_slice_constraints(
+                granularity=granularity,
+                month_of_year=month_of_year,
+                day_of_month=day_of_month,
+            )
 
         else:
             # slice_type == "day_of_month"
-            if day_of_month is None:
-                raise serializers.ValidationError(
-                    {"day_of_month": "Requis si slice_type=day_of_month."}
-                )
-
-            if granularity == "year":
-                if month_of_year is None:
-                    raise serializers.ValidationError(
-                        {
-                            "month_of_year": "Requis si granularity=year et slice_type=day_of_month."
-                        }
-                    )
-            else:
-                # granularity=month => month_of_year interdit
-                if month_of_year is not None:
-                    raise serializers.ValidationError(
-                        {"month_of_year": "Interdit si granularity=month."}
-                    )
+            self._validate_day_of_month_slice_constraints(
+                granularity=granularity,
+                month_of_year=month_of_year,
+                day_of_month=day_of_month,
+            )
 
         station_ids = attrs.get("station_ids", ())
         include_national = attrs.get("include_national", True)

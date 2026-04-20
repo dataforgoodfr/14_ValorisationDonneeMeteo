@@ -16,6 +16,78 @@ def _mean(values: list[float]) -> float:
     return sum(values) / len(values)
 
 
+def _aggregate_monthly_observed(
+    points: list[ObservedPoint],
+    *,
+    date_start: dt.date,
+    date_end: dt.date,
+) -> list[ObservedPoint]:
+    out: list[ObservedPoint] = []
+
+    for month_start in iter_month_starts_intersecting(date_start, date_end):
+        year = month_start.year
+        month = month_start.month
+
+        bucket = [p for p in points if p.date.year == year and p.date.month == month]
+        if not bucket:
+            continue
+
+        out.append(
+            ObservedPoint(
+                date=dt.date(year, month, 1),
+                temperature=_mean([p.temperature for p in bucket]),
+            )
+        )
+
+    return out
+
+
+def _year_anchor_date(
+    *,
+    year: int,
+    slice_type: str,
+    month_of_year: int | None,
+) -> dt.date:
+    if slice_type == "month_of_year":
+        if month_of_year is None:
+            raise ValueError("month_of_year ne doit pas être None")
+        return dt.date(year, month_of_year, 1)
+
+    return dt.date(year, 1, 1)
+
+
+def _aggregate_yearly_observed(
+    points: list[ObservedPoint],
+    *,
+    date_start: dt.date,
+    date_end: dt.date,
+    slice_type: str,
+    month_of_year: int | None = None,
+) -> list[ObservedPoint]:
+    out: list[ObservedPoint] = []
+
+    for year_start in iter_year_starts_intersecting(date_start, date_end):
+        year = year_start.year
+        bucket = [p for p in points if p.date.year == year]
+        if not bucket:
+            continue
+
+        anchor = _year_anchor_date(
+            year=year,
+            slice_type=slice_type,
+            month_of_year=month_of_year,
+        )
+
+        out.append(
+            ObservedPoint(
+                date=anchor,
+                temperature=_mean([p.temperature for p in bucket]),
+            )
+        )
+
+    return out
+
+
 def aggregate_observed(
     points: list[ObservedPoint],
     *,
@@ -40,40 +112,76 @@ def aggregate_observed(
         return points
 
     if granularity == "month":
-        out: list[ObservedPoint] = []
-        for month_start in iter_month_starts_intersecting(date_start, date_end):
-            y, m = month_start.year, month_start.month
-            bucket = [p for p in points if p.date.year == y and p.date.month == m]
-            if not bucket:
-                continue
-
-            out.append(
-                ObservedPoint(
-                    date=dt.date(y, m, 1),
-                    temperature=_mean([p.temperature for p in bucket]),
-                )
-            )
-        return out
+        return _aggregate_monthly_observed(
+            points,
+            date_start=date_start,
+            date_end=date_end,
+        )
 
     # year
-    out: list[ObservedPoint] = []
-    for year_start in iter_year_starts_intersecting(date_start, date_end):
-        y = year_start.year
-        bucket = [p for p in points if p.date.year == y]
+    return _aggregate_yearly_observed(
+        points,
+        date_start=date_start,
+        date_end=date_end,
+        slice_type=slice_type,
+        month_of_year=month_of_year,
+    )
+
+
+def _aggregate_monthly_station(
+    points: list[DailyDeviationPoint],
+    *,
+    date_start: dt.date,
+    date_end: dt.date,
+) -> list[AggregatedDeviationPoint]:
+    out: list[AggregatedDeviationPoint] = []
+
+    for month_start in iter_month_starts_intersecting(date_start, date_end):
+        year = month_start.year
+        month = month_start.month
+
+        bucket = [p for p in points if p.date.year == year and p.date.month == month]
         if not bucket:
             continue
 
-        if slice_type == "month_of_year":
-            if month_of_year is None:
-                raise ValueError("month_of_year ne doit pas être None")
-            anchor = dt.date(y, month_of_year, 1)
-        else:
-            anchor = dt.date(y, 1, 1)
+        out.append(
+            AggregatedDeviationPoint(
+                date=dt.date(year, month, 1),
+                temperature=_mean([p.temperature for p in bucket]),
+                baseline_mean=_mean([p.baseline_mean for p in bucket]),
+            )
+        )
+
+    return out
+
+
+def _aggregate_yearly_station(
+    points: list[DailyDeviationPoint],
+    *,
+    date_start: dt.date,
+    date_end: dt.date,
+    slice_type: str,
+    month_of_year: int | None = None,
+) -> list[AggregatedDeviationPoint]:
+    out: list[AggregatedDeviationPoint] = []
+
+    for year_start in iter_year_starts_intersecting(date_start, date_end):
+        year = year_start.year
+        bucket = [p for p in points if p.date.year == year]
+        if not bucket:
+            continue
+
+        anchor = _year_anchor_date(
+            year=year,
+            slice_type=slice_type,
+            month_of_year=month_of_year,
+        )
 
         out.append(
-            ObservedPoint(
+            AggregatedDeviationPoint(
                 date=anchor,
                 temperature=_mean([p.temperature for p in bucket]),
+                baseline_mean=_mean([p.baseline_mean for p in bucket]),
             )
         )
 
@@ -125,43 +233,17 @@ def aggregate_station_daily(
         ]
 
     if granularity == "month":
-        out: list[AggregatedDeviationPoint] = []
-        for month_start in iter_month_starts_intersecting(date_start, date_end):
-            y, m = month_start.year, month_start.month
-            bucket = [p for p in points if p.date.year == y and p.date.month == m]
-            if not bucket:
-                continue
-
-            out.append(
-                AggregatedDeviationPoint(
-                    date=dt.date(y, m, 1),
-                    temperature=_mean([p.temperature for p in bucket]),
-                    baseline_mean=_mean([p.baseline_mean for p in bucket]),
-                )
-            )
-        return out
-
-    # year
-    out: list[AggregatedDeviationPoint] = []
-    for year_start in iter_year_starts_intersecting(date_start, date_end):
-        y = year_start.year
-        bucket = [p for p in points if p.date.year == y]
-        if not bucket:
-            continue
-
-        if slice_type == "month_of_year":
-            if month_of_year is None:
-                raise ValueError("month_of_year ne doit pas être None")
-            anchor = dt.date(y, month_of_year, 1)
-        else:
-            anchor = dt.date(y, 1, 1)
-
-        out.append(
-            AggregatedDeviationPoint(
-                date=anchor,
-                temperature=_mean([p.temperature for p in bucket]),
-                baseline_mean=_mean([p.baseline_mean for p in bucket]),
-            )
+        return _aggregate_monthly_station(
+            points,
+            date_start=date_start,
+            date_end=date_end,
         )
 
-    return out
+    # year
+    return _aggregate_yearly_station(
+        points,
+        date_start=date_start,
+        date_end=date_end,
+        slice_type=slice_type,
+        month_of_year=month_of_year,
+    )
