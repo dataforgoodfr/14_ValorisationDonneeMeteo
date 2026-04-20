@@ -1,5 +1,8 @@
 import { defineConfig } from "vitest/config";
 import { fileURLToPath } from "node:url";
+import { loadEnv } from "vite";
+
+const env = loadEnv("test", process.cwd(), "");
 
 export default defineConfig({
     test: {
@@ -23,6 +26,11 @@ export default defineConfig({
                     name: "integration",
                     include: ["app/**/*.integration.test.ts"],
                     testTimeout: 1 * 60 * 1000,
+                    env: {
+                        NUXT_PUBLIC_API_BASE:
+                            env.NUXT_PUBLIC_API_BASE ??
+                            "http://localhost:8000/api/v1",
+                    },
                 },
             },
             {
