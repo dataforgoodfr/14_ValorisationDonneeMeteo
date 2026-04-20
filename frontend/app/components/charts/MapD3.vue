@@ -101,7 +101,6 @@ const props = defineProps<{
 const params = computed<DeviationMapParams>(() => ({
     date_start: props.dateStart,
     date_end: props.dateEnd,
-    limit: 5000,
 }));
 
 const { data: stationsData, execute: fetchStations } =
