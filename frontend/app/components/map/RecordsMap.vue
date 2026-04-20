@@ -42,8 +42,8 @@
 import { useRecordsTableStore } from "~/stores/recordsTableStore";
 import type { MappableStation } from "~/types/api";
 import { RECORDS_MAP_COLORS } from "~/constants/colors";
-import { formatRecordsMapTooltip } from "~/components/charts/tooltipFormatters/recordsMapTooltipFormatter";
-import StationMap from "~/components/charts/StationMap.vue";
+import { formatRecordsMapTooltip } from "~/components/map/tooltipFormatters/recordsMapTooltipFormatter";
+import StationMap from "~/components/map/StationMap.vue";
 
 const store = useRecordsTableStore();
 

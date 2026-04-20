@@ -8,7 +8,7 @@ import DeviationChart from "~/components/charts/DeviationChart.vue";
 import DeviationTable from "~/components/table/deviation/DeviationTable.vue";
 import DayPicker from "~/components/ui/commons/selectBar/dayPicker.vue";
 import type { ChartType } from "~/components/ui/commons/selectBar/types";
-import MapD3 from "~/components/charts/MapD3.vue";
+import MapD3 from "~/components/map/MapD3.vue";
 import { useDeviationTableStore } from "~/stores/deviationTableStore";
 import { useCustomDate } from "~/composables/useCustomDate";
 

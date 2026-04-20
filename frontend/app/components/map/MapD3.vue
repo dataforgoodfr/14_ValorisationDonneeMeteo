@@ -38,8 +38,8 @@
 <script setup lang="ts">
 import type { DeviationMapParams, MappableStation } from "~/types/api";
 import { DEVIATION_MAP_COLORS } from "~/constants/colors";
-import { formatDeviationMapTooltip } from "~/components/charts/tooltipFormatters/deviationMapTooltipFormatter";
-import StationMap from "~/components/charts/StationMap.vue";
+import { formatDeviationMapTooltip } from "~/components/map/tooltipFormatters/deviationMapTooltipFormatter";
+import StationMap from "~/components/map/StationMap.vue";
 
 const props = defineProps<{
     dateStart: string;

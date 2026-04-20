@@ -6,7 +6,7 @@ import SearchByTerritoryType from "~/components/records/SearchByTerritoryType.vu
 import { useRecordsSelectBarAdapter } from "~/adapters/recordsSelectBarAdapter";
 import RecordsChart from "~/components/charts/recordsChart.vue";
 import SelectBar from "~/components/ui/commons/selectBar/selectBar.vue";
-import RecordsMap from "~/components/charts/RecordsMap.vue";
+import RecordsMap from "~/components/map/RecordsMap.vue";
 import {
     useRecordsTableStore,
     periodOptions,
