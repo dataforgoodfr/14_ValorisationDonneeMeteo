@@ -2,6 +2,7 @@
 Tests pour le filtre 20 ans : un record n'est valide que si
 record_date >= make_date(annee_de_creation + 20, 1, 1).
 """
+
 from __future__ import annotations
 
 import datetime as dt
@@ -11,7 +12,6 @@ import pytest
 from weather.data_sources.timescale import HybridTemperatureRecordsDataSource
 from weather.services.temperature_records.types import TemperatureRecordsRequest
 from weather.tests.conftest import (
-    insert_mv_record,
     insert_quotidienne,
     set_cutoff,
 )
