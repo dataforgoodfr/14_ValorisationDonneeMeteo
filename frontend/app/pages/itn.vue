@@ -25,7 +25,12 @@ const heroData = {
                 <SelectBar :adapter="selectBarAdapter" />
             </template>
             <template #chart>
-                <ItnChart :adapter="selectBarAdapter" class="px-3 py-2" />
+                <div class="flex gap-4 px-3 py-2">
+                    <div class="flex-1 min-w-0">
+                        <ItnChart :adapter="selectBarAdapter" />
+                    </div>
+                    <ItnKpiPanel />
+                </div>
             </template>
         </ChartLayout>
     </UContainer>

@@ -12,7 +12,7 @@ const sidebarOpen = ref(false);
 
 <template>
     <div
-        class="flex flex-col w-full divide-y divide-gray-200 border border-gray-200 rounded-lg"
+        class="flex w-full flex-col divide-y divide-gray-200 border border-gray-200 rounded-lg overflow-hidden"
     >
         <slot name="select-bar" />
 
