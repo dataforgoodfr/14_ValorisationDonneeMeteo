@@ -211,3 +211,74 @@ def test_kpi_invalid_type_returns_400(client: APIClient):
 
     assert resp.status_code == 400
     assert resp.json()["error"]["code"] == "INVALID_PARAMETER"
+
+
+# ---------------------------------------------------------------------------
+# itn_mean
+# ---------------------------------------------------------------------------
+
+
+def test_kpi_response_contains_itn_mean_field(client: APIClient):
+    _register({})
+
+    resp = client.get(
+        reverse("temperature-national-indicator-kpi"),
+        {"date_start": "2024-01-01", "date_end": "2024-01-03", "type": "hot"},
+    )
+
+    assert resp.status_code == 200
+    assert "itn_mean" in resp.json()
+
+
+def test_kpi_itn_mean_is_average_over_all_days_including_non_peaks(client: APIClient):
+    # mean=10, upper=12 → seul 13.0 est un pic
+    # itn_mean = (10.0 + 10.0 + 13.0) / 3
+    temps = {
+        dt.date(2024, 1, 1): 10.0,
+        dt.date(2024, 1, 2): 10.0,
+        dt.date(2024, 1, 3): 13.0,
+    }
+    _register(temps)
+
+    resp = client.get(
+        reverse("temperature-national-indicator-kpi"),
+        {"date_start": "2024-01-01", "date_end": "2024-01-03", "type": "hot"},
+    )
+
+    assert resp.status_code == 200
+    data = resp.json()
+    assert data["count"] == 1
+    assert data["itn_mean"] == pytest.approx((10.0 + 10.0 + 13.0) / 3)
+
+
+def test_kpi_itn_mean_is_null_when_no_observed_data(client: APIClient):
+    # InMemoryKpiDependency retourne une série vide si date_start == date_end + 1 jour
+    # On surcharge fetch_daily_series pour retourner []
+    class EmptyObservedDependency(
+        NationalIndicatorObservedDataSource,
+        NationalIndicatorBaselineDataSource,
+    ):
+        def fetch_daily_series(self, _query: DailySeriesQuery) -> list[ObservedPoint]:
+            return []
+
+        def fetch_daily_baseline(self, _day: dt.date) -> BaselinePoint:
+            return BaselinePoint(
+                baseline_mean=10.0,
+                baseline_std_dev_upper=12.0,
+                baseline_std_dev_lower=8.0,
+                baseline_max=15.0,
+                baseline_min=5.0,
+            )
+
+    dep = EmptyObservedDependency()
+    ITNDependencyProvider.set_builder(
+        lambda: ITNDependencies(observed_data_source=dep, baseline_data_source=dep)
+    )
+
+    resp = client.get(
+        reverse("temperature-national-indicator-kpi"),
+        {"date_start": "2024-01-01", "date_end": "2024-01-03", "type": "hot"},
+    )
+
+    assert resp.status_code == 200
+    assert resp.json()["itn_mean"] is None

@@ -1,5 +1,7 @@
 import datetime as dt
 
+import pytest
+
 from weather.services.national_indicator.kpi_use_case import get_national_indicator_kpi
 from weather.services.national_indicator.protocols import (
     NationalIndicatorBaselineDataSource,
@@ -178,3 +180,75 @@ def test_hot_type_does_not_return_cold_days():
     )
 
     assert result.count == 0
+
+
+# ─── Tests : itn_mean ─────────────────────────────────────────────────────────
+
+
+def test_itn_mean_is_average_of_all_observed_days():
+    observed = [
+        ObservedPoint(date=dt.date(2024, 7, 1), temperature=10.0),
+        ObservedPoint(date=dt.date(2024, 7, 2), temperature=20.0),
+        ObservedPoint(date=dt.date(2024, 7, 3), temperature=30.0),
+    ]
+    baseline = _baseline(mean=20.0, std_dev=2.0)
+    baselines = {(7, 1): baseline, (7, 2): baseline, (7, 3): baseline}
+
+    result = get_national_indicator_kpi(
+        observed_data_source=StubObservedDataSource(observed),
+        baseline_data_source=StubBaselineDataSource(baselines),
+        date_start=dt.date(2024, 7, 1),
+        date_end=dt.date(2024, 7, 3),
+        peak_type="hot",
+    )
+
+    assert result.itn_mean == 20.0
+
+
+def test_itn_mean_includes_non_peak_days():
+    # Seul le 3 juillet est un pic, mais la moyenne porte sur les 3 jours
+    observed = [
+        ObservedPoint(date=dt.date(2024, 7, 1), temperature=10.0),
+        ObservedPoint(date=dt.date(2024, 7, 2), temperature=10.0),
+        ObservedPoint(date=dt.date(2024, 7, 3), temperature=25.0),  # pic
+    ]
+    baseline = _baseline(mean=20.0, std_dev=2.0)
+    baselines = {(7, 1): baseline, (7, 2): baseline, (7, 3): baseline}
+
+    result = get_national_indicator_kpi(
+        observed_data_source=StubObservedDataSource(observed),
+        baseline_data_source=StubBaselineDataSource(baselines),
+        date_start=dt.date(2024, 7, 1),
+        date_end=dt.date(2024, 7, 3),
+        peak_type="hot",
+    )
+
+    assert result.count == 1
+    assert result.itn_mean == pytest.approx((10.0 + 10.0 + 25.0) / 3)
+
+
+def test_itn_mean_is_none_when_observed_series_is_empty():
+    result = get_national_indicator_kpi(
+        observed_data_source=StubObservedDataSource([]),
+        baseline_data_source=StubBaselineDataSource({}),
+        date_start=dt.date(2024, 7, 1),
+        date_end=dt.date(2024, 7, 3),
+        peak_type="hot",
+    )
+
+    assert result.itn_mean is None
+
+
+def test_itn_mean_with_single_day():
+    observed = [ObservedPoint(date=dt.date(2024, 7, 1), temperature=15.5)]
+    baselines = {(7, 1): _baseline(mean=20.0, std_dev=2.0)}
+
+    result = get_national_indicator_kpi(
+        observed_data_source=StubObservedDataSource(observed),
+        baseline_data_source=StubBaselineDataSource(baselines),
+        date_start=dt.date(2024, 7, 1),
+        date_end=dt.date(2024, 7, 1),
+        peak_type="hot",
+    )
+
+    assert result.itn_mean == 15.5
