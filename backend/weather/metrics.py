@@ -70,7 +70,11 @@ def metrics_view(_: HttpRequest) -> HttpResponse:
     ]
 
     for path, count in sorted(by_path.items()):
-        escaped_path = path.replace('"', r'\"')
-        lines.append(f'app_http_requests_by_path_total{{path="{escaped_path}"}} {count}')
+        escaped_path = path.replace('"', r"\"")
+        lines.append(
+            f'app_http_requests_by_path_total{{path="{escaped_path}"}} {count}'
+        )
 
-    return HttpResponse("\n".join(lines) + "\n", content_type="text/plain; version=0.0.4")
+    return HttpResponse(
+        "\n".join(lines) + "\n", content_type="text/plain; version=0.0.4"
+    )
