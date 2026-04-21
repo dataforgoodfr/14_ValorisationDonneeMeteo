@@ -37,6 +37,7 @@
         "nuxt": "^4.3.1",
         "nuxt-echarts": "^1.0.1",
         "nuxt-maplibre": "^1.2.2",
+        "pinia": "^3.0.4",
         "primevue": "^4.5.4",
         "tailwindcss": "^4.1.18",
         "topojson-client": "^3.1.0",
