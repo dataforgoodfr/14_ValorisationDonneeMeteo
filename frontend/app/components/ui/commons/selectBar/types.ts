@@ -8,8 +8,8 @@ import type {
     TemperatureRecordsGraphResponse,
 } from "~/types/api";
 
-export type granularity = "year" | "month" | "day";
-export type slice_type = "full" | "month_of_year" | "day_of_month";
+export type GranularityType = "year" | "month" | "day";
+export type SliceType = "full" | "month_of_year" | "day_of_month";
 export type ChartType = "line" | "bar" | "scatter" | "pyramid" | "calendar";
 
 export interface SelectBarAdapter<
