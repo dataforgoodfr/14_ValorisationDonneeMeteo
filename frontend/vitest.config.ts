@@ -32,6 +32,13 @@ export default defineConfig({
                     include: ["app/**/*.integration.test.ts"],
                     environment: "nuxt",
                     testTimeout: 1 * 60 * 1000,
+                    environmentOptions: {
+                        nuxt: {
+                            dotenv: {
+                                fileName: ".env.example",
+                            },
+                        },
+                    },
                 },
             }),
             await defineVitestProject({
