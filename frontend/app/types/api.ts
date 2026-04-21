@@ -219,6 +219,9 @@ export interface TemperatureDeviationGraphParams {
     deviation_max?: number;
     limit?: number;
     offset?: number;
+    slice_type?: "full" | "month_of_year" | "day_of_month";
+    month_of_year?: number;
+    day_of_month?: number;
 }
 
 export interface TemperatureDeviationGraphMetadata {

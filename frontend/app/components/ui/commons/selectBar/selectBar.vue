@@ -85,7 +85,8 @@ const granularityValues = reactive([
         <div id="right-side" class="flex md:flex-1 gap-6 items-center">
             <template
                 v-if="
-                    adapter.features.hasSliceType ||
+                    (adapter.features.hasSliceType &&
+                        adapter.chartType?.value !== 'calendar') ||
                     adapter.features.hasRecordsPeriodSlice
                 "
             >
