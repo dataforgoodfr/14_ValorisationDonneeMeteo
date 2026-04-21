@@ -1,8 +1,6 @@
 <template>
     <div class="flex flex-col gap-3 w-52 shrink-0 py-2">
-        <Card
-            v-for="i in 3"
-            :key="i"
+        <!-- <Card // à ajouter une fois le endpoint enrichi
             title="ITN moyen"
             tooltip-text="Moyenne de l'Indicateur Thermique National sur la période sélectionnée."
         >
@@ -10,33 +8,59 @@
                 <p
                     class="font-semibold text-4xl mb-1"
                     :class="
-                        (currentMean ?? 0) >= 0
+                        (hotKpi?.itn_mean ?? 0) >= 0
                             ? 'text-red-400'
                             : 'text-blue-400'
                     "
                 >
-                    <span v-if="currentMean != null">
-                        {{ currentMean >= 0 ? "+" : ""
-                        }}{{ currentMean.toFixed(1) }} °C
+                    <span v-if="hotKpi?.itn_mean != null">
+                        {{ hotKpi.itn_mean >= 0 ? "+" : ""
+                        }}{{ hotKpi.itn_mean.toFixed(1) }} °C
                     </span>
                     <span v-else class="text-muted">—</span>
                 </p>
             </template>
-            <template v-if="diff != null" #variation>
+            <template v-if="hotKpi?.deviation_from_normal != null" #variation>
                 <span class="text-sm">
-                    {{ diff >= 0 ? "+" : "" }}{{ diff.toFixed(1) }}°C
+                    {{
+                        hotKpi.deviation_from_normal >= 0 ? "+" : ""
+                    }}{{ hotKpi.deviation_from_normal.toFixed(1) }}°C
                 </span>
                 <UIcon
-                    v-if="diff < 0"
+                    v-if="hotKpi.deviation_from_normal < 0"
                     name="i-lucide-arrow-down-right"
                     class="text-blue-400"
                 />
                 <UIcon
-                    v-if="diff > 0"
+                    v-if="hotKpi.deviation_from_normal > 0"
                     name="i-lucide-arrow-up-right"
                     class="text-red-400"
                 />
-                vs période précédente
+                vs normale
+            </template>
+        </Card> -->
+
+        <Card
+            title="Pics chauds"
+            tooltip-text="Nombre de jours où l'ITN dépasse la normale d'un écart-type sur la période sélectionnée."
+        >
+            <template #kpi>
+                <p class="font-semibold text-4xl mb-1 text-red-400">
+                    <span v-if="hotKpi != null">{{ hotKpi.count }}</span>
+                    <span v-else class="text-muted">—</span>
+                </p>
+            </template>
+        </Card>
+
+        <Card
+            title="Pics froids"
+            tooltip-text="Nombre de jours où l'ITN est inférieur à la normale d'un écart-type sur la période sélectionnée."
+        >
+            <template #kpi>
+                <p class="font-semibold text-4xl mb-1 text-blue-400">
+                    <span v-if="coldKpi != null">{{ coldKpi.count }}</span>
+                    <span v-else class="text-muted">—</span>
+                </p>
             </template>
         </Card>
     </div>
@@ -46,53 +70,22 @@
 import Card from "~/components/home/Card.vue";
 import { useItnStore } from "~/stores/itnStore";
 import { dateToStringYMD } from "#imports";
-import type { NationalIndicatorParams } from "~/types/api";
 
 const store = useItnStore();
-const {
-    itnData,
-    pickedDateStart,
-    pickedDateEnd,
-    granularity,
-    sliceType,
-    month_of_year,
-    day_of_month,
-} = storeToRefs(store);
+const { pickedDateStart, pickedDateEnd } = storeToRefs(store);
 
-const prevYearParams = computed<NationalIndicatorParams>(() => {
-    const start = new Date(pickedDateStart.value);
-    const end = new Date(pickedDateEnd.value);
-    start.setFullYear(start.getFullYear() - 1);
-    end.setFullYear(end.getFullYear() - 1);
-    return {
-        date_start: dateToStringYMD(start),
-        date_end: dateToStringYMD(end),
-        granularity: granularity.value,
-        slice_type: sliceType.value,
-        month_of_year: month_of_year.value,
-        day_of_month: day_of_month.value,
-    };
-});
+const hotParams = computed(() => ({
+    date_start: dateToStringYMD(new Date(pickedDateStart.value)),
+    date_end: dateToStringYMD(new Date(pickedDateEnd.value)),
+    type: "hot" as const,
+}));
 
-const { data: prevYearData } = useNationalIndicator(prevYearParams);
+const coldParams = computed(() => ({
+    date_start: dateToStringYMD(new Date(pickedDateStart.value)),
+    date_end: dateToStringYMD(new Date(pickedDateEnd.value)),
+    type: "cold" as const,
+}));
 
-function meanTemperature(
-    timeSeries: { temperature: number }[] | undefined,
-): number | null {
-    if (!timeSeries?.length) return null;
-    return (
-        timeSeries.reduce((sum, p) => sum + p.temperature, 0) /
-        timeSeries.length
-    );
-}
-
-const currentMean = computed(() => meanTemperature(itnData.value?.time_series));
-const prevMean = computed(() =>
-    meanTemperature(prevYearData.value?.time_series),
-);
-
-const diff = computed(() => {
-    if (currentMean.value == null || prevMean.value == null) return null;
-    return currentMean.value - prevMean.value;
-});
+const { data: hotKpi } = useNationalIndicatorKpi(hotParams);
+const { data: coldKpi } = useNationalIndicatorKpi(coldParams);
 </script>

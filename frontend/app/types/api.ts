@@ -78,6 +78,26 @@ export interface NationalIndicatorResponse {
     time_series: NationalIndicatorDataPoint[];
 }
 
+export interface NationalIndicatorKpiParams {
+    date_start: string;
+    date_end: string;
+    type: "hot" | "cold";
+}
+
+export interface NationalIndicatorKpiDay {
+    date: string;
+    temperature: number;
+    baseline_mean: number;
+    baseline_std_dev: number;
+}
+
+export interface NationalIndicatorKpiResponse {
+    count: number;
+    itn_mean: number | null;
+    deviation_from_normal: number | null;
+    days: NationalIndicatorKpiDay[];
+}
+
 // ===== Écart à la normale (Temperature Deviation) types =====
 
 export interface TemperatureDeviationParams {
