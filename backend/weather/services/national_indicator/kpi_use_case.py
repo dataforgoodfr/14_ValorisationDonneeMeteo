@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import datetime as dt
 from dataclasses import dataclass
+from statistics import mean
 
 from weather.services.national_indicator.protocols import (
     NationalIndicatorBaselineDataSource,
@@ -64,8 +65,8 @@ def get_national_indicator_kpi(
             )
 
     if observed:
-        itn_mean = sum(p.temperature for p in observed) / len(observed)
-        baseline_period_mean = sum(baseline_means) / len(baseline_means)
+        itn_mean = mean(p.temperature for p in observed)
+        baseline_period_mean = mean(baseline_means)
         deviation_from_normal = itn_mean - baseline_period_mean
     else:
         itn_mean = None
