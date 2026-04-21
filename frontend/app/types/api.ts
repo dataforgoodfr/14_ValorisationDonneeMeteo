@@ -43,8 +43,8 @@ export interface StationFilters {
 export interface NationalIndicatorParams {
     date_start: string;
     date_end: string;
-    granularity: "year" | "month" | "day";
-    slice_type?: "full" | "month_of_year" | "day_of_month";
+    granularity: GranularityType;
+    slice_type?: SliceType;
     month_of_year?: number;
     day_of_month?: number;
 }
@@ -53,8 +53,8 @@ export interface NationalIndicatorMetadata {
     date_start: string;
     date_end: string;
     baseline: string;
-    granularity: "year" | "month" | "day";
-    slice_type: "full" | "month_of_year" | "day_of_month";
+    granularity: GranularityType;
+    slice_type: SliceType;
     month_of_year?: number;
     day_of_month?: number;
 }
@@ -208,10 +208,14 @@ export interface DeviationMapResponse {
     stations: DeviationMapStation[];
 }
 
+export type GranularityType = "year" | "month" | "day";
+
+export type SliceType = "full" | "month_of_year" | "day_of_month";
+
 export interface TemperatureDeviationGraphParams {
     date_start: string;
     date_end: string;
-    granularity: "year" | "month" | "day";
+    granularity: GranularityType;
     station_ids?: string;
     departments?: string;
     include_national: boolean;
@@ -219,7 +223,7 @@ export interface TemperatureDeviationGraphParams {
     deviation_max?: number;
     limit?: number;
     offset?: number;
-    slice_type?: "full" | "month_of_year" | "day_of_month";
+    slice_type?: SliceType;
     month_of_year?: number;
     day_of_month?: number;
 }
@@ -228,7 +232,7 @@ export interface TemperatureDeviationGraphMetadata {
     date_start: string;
     date_end: string;
     baseline: string;
-    granularity: "year" | "month" | "day";
+    granularity: GranularityType;
 }
 
 export interface TemperatureDeviationGraphNational {
