@@ -244,6 +244,9 @@ class TemperatureRecordsAPIView(APIView):
                     "lat": e.lat,
                     "lon": e.lon,
                     "alt": e.alt,
+                    "classe_recente": e.classe_recente,
+                    "date_de_creation": e.date_de_creation,
+                    "date_de_fermeture": e.date_de_fermeture,
                 }
                 for e in entries
             ],

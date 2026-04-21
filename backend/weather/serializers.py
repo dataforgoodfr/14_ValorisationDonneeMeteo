@@ -444,6 +444,9 @@ class TemperatureRecordEntrySerializer(serializers.Serializer):
     lat = serializers.FloatField()
     lon = serializers.FloatField()
     alt = serializers.FloatField()
+    classe_recente = serializers.IntegerField(allow_null=True)
+    date_de_creation = serializers.DateField()
+    date_de_fermeture = serializers.DateField(allow_null=True)
 
 
 class TemperatureDeviationOverviewQuerySerializer(serializers.Serializer):
