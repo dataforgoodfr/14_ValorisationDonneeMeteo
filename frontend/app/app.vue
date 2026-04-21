@@ -2,6 +2,11 @@
 import AppFooter from "./components/layout/AppFooter.vue";
 import AppHeader from "./components/layout/AppHeader.vue";
 import { fr } from "@nuxt/ui/locale";
+
+const colorMode = useColorMode();
+colorMode.value = "dark";
+colorMode.preference = "dark";
+
 </script>
 
 <template>
