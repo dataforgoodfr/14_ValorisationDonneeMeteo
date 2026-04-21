@@ -41,8 +41,8 @@
         </Card> -->
 
         <Card
-            title="Pics chauds"
-            tooltip-text="Nombre de jours où l'ITN dépasse la normale d'un écart-type sur la période sélectionnée."
+            title="Jours de chaleur"
+            tooltip-text="Nombre de jours avec excédent de chaleur sur la période sélectionnée."
         >
             <template #kpi>
                 <p class="font-semibold text-4xl mb-1 text-red-400">
@@ -69,8 +69,8 @@
         </Card>
 
         <Card
-            title="Pics froids"
-            tooltip-text="Nombre de jours où l'ITN est inférieur à la normale d'un écart-type sur la période sélectionnée."
+            title="Jours de froid"
+            tooltip-text="Nombre de jours avec excédent de froid sur la période sélectionnée."
         >
             <template #kpi>
                 <p class="font-semibold text-4xl mb-1 text-blue-400">
