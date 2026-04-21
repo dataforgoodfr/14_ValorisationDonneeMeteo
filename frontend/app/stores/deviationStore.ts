@@ -38,6 +38,18 @@ export const useDeviationStore = defineStore("deviationStore", () => {
         () => granularity.value === "year",
     );
 
+    const month_of_year = computed<undefined | number>(() =>
+        granularity.value === "year" && sliceType.value !== "full"
+            ? sliceDatepickerDate.value.getMonth() + 1
+            : undefined,
+    );
+
+    const day_of_month = computed<undefined | number>(() =>
+        sliceType.value === "day_of_month"
+            ? sliceDatepickerDate.value.getDate()
+            : undefined,
+    );
+
     const selectedStationsAndNational = computed<DeviationStationIdAndName[]>(
         () => {
             const stations = selectedStations.value.map((station) => {
@@ -72,6 +84,9 @@ export const useDeviationStore = defineStore("deviationStore", () => {
                 : granularity.value,
         station_ids: stationIds.value.join(","),
         include_national: includeNational.value,
+        slice_type: sliceType.value,
+        month_of_year: month_of_year.value,
+        day_of_month: day_of_month.value,
     }));
 
     const {
@@ -94,6 +109,12 @@ export const useDeviationStore = defineStore("deviationStore", () => {
         }
         if (value === "year") {
             pickedDateStart.value = dates.absoluteMinDataDate.value;
+        }
+    };
+
+    const turnOffSliceType = (value: boolean) => {
+        if (!value) {
+            sliceType.value = "full";
         }
     };
 
@@ -146,6 +167,7 @@ export const useDeviationStore = defineStore("deviationStore", () => {
         chartTypeSwitchEnabled,
         chartType,
         setGranularity,
+        turnOffSliceType,
         setIncludeNational,
         setChartType,
         setStations,

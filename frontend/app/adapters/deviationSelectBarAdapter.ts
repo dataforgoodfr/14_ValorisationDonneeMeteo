@@ -12,9 +12,9 @@ export const useDeviationSelectBarAdapter =
             pickedDateStart,
             pickedDateEnd,
             maxDate,
-            sliceTypeSwitchEnabled, // Will be enabled in futur version
-            sliceType, // Will be enabled in futur version
-            sliceDatepickerDate, // Will be enabled in futur version
+            sliceTypeSwitchEnabled,
+            sliceType,
+            sliceDatepickerDate,
             deviationData,
             pending,
             chartTypeSwitchEnabled,
@@ -26,18 +26,19 @@ export const useDeviationSelectBarAdapter =
             pickedDateStart,
             pickedDateEnd,
             maxDate,
-            sliceTypeSwitchEnabled, // Will be enabled in futur version
-            sliceType, // Will be enabled in futur version
-            sliceDatepickerDate, // Will be enabled in futur version
+            sliceTypeSwitchEnabled,
+            sliceType,
+            sliceDatepickerDate,
             chartRef: deviationChartRef,
             data: deviationData,
             pending,
             setGranularity: store.setGranularity,
+            turnOffSliceType: store.turnOffSliceType,
             chartType,
             chartTypeSwitchEnabled,
             setChartType: store.setChartType,
             features: {
-                hasSliceType: false,
+                hasSliceType: true,
                 hasRecordsPeriodSlice: false,
                 hasChartTypeSelector: true,
                 hasExport: true,
