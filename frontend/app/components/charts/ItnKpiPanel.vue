@@ -102,6 +102,7 @@
 import Card from "~/components/home/Card.vue";
 import { useItnStore } from "~/stores/itnStore";
 import { dateToStringYMD } from "#imports";
+import type { NationalIndicatorKpiParams } from "~/types/api";
 
 const store = useItnStore();
 const { pickedDateStart, pickedDateEnd } = storeToRefs(store);
@@ -120,25 +121,25 @@ const prevPeriod = computed(() => {
     };
 });
 
-const hotParams = computed(() => ({
+const hotParams = computed<NationalIndicatorKpiParams>(() => ({
     date_start: dateToStringYMD(new Date(pickedDateStart.value)),
     date_end: dateToStringYMD(new Date(pickedDateEnd.value)),
-    type: "hot" as const,
+    type: "hot",
 }));
 
-const coldParams = computed(() => ({
+const coldParams = computed<NationalIndicatorKpiParams>(() => ({
     date_start: dateToStringYMD(new Date(pickedDateStart.value)),
     date_end: dateToStringYMD(new Date(pickedDateEnd.value)),
-    type: "cold" as const,
+    type: "cold",
 }));
 
-const prevHotParams = computed(() => ({
+const prevHotParams = computed<NationalIndicatorKpiParams>(() => ({
     ...prevPeriod.value,
-    type: "hot" as const,
+    type: "hot",
 }));
-const prevColdParams = computed(() => ({
+const prevColdParams = computed<NationalIndicatorKpiParams>(() => ({
     ...prevPeriod.value,
-    type: "cold" as const,
+    type: "cold",
 }));
 
 const { data: hotKpi } = useNationalIndicatorKpi(hotParams);
