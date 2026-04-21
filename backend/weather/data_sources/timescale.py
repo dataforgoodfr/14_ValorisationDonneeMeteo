@@ -584,7 +584,10 @@ class TimescaleTemperatureRecordsDataSource:
                 o."AAAAMMJJ",
                 s.lat,
                 s.lon,
-                s.alt
+                s.alt,
+                s.classe_recente,
+                s.annee_de_creation,
+                s.annee_de_fermeture
             FROM ordered o
             JOIN public.v_station s ON s.station_code = o."NUM_POSTE"
             WHERE o.prev_val IS NULL OR o."{col}" {cmp} o.prev_val
@@ -610,6 +613,9 @@ class TimescaleTemperatureRecordsDataSource:
                 lat=row["lat"],
                 lon=row["lon"],
                 alt=row["alt"],
+                classe_recente=row["classe_recente"],
+                date_de_creation=_date_de_creation(row["annee_de_creation"]),
+                date_de_fermeture=_date_de_fermeture(row["annee_de_fermeture"]),
             )
             for row in rows
         ]
@@ -728,7 +734,7 @@ class MaterializedTemperatureRecordsDataSource:
 
         where = " AND ".join(clauses)
         sql = f"""
-            SELECT m.station_code, m.station_name, m.department, m.record_value, m.record_date, vs.lat, vs.lon, vs.alt
+            SELECT m.station_code, m.station_name, m.department, m.record_value, m.record_date, vs.lat, vs.lon, vs.alt, vs.classe_recente, vs.annee_de_creation, vs.annee_de_fermeture
                 FROM public.mv_records_battus m
             LEFT JOIN public.v_station vs ON vs.station_code = m.station_code
             WHERE {where}
@@ -754,6 +760,9 @@ class MaterializedTemperatureRecordsDataSource:
                 lat=row["lat"],
                 lon=row["lon"],
                 alt=row["alt"],
+                classe_recente=row["classe_recente"],
+                date_de_creation=_date_de_creation(row["annee_de_creation"]),
+                date_de_fermeture=_date_de_fermeture(row["annee_de_fermeture"]),
             )
             for row in rows
         ]
@@ -869,7 +878,10 @@ class HybridTemperatureRecordsDataSource:
                 o."AAAAMMJJ",
                 vs.lat,
                 vs.lon,
-                vs.alt
+                vs.alt,
+                vs.classe_recente,
+                vs.annee_de_creation,
+                vs.annee_de_fermeture
             FROM ordered o
             JOIN public.v_station vs ON vs.station_code = o."NUM_POSTE"
             WHERE o."{col}" {cmp} o.prev_val
@@ -911,6 +923,9 @@ class HybridTemperatureRecordsDataSource:
                 lat=row["lat"],
                 lon=row["lon"],
                 alt=row["alt"],
+                classe_recente=row["classe_recente"],
+                date_de_creation=_date_de_creation(row["annee_de_creation"]),
+                date_de_fermeture=_date_de_fermeture(row["annee_de_fermeture"]),
             )
             for row in rows
         ]
@@ -1022,6 +1037,18 @@ class TimescaleRecordsDataSource:
             )
 
         return tuple(result)
+
+
+def _date_de_creation(annee: int) -> dt.date:
+    """Approximation de la date de création au 1er janvier de l'année de création."""
+    return dt.date(annee, 1, 1)
+
+
+def _date_de_fermeture(annee: int | None) -> dt.date | None:
+    """Approximation de la date de fermeture au 31 décembre de l'année de fermeture, lorsqu'elle existe."""
+    if annee is None:
+        return None
+    return dt.date(annee, 12, 31)
 
 
 def _department_of_station(station_id: str) -> str:
