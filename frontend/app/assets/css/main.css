@@ -10,6 +10,10 @@
     --font-title: "Inter";
 }
 
+:root {
+    --ui-container: 90%;
+}
+
 /* This p styling below is meant to get the font "DM Sans" detected by NuxtFonts module */
 p {
     font-family: "DM Sans";
