@@ -44,6 +44,10 @@ jobs:
         run: |
           cd frontend
           npm ci --legacy-peer-deps
+          cp .env.example .env
+
+
+
 
       - name: Run frontend tests
         working-directory: frontend
