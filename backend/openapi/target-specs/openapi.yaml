@@ -331,7 +331,7 @@ paths:
           required: false
           schema:
             type: string
-            enum: [ full, month_of_year, day_of_month ]
+            enum: [full, month_of_year, day_of_month]
             default: full
           description: >
             Filtre intra-période appliqué à chaque période (selon `granularity`).
@@ -863,11 +863,12 @@ paths:
     get:
       tags:
         - Temperature
-      summary: Pic de chaud/froid à partir de l'indicateur thermique national (ITN)
+      summary: KPI à partir de l'indicateur thermique national (ITN)
       description: >
-        Retourne une liste de jours de pic (chaud ou froid) ainsi que le nombre de pics (i.e jours) sur la période
-        Un pic de chaud correspond à une journée ou la température de l'itn >= mean_baseline + std_baseline
-      operationId: getNationalIndicatorKPI
+        Retourne des KPIs sur la période : moyenne ITN, écart à la normale, et optionnellement la liste des jours de pic (chaud ou froid).
+        Un pic de chaud correspond à une journée où la température de l'ITN >= mean_baseline + std_baseline.
+        Si `type` est absent, seuls `itn_mean` et `deviation_from_normal` sont calculés (count=0, days=[]).
+      operationId: getNationalIndicatorKpi
       parameters:
         - name: date_start
           in: query
@@ -886,13 +887,14 @@ paths:
             format: date
           description: Date de fin incluse (YYYY-MM-DD).
           example: "2024-12-31"
-        - name: type_records
+        - name: type
           in: query
-          required: true
+          required: false
           description: |
-            Type de pics à retourner :
-            - `hot` : pic de chauds (défaut)
-            - `cold` : records froids
+            Type de pics à retourner (facultatif) :
+            - `hot` : pics de chaud
+            - `cold` : pics de froid
+            Si absent, aucun pic n'est calculé.
           schema:
             type: string
             enum: [hot, cold]
@@ -903,7 +905,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/NationalIndicatorResponse"
+                $ref: "#/components/schemas/NationalIndicatorKpiResponse"
         "400":
           description: Paramètre invalide ou manquant.
           content:
@@ -1197,7 +1199,17 @@ components:
       properties:
         count:
           type: integer
-          description: "Nombre de jours de pic"
+          description: "Nombre de jours de pic (0 si `type` absent)"
+        itn_mean:
+          type: number
+          format: float
+          nullable: true
+          description: "Température ITN moyenne sur la période (null si aucune donnée)"
+        deviation_from_normal:
+          type: number
+          format: float
+          nullable: true
+          description: "Écart à la normale 1991-2020 (itn_mean - baseline_mean moyen, null si aucune donnée)"
         days:
           type: array
           description: "Liste des jours de pic"
@@ -1368,11 +1380,11 @@ components:
               example: "1991-2020"
             granularity:
               type: string
-              enum: [ year, month, day ]
+              enum: [year, month, day]
               description: "Granularité de la série (axe X)."
             slice_type:
               type: string
-              enum: [ full, month_of_year, day_of_month ]
+              enum: [full, month_of_year, day_of_month]
               description: "Filtre intra-période appliqué à chaque période."
               example: full
             month_of_year:
