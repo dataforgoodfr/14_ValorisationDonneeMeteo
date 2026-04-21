@@ -40,7 +40,7 @@ export default defineNuxtConfig({
         head: {
             title: "DataClimat - Dashboard",
             htmlAttrs: {
-                lang: "fr"
+                lang: "fr",
             },
             link: [
                 { rel: "icon", type: "image/x-icon", href: "/favicon.ico" },
