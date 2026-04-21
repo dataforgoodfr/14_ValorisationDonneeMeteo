@@ -1,5 +1,10 @@
 import { describe, test, expect } from "vitest";
-import { dateToStringDMY, dateToStringYMD } from "./date";
+import {
+    dateToStringDMY,
+    dateToStringYMD,
+    setToLastDayOfYear,
+    formatDateLongForDisplay,
+} from "./date";
 
 describe("Date", () => {
     const firstDayDateToConvert = new Date("Jan 01 2025 00:00:00");
@@ -21,5 +26,31 @@ describe("Date", () => {
     test("is converted to 'DD/MM/YYYY' string", () => {
         const convertedDate = dateToStringDMY(lastDayDateToConvert);
         expect(convertedDate).toBe("31/12/2025");
+    });
+
+    test("is converted to 'DD/MM/YYYY' string", () => {
+        const convertedDate = setToLastDayOfYear(new Date());
+        const today = new Date();
+        const lastDay = new Date(today);
+        lastDay.setDate(today.getDate() - 2);
+        lastDay.setHours(23, 59, 59, 999);
+        expect(convertedDate).toStrictEqual(lastDay);
+    });
+
+    test("is converted to 'DD/MM/YYYY' string", () => {
+        const convertedDate = setToLastDayOfYear(new Date("01/01/2024"));
+        expect(convertedDate).toStrictEqual(
+            new Date("2024-12-31T22:59:59.999Z"),
+        );
+    });
+
+    test("is converted to 'DD MMMM YYYY' string", () => {
+        const convertedDate = formatDateLongForDisplay(firstDayDateToConvert);
+        expect(convertedDate).toBe("1 janvier 2025");
+    });
+
+    test("is converted to 'DD MMMM YYYY' string", () => {
+        const convertedDate = formatDateLongForDisplay(lastDayDateToConvert);
+        expect(convertedDate).toBe("31 décembre 2025");
     });
 });
