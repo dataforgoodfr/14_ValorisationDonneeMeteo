@@ -48,7 +48,9 @@ jobs:
 
       - name: Run backend
         working-directory: backend
-        run: uv run python manage.py runserver
+        run: |
+          uv run python manage.py runserver  0.0.0.0:8000 &
+          sleep 5
 
 
 
