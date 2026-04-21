@@ -1,6 +1,5 @@
 import type { ShallowRef } from "vue";
 import type {
-    GranularityType,
     NationalIndicatorDataPoint,
     NationalIndicatorResponse,
     PeriodType,

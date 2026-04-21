@@ -1,5 +1,10 @@
 // ===== Generic pagination wrapper (Django REST LimitOffsetPagination) =====
 
+import type {
+    GranularityType,
+    SliceType,
+} from "~/components/ui/commons/selectBar/types";
+
 export interface PaginatedResponse<T> {
     count: number;
     next: string | null;
@@ -207,10 +212,6 @@ export interface DeviationMapResponse {
     pagination: DeviationMapPagination;
     stations: DeviationMapStation[];
 }
-
-export type GranularityType = "year" | "month" | "day";
-
-export type SliceType = "full" | "month_of_year" | "day_of_month";
 
 export interface TemperatureDeviationGraphParams {
     date_start: string;
