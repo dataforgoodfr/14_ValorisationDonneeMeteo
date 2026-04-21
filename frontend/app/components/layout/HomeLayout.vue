@@ -1,9 +1,3 @@
-<script setup lang="ts">
-import ImportantInformationSection from "../home/ImportantInformationSection/ImportantInformationSection.vue";
-import TodaySection from "../home/TodaySection/TodaySection.vue";
-import LastMonthSection from "../home/Last30DaysSection/LastMonthSection.vue";
-import LastYearSection from "../home/Last365DaysSection/LastYearSection.vue";
-</script>
 <template>
     <div class="py-8">
         <h1 class="font-extrabold text-4xl mb-2 text-blue-150">
