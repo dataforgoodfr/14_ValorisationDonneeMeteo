@@ -17,7 +17,7 @@ def fake_records_graph_dep():
 @pytest.mark.usefixtures("fake_records_graph_dep")
 def test_graph_happy_path_year(client: APIClient):
     resp = client.get(
-        "/api/v1/records/graph",
+        "/api/v1/temperature/records/graph",
         {
             "date_start": "1940-01-01",
             "date_end": "2025-12-31",
@@ -40,7 +40,7 @@ def test_graph_happy_path_year(client: APIClient):
 @pytest.mark.usefixtures("fake_records_graph_dep")
 def test_graph_happy_path_month(client: APIClient):
     resp = client.get(
-        "/api/v1/records/graph",
+        "/api/v1/temperature/records/graph",
         {
             "date_start": "2019-01-01",
             "date_end": "2019-12-31",
@@ -59,7 +59,7 @@ def test_graph_happy_path_month(client: APIClient):
 def test_graph_returns_nonzero_for_known_record_dates(client: APIClient):
     # Le fake contient un record chaud le 2019-07-25 (ORLY et BOURGES)
     resp = client.get(
-        "/api/v1/records/graph",
+        "/api/v1/temperature/records/graph",
         {
             "date_start": "2019-01-01",
             "date_end": "2019-12-31",
@@ -78,7 +78,7 @@ def test_graph_returns_nonzero_for_known_record_dates(client: APIClient):
 def test_graph_territoire_department(client: APIClient):
     # Département 94 = ORLY uniquement
     resp = client.get(
-        "/api/v1/records/graph",
+        "/api/v1/temperature/records/graph",
         {
             "date_start": "1940-01-01",
             "date_end": "2025-12-31",
@@ -97,7 +97,7 @@ def test_graph_territoire_department(client: APIClient):
 @pytest.mark.usefixtures("fake_records_graph_dep")
 def test_graph_territoire_unknown_department_returns_zeros(client: APIClient):
     resp = client.get(
-        "/api/v1/records/graph",
+        "/api/v1/temperature/records/graph",
         {
             "date_start": "2019-01-01",
             "date_end": "2019-12-31",
@@ -113,7 +113,7 @@ def test_graph_territoire_unknown_department_returns_zeros(client: APIClient):
 
 
 def test_graph_missing_required_params(client: APIClient):
-    resp = client.get("/api/v1/records/graph")
+    resp = client.get("/api/v1/temperature/records/graph")
     assert resp.status_code == 400
     body = resp.json()
     assert body["error"]["code"] == "INVALID_PARAMETER"
@@ -121,7 +121,7 @@ def test_graph_missing_required_params(client: APIClient):
 
 def test_graph_missing_granularity(client: APIClient):
     resp = client.get(
-        "/api/v1/records/graph",
+        "/api/v1/temperature/records/graph",
         {"date_start": "2019-01-01", "date_end": "2019-12-31"},
     )
     assert resp.status_code == 400
@@ -129,7 +129,7 @@ def test_graph_missing_granularity(client: APIClient):
 
 def test_graph_invalid_granularity(client: APIClient):
     resp = client.get(
-        "/api/v1/records/graph",
+        "/api/v1/temperature/records/graph",
         {"date_start": "2019-01-01", "date_end": "2019-12-31", "granularity": "week"},
     )
     assert resp.status_code == 400
@@ -137,7 +137,7 @@ def test_graph_invalid_granularity(client: APIClient):
 
 def test_graph_territoire_without_id_returns_400(client: APIClient):
     resp = client.get(
-        "/api/v1/records/graph",
+        "/api/v1/temperature/records/graph",
         {
             "date_start": "2019-01-01",
             "date_end": "2019-12-31",
@@ -153,7 +153,7 @@ def test_graph_territoire_without_id_returns_400(client: APIClient):
 @pytest.mark.usefixtures("fake_records_graph_dep")
 def test_graph_type_records_all(client: APIClient):
     resp = client.get(
-        "/api/v1/records/graph",
+        "/api/v1/temperature/records/graph",
         {
             "date_start": "1940-01-01",
             "date_end": "2025-12-31",
@@ -168,7 +168,7 @@ def test_graph_type_records_all(client: APIClient):
     # "all" doit agréger hot + cold → plus de records que hot seul
     total_all = sum(b["nb_records_battus"] for b in body["buckets"])
     resp_hot = client.get(
-        "/api/v1/records/graph",
+        "/api/v1/temperature/records/graph",
         {
             "date_start": "1940-01-01",
             "date_end": "2025-12-31",
@@ -183,7 +183,7 @@ def test_graph_type_records_all(client: APIClient):
 @pytest.mark.usefixtures("fake_records_graph_dep")
 def test_graph_records_have_expected_fields(client: APIClient):
     resp = client.get(
-        "/api/v1/records/graph",
+        "/api/v1/temperature/records/graph",
         {"date_start": "1940-01-01", "date_end": "2025-12-31", "granularity": "year"},
     )
     assert resp.status_code == 200
@@ -200,7 +200,7 @@ def test_graph_records_have_expected_fields(client: APIClient):
 @pytest.mark.usefixtures("fake_records_graph_dep")
 def test_graph_period_type_month_requires_month(client: APIClient):
     resp = client.get(
-        "/api/v1/records/graph",
+        "/api/v1/temperature/records/graph",
         {
             "date_start": "2019-01-01",
             "date_end": "2019-12-31",
