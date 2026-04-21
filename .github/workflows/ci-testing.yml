@@ -7,7 +7,7 @@ on:
 
 
 jobs:
-  test-backend & frontend:
+  test-backend-frontend:
     runs-on: ubuntu-24.04
 
     steps:
