@@ -43,10 +43,8 @@ export function useHomeData() {
     });
 
     return {
-        yesterday,
         yesterdayTemperature,
         gap,
         temperatureChangeYearOverYear,
-        yesterdayLastYear,
     };
 }

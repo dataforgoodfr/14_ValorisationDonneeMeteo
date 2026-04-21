@@ -1,15 +1,5 @@
 <script setup lang="ts">
-import GoToDataLink from "../GoToDataLink.vue";
-import ITNCard from "../ImportantInformationSection/ITNCard.vue";
-import Section from "../Section.vue";
-
-const { yesterday } = useHomeData();
-
-const yesterdayLess365Days = computed(() => {
-    const date = new Date();
-    date.setDate(date.getDate() - 365);
-    return date;
-});
+const { yesterday, yesterdayLess365Days } = useCustomDate();
 </script>
 
 <template>

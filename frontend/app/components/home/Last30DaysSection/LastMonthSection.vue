@@ -3,13 +3,7 @@ import GoToDataLink from "../GoToDataLink.vue";
 import ITNCard from "../ImportantInformationSection/ITNCard.vue";
 import Section from "../Section.vue";
 
-const { yesterday } = useHomeData();
-
-const yesterdayLess30Days = computed(() => {
-    const date = new Date();
-    date.setDate(date.getDate() - 30);
-    return date;
-});
+const { yesterday, yesterdayLess30Days } = useCustomDate();
 </script>
 
 <template>
