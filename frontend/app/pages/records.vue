@@ -83,10 +83,20 @@ const heroData = {
                     <SearchByTerritoryType />
                 </template>
                 <template #chart>
-                    <RecordsChart
-                        :adapter="selectBarAdapter"
-                        class="px-3 py-2"
-                    />
+                    <div class="flex flex-col gap-4 px-3 py-2">
+                        <UTabs
+                            v-model="selectBarAdapter.recordKind!.value"
+                            :items="[
+                                { label: 'Records absolus', value: 'absolute' },
+                                {
+                                    label: 'Records battus',
+                                    value: 'historical',
+                                },
+                            ]"
+                            class="w-fit"
+                        />
+                        <RecordsChart :adapter="selectBarAdapter" />
+                    </div>
                 </template>
             </ChartLayout>
         </div>

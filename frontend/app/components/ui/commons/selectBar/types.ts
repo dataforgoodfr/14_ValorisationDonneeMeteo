@@ -51,6 +51,9 @@ export interface SelectBarAdapter<
     // Territory filters (optional, specific to records)
     selectedElements?: Ref<{ value: string; id: string; type: string }[]>;
 
+    // Records kind toggle (absolute = current record per station, historical = all beaten)
+    recordKind?: Ref<"absolute" | "historical">;
+
     // Methods
     setGranularity: (value: GranularityType) => void;
     setChartType?: (value: ChartType) => void;

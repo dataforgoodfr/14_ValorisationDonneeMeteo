@@ -4,6 +4,8 @@ import type {
     Season,
     Station,
     TemperatureRecordsGraphParams,
+    TemperatureRecordsGraphRecord,
+    TemperatureRecordsGraphResponse,
     TypeRecords,
 } from "~/types/api";
 import { useCustomDate } from "#imports";
@@ -108,6 +110,28 @@ export const useRecordsChartStore = defineStore("recordChartStore", () => {
         pending,
         error,
     } = useTemperatureRecordsGraph(params);
+
+    const recordKind = ref<"absolute" | "historical">("absolute");
+
+    const processedRecordsData = computed<
+        TemperatureRecordsGraphResponse | undefined
+    >(() => {
+        if (!recordsData.value) return undefined;
+        if (recordKind.value === "historical") return recordsData.value;
+
+        const latestByKey = new Map<string, TemperatureRecordsGraphRecord>();
+        for (const record of recordsData.value.records) {
+            const key = `${record.station_id}__${record.type_records}`;
+            const existing = latestByKey.get(key);
+            if (!existing || record.date > existing.date) {
+                latestByKey.set(key, record);
+            }
+        }
+        return {
+            buckets: recordsData.value.buckets,
+            records: Array.from(latestByKey.values()),
+        };
+    });
 
     const setGranularity = (value: GranularityType) => {
         granularity.value = value;
@@ -231,6 +255,8 @@ export const useRecordsChartStore = defineStore("recordChartStore", () => {
         setTerritoryFilter,
         removeItemFromFilter,
         recordsData,
+        processedRecordsData,
+        recordKind,
         pending,
         error,
     };

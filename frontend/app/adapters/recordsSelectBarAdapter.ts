@@ -17,7 +17,8 @@ export const useRecordsSelectBarAdapter =
             month,
             season,
             selectedElements,
-            recordsData,
+            processedRecordsData,
+            recordKind,
             pending,
             chartType,
         } = storeToRefs(store);
@@ -34,7 +35,8 @@ export const useRecordsSelectBarAdapter =
             season,
             selectedElements,
             chartRef: recordsChartRef,
-            data: recordsData,
+            data: processedRecordsData,
+            recordKind,
             pending,
             chartType,
             chartTypeOptions: [
