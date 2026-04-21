@@ -46,6 +46,10 @@ jobs:
           npm ci --legacy-peer-deps
           cp .env.example .env
 
+      - name: Run backend
+        working-directory: backend
+        run: uv run python manage.py runserver
+
 
 
 
