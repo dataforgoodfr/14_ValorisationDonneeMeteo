@@ -173,6 +173,7 @@ def test_kpi_response_contains_baseline_mean_and_std_dev(client: APIClient):
 # ---------------------------------------------------------------------------
 
 
+@pytest.mark.django_db
 def test_kpi_missing_type_returns_400(client: APIClient):
     resp = client.get(
         reverse("temperature-national-indicator-kpi"),
