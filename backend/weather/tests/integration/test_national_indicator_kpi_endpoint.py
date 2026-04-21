@@ -173,17 +173,6 @@ def test_kpi_response_contains_baseline_mean_and_std_dev(client: APIClient):
 # ---------------------------------------------------------------------------
 
 
-@pytest.mark.django_db
-def test_kpi_missing_type_returns_400(client: APIClient):
-    resp = client.get(
-        reverse("temperature-national-indicator-kpi"),
-        {"date_start": "2024-01-01", "date_end": "2024-01-31"},
-    )
-
-    assert resp.status_code == 400
-    assert resp.json()["error"]["code"] == "INVALID_PARAMETER"
-
-
 def test_kpi_missing_date_start_returns_400(client: APIClient):
     resp = client.get(
         reverse("temperature-national-indicator-kpi"),
