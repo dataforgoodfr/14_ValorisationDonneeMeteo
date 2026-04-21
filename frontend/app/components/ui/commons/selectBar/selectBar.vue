@@ -3,6 +3,7 @@ import MonthPicker from "./monthPicker.vue";
 import YearPicker from "./yearPicker.vue";
 import DayPicker from "./dayPicker.vue";
 import SliceType from "./sliceType.vue";
+import RecordsPeriodSlice from "./recordsPeriodSlice.vue";
 import ExportMenu from "../exportMenu.vue";
 import type {
     GranularityType,
@@ -82,7 +83,12 @@ const granularityValues = reactive([
         </div>
 
         <div id="right-side" class="flex md:flex-1 gap-6 items-center">
-            <template v-if="adapter.features.hasSliceType">
+            <template
+                v-if="
+                    adapter.features.hasSliceType ||
+                    adapter.features.hasRecordsPeriodSlice
+                "
+            >
                 <UTooltip
                     :disabled="adapter.granularity.value !== 'day'"
                     :disable-closing-trigger="true"
@@ -102,7 +108,9 @@ const granularityValues = reactive([
                             :disabled="adapter.granularity.value === 'day'"
                             unchecked-icon="i-lucide-x"
                             checked-icon="i-lucide-check"
-                            label="Moyenne par"
+                            :label="
+                                adapter.sliceTypeSwitchLabel ?? 'Moyenne par'
+                            "
                             :ui="{
                                 root: 'flex-col-reverse items-center gap-1',
                                 container: 'my-auto',
@@ -112,7 +120,18 @@ const granularityValues = reactive([
                     </span>
                 </UTooltip>
 
-                <SliceType v-if="adapter.sliceTypeSwitchEnabled?.value" />
+                <SliceType
+                    v-if="
+                        adapter.sliceTypeSwitchEnabled?.value &&
+                        adapter.features.hasSliceType
+                    "
+                />
+                <RecordsPeriodSlice
+                    v-if="
+                        adapter.sliceTypeSwitchEnabled?.value &&
+                        adapter.features.hasRecordsPeriodSlice
+                    "
+                />
             </template>
             <ExportMenu v-if="adapter.features.hasExport" class="ml-auto" />
         </div>

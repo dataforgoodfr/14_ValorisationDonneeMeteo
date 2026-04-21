@@ -39,6 +39,7 @@ export const useItnSelectBarAdapter = (): SelectBarAdapter<
         turnOffSliceType: store.turnOffSliceType,
         features: {
             hasSliceType: true,
+            hasRecordsPeriodSlice: false,
             hasChartTypeSelector: false,
             hasExport: true,
         },

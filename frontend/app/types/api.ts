@@ -21,10 +21,7 @@ export interface Station {
     poste_public: boolean;
 }
 
-export interface StationDetail extends Station {
-    created_at: string;
-    updated_at: string;
-}
+export type StationDetail = Station;
 
 export interface StationFilters {
     code?: string;
@@ -341,6 +338,37 @@ export type MapTooltipFormatter = (properties: {
     record_date: string | null;
     department: string | null;
 }) => string;
+// ===== Temperature Records Graph types =====
+
+export interface TemperatureRecordsGraphParams {
+    date_start: string;
+    date_end: string;
+    granularity: "day" | "month" | "year";
+    type_records?: TypeRecords;
+    period_type?: PeriodType;
+    month?: number;
+    season?: Season;
+    territoire?: "france" | "region" | "department" | "station";
+    territoire_id?: string;
+}
+
+export interface TemperatureRecordsGraphBucket {
+    bucket: string;
+    nb_records_battus: number;
+}
+
+export interface TemperatureRecordsGraphRecord {
+    date: string;
+    station_id: string;
+    station_name: string;
+    type_records: "hot" | "cold";
+    valeur: number;
+}
+
+export interface TemperatureRecordsGraphResponse {
+    buckets: TemperatureRecordsGraphBucket[];
+    records: TemperatureRecordsGraphRecord[];
+}
 
 // ===== API Error type =====
 

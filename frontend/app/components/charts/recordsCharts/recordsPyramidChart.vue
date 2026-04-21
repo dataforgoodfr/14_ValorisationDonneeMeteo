@@ -2,7 +2,7 @@
 import * as echarts from "echarts/core";
 import langFR from "~/i18n/langFR.js";
 import type { SelectBarAdapter } from "~/components/ui/commons/selectBar/types";
-import type { TemperatureRecordsResponse } from "~/types/api";
+import type { TemperatureRecordsGraphResponse } from "~/types/api";
 import type { XAXisOption, YAXisOption } from "echarts/types/dist/shared";
 import {
     barSeries,
@@ -18,7 +18,7 @@ type ValueXAxisOption = Extract<XAXisOption, { type?: "value" }>;
 echarts.registerLocale("FR", langFR);
 
 interface Props {
-    adapter: SelectBarAdapter<TemperatureRecordsResponse>;
+    adapter: SelectBarAdapter<TemperatureRecordsGraphResponse>;
 }
 
 const props = defineProps<Props>();

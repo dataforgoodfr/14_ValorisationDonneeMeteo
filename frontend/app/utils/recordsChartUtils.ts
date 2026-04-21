@@ -1,4 +1,4 @@
-import type { TemperatureRecordsResponse } from "~/types/api";
+import type { TemperatureRecordsGraphResponse } from "~/types/api";
 import type { GranularityType } from "~/components/ui/commons/selectBar/types";
 import type { BarSeriesOption, ScatterSeriesOption } from "echarts/charts";
 
@@ -19,27 +19,27 @@ export interface RecordEntry {
 }
 
 export function flattenHotRecords(
-    data: TemperatureRecordsResponse,
+    data: TemperatureRecordsGraphResponse,
 ): RecordEntry[] {
-    return data.stations.flatMap((station) =>
-        station.hot_records.map((record) => ({
-            date: record.record_date,
-            value: record.record_value,
-            station: station.name,
-        })),
-    );
+    return data.records
+        .filter((r) => r.type_records === "hot")
+        .map((r) => ({
+            date: r.date,
+            value: r.valeur,
+            station: r.station_name,
+        }));
 }
 
 export function flattenColdRecords(
-    data: TemperatureRecordsResponse,
+    data: TemperatureRecordsGraphResponse,
 ): RecordEntry[] {
-    return data.stations.flatMap((station) =>
-        station.cold_records.map((record) => ({
-            date: record.record_date,
-            value: record.record_value,
-            station: station.name,
-        })),
-    );
+    return data.records
+        .filter((r) => r.type_records === "cold")
+        .map((r) => ({
+            date: r.date,
+            value: r.valeur,
+            station: r.station_name,
+        }));
 }
 
 export function periodKey(date: string, granularity: GranularityType): string {
@@ -77,35 +77,14 @@ export function countByPeriod(
 
 export function buildTerritoryPlots(
     selectedTerritories: Array<{ type: string; id: string; value: string }>,
-    data: TemperatureRecordsResponse,
+    data: TemperatureRecordsGraphResponse,
 ): { name: string; hot: RecordEntry[]; cold: RecordEntry[] }[] {
-    if (selectedTerritories.length === 0) {
-        return [
-            {
-                name: "France Métropolitaine",
-                hot: flattenHotRecords(data),
-                cold: flattenColdRecords(data),
-            },
-        ];
-    }
-    return selectedTerritories.map((t) => buildTerritoryPlot(t, data));
-}
-
-function buildTerritoryPlot(
-    territory: { type: string; id: string; value: string },
-    data: TemperatureRecordsResponse,
-): { name: string; hot: RecordEntry[]; cold: RecordEntry[] } {
-    const stations =
-        territory.type === "STATION"
-            ? data.stations.filter((station) => station.id === territory.id)
-            : territory.type === "DEPARTMENT"
-              ? data.stations.filter(
-                    (station) => station.departement === Number(territory.id),
-                )
-              : data.stations;
-    return {
-        name: territory.value,
-        hot: flattenHotRecords({ ...data, stations }),
-        cold: flattenColdRecords({ ...data, stations }),
-    };
+    const name = selectedTerritories[0]?.value ?? "France Métropolitaine";
+    return [
+        {
+            name,
+            hot: flattenHotRecords(data),
+            cold: flattenColdRecords(data),
+        },
+    ];
 }

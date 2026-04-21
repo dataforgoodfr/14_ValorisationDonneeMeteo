@@ -1,11 +1,11 @@
 <script setup lang="ts">
 import type { SelectBarAdapter } from "~/components/ui/commons/selectBar/types";
-import type { TemperatureRecordsResponse } from "~/types/api";
+import type { TemperatureRecordsGraphResponse } from "~/types/api";
 import RecordsScatterChart from "./recordsCharts/recordsScatterChart.vue";
 import RecordsPyramidChart from "./recordsCharts/recordsPyramidChart.vue";
 
 interface Props {
-    adapter: SelectBarAdapter<TemperatureRecordsResponse>;
+    adapter: SelectBarAdapter<TemperatureRecordsGraphResponse>;
 }
 
 const props = defineProps<Props>();

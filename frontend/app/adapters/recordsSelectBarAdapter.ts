@@ -1,8 +1,9 @@
 import type { SelectBarAdapter } from "~/components/ui/commons/selectBar/types";
-import type { TemperatureRecordsResponse } from "~/types/api";
+import type { TemperatureRecordsGraphResponse } from "~/types/api";
+import { useRecordsChartStore } from "#imports";
 
 export const useRecordsSelectBarAdapter =
-    (): SelectBarAdapter<TemperatureRecordsResponse> => {
+    (): SelectBarAdapter<TemperatureRecordsGraphResponse> => {
         const store = useRecordsChartStore();
 
         const {
@@ -11,13 +12,13 @@ export const useRecordsSelectBarAdapter =
             pickedDateStart,
             pickedDateEnd,
             maxDate,
-            sliceTypeSwitchEnabled, // Will be enabled in futur version
-            sliceType, // Will be enabled in futur version
-            sliceDatepickerDate, // Will be enabled in futur version
+            sliceTypeSwitchEnabled,
+            periodType,
+            month,
+            season,
             selectedElements,
             recordsData,
             pending,
-            chartTypeSwitchEnabled,
             chartType,
         } = storeToRefs(store);
 
@@ -26,14 +27,15 @@ export const useRecordsSelectBarAdapter =
             pickedDateStart,
             pickedDateEnd,
             maxDate,
-            sliceTypeSwitchEnabled, // Will be enabled in futur version
-            sliceType, // Will be enabled in futur version
-            sliceDatepickerDate, // Will be enabled in futur version
+            sliceTypeSwitchEnabled,
+            sliceTypeSwitchLabel: "Période",
+            periodType,
+            month,
+            season,
             selectedElements,
             chartRef: recordsChartRef,
             data: recordsData,
             pending,
-            chartTypeSwitchEnabled,
             chartType,
             chartTypeOptions: [
                 {
@@ -49,8 +51,10 @@ export const useRecordsSelectBarAdapter =
             ],
             setGranularity: store.setGranularity,
             setChartType: store.setChartType,
+            turnOffSliceType: store.turnOffSliceType,
             features: {
-                hasSliceType: false, // Will be enabled in futur version
+                hasSliceType: false,
+                hasRecordsPeriodSlice: true,
                 hasChartTypeSelector: true,
                 hasExport: true,
             },

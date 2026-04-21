@@ -37,7 +37,8 @@ export const useDeviationSelectBarAdapter =
             chartTypeSwitchEnabled,
             setChartType: store.setChartType,
             features: {
-                hasSliceType: false, // Will be enabled in futur version
+                hasSliceType: false,
+                hasRecordsPeriodSlice: false,
                 hasChartTypeSelector: true,
                 hasExport: true,
             },

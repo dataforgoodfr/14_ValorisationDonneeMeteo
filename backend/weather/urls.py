@@ -46,8 +46,8 @@ urlpatterns = [
         name="temperature-deviation-overview",
     ),
     path(
-        "records/graph",
+        "temperature/records/graph",
         RecordsGraphAPIView.as_view(),
-        name="records-graph",
+        name="temperature-records-graph",
     ),
 ]

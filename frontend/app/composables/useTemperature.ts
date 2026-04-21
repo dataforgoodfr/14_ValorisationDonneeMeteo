@@ -1,6 +1,8 @@
 import type {
     DeviationMapParams,
     DeviationMapResponse,
+    TemperatureRecordsGraphParams,
+    TemperatureRecordsGraphResponse,
     TemperatureDeviationGraphParams,
     TemperatureDeviationGraphResponse,
     TemperatureDeviationParams,
@@ -91,6 +93,38 @@ export function useTemperatureDeviationGraph(
                 result.execute();
             } else if (!hasParams) {
                 result.data.value = undefined;
+            }
+        },
+        { immediate: true },
+    );
+
+    return result;
+}
+
+export function useTemperatureRecordsGraph(
+    params: MaybeRef<TemperatureRecordsGraphParams>,
+    enabled?: MaybeRef<boolean>,
+) {
+    const { useApiFetch } = useApiClient();
+
+    const isEnabled = computed(() =>
+        enabled !== undefined ? toValue(enabled) : true,
+    );
+
+    const result = useApiFetch<TemperatureRecordsGraphResponse>(
+        "/temperature/records/graph",
+        {
+            query: params,
+            immediate: false,
+            watch: false,
+        },
+    );
+
+    watch(
+        [isEnabled, params],
+        ([enabled]) => {
+            if (enabled) {
+                result.execute();
             }
         },
         { immediate: true },
