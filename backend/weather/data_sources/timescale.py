@@ -613,7 +613,7 @@ class TimescaleTemperatureRecordsDataSource:
                 lat=row["lat"],
                 lon=row["lon"],
                 alt=row["alt"],
-                classe_recente=row["classe_recente"],
+                classe_recente=_classe_recente(row["classe_recente"]),
                 date_de_creation=_date_de_creation(row["annee_de_creation"]),
                 date_de_fermeture=_date_de_fermeture(row["annee_de_fermeture"]),
             )
@@ -760,7 +760,7 @@ class MaterializedTemperatureRecordsDataSource:
                 lat=row["lat"],
                 lon=row["lon"],
                 alt=row["alt"],
-                classe_recente=row["classe_recente"],
+                classe_recente=_classe_recente(row["classe_recente"]),
                 date_de_creation=_date_de_creation(row["annee_de_creation"]),
                 date_de_fermeture=_date_de_fermeture(row["annee_de_fermeture"]),
             )
@@ -923,7 +923,7 @@ class HybridTemperatureRecordsDataSource:
                 lat=row["lat"],
                 lon=row["lon"],
                 alt=row["alt"],
-                classe_recente=row["classe_recente"],
+                classe_recente=_classe_recente(row["classe_recente"]),
                 date_de_creation=_date_de_creation(row["annee_de_creation"]),
                 date_de_fermeture=_date_de_fermeture(row["annee_de_fermeture"]),
             )
@@ -1037,6 +1037,11 @@ class TimescaleRecordsDataSource:
             )
 
         return tuple(result)
+
+
+def _classe_recente(classe: int | None) -> int:
+    """Retourne la classe récente de la station, ou 9999 si inconnue (NULL en base)."""
+    return classe if classe is not None else 9999
 
 
 def _date_de_creation(annee: int) -> dt.date:
