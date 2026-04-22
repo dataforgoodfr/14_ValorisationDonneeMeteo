@@ -40,9 +40,12 @@ describe("Date", () => {
     test("returns last day of the year", () => {
         const dateToConvert = new Date("2000-06-15T12:30:45Z");
         const convertedDate = setToLastDayOfYear(dateToConvert);
-        expect(convertedDate).toStrictEqual(
-            new Date("2000-12-31T22:59:59.999Z"),
-        );
+        const expectedDate = new Date();
+        expectedDate.setFullYear(dateToConvert.getFullYear());
+        expectedDate.setMonth(11);
+        expectedDate.setDate(31);
+        expectedDate.setHours(23, 59, 59, 999);
+        expect(convertedDate).toStrictEqual(expectedDate);
     });
 
     test("is converted to 'DD MMMM YYYY' string", () => {
