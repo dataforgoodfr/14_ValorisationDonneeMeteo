@@ -25,7 +25,7 @@ const props = defineProps<Props>();
 
 const renderer = ref<"svg" | "canvas">("canvas");
 const initOptions = computed(() => ({
-    height: 600,
+    height: 520,
     locale: "FR",
     renderer: renderer.value,
 }));

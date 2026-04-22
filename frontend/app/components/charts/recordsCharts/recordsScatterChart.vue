@@ -43,7 +43,7 @@ const props = defineProps<Props>();
 // provide init-options
 const renderer = ref<"svg" | "canvas">("canvas");
 const initOptions = computed(() => ({
-    height: 600,
+    height: 520,
     locale: "FR",
     renderer: renderer.value,
 }));
@@ -102,12 +102,20 @@ const option = computed<ECOption>(() => {
             ]),
             ...(showStackedBar ? barDataset() : []),
         ],
-        grid: plots.map((_, index) => ({
-            top: `${index * (100 / plots.length) + 8}%`,
-            height: `${100 / plots.length - 15}%`,
-            left: 30,
-            right: 10,
-        })),
+        grid: plots.map((plot, index) => {
+            if (showStackedBar) {
+                if (plot === "scatter") {
+                    return { top: "8%", height: "55%", left: 30, right: 10 };
+                }
+                return { top: "75%", height: "20%", left: 30, right: 10 };
+            }
+            return {
+                top: `${index * (100 / plots.length) + 8}%`,
+                height: `${100 / plots.length - 15}%`,
+                left: 30,
+                right: 10,
+            };
+        }),
         xAxis: plots.map((_, index) => ({
             type: "time",
             gridIndex: index,
@@ -189,7 +197,7 @@ const option = computed<ECOption>(() => {
         title: territoryPlots.map((plot, index) => ({
             text: plot.name,
             right: "right",
-            top: `${index * (100 / plots.length) + 2}%`,
+            top: showStackedBar ? "2%" : `${index * (100 / plots.length) + 2}%`,
         })),
         axisPointer: {
             link: [{ xAxisIndex: "all" }],
