@@ -1,9 +1,5 @@
 export default defineAppConfig({
     ui: {
-        container: {
-            base: "w-full max-w-7xl mx-auto",
-            padding: "px-2 sm:px-4",
-        },
         card: {
             slots: {
                 root: "rounded-lg overflow-hidden",
