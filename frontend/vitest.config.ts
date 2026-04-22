@@ -30,7 +30,6 @@ export default defineConfig({
                 test: {
                     name: "integration",
                     include: ["app/**/*.integration.test.ts"],
-                    // exclude: ["app/**/*.real.integration.test.ts"],
                     environment: "nuxt",
                     testTimeout: 1 * 60 * 1000,
                     environmentOptions: {
