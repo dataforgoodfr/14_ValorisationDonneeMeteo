@@ -342,26 +342,19 @@ class NationalIndicatorKpiAPIView(APIView):
             date_end=params["date_end"],
         )
 
-        def serialize_days(days):
-            return [
-                {
-                    "date": d.date,
-                    "temperature": d.temperature,
-                    "baseline_mean": d.baseline_mean,
-                    "baseline_std_dev": d.baseline_std_dev,
-                }
-                for d in days
-            ]
+        def period_payload(stats):
+            return {
+                "hot_peak_count": stats.hot_peak_count,
+                "cold_peak_count": stats.cold_peak_count,
+                "days_above_baseline": stats.days_above_baseline,
+                "days_below_baseline": stats.days_below_baseline,
+                "itn_mean": stats.itn_mean,
+                "deviation_from_normal": stats.deviation_from_normal,
+            }
 
         payload = {
-            "hot_peak_count": result.hot_peak_count,
-            "cold_peak_count": result.cold_peak_count,
-            "days_above_baseline": result.days_above_baseline,
-            "days_below_baseline": result.days_below_baseline,
-            "itn_mean": result.itn_mean,
-            "deviation_from_normal": result.deviation_from_normal,
-            "hot_peak_days": serialize_days(result.hot_peak_days),
-            "cold_peak_days": serialize_days(result.cold_peak_days),
+            **period_payload(result.current),
+            "previous": period_payload(result.previous),
         }
 
         out = NationalIndicatorKpiResponseSerializer(data=payload)
