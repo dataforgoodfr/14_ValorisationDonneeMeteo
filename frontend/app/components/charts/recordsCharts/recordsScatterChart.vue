@@ -107,7 +107,7 @@ const option = computed<ECOption>(() => {
                 if (plot === "scatter") {
                     return { top: "8%", height: "55%", left: 30, right: 10 };
                 }
-                return { top: "75%", height: "20%", left: 30, right: 10 };
+                return { top: "72%", height: "20%", left: 30, right: 10 };
             }
             return {
                 top: `${index * (100 / plots.length) + 8}%`,

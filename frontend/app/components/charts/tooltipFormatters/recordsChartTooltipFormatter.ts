@@ -17,29 +17,18 @@ function formatBarTooltip(param: DefaultLabelFormatterCallbackParams): string {
 
 function formatScatterTooltip(
     paramsArray: DefaultLabelFormatterCallbackParams[],
-    granularity: GranularityType,
+    _granularity: GranularityType,
 ): string {
     const firstParam = paramsArray[0] as DefaultLabelFormatterCallbackParams;
     const scatterData = firstParam.value as Record<string, number | string>;
 
-    const dateOptions: Intl.DateTimeFormatOptions = (() => {
-        if (granularity === "month") {
-            return { year: "numeric", month: "long" };
-        }
-        if (granularity === "year") {
-            return { year: "numeric" };
-        }
-        return {
-            weekday: "short",
-            day: "numeric",
-            month: "short",
-            year: "numeric",
-        };
-    })();
-
     const formattedDate = new Date(
         scatterData.date as string,
-    ).toLocaleDateString("fr-FR", dateOptions);
+    ).toLocaleDateString("fr-FR", {
+        day: "2-digit",
+        month: "2-digit",
+        year: "numeric",
+    });
 
     const tooltipLabelFormatter = (
         serie: DefaultLabelFormatterCallbackParams,
