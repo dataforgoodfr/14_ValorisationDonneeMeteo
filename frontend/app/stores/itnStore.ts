@@ -47,14 +47,20 @@ export const useItnStore = defineStore("itnStore", () => {
     };
 
     watch(
-        [selectedYears, granularity],
+        () => [...selectedYears.value],
         async () => {
             if (chartType.value === "stacked") {
                 await generateStackedData();
             }
         },
-        { deep: true },
     );
+
+    watch(granularity, async () => {
+        if (chartType.value === "stacked") {
+            stackedDataCache.clear();
+            await generateStackedData();
+        }
+    });
 
     watch(chartType, async (val) => {
         if (val === "stacked") {
@@ -99,7 +105,7 @@ export const useItnStore = defineStore("itnStore", () => {
     const setChartType = (value: ChartType) => {
         chartType.value = value;
         if (value === "stacked") {
-            if (granularity.value === "year") granularity.value = "month";
+            granularity.value = "day";
             sliceTypeSwitchEnabled.value = false;
             sliceType.value = "full";
         }

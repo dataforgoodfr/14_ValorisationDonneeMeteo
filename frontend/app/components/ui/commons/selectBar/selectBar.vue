@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import MonthPicker from "./monthPicker.vue";
 import YearPicker from "./yearPicker.vue";
+import StackedYearPicker from "./stackedYearPicker.vue";
 import DayPicker from "./dayPicker.vue";
 import SliceType from "./sliceType.vue";
 import RecordsPeriodSlice from "./recordsPeriodSlice.vue";
@@ -56,27 +57,30 @@ const granularityValues = computed(() => [
                 />
             </UFormField>
 
-            <DayPicker
-                v-if="adapter.granularity.value === 'day'"
-                v-model:start-date="localStartDate"
-                v-model:end-date="localEndDate"
-                :min-date="dates.absoluteMinDataDate.value"
-                :max-date="dates.today.value"
-            />
-            <MonthPicker
-                v-if="adapter.granularity.value === 'month'"
-                v-model:start-date="localStartDate"
-                v-model:end-date="localEndDate"
-                :min-date="dates.absoluteMinDataDate.value"
-                :max-date="dates.today.value"
-            />
-            <YearPicker
-                v-if="adapter.granularity.value === 'year'"
-                v-model:start-date="localStartDate"
-                v-model:end-date="localEndDate"
-                :min-date="dates.absoluteMinDataDate.value"
-                :max-date="dates.today.value"
-            />
+            <template v-if="adapter.chartType?.value !== 'stacked'">
+                <DayPicker
+                    v-if="adapter.granularity.value === 'day'"
+                    v-model:start-date="localStartDate"
+                    v-model:end-date="localEndDate"
+                    :min-date="dates.absoluteMinDataDate.value"
+                    :max-date="dates.today.value"
+                />
+                <MonthPicker
+                    v-if="adapter.granularity.value === 'month'"
+                    v-model:start-date="localStartDate"
+                    v-model:end-date="localEndDate"
+                    :min-date="dates.absoluteMinDataDate.value"
+                    :max-date="dates.today.value"
+                />
+                <YearPicker
+                    v-if="adapter.granularity.value === 'year'"
+                    v-model:start-date="localStartDate"
+                    v-model:end-date="localEndDate"
+                    :min-date="dates.absoluteMinDataDate.value"
+                    :max-date="dates.today.value"
+                />
+            </template>
+            <StackedYearPicker v-if="adapter.chartType?.value === 'stacked'" />
             <SelectChartType v-if="adapter.features.hasChartTypeSelector" />
 
             <USeparator

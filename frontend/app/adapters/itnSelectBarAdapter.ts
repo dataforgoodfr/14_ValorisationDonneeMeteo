@@ -23,7 +23,8 @@ export const useItnSelectBarAdapter = (): SelectBarAdapter<
         itnData,
         chartType,
         selectedYears,
-        pending,
+        effectiveData,
+        effectivePending,
     } = storeToRefs(store);
 
     return {
@@ -35,8 +36,8 @@ export const useItnSelectBarAdapter = (): SelectBarAdapter<
         sliceType,
         sliceDatepickerDate,
         chartRef: itnChartRef,
-        data: itnData,
-        pending,
+        data: effectiveData,
+        pending: effectivePending,
         chartType,
         selectedYears,
         chartTypeOptions: [
