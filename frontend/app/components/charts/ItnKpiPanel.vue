@@ -41,14 +41,12 @@
         </Card> -->
 
         <Card
-            title="Jours de chaleur"
-            tooltip-text="Nombre de jours avec excédent de chaleur sur la période sélectionnée."
+            title="Jours anormalement chauds"
+            tooltip-text="Nombre de jours, sur la période sélectionnée, pour lesquels la température en France est supérieure aux normales."
         >
             <template #kpi>
                 <p class="font-semibold text-4xl mb-1 text-red-400">
-                    <span v-if="currentKpi != null">{{
-                        currentKpi.hot_peak_count
-                    }}</span>
+                    <span v-if="kpi != null">{{ kpi.hot_peak_count }}</span>
                     <span v-else class="text-muted">—</span>
                 </p>
             </template>
@@ -71,14 +69,12 @@
         </Card>
 
         <Card
-            title="Jours de froid"
-            tooltip-text="Nombre de jours avec excédent de froid sur la période sélectionnée."
+            title="Jours anormalement froids"
+            tooltip-text="Nombre de jours, sur la période sélectionnée, pour lesquels la température en France est inférieure aux normales."
         >
             <template #kpi>
                 <p class="font-semibold text-4xl mb-1 text-blue-400">
-                    <span v-if="currentKpi != null">{{
-                        currentKpi.cold_peak_count
-                    }}</span>
+                    <span v-if="kpi != null">{{ kpi.cold_peak_count }}</span>
                     <span v-else class="text-muted">—</span>
                 </p>
             </template>
@@ -111,37 +107,20 @@ import type { NationalIndicatorKpiParams } from "~/types/api";
 const store = useItnStore();
 const { pickedDateStart, pickedDateEnd } = storeToRefs(store);
 
-const prevPeriod = computed(() => {
-    const start = new Date(pickedDateStart.value);
-    const end = new Date(pickedDateEnd.value);
-    const durationMs = end.getTime() - start.getTime();
-    const prevEnd = new Date(start.getTime() - 24 * 60 * 60 * 1000);
-    const prevStart = new Date(
-        start.getTime() - durationMs - 24 * 60 * 60 * 1000,
-    );
-    return {
-        date_start: dateToStringYMD(prevStart),
-        date_end: dateToStringYMD(prevEnd),
-    };
-});
-
-const currentParams = computed<NationalIndicatorKpiParams>(() => ({
+const params = computed<NationalIndicatorKpiParams>(() => ({
     date_start: dateToStringYMD(new Date(pickedDateStart.value)),
     date_end: dateToStringYMD(new Date(pickedDateEnd.value)),
 }));
 
-const prevParams = computed<NationalIndicatorKpiParams>(() => prevPeriod.value);
-
-const { data: currentKpi } = useNationalIndicatorKpi(currentParams);
-const { data: prevKpi } = useNationalIndicatorKpi(prevParams);
+const { data: kpi } = useNationalIndicatorKpi(params);
 
 const hotDiff = computed(() => {
-    if (currentKpi.value == null || prevKpi.value == null) return null;
-    return currentKpi.value.hot_peak_count - prevKpi.value.hot_peak_count;
+    if (kpi.value == null) return null;
+    return kpi.value.hot_peak_count - kpi.value.previous.hot_peak_count;
 });
 
 const coldDiff = computed(() => {
-    if (currentKpi.value == null || prevKpi.value == null) return null;
-    return currentKpi.value.cold_peak_count - prevKpi.value.cold_peak_count;
+    if (kpi.value == null) return null;
+    return kpi.value.cold_peak_count - kpi.value.previous.cold_peak_count;
 });
 </script>
