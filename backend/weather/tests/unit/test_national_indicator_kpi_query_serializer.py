@@ -4,21 +4,25 @@ from weather.serializers import NationalIndicatorKpiQuerySerializer
 
 
 @pytest.mark.parametrize(
-    "date_start,date_end",
+    "date_start,date_end,should_be_valid",
     [
-        ("2024-01-01", "2024-01-01"),
-        ("2024-01-01", "2024-01-02"),
-        ("2024-01-02", "2024-01-01"),
+        ("2024-01-01", "2024-01-01", True),
+        ("2024-01-01", "2024-01-02", True),
+        ("2024-01-02", "2024-01-01", False),
     ],
 )
-def test_date_start_must_be_before_or_equal_date_end(date_start, date_end):
+def test_date_start_must_be_before_or_equal_date_end(
+    date_start, date_end, should_be_valid
+):
     s = NationalIndicatorKpiQuerySerializer(
         data={"date_start": date_start, "date_end": date_end}
     )
 
     ok = s.is_valid()
-    assert not ok
-    assert "date_end" in s.errors
+    assert ok is should_be_valid
+
+    if not should_be_valid:
+        assert "date_end" in s.errors
 
 
 def test_missing_date_start_is_invalid():
