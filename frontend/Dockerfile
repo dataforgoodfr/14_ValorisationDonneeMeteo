@@ -1,4 +1,7 @@
-FROM node:24-alpine AS build
+ARG FRONTEND_BUILD_IMAGE=node:24-alpine
+ARG FRONTEND_RUNTIME_IMAGE=node:24-alpine
+
+FROM ${FRONTEND_BUILD_IMAGE} AS build
 
 WORKDIR /app
 
@@ -10,7 +13,7 @@ COPY . .
 
 RUN npm run build
 
-FROM node:24-alpine AS prod
+FROM ${FRONTEND_RUNTIME_IMAGE} AS prod
 
 WORKDIR /app
 

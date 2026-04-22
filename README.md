@@ -16,6 +16,20 @@ Consultez les README de chaque sous-projet :
 - [Backend](backend/README.md)
 - [Frontend](frontend/README.md)
 
+## Images Docker durcies (DHI)
+
+Le projet supporte des images de base durcies pour le backend et le frontend.
+
+En local (compose dev), vous pouvez surcharger les images de base avec ces variables :
+
+- `BACKEND_BASE_IMAGE`
+- `FRONTEND_BUILD_IMAGE`
+- `FRONTEND_RUNTIME_IMAGE`
+
+En CI/CD GitHub Actions, ces mêmes valeurs peuvent etre definies dans les variables de repository (`Settings > Secrets and variables > Actions > Variables`) avec les memes noms.
+
+Si elles ne sont pas definies, le projet garde les images de base actuelles (`python:3.12-slim-bookworm` et `node:24-alpine`).
+
 ## Contribuer
 
 Ce projet fait partie de la saison 14 de Data For Good.

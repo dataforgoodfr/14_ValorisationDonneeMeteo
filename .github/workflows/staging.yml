@@ -52,6 +52,8 @@ jobs:
         with:
           context: ./backend
           push : true
+          build-args: |
+            BACKEND_BASE_IMAGE=${{ vars.BACKEND_BASE_IMAGE || 'python:3.12-slim-bookworm' }}
           tags: |
             ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-backend:${{ env.IMAGE_TAG }}
             ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-backend:latest
@@ -61,6 +63,9 @@ jobs:
         with:
           context: ./frontend
           push: true
+          build-args: |
+            FRONTEND_BUILD_IMAGE=${{ vars.FRONTEND_BUILD_IMAGE || 'node:24-alpine' }}
+            FRONTEND_RUNTIME_IMAGE=${{ vars.FRONTEND_RUNTIME_IMAGE || 'node:24-alpine' }}
           tags: |
             ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-frontend:${{ env.IMAGE_TAG }}
             ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-frontend:latest
