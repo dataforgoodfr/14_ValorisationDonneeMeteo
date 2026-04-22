@@ -84,37 +84,18 @@ const columns = computed<TableColumn<TableRow>[]>(() => [
 
 <template>
     <div class="flex flex-col gap-4">
-        <!-- Controls: Période + Chaud/Froid -->
-        <div class="flex flex-wrap items-end gap-4">
-            <div class="flex flex-col gap-1">
-                <p class="text-sm text-muted">Période</p>
-                <USelect v-model="periodSelection" :items="periodOptions" />
-            </div>
-            <UButtonGroup>
-                <UButton
-                    color="neutral"
-                    :variant="typeRecords === 'hot' ? 'subtle' : 'outline'"
-                    label="Chaud"
-                    @click="typeRecords = 'hot'"
-                />
-                <UButton
-                    color="neutral"
-                    :variant="typeRecords === 'cold' ? 'subtle' : 'outline'"
-                    label="Froid"
-                    @click="typeRecords = 'cold'"
-                />
-            </UButtonGroup>
+        <!-- Filter bar -->
+        <div class="flex items-center gap-4">
+            <RecordsFilterBar />
             <UButton
                 label="Exporter CSV"
                 icon="i-lucide-download"
                 color="neutral"
+                class="ml-auto"
                 :disabled="pending"
                 @click="downloadCsv"
             />
         </div>
-
-        <!-- Filter bar -->
-        <RecordsFilterBar />
 
         <!-- Error message -->
         <div v-if="error" class="px-4 py-3 bg-error/10 text-error rounded">
