@@ -468,7 +468,10 @@ class TimescaleTemperatureDeviationDailyDataSource(
                     COALESCE(r.region, 'Autre') AS region,
                     a.temperature_mean,
                     a.baseline_mean,
-                    (a.temperature_mean - a.baseline_mean) AS deviation
+                    (a.temperature_mean - a.baseline_mean) AS deviation,
+                    s.classe_recente AS classe_recente,
+                    s.annee_de_creation AS annee_de_creation,
+                    s.annee_de_fermeture AS annee_de_fermeture
                 FROM station_agg a
                     LEFT JOIN v_station s
                         ON s.station_code = a.station_id
@@ -501,7 +504,10 @@ class TimescaleTemperatureDeviationDailyDataSource(
                 region,
                 temperature_mean,
                 baseline_mean,
-                deviation
+                deviation,
+                classe_recente,
+                annee_de_creation,
+                annee_de_fermeture
             FROM station_enriched
             {filtered_where_sql}
             ORDER BY {order_sql}
@@ -531,6 +537,9 @@ class TimescaleTemperatureDeviationDailyDataSource(
                 temperature_mean=float(row["temperature_mean"]),
                 baseline_mean=float(row["baseline_mean"]),
                 deviation=float(row["deviation"]),
+                classe_recente=_classe_recente(row["classe_recente"]),
+                date_de_creation=_date_de_creation(row["annee_de_creation"]),
+                date_de_fermeture=_date_de_fermeture(row["annee_de_fermeture"]),
             )
             for row in rows
         ]
