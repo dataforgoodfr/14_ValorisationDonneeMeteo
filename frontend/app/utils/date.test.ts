@@ -38,7 +38,7 @@ describe("Date", () => {
     });
 
     test("returns last day of the year", () => {
-        const dateToConvert = new Date("Jan 01 2024 00:00:00");
+        const dateToConvert = new Date("2000-06-15T12:30:45Z");
         const convertedDate = setToLastDayOfYear(dateToConvert);
         const expectedDate = new Date();
         expectedDate.setFullYear(dateToConvert.getFullYear());
