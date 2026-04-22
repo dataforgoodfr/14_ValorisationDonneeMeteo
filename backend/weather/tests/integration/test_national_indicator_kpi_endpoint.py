@@ -30,7 +30,6 @@ class InMemoryKpiDependency(
     NationalIndicatorBaselineDataSource,
 ):
     """
-    Dépendance en mémoire pour les tests KPI.
     Baseline : mean=10.0, std_dev band de ±2.0 → upper=12.0, lower=8.0
     Températures : fournies via le dictionnaire `temps` (date → valeur).
     """
@@ -72,7 +71,7 @@ def _register(temps: dict[dt.date, float]) -> None:
 # ---------------------------------------------------------------------------
 
 
-def test_kpi_hot_returns_only_days_above_upper_std_dev(client: APIClient):
+def test_kpi_hot_returns_days_above_upper_std_dev(client: APIClient):
     # Seul le 3 jan dépasse upper (12.0)
     temps = {
         dt.date(2024, 1, 1): 10.0,
@@ -83,17 +82,17 @@ def test_kpi_hot_returns_only_days_above_upper_std_dev(client: APIClient):
 
     resp = client.get(
         reverse("temperature-national-indicator-kpi"),
-        {"date_start": "2024-01-01", "date_end": "2024-01-03", "type": "hot"},
+        {"date_start": "2024-01-01", "date_end": "2024-01-03"},
     )
 
     assert resp.status_code == 200
     data = resp.json()
-    assert data["count"] == 1
-    assert data["days"][0]["date"] == "2024-01-03"
-    assert data["days"][0]["temperature"] == 13.0
+    assert data["hot_peak_count"] == 1
+    assert data["hot_peak_days"][0]["date"] == "2024-01-03"
+    assert data["hot_peak_days"][0]["temperature"] == 13.0
 
 
-def test_kpi_cold_returns_only_days_below_lower_std_dev(client: APIClient):
+def test_kpi_cold_returns_days_below_lower_std_dev(client: APIClient):
     # Seul le 2 jan est sous lower (8.0)
     temps = {
         dt.date(2024, 1, 1): 9.0,
@@ -104,32 +103,52 @@ def test_kpi_cold_returns_only_days_below_lower_std_dev(client: APIClient):
 
     resp = client.get(
         reverse("temperature-national-indicator-kpi"),
-        {"date_start": "2024-01-01", "date_end": "2024-01-03", "type": "cold"},
+        {"date_start": "2024-01-01", "date_end": "2024-01-03"},
     )
 
     assert resp.status_code == 200
     data = resp.json()
-    assert data["count"] == 1
-    assert data["days"][0]["date"] == "2024-01-02"
-    assert data["days"][0]["temperature"] == 7.0
+    assert data["cold_peak_count"] == 1
+    assert data["cold_peak_days"][0]["date"] == "2024-01-02"
+    assert data["cold_peak_days"][0]["temperature"] == 7.0
 
 
-def test_kpi_no_peak_returns_empty_list(client: APIClient):
-    # Toutes les températures dans la plage normale
-    _register({})  # toutes les dates → 10.0 (= mean)
+def test_kpi_hot_and_cold_returned_simultaneously(client: APIClient):
+    temps = {
+        dt.date(2024, 1, 1): 13.0,  # pic chaud (> 12.0)
+        dt.date(2024, 1, 2): 10.0,  # normal
+        dt.date(2024, 1, 3): 7.0,  # pic froid (< 8.0)
+    }
+    _register(temps)
 
     resp = client.get(
         reverse("temperature-national-indicator-kpi"),
-        {"date_start": "2024-01-01", "date_end": "2024-01-05", "type": "hot"},
+        {"date_start": "2024-01-01", "date_end": "2024-01-03"},
     )
 
     assert resp.status_code == 200
     data = resp.json()
-    assert data["count"] == 0
-    assert data["days"] == []
+    assert data["hot_peak_count"] == 1
+    assert data["cold_peak_count"] == 1
 
 
-def test_kpi_multiple_peaks_all_returned(client: APIClient):
+def test_kpi_no_peak_returns_empty_lists(client: APIClient):
+    _register({})  # toutes les dates → 10.0 (= mean, pas de pic)
+
+    resp = client.get(
+        reverse("temperature-national-indicator-kpi"),
+        {"date_start": "2024-01-01", "date_end": "2024-01-05"},
+    )
+
+    assert resp.status_code == 200
+    data = resp.json()
+    assert data["hot_peak_count"] == 0
+    assert data["cold_peak_count"] == 0
+    assert data["hot_peak_days"] == []
+    assert data["cold_peak_days"] == []
+
+
+def test_kpi_multiple_hot_peaks_all_returned(client: APIClient):
     temps = {
         dt.date(2024, 6, 1): 14.0,
         dt.date(2024, 6, 2): 10.0,
@@ -141,13 +160,13 @@ def test_kpi_multiple_peaks_all_returned(client: APIClient):
 
     resp = client.get(
         reverse("temperature-national-indicator-kpi"),
-        {"date_start": "2024-06-01", "date_end": "2024-06-05", "type": "hot"},
+        {"date_start": "2024-06-01", "date_end": "2024-06-05"},
     )
 
     assert resp.status_code == 200
     data = resp.json()
-    assert data["count"] == 3
-    dates = [d["date"] for d in data["days"]]
+    assert data["hot_peak_count"] == 3
+    dates = [d["date"] for d in data["hot_peak_days"]]
     assert "2024-06-01" in dates
     assert "2024-06-03" in dates
     assert "2024-06-05" in dates
@@ -158,14 +177,33 @@ def test_kpi_response_contains_baseline_mean_and_std_dev(client: APIClient):
 
     resp = client.get(
         reverse("temperature-national-indicator-kpi"),
-        {"date_start": "2024-01-01", "date_end": "2024-01-01", "type": "hot"},
+        {"date_start": "2024-01-01", "date_end": "2024-01-01"},
     )
 
     assert resp.status_code == 200
-    day = resp.json()["days"][0]
+    day = resp.json()["hot_peak_days"][0]
     assert day["baseline_mean"] == 10.0
     # std_dev = upper - mean = 12.0 - 10.0
     assert day["baseline_std_dev"] == 2.0
+
+
+def test_kpi_days_above_and_below_baseline(client: APIClient):
+    temps = {
+        dt.date(2024, 1, 1): 11.0,  # > mean(10)
+        dt.date(2024, 1, 2): 10.0,  # = mean
+        dt.date(2024, 1, 3): 9.0,  # < mean
+    }
+    _register(temps)
+
+    resp = client.get(
+        reverse("temperature-national-indicator-kpi"),
+        {"date_start": "2024-01-01", "date_end": "2024-01-03"},
+    )
+
+    assert resp.status_code == 200
+    data = resp.json()
+    assert data["days_above_baseline"] == 1
+    assert data["days_below_baseline"] == 1
 
 
 # ---------------------------------------------------------------------------
@@ -176,7 +214,7 @@ def test_kpi_response_contains_baseline_mean_and_std_dev(client: APIClient):
 def test_kpi_missing_date_start_returns_400(client: APIClient):
     resp = client.get(
         reverse("temperature-national-indicator-kpi"),
-        {"date_end": "2024-01-31", "type": "hot"},
+        {"date_end": "2024-01-31"},
     )
 
     assert resp.status_code == 400
@@ -186,17 +224,7 @@ def test_kpi_missing_date_start_returns_400(client: APIClient):
 def test_kpi_date_start_after_date_end_returns_400(client: APIClient):
     resp = client.get(
         reverse("temperature-national-indicator-kpi"),
-        {"date_start": "2024-02-01", "date_end": "2024-01-01", "type": "hot"},
-    )
-
-    assert resp.status_code == 400
-    assert resp.json()["error"]["code"] == "INVALID_PARAMETER"
-
-
-def test_kpi_invalid_type_returns_400(client: APIClient):
-    resp = client.get(
-        reverse("temperature-national-indicator-kpi"),
-        {"date_start": "2024-01-01", "date_end": "2024-01-31", "type": "warm"},
+        {"date_start": "2024-02-01", "date_end": "2024-01-01"},
     )
 
     assert resp.status_code == 400
@@ -204,41 +232,7 @@ def test_kpi_invalid_type_returns_400(client: APIClient):
 
 
 # ---------------------------------------------------------------------------
-# peak_type facultatif
-# ---------------------------------------------------------------------------
-
-
-def test_kpi_without_type_returns_empty_peaks_and_zero_count(client: APIClient):
-    _register({dt.date(2024, 1, 1): 25.0})  # serait un pic chaud si type fourni
-
-    resp = client.get(
-        reverse("temperature-national-indicator-kpi"),
-        {"date_start": "2024-01-01", "date_end": "2024-01-01"},
-    )
-
-    assert resp.status_code == 200
-    data = resp.json()
-    assert data["count"] == 0
-    assert data["days"] == []
-
-
-def test_kpi_without_type_still_returns_itn_mean_and_deviation(client: APIClient):
-    # baseline mean=10.0, temp=20.0 → itn_mean=20.0, deviation=10.0
-    _register({dt.date(2024, 1, 1): 20.0})
-
-    resp = client.get(
-        reverse("temperature-national-indicator-kpi"),
-        {"date_start": "2024-01-01", "date_end": "2024-01-01"},
-    )
-
-    assert resp.status_code == 200
-    data = resp.json()
-    assert data["itn_mean"] == pytest.approx(20.0)
-    assert data["deviation_from_normal"] == pytest.approx(10.0)
-
-
-# ---------------------------------------------------------------------------
-# itn_mean
+# itn_mean / deviation_from_normal
 # ---------------------------------------------------------------------------
 
 
@@ -247,7 +241,7 @@ def test_kpi_response_contains_itn_mean_field(client: APIClient):
 
     resp = client.get(
         reverse("temperature-national-indicator-kpi"),
-        {"date_start": "2024-01-01", "date_end": "2024-01-03", "type": "hot"},
+        {"date_start": "2024-01-01", "date_end": "2024-01-03"},
     )
 
     assert resp.status_code == 200
@@ -266,12 +260,12 @@ def test_kpi_itn_mean_is_average_over_all_days_including_non_peaks(client: APICl
 
     resp = client.get(
         reverse("temperature-national-indicator-kpi"),
-        {"date_start": "2024-01-01", "date_end": "2024-01-03", "type": "hot"},
+        {"date_start": "2024-01-01", "date_end": "2024-01-03"},
     )
 
     assert resp.status_code == 200
     data = resp.json()
-    assert data["count"] == 1
+    assert data["hot_peak_count"] == 1
     assert data["itn_mean"] == pytest.approx((10.0 + 10.0 + 13.0) / 3)
 
 
@@ -290,7 +284,7 @@ def test_kpi_deviation_from_normal_is_difference_between_itn_mean_and_baseline_m
 
     resp = client.get(
         reverse("temperature-national-indicator-kpi"),
-        {"date_start": "2024-01-01", "date_end": "2024-01-03", "type": "hot"},
+        {"date_start": "2024-01-01", "date_end": "2024-01-03"},
     )
 
     assert resp.status_code == 200
@@ -298,8 +292,6 @@ def test_kpi_deviation_from_normal_is_difference_between_itn_mean_and_baseline_m
 
 
 def test_kpi_itn_mean_is_null_when_no_observed_data(client: APIClient):
-    # InMemoryKpiDependency retourne une série vide si date_start == date_end + 1 jour
-    # On surcharge fetch_daily_series pour retourner []
     class EmptyObservedDependency(
         NationalIndicatorObservedDataSource,
         NationalIndicatorBaselineDataSource,
@@ -323,7 +315,7 @@ def test_kpi_itn_mean_is_null_when_no_observed_data(client: APIClient):
 
     resp = client.get(
         reverse("temperature-national-indicator-kpi"),
-        {"date_start": "2024-01-01", "date_end": "2024-01-03", "type": "hot"},
+        {"date_start": "2024-01-01", "date_end": "2024-01-03"},
     )
 
     assert resp.status_code == 200

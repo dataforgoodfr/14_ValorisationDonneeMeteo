@@ -83,7 +83,6 @@ export interface NationalIndicatorResponse {
 export interface NationalIndicatorKpiParams {
     date_start: string;
     date_end: string;
-    type: "hot" | "cold";
 }
 
 export interface NationalIndicatorKpiDay {
@@ -94,10 +93,14 @@ export interface NationalIndicatorKpiDay {
 }
 
 export interface NationalIndicatorKpiResponse {
-    count: number;
+    hot_peak_count: number;
+    cold_peak_count: number;
+    days_above_baseline: number;
+    days_below_baseline: number;
     itn_mean: number | null;
     deviation_from_normal: number | null;
-    days: NationalIndicatorKpiDay[];
+    hot_peak_days: NationalIndicatorKpiDay[];
+    cold_peak_days: NationalIndicatorKpiDay[];
 }
 
 // ===== Écart à la normale (Temperature Deviation) types =====

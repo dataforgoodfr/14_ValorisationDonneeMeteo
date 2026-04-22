@@ -46,7 +46,9 @@
         >
             <template #kpi>
                 <p class="font-semibold text-4xl mb-1 text-red-400">
-                    <span v-if="hotKpi != null">{{ hotKpi.count }}</span>
+                    <span v-if="currentKpi != null">{{
+                        currentKpi.hot_peak_count
+                    }}</span>
                     <span v-else class="text-muted">—</span>
                 </p>
             </template>
@@ -74,7 +76,9 @@
         >
             <template #kpi>
                 <p class="font-semibold text-4xl mb-1 text-blue-400">
-                    <span v-if="coldKpi != null">{{ coldKpi.count }}</span>
+                    <span v-if="currentKpi != null">{{
+                        currentKpi.cold_peak_count
+                    }}</span>
                     <span v-else class="text-muted">—</span>
                 </p>
             </template>
@@ -121,39 +125,23 @@ const prevPeriod = computed(() => {
     };
 });
 
-const hotParams = computed<NationalIndicatorKpiParams>(() => ({
+const currentParams = computed<NationalIndicatorKpiParams>(() => ({
     date_start: dateToStringYMD(new Date(pickedDateStart.value)),
     date_end: dateToStringYMD(new Date(pickedDateEnd.value)),
-    type: "hot",
 }));
 
-const coldParams = computed<NationalIndicatorKpiParams>(() => ({
-    date_start: dateToStringYMD(new Date(pickedDateStart.value)),
-    date_end: dateToStringYMD(new Date(pickedDateEnd.value)),
-    type: "cold",
-}));
+const prevParams = computed<NationalIndicatorKpiParams>(() => prevPeriod.value);
 
-const prevHotParams = computed<NationalIndicatorKpiParams>(() => ({
-    ...prevPeriod.value,
-    type: "hot",
-}));
-const prevColdParams = computed<NationalIndicatorKpiParams>(() => ({
-    ...prevPeriod.value,
-    type: "cold",
-}));
-
-const { data: hotKpi } = useNationalIndicatorKpi(hotParams);
-const { data: coldKpi } = useNationalIndicatorKpi(coldParams);
-const { data: prevHotKpi } = useNationalIndicatorKpi(prevHotParams);
-const { data: prevColdKpi } = useNationalIndicatorKpi(prevColdParams);
+const { data: currentKpi } = useNationalIndicatorKpi(currentParams);
+const { data: prevKpi } = useNationalIndicatorKpi(prevParams);
 
 const hotDiff = computed(() => {
-    if (hotKpi.value == null || prevHotKpi.value == null) return null;
-    return hotKpi.value.count - prevHotKpi.value.count;
+    if (currentKpi.value == null || prevKpi.value == null) return null;
+    return currentKpi.value.hot_peak_count - prevKpi.value.hot_peak_count;
 });
 
 const coldDiff = computed(() => {
-    if (coldKpi.value == null || prevColdKpi.value == null) return null;
-    return coldKpi.value.count - prevColdKpi.value.count;
+    if (currentKpi.value == null || prevKpi.value == null) return null;
+    return currentKpi.value.cold_peak_count - prevKpi.value.cold_peak_count;
 });
 </script>

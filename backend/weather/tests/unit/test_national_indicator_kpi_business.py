@@ -51,14 +51,13 @@ def test_hot_peak_detected_when_temperature_exceeds_upper_bound():
         baseline_data_source=StubBaselineDataSource(baselines),
         date_start=dt.date(2024, 7, 15),
         date_end=dt.date(2024, 7, 15),
-        peak_type="hot",
     )
 
-    assert result.count == 1
-    assert result.days[0].date == dt.date(2024, 7, 15)
-    assert result.days[0].temperature == 25.0
-    assert result.days[0].baseline_mean == 20.0
-    assert result.days[0].baseline_std_dev == 2.0
+    assert result.hot_peak_count == 1
+    assert result.hot_peak_days[0].date == dt.date(2024, 7, 15)
+    assert result.hot_peak_days[0].temperature == 25.0
+    assert result.hot_peak_days[0].baseline_mean == 20.0
+    assert result.hot_peak_days[0].baseline_std_dev == 2.0
 
 
 def test_hot_peak_not_detected_when_temperature_below_upper_bound():
@@ -70,11 +69,10 @@ def test_hot_peak_not_detected_when_temperature_below_upper_bound():
         baseline_data_source=StubBaselineDataSource(baselines),
         date_start=dt.date(2024, 7, 15),
         date_end=dt.date(2024, 7, 15),
-        peak_type="hot",
     )
 
-    assert result.count == 0
-    assert result.days == []
+    assert result.hot_peak_count == 0
+    assert result.hot_peak_days == []
 
 
 def test_hot_peak_not_detected_when_temperature_equals_upper_bound():
@@ -86,10 +84,9 @@ def test_hot_peak_not_detected_when_temperature_equals_upper_bound():
         baseline_data_source=StubBaselineDataSource(baselines),
         date_start=dt.date(2024, 7, 15),
         date_end=dt.date(2024, 7, 15),
-        peak_type="hot",
     )
 
-    assert result.count == 0
+    assert result.hot_peak_count == 0
 
 
 # ─── Tests : pic froid ────────────────────────────────────────────────────────
@@ -104,14 +101,13 @@ def test_cold_peak_detected_when_temperature_below_lower_bound():
         baseline_data_source=StubBaselineDataSource(baselines),
         date_start=dt.date(2024, 1, 10),
         date_end=dt.date(2024, 1, 10),
-        peak_type="cold",
     )
 
-    assert result.count == 1
-    assert result.days[0].date == dt.date(2024, 1, 10)
-    assert result.days[0].temperature == 3.0
-    assert result.days[0].baseline_mean == 8.0
-    assert result.days[0].baseline_std_dev == 2.0
+    assert result.cold_peak_count == 1
+    assert result.cold_peak_days[0].date == dt.date(2024, 1, 10)
+    assert result.cold_peak_days[0].temperature == 3.0
+    assert result.cold_peak_days[0].baseline_mean == 8.0
+    assert result.cold_peak_days[0].baseline_std_dev == 2.0
 
 
 def test_cold_peak_not_detected_when_temperature_above_lower_bound():
@@ -123,11 +119,76 @@ def test_cold_peak_not_detected_when_temperature_above_lower_bound():
         baseline_data_source=StubBaselineDataSource(baselines),
         date_start=dt.date(2024, 1, 10),
         date_end=dt.date(2024, 1, 10),
-        peak_type="cold",
     )
 
-    assert result.count == 0
-    assert result.days == []
+    assert result.cold_peak_count == 0
+    assert result.cold_peak_days == []
+
+
+# ─── Tests : hot et cold retournés simultanément ──────────────────────────────
+
+
+def test_hot_and_cold_peaks_returned_simultaneously():
+    observed = [
+        ObservedPoint(
+            date=dt.date(2024, 7, 1), temperature=25.0
+        ),  # pic chaud (upper=22)
+        ObservedPoint(date=dt.date(2024, 7, 2), temperature=21.0),  # normal
+        ObservedPoint(
+            date=dt.date(2024, 7, 3), temperature=15.0
+        ),  # pic froid (lower=18)
+    ]
+    baselines = {
+        (7, 1): _baseline(mean=20.0, std_dev=2.0),
+        (7, 2): _baseline(mean=20.0, std_dev=2.0),
+        (7, 3): _baseline(mean=20.0, std_dev=2.0),
+    }
+
+    result = get_national_indicator_kpi(
+        observed_data_source=StubObservedDataSource(observed),
+        baseline_data_source=StubBaselineDataSource(baselines),
+        date_start=dt.date(2024, 7, 1),
+        date_end=dt.date(2024, 7, 3),
+    )
+
+    assert result.hot_peak_count == 1
+    assert result.hot_peak_days[0].date == dt.date(2024, 7, 1)
+    assert result.cold_peak_count == 1
+    assert result.cold_peak_days[0].date == dt.date(2024, 7, 3)
+
+
+def test_cold_day_does_not_appear_in_hot_peak_days():
+    # Jour sous le lower bound → ne doit PAS être dans hot_peak_days
+    observed = [ObservedPoint(date=dt.date(2024, 1, 10), temperature=3.0)]
+    baselines = {(1, 10): _baseline(mean=8.0, std_dev=2.0)}  # lower=6, upper=10
+
+    result = get_national_indicator_kpi(
+        observed_data_source=StubObservedDataSource(observed),
+        baseline_data_source=StubBaselineDataSource(baselines),
+        date_start=dt.date(2024, 1, 10),
+        date_end=dt.date(2024, 1, 10),
+    )
+
+    assert result.hot_peak_count == 0
+    assert result.hot_peak_days == []
+    assert result.cold_peak_count == 1
+
+
+def test_hot_day_does_not_appear_in_cold_peak_days():
+    # Jour au-dessus de l'upper bound → ne doit PAS être dans cold_peak_days
+    observed = [ObservedPoint(date=dt.date(2024, 7, 15), temperature=25.0)]
+    baselines = {(7, 15): _baseline(mean=20.0, std_dev=2.0)}  # lower=18, upper=22
+
+    result = get_national_indicator_kpi(
+        observed_data_source=StubObservedDataSource(observed),
+        baseline_data_source=StubBaselineDataSource(baselines),
+        date_start=dt.date(2024, 7, 15),
+        date_end=dt.date(2024, 7, 15),
+    )
+
+    assert result.cold_peak_count == 0
+    assert result.cold_peak_days == []
+    assert result.hot_peak_count == 1
 
 
 # ─── Tests : plusieurs jours ──────────────────────────────────────────────────
@@ -147,11 +208,13 @@ def test_only_peak_days_returned_over_multiple_days():
         baseline_data_source=StubBaselineDataSource(baselines),
         date_start=dt.date(2024, 7, 1),
         date_end=dt.date(2024, 7, 3),
-        peak_type="hot",
     )
 
-    assert result.count == 2
-    assert [d.date for d in result.days] == [dt.date(2024, 7, 1), dt.date(2024, 7, 3)]
+    assert result.hot_peak_count == 2
+    assert [d.date for d in result.hot_peak_days] == [
+        dt.date(2024, 7, 1),
+        dt.date(2024, 7, 3),
+    ]
 
 
 def test_empty_observed_series_returns_empty_result():
@@ -160,26 +223,35 @@ def test_empty_observed_series_returns_empty_result():
         baseline_data_source=StubBaselineDataSource({}),
         date_start=dt.date(2024, 7, 1),
         date_end=dt.date(2024, 7, 3),
-        peak_type="hot",
     )
 
-    assert result.count == 0
-    assert result.days == []
+    assert result.hot_peak_count == 0
+    assert result.cold_peak_count == 0
+    assert result.hot_peak_days == []
+    assert result.cold_peak_days == []
 
 
-def test_hot_type_does_not_return_cold_days():
-    observed = [ObservedPoint(date=dt.date(2024, 1, 10), temperature=3.0)]
-    baselines = {(1, 10): _baseline(mean=8.0, std_dev=2.0)}  # lower=6, upper=10
+# ─── Tests : days_above_baseline / days_below_baseline ───────────────────────
+
+
+def test_days_above_baseline_counts_days_with_positive_deviation():
+    observed = [
+        ObservedPoint(date=dt.date(2024, 7, 1), temperature=21.0),  # > mean(20)
+        ObservedPoint(date=dt.date(2024, 7, 2), temperature=20.0),  # = mean
+        ObservedPoint(date=dt.date(2024, 7, 3), temperature=19.0),  # < mean
+    ]
+    baseline = _baseline(mean=20.0, std_dev=2.0)
+    baselines = {(7, 1): baseline, (7, 2): baseline, (7, 3): baseline}
 
     result = get_national_indicator_kpi(
         observed_data_source=StubObservedDataSource(observed),
         baseline_data_source=StubBaselineDataSource(baselines),
-        date_start=dt.date(2024, 1, 10),
-        date_end=dt.date(2024, 1, 10),
-        peak_type="hot",
+        date_start=dt.date(2024, 7, 1),
+        date_end=dt.date(2024, 7, 3),
     )
 
-    assert result.count == 0
+    assert result.days_above_baseline == 1
+    assert result.days_below_baseline == 1
 
 
 # ─── Tests : itn_mean ─────────────────────────────────────────────────────────
@@ -199,14 +271,12 @@ def test_itn_mean_is_average_of_all_observed_days():
         baseline_data_source=StubBaselineDataSource(baselines),
         date_start=dt.date(2024, 7, 1),
         date_end=dt.date(2024, 7, 3),
-        peak_type="hot",
     )
 
     assert result.itn_mean == 20.0
 
 
 def test_itn_mean_includes_non_peak_days():
-    # Seul le 3 juillet est un pic, mais la moyenne porte sur les 3 jours
     observed = [
         ObservedPoint(date=dt.date(2024, 7, 1), temperature=10.0),
         ObservedPoint(date=dt.date(2024, 7, 2), temperature=10.0),
@@ -220,10 +290,9 @@ def test_itn_mean_includes_non_peak_days():
         baseline_data_source=StubBaselineDataSource(baselines),
         date_start=dt.date(2024, 7, 1),
         date_end=dt.date(2024, 7, 3),
-        peak_type="hot",
     )
 
-    assert result.count == 1
+    assert result.hot_peak_count == 1
     assert result.itn_mean == pytest.approx((10.0 + 10.0 + 25.0) / 3)
 
 
@@ -233,7 +302,6 @@ def test_itn_mean_is_none_when_observed_series_is_empty():
         baseline_data_source=StubBaselineDataSource({}),
         date_start=dt.date(2024, 7, 1),
         date_end=dt.date(2024, 7, 3),
-        peak_type="hot",
     )
 
     assert result.itn_mean is None
@@ -248,7 +316,6 @@ def test_itn_mean_with_single_day():
         baseline_data_source=StubBaselineDataSource(baselines),
         date_start=dt.date(2024, 7, 1),
         date_end=dt.date(2024, 7, 1),
-        peak_type="hot",
     )
 
     assert result.itn_mean == 15.5
@@ -262,7 +329,6 @@ def test_deviation_from_normal_positive_when_warmer_than_baseline():
         ObservedPoint(date=dt.date(2024, 7, 1), temperature=22.0),
         ObservedPoint(date=dt.date(2024, 7, 2), temperature=24.0),
     ]
-    # baseline_mean = 20.0 pour les deux jours
     baseline = _baseline(mean=20.0, std_dev=2.0)
     baselines = {(7, 1): baseline, (7, 2): baseline}
 
@@ -271,7 +337,6 @@ def test_deviation_from_normal_positive_when_warmer_than_baseline():
         baseline_data_source=StubBaselineDataSource(baselines),
         date_start=dt.date(2024, 7, 1),
         date_end=dt.date(2024, 7, 2),
-        peak_type="hot",
     )
 
     # itn_mean = 23.0, baseline_period_mean = 20.0
@@ -291,7 +356,6 @@ def test_deviation_from_normal_negative_when_colder_than_baseline():
         baseline_data_source=StubBaselineDataSource(baselines),
         date_start=dt.date(2024, 1, 1),
         date_end=dt.date(2024, 1, 2),
-        peak_type="cold",
     )
 
     # itn_mean = 6.0, baseline_period_mean = 10.0
@@ -299,7 +363,6 @@ def test_deviation_from_normal_negative_when_colder_than_baseline():
 
 
 def test_deviation_from_normal_uses_per_day_baseline_mean():
-    # Baselines différentes par jour pour vérifier que la moyenne porte sur tous les jours
     observed = [
         ObservedPoint(date=dt.date(2024, 7, 1), temperature=20.0),
         ObservedPoint(date=dt.date(2024, 7, 2), temperature=20.0),
@@ -314,7 +377,6 @@ def test_deviation_from_normal_uses_per_day_baseline_mean():
         baseline_data_source=StubBaselineDataSource(baselines),
         date_start=dt.date(2024, 7, 1),
         date_end=dt.date(2024, 7, 2),
-        peak_type="hot",
     )
 
     # itn_mean = 20.0, baseline_period_mean = (10 + 30) / 2 = 20.0
@@ -327,50 +389,6 @@ def test_deviation_from_normal_is_none_when_observed_series_is_empty():
         baseline_data_source=StubBaselineDataSource({}),
         date_start=dt.date(2024, 7, 1),
         date_end=dt.date(2024, 7, 3),
-        peak_type="hot",
     )
 
     assert result.deviation_from_normal is None
-
-
-# ─── Tests : peak_type facultatif ─────────────────────────────────────────────
-
-
-def test_no_peak_type_returns_empty_days_and_zero_count():
-    observed = [
-        ObservedPoint(date=dt.date(2024, 7, 1), temperature=25.0),
-        ObservedPoint(date=dt.date(2024, 7, 2), temperature=5.0),
-    ]
-    baseline = _baseline(mean=15.0, std_dev=2.0)
-    baselines = {(7, 1): baseline, (7, 2): baseline}
-
-    result = get_national_indicator_kpi(
-        observed_data_source=StubObservedDataSource(observed),
-        baseline_data_source=StubBaselineDataSource(baselines),
-        date_start=dt.date(2024, 7, 1),
-        date_end=dt.date(2024, 7, 2),
-        peak_type=None,
-    )
-
-    assert result.count == 0
-    assert result.days == []
-
-
-def test_no_peak_type_still_computes_itn_mean_and_deviation():
-    observed = [
-        ObservedPoint(date=dt.date(2024, 7, 1), temperature=20.0),
-        ObservedPoint(date=dt.date(2024, 7, 2), temperature=30.0),
-    ]
-    baseline = _baseline(mean=10.0, std_dev=2.0)
-    baselines = {(7, 1): baseline, (7, 2): baseline}
-
-    result = get_national_indicator_kpi(
-        observed_data_source=StubObservedDataSource(observed),
-        baseline_data_source=StubBaselineDataSource(baselines),
-        date_start=dt.date(2024, 7, 1),
-        date_end=dt.date(2024, 7, 2),
-        peak_type=None,
-    )
-
-    assert result.itn_mean == 25.0
-    assert result.deviation_from_normal == pytest.approx(15.0)

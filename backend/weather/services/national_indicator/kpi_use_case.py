@@ -8,7 +8,7 @@ from weather.services.national_indicator.protocols import (
     NationalIndicatorBaselineDataSource,
     NationalIndicatorObservedDataSource,
 )
-from weather.services.national_indicator.types import BaselinePoint, DailySeriesQuery
+from weather.services.national_indicator.types import DailySeriesQuery
 
 
 @dataclass(frozen=True)
@@ -21,16 +21,14 @@ class KpiDay:
 
 @dataclass(frozen=True)
 class NationalIndicatorKpiResult:
-    days: list[KpiDay]
-    count: int
+    hot_peak_days: list[KpiDay]
+    cold_peak_days: list[KpiDay]
+    hot_peak_count: int
+    cold_peak_count: int
+    days_above_baseline: int
+    days_below_baseline: int
     itn_mean: float | None
     deviation_from_normal: float | None
-
-
-def is_peak(temperature: float, baseline: BaselinePoint, peak_type: str) -> bool:
-    if peak_type == "hot":
-        return temperature > baseline.baseline_std_dev_upper
-    return temperature < baseline.baseline_std_dev_lower
 
 
 def get_national_indicator_kpi(
@@ -39,30 +37,37 @@ def get_national_indicator_kpi(
     baseline_data_source: NationalIndicatorBaselineDataSource,
     date_start: dt.date,
     date_end: dt.date,
-    peak_type: str | None,
 ) -> NationalIndicatorKpiResult:
     observed = observed_data_source.fetch_daily_series(
         DailySeriesQuery(date_start=date_start, date_end=date_end)
     )
 
-    peak_days: list[KpiDay] = []
+    hot_peak_days: list[KpiDay] = []
+    cold_peak_days: list[KpiDay] = []
     baseline_means: list[float] = []
+    days_above_baseline = 0
+    days_below_baseline = 0
 
     for point in observed:
         baseline = baseline_data_source.fetch_daily_baseline(point.date)
-
         std_dev = baseline.baseline_std_dev_upper - baseline.baseline_mean
         baseline_means.append(baseline.baseline_mean)
 
-        if peak_type is not None and is_peak(point.temperature, baseline, peak_type):
-            peak_days.append(
-                KpiDay(
-                    date=point.date,
-                    temperature=point.temperature,
-                    baseline_mean=baseline.baseline_mean,
-                    baseline_std_dev=std_dev,
-                )
-            )
+        if point.temperature > baseline.baseline_mean:
+            days_above_baseline += 1
+        elif point.temperature < baseline.baseline_mean:
+            days_below_baseline += 1
+
+        kpi_day = KpiDay(
+            date=point.date,
+            temperature=point.temperature,
+            baseline_mean=baseline.baseline_mean,
+            baseline_std_dev=std_dev,
+        )
+        if point.temperature > baseline.baseline_std_dev_upper:
+            hot_peak_days.append(kpi_day)
+        elif point.temperature < baseline.baseline_std_dev_lower:
+            cold_peak_days.append(kpi_day)
 
     if observed:
         itn_mean = mean(p.temperature for p in observed)
@@ -73,8 +78,12 @@ def get_national_indicator_kpi(
         deviation_from_normal = None
 
     return NationalIndicatorKpiResult(
-        days=peak_days,
-        count=len(peak_days),
+        hot_peak_days=hot_peak_days,
+        cold_peak_days=cold_peak_days,
+        hot_peak_count=len(hot_peak_days),
+        cold_peak_count=len(cold_peak_days),
+        days_above_baseline=days_above_baseline,
+        days_below_baseline=days_below_baseline,
         itn_mean=itn_mean,
         deviation_from_normal=deviation_from_normal,
     )
