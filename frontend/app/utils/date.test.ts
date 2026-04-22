@@ -28,20 +28,24 @@ describe("Date", () => {
         expect(convertedDate).toBe("31/12/2025");
     });
 
-    test("is converted to 'DD/MM/YYYY' string", () => {
+    test("returns the day of today minus 2 days", () => {
         const convertedDate = setToLastDayOfYear(new Date());
         const today = new Date();
-        const lastDay = new Date(today);
+        const lastDay = new Date();
         lastDay.setDate(today.getDate() - 2);
         lastDay.setHours(23, 59, 59, 999);
         expect(convertedDate).toStrictEqual(lastDay);
     });
 
-    test("is converted to 'DD/MM/YYYY' string", () => {
-        const convertedDate = setToLastDayOfYear(new Date("01/01/2024"));
-        expect(convertedDate).toStrictEqual(
-            new Date("2024-12-31T22:59:59.999Z"),
-        );
+    test("returns last day of the year", () => {
+        const dateToConvert = new Date("Jan 01 2024 00:00:00");
+        const convertedDate = setToLastDayOfYear(dateToConvert);
+        const expectedDate = new Date();
+        expectedDate.setFullYear(dateToConvert.getFullYear());
+        expectedDate.setMonth(11);
+        expectedDate.setDate(31);
+        expectedDate.setHours(23, 59, 59, 999);
+        expect(convertedDate).toStrictEqual(expectedDate);
     });
 
     test("is converted to 'DD MMMM YYYY' string", () => {
