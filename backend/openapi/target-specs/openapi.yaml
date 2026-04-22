@@ -865,9 +865,12 @@ paths:
         - Temperature
       summary: KPI à partir de l'indicateur thermique national (ITN)
       description: >
-        Retourne des KPIs sur la période : moyenne ITN, écart à la normale, et optionnellement la liste des jours de pic (chaud ou froid).
-        Un pic de chaud correspond à une journée où la température de l'ITN >= mean_baseline + std_baseline.
-        Si `type` est absent, seuls `itn_mean` et `deviation_from_normal` sont calculés (count=0, days=[]).
+        Retourne des KPIs sur la période sélectionnée : nombre de jours de pic chaud/froid,
+        nombre de jours au-dessus/en-dessous de la baseline, moyenne ITN et écart à la normale en France.
+        Retourne également les mêmes statistiques pour la période précédente de même durée.
+        Définition de la période précédente :[date_start - (date_end-date_start) -1 ; date_end - (date_end-date_start) -1]
+        Un pic chaud = jour où l'ITN > baseline_mean + std_dev.
+        Un pic froid = jour où l'ITN < baseline_mean - std_dev.
       operationId: getNationalIndicatorKpi
       parameters:
         - name: date_start
@@ -887,18 +890,6 @@ paths:
             format: date
           description: Date de fin incluse (YYYY-MM-DD).
           example: "2024-12-31"
-        - name: type
-          in: query
-          required: false
-          description: |
-            Type de pics à retourner (facultatif) :
-            - `hot` : pics de chaud
-            - `cold` : pics de froid
-            Si absent, aucun pic n'est calculé.
-          schema:
-            type: string
-            enum: [hot, cold]
-          example: "hot"
       responses:
         "200":
           description: Success
@@ -1191,15 +1182,28 @@ components:
                 format: float
                 description: "Température minimale observée sur la période 1991-2020"
 
-    NationalIndicatorKpiResponse:
+    KpiPeriodStats:
       type: object
       required:
-        - count
-        - days
+        - hot_peak_count
+        - cold_peak_count
+        - days_above_baseline
+        - days_below_baseline
+        - itn_mean
+        - deviation_from_normal
       properties:
-        count:
+        hot_peak_count:
           type: integer
-          description: "Nombre de jours de pic (0 si `type` absent)"
+          description: "Nombre de jours de pic chaud (ITN > baseline_mean + std_dev)"
+        cold_peak_count:
+          type: integer
+          description: "Nombre de jours de pic froid (ITN < baseline_mean - std_dev)"
+        days_above_baseline:
+          type: integer
+          description: "Nombre de jours où la température est supérieure à la baseline_mean"
+        days_below_baseline:
+          type: integer
+          description: "Nombre de jours où la température est inférieure à la baseline_mean"
         itn_mean:
           type: number
           format: float
@@ -1210,32 +1214,17 @@ components:
           format: float
           nullable: true
           description: "Écart à la normale 1991-2020 (itn_mean - baseline_mean moyen, null si aucune donnée)"
-        days:
-          type: array
-          description: "Liste des jours de pic"
-          items:
-            type: object
-            required:
-              - date
-              - temperature
-              - baseline_mean
-              - baseline_std_dev
-            properties:
-              date:
-                type: string
-                format: date
-              temperature:
-                type: number
-                format: float
-                description: "Température ITN du jour"
-              baseline_mean:
-                type: number
-                format: float
-                description: "Température moyenne de référence 1991-2020"
-              baseline_std_dev:
-                type: number
-                format: float
-                description: "Écart-type (baseline_std_dev_upper - baseline_mean)"
+
+    NationalIndicatorKpiResponse:
+      allOf:
+        - $ref: "#/components/schemas/KpiPeriodStats"
+        - type: object
+          required:
+            - previous
+          properties:
+            previous:
+              $ref: "#/components/schemas/KpiPeriodStats"
+              description: "Mêmes statistiques pour la période précédente de même durée"
 
     StationsResponse:
       type: object
