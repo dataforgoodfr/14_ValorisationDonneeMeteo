@@ -1,4 +1,8 @@
 <script setup lang="ts">
+import Section from "../Section.vue";
+import ITNCard from "../ImportantInformationSection/ITNCard.vue";
+import GoToDataLink from "../GoToDataLink.vue";
+
 const { yesterday, yesterdayLess365Days } = useCustomDate();
 </script>
 
