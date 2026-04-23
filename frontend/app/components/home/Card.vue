@@ -14,6 +14,7 @@ const props = withDefaults(defineProps<Props>(), {
 const isOpen = ref(false);
 </script>
 <template>
+<<<<<<< HEAD
     <UCard
         :class="[
             'flex flex-col',
@@ -21,6 +22,9 @@ const isOpen = ref(false);
             props.transparent && 'bg-transparent shadow-none ring-0',
         ]"
     >
+=======
+    <UCard class="border border-blue-350 flex flex-col dark:bg-dark-850">
+>>>>>>> d4c3101 (fix: adjust dark mode colors)
         <template #default>
             <div
                 v-if="props.showTitle"
