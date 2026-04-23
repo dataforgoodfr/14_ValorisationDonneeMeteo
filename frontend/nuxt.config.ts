@@ -13,6 +13,7 @@ export default defineNuxtConfig({
         "@nuxt/image",
         "@nuxt/fonts",
         "@nuxt/icon",
+        "@nuxtjs/color-mode",
         "nuxt-echarts",
         "@pinia/nuxt",
         "@primevue/nuxt-module",
