@@ -683,3 +683,58 @@ class RecordsGraphRecordSerializer(serializers.Serializer):
 class RecordsGraphResponseSerializer(serializers.Serializer):
     buckets = RecordsGraphBucketSerializer(many=True)
     records = RecordsGraphRecordSerializer(many=True)
+
+
+class TemperatureMinMaxGraphQuerySerializer(serializers.Serializer):
+    date_start = serializers.DateField(required=True)
+    date_end = serializers.DateField(required=True)
+
+    granularity = serializers.ChoiceField(
+        choices=["day", "month", "year"], required=True
+    )
+
+    station_ids = CommaSeparatedStringListField(required=False)
+    departments = CommaSeparatedStringListField(required=False)
+    regions = CommaSeparatedStringListField(required=False)
+
+    def validate(self, attrs):
+        ds = attrs["date_start"]
+        de = attrs["date_end"]
+        if ds > de:
+            raise serializers.ValidationError(
+                {"date_end": "date_end doit être >= date_start."}
+            )
+
+        attrs["station_ids"] = attrs.get("station_ids", ())
+        attrs["departments"] = attrs.get("departments", ())
+        attrs["regions"] = attrs.get("regions", ())
+
+        return attrs
+
+
+class TemperatureMinMaxGraphPointSerializer(serializers.Serializer):
+    date = serializers.DateField()
+    tmin_mean = serializers.FloatField()
+    tmax_mean = serializers.FloatField()
+
+
+class TemperatureMinMaxGraphNationalSerializer(serializers.Serializer):
+    data = TemperatureMinMaxGraphPointSerializer(many=True)
+
+
+class TemperatureMinMaxGraphStationSerializer(serializers.Serializer):
+    station_id = serializers.CharField()
+    station_name = serializers.CharField()
+    data = TemperatureMinMaxGraphPointSerializer(many=True)
+
+
+class TemperatureMinMaxGraphMetadataSerializer(serializers.Serializer):
+    date_start = serializers.DateField()
+    date_end = serializers.DateField()
+    granularity = serializers.ChoiceField(choices=["day", "month", "year"])
+
+
+class TemperatureMinMaxGraphResponseSerializer(serializers.Serializer):
+    metadata = TemperatureMinMaxGraphMetadataSerializer()
+    national = TemperatureMinMaxGraphNationalSerializer(required=False)
+    stations = TemperatureMinMaxGraphStationSerializer(many=True)

@@ -484,6 +484,122 @@ paths:
         "400":
           $ref: "#/components/responses/BadRequest"
 
+  /temperature/extremes/graph:
+    get:
+      summary: Moyennes Tmin/Tmax pour les graphes
+      description: >
+        Retourne les moyennes de température minimale (Tmin) et maximale (Tmax) par période.
+        La granularité temporelle est ajustable (jour, mois, année).
+
+        Selon les filtres fournis :
+        - Sans filtre : une série nationale (moyenne de toutes les stations)
+        - Avec `departments` ou `regions` : une série agrégée sur le territoire
+        - Avec `station_ids` : une série par station demandée
+      operationId: getTemperatureExtremesGraph
+      tags:
+        - Temperature
+      parameters:
+        - name: date_start
+          in: query
+          required: true
+          schema:
+            type: string
+            format: date
+          description: Date de début incluse (YYYY-MM-DD).
+          example: "2024-01-01"
+
+        - name: date_end
+          in: query
+          required: true
+          schema:
+            type: string
+            format: date
+          description: Date de fin incluse (YYYY-MM-DD).
+          example: "2024-12-31"
+
+        - name: granularity
+          in: query
+          required: true
+          schema:
+            type: string
+            enum: [year, month, day]
+          description: >
+            Unité de l'axe des abscisses.
+            - year : agrégation par année
+            - month : agrégation par mois
+            - day : agrégation par jour
+          example: month
+
+        - name: station_ids
+          in: query
+          required: false
+          schema:
+            type: array
+            items:
+              type: string
+          style: form
+          explode: false
+          description: >
+            Liste d'identifiants de stations. Si présent, retourne une série par station.
+          example: "07149,07255"
+
+        - name: departments
+          in: query
+          required: false
+          schema:
+            type: string
+          description: >
+            Liste de départements séparés par des virgules (ex: "13,75,2A").
+            Retourne une série agrégée sur ces départements.
+
+        - name: regions
+          in: query
+          required: false
+          schema:
+            type: string
+          description: >
+            Liste de régions séparées par des virgules.
+            Retourne une série agrégée sur ces régions.
+
+      responses:
+        "200":
+          description: Séries temporelles Tmin/Tmax selon le filtre appliqué.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TemperatureMinMaxGraphResponse"
+              examples:
+                national:
+                  summary: Série nationale (sans filtre)
+                  value:
+                    national:
+                      data:
+                        - date: "2024-01-01"
+                          tmin_mean: -1.2
+                          tmax_mean: 7.4
+                        - date: "2024-02-01"
+                          tmin_mean: 0.5
+                          tmax_mean: 9.1
+                    stations: []
+                by_stations:
+                  summary: Deux stations spécifiques
+                  value:
+                    stations:
+                      - station_id: "07149"
+                        station_name: "Orly"
+                        data:
+                          - date: "2024-01-01"
+                            tmin_mean: -2.1
+                            tmax_mean: 6.8
+                      - station_id: "07255"
+                        station_name: "Marseille-Marignane"
+                        data:
+                          - date: "2024-01-01"
+                            tmin_mean: 3.5
+                            tmax_mean: 12.0
+        "400":
+          $ref: "#/components/responses/BadRequest"
+
   /temperature/records:
     get:
       summary: Records de température
@@ -1279,6 +1395,70 @@ components:
                     minimum: 0
                     maximum: 1
                     description: Pourcentage de données disponibles
+
+    TemperatureMinMaxGraphPoint:
+      type: object
+      required:
+        - date
+        - tmin_mean
+        - tmax_mean
+      properties:
+        date:
+          type: string
+          format: date
+          description: >
+            Date du point selon la granularité :
+            jour exact, premier jour du mois, ou premier jour de l'année.
+        tmin_mean:
+          type: number
+          format: float
+          description: Moyenne des températures minimales sur la période.
+        tmax_mean:
+          type: number
+          format: float
+          description: Moyenne des températures maximales sur la période.
+
+    NationalMinMaxSeries:
+      type: object
+      required:
+        - data
+      properties:
+        data:
+          type: array
+          items:
+            $ref: "#/components/schemas/TemperatureMinMaxGraphPoint"
+
+    StationMinMaxSeries:
+      type: object
+      required:
+        - station_id
+        - station_name
+        - data
+      properties:
+        station_id:
+          type: string
+        station_name:
+          type: string
+        data:
+          type: array
+          items:
+            $ref: "#/components/schemas/TemperatureMinMaxGraphPoint"
+
+    TemperatureMinMaxGraphResponse:
+      type: object
+      required:
+        - stations
+      properties:
+        national:
+          $ref: "#/components/schemas/NationalMinMaxSeries"
+          description: >
+            Présent si aucun filtre station_ids n'est fourni.
+        stations:
+          type: array
+          description: >
+            Liste des séries par station. Vide si national est présent.
+          items:
+            $ref: "#/components/schemas/StationMinMaxSeries"
 
     TemperatureDeviationGraphPoint:
       type: object

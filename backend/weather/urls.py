@@ -12,6 +12,7 @@ from .views import (
     StationViewSet,
     TemperatureDeviationGraphAPIView,
     TemperatureDeviationOverviewAPIView,
+    TemperatureMinMaxGraphAPIView,
     TemperatureRecordsAPIView,
 )
 
@@ -34,6 +35,11 @@ urlpatterns = [
         "temperature/records",
         TemperatureRecordsAPIView.as_view(),
         name="temperature-records",
+    ),
+    path(
+        "temperature/extremes/graph",
+        TemperatureMinMaxGraphAPIView.as_view(),
+        name="temperature-extremes-graph",
     ),
     path(
         "temperature/deviation/graph",

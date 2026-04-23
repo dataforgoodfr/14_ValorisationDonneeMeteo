@@ -62,11 +62,21 @@ from weather.services.temperature_deviation.types import (
     TemperatureDeviationOverviewStation,
     YearlyBaselinePoint,
 )
+from weather.services.temperature_minmax.protocols import MinMaxGraphDataSource
+from weather.services.temperature_minmax.types import (
+    DailyMinMaxPoint,
+    MinMaxGraphQuery,
+    StationDailyMinMaxSeries,
+)
 from weather.services.temperature_records.types import (
     SEASON_MONTHS,
     TemperatureRecordEntry,
     TemperatureRecordsRequest,
 )
+
+
+def _float_or_none(value) -> float | None:
+    return float(value) if value is not None else None
 
 
 def _normalize_reims(
@@ -1049,6 +1059,111 @@ class TimescaleRecordsDataSource:
             )
 
         return tuple(result)
+
+
+class TimescaleTemperatureMinMaxDataSource(MinMaxGraphDataSource):
+    def fetch_daily_series(
+        self, query: MinMaxGraphQuery
+    ) -> list[StationDailyMinMaxSeries]:
+        where_clauses = [
+            'q."AAAAMMJJ" BETWEEN %(date_start)s AND %(date_end)s',
+            '(q."TN" IS NOT NULL OR q."TX" IS NOT NULL)',
+        ]
+        params: dict = {"date_start": query.date_start, "date_end": query.date_end}
+
+        if query.station_ids:
+            where_clauses.append('q."NUM_POSTE" = ANY(%(station_ids)s)')
+            params["station_ids"] = list(query.station_ids)
+
+        if query.departments:
+            where_clauses.append("s.departement = ANY(%(departments)s)")
+            params["departments"] = [int(d) for d in query.departments if d.isdigit()]
+
+        if query.regions:
+            where_clauses.append("r.region = ANY(%(regions)s)")
+            params["regions"] = list(query.regions)
+
+        where_sql = " AND ".join(where_clauses)
+
+        sql = f"""
+            SELECT
+                q."NUM_POSTE"   AS station_id,
+                s.name          AS station_name,
+                q."AAAAMMJJ"    AS date,
+                q."TN"          AS tmin,
+                q."TX"          AS tmax
+            FROM public."Quotidienne" q
+            JOIN public.v_station s
+                ON s.station_code = q."NUM_POSTE"
+            LEFT JOIN public.ref_department_region r
+                ON r.departement = s.departement
+            WHERE {where_sql}
+            ORDER BY q."NUM_POSTE", q."AAAAMMJJ"
+        """
+
+        with connection.cursor() as cur:
+            cur.execute(sql, params)
+            cols = [c.name for c in cur.description]
+            rows = [dict(zip(cols, row, strict=False)) for row in cur.fetchall()]
+
+        grouped: dict[str, list[DailyMinMaxPoint]] = defaultdict(list)
+        station_names: dict[str, str] = {}
+
+        for row in rows:
+            sid = row["station_id"].strip()
+            station_names[sid] = row["station_name"]
+            grouped[sid].append(
+                DailyMinMaxPoint(
+                    date=row["date"].date()
+                    if isinstance(row["date"], dt.datetime)
+                    else row["date"],
+                    tmin=_float_or_none(row["tmin"]),
+                    tmax=_float_or_none(row["tmax"]),
+                )
+            )
+
+        return [
+            StationDailyMinMaxSeries(
+                station_id=sid,
+                station_name=station_names[sid],
+                points=grouped[sid],
+            )
+            for sid in grouped
+        ]
+
+    def fetch_national_daily_series(
+        self, query: MinMaxGraphQuery
+    ) -> list[DailyMinMaxPoint]:
+        sql = """
+            SELECT
+                q."AAAAMMJJ"    AS date,
+                AVG(q."TN")     AS tmin,
+                AVG(q."TX")     AS tmax
+            FROM public."Quotidienne" q
+            WHERE q."AAAAMMJJ" BETWEEN %(date_start)s AND %(date_end)s
+              AND q."TN" IS NOT NULL
+              AND q."TX" IS NOT NULL
+            GROUP BY q."AAAAMMJJ"
+            ORDER BY q."AAAAMMJJ"
+        """
+
+        with connection.cursor() as cur:
+            cur.execute(
+                sql, {"date_start": query.date_start, "date_end": query.date_end}
+            )
+            cols = [c.name for c in cur.description]
+            rows = [dict(zip(cols, row, strict=False)) for row in cur.fetchall()]
+
+        return [
+            DailyMinMaxPoint(
+                date=row["date"].date()
+                if isinstance(row["date"], dt.datetime)
+                else row["date"],
+                tmin=_float_or_none(row["tmin"]),
+                tmax=_float_or_none(row["tmax"]),
+            )
+            for row in rows
+        ]
 
 
 def _date_de_creation(annee: int) -> dt.date:

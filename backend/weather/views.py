@@ -2,7 +2,7 @@
 DRF ViewSets for weather data API endpoints.
 """
 
-from drf_spectacular.utils import extend_schema, extend_schema_view
+from drf_spectacular.utils import OpenApiParameter, extend_schema, extend_schema_view
 from rest_framework import status, viewsets
 from rest_framework.response import Response
 from rest_framework.views import APIView
@@ -13,6 +13,7 @@ from weather.bootstrap_temperature_deviation import (
     TemperatureDeviationDependencyProvider,
     TemperatureDeviationOverviewDependencyProvider,
 )
+from weather.bootstrap_temperature_minmax import TemperatureMinMaxDependencyProvider
 from weather.bootstrap_temperature_records import TemperatureRecordsDependencyProvider
 from weather.services.national_indicator.kpi_use_case import get_national_indicator_kpi
 from weather.services.national_indicator.use_case import get_national_indicator
@@ -22,6 +23,7 @@ from weather.services.temperature_deviation.use_case import (
     get_temperature_deviation,
     get_temperature_deviation_overview,
 )
+from weather.services.temperature_minmax.use_case import get_minmax_graph
 from weather.services.temperature_records.types import TemperatureRecordsRequest
 from weather.services.temperature_records.use_case import get_temperature_records
 
@@ -41,6 +43,8 @@ from .serializers import (
     TemperatureDeviationOverviewQuerySerializer,
     TemperatureDeviationOverviewResponseSerializer,
     TemperatureDeviationResponseSerializer,
+    TemperatureMinMaxGraphQuerySerializer,
+    TemperatureMinMaxGraphResponseSerializer,
     TemperatureRecordEntrySerializer,
     TemperatureRecordsQuerySerializer,
 )
@@ -254,6 +258,67 @@ class TemperatureRecordsAPIView(APIView):
         )
 
         return Response(serializer.data, status=status.HTTP_200_OK)
+
+
+class TemperatureMinMaxGraphAPIView(APIView):
+    """
+    GET /api/v1/temperature/extremes/graph
+    Retourne la moyenne de Tmin et Tmax sur une période,
+    selon la granularité et le territoire sélectionnés.
+    """
+
+    authentication_classes = []
+    permission_classes = []
+
+    @extend_schema(
+        parameters=[
+            OpenApiParameter("date_start", str, OpenApiParameter.QUERY, required=True),
+            OpenApiParameter("date_end", str, OpenApiParameter.QUERY, required=True),
+            OpenApiParameter(
+                "granularity",
+                str,
+                OpenApiParameter.QUERY,
+                required=True,
+                enum=["day", "month", "year"],
+            ),
+            OpenApiParameter(
+                "station_ids", str, OpenApiParameter.QUERY, required=False
+            ),
+            OpenApiParameter(
+                "departments", str, OpenApiParameter.QUERY, required=False
+            ),
+            OpenApiParameter("regions", str, OpenApiParameter.QUERY, required=False),
+        ]
+    )
+    def get(self, request):
+        q = TemperatureMinMaxGraphQuerySerializer(data=request.query_params)
+        if not q.is_valid():
+            return Response(
+                ErrorSerializer.build(
+                    code="INVALID_PARAMETER",
+                    message="Paramètre invalide ou manquant",
+                    details=q.errors,
+                ),
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        params = q.validated_data
+        ds = TemperatureMinMaxDependencyProvider.get_dep()
+        data = get_minmax_graph(data_source=ds, **params)
+
+        full_payload = {
+            "metadata": {
+                "date_start": params["date_start"],
+                "date_end": params["date_end"],
+                "granularity": params["granularity"],
+            },
+            **data,
+        }
+
+        out = TemperatureMinMaxGraphResponseSerializer(data=full_payload)
+        out.is_valid(raise_exception=True)
+
+        return Response(out.data, status=status.HTTP_200_OK)
 
 
 class TemperatureDeviationOverviewAPIView(APIView):
