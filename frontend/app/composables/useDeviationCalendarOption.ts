@@ -312,7 +312,7 @@ export function useDeviationCalendarOption(
         right: "0%",
         bottom: "center",
         inRange: {
-            color: [COLORS.negative, "#FFF", COLORS.positive],
+            color: [COLORS.cold, "#FFF", COLORS.hot],
         },
         textStyle: { color: COLORS.foreground },
         handleStyle: { borderColor: "#3a5080" },

@@ -20,6 +20,7 @@ import {
     countByPeriod,
     scatterSeries,
 } from "~/utils/recordsChartUtils";
+import { COLORS } from "~/constants/colors";
 
 echarts.registerLocale("FR", langFR);
 echarts.use([
@@ -157,8 +158,8 @@ const option = computed<ECOption>(() => {
                     name: "Records de chaleur",
                     datasetIndex: index * 2,
                     encode: { x: "date", y: "value" },
-                    color: "#d32f2f",
-                    symbolSize: 10,
+                    color: COLORS.hot,
+                    symbolSize: 5,
                     xAxisIndex: index,
                     yAxisIndex: index,
                 }),
@@ -166,8 +167,8 @@ const option = computed<ECOption>(() => {
                     name: "Records de froid",
                     datasetIndex: index * 2 + 1,
                     encode: { x: "date", y: "value" },
-                    color: "#1976d2",
-                    symbolSize: 10,
+                    color: COLORS.cold,
+                    symbolSize: 5,
                     xAxisIndex: index,
                     yAxisIndex: index,
                 }),
@@ -178,7 +179,7 @@ const option = computed<ECOption>(() => {
                           name: "Records de chaleur",
                           datasetIndex: territoryPlots.length * 2,
                           encode: { x: "period", y: "hot" },
-                          color: "#d32f2f",
+                          color: COLORS.hot,
                           stack: "records",
                           xAxisIndex: 1,
                           yAxisIndex: 1,
@@ -187,7 +188,7 @@ const option = computed<ECOption>(() => {
                           name: "Records de froid",
                           datasetIndex: territoryPlots.length * 2,
                           encode: { x: "period", y: "cold" },
-                          color: "#1976d2",
+                          color: COLORS.cold,
                           stack: "records",
                           xAxisIndex: 1,
                           yAxisIndex: 1,
