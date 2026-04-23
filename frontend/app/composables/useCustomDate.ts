@@ -7,6 +7,18 @@ export function useCustomDate() {
         return d;
     });
 
+    const yesterdayLess30Days = computed(() => {
+        const date = new Date();
+        date.setDate(date.getDate() - 30);
+        return date;
+    });
+
+    const yesterdayLess365Days = computed(() => {
+        const date = new Date();
+        date.setDate(date.getDate() - 365);
+        return date;
+    });
+
     const lastMonth = computed(() => {
         const todayDate = new Date();
         todayDate.setMonth(todayDate.getMonth() - 1);
@@ -43,6 +55,8 @@ export function useCustomDate() {
     return {
         today,
         yesterday,
+        yesterdayLess30Days,
+        yesterdayLess365Days,
         lastMonth,
         lastYear,
         last10Year,

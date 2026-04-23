@@ -15,7 +15,7 @@ def test_date_start_must_be_before_or_equal_date_end(
     date_start, date_end, should_be_valid
 ):
     s = NationalIndicatorKpiQuerySerializer(
-        data={"date_start": date_start, "date_end": date_end, "type": "hot"}
+        data={"date_start": date_start, "date_end": date_end}
     )
 
     ok = s.is_valid()
@@ -25,44 +25,8 @@ def test_date_start_must_be_before_or_equal_date_end(
         assert "date_end" in s.errors
 
 
-@pytest.mark.parametrize("peak_type", ["hot", "cold"])
-def test_type_accepts_hot_and_cold(peak_type):
-    s = NationalIndicatorKpiQuerySerializer(
-        data={"date_start": "2024-01-01", "date_end": "2024-01-31", "type": peak_type}
-    )
-
-    assert s.is_valid(), s.errors
-    assert s.validated_data["type"] == peak_type
-
-
-@pytest.mark.parametrize("invalid_type", ["warm", "hot_cold", "", "HOT"])
-def test_type_rejects_invalid_values(invalid_type):
-    s = NationalIndicatorKpiQuerySerializer(
-        data={
-            "date_start": "2024-01-01",
-            "date_end": "2024-01-31",
-            "type": invalid_type,
-        }
-    )
-
-    ok = s.is_valid()
-    assert not ok
-    assert "type" in s.errors
-
-
-def test_missing_type_is_valid_and_defaults_to_none():
-    s = NationalIndicatorKpiQuerySerializer(
-        data={"date_start": "2024-01-01", "date_end": "2024-01-31"}
-    )
-
-    assert s.is_valid(), s.errors
-    assert s.validated_data["type"] is None
-
-
 def test_missing_date_start_is_invalid():
-    s = NationalIndicatorKpiQuerySerializer(
-        data={"date_end": "2024-01-31", "type": "hot"}
-    )
+    s = NationalIndicatorKpiQuerySerializer(data={"date_end": "2024-01-31"})
 
     ok = s.is_valid()
     assert not ok
@@ -70,9 +34,7 @@ def test_missing_date_start_is_invalid():
 
 
 def test_missing_date_end_is_invalid():
-    s = NationalIndicatorKpiQuerySerializer(
-        data={"date_start": "2024-01-01", "type": "cold"}
-    )
+    s = NationalIndicatorKpiQuerySerializer(data={"date_start": "2024-01-01"})
 
     ok = s.is_valid()
     assert not ok
@@ -81,7 +43,7 @@ def test_missing_date_end_is_invalid():
 
 def test_valid_data_passes():
     s = NationalIndicatorKpiQuerySerializer(
-        data={"date_start": "2024-01-01", "date_end": "2024-12-31", "type": "cold"}
+        data={"date_start": "2024-01-01", "date_end": "2024-12-31"}
     )
 
     assert s.is_valid(), s.errors

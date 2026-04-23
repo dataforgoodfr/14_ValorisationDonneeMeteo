@@ -2,23 +2,31 @@
 import * as echarts from "echarts/core";
 import langFR from "~/i18n/langFR.js";
 import type { SelectBarAdapter } from "~/components/ui/commons/selectBar/types";
-import type { NationalIndicatorResponse } from "~/types/api";
+import type {
+    NationalIndicatorDataPoint,
+    NationalIndicatorResponse,
+} from "~/types/api";
 import { CHART_ATTRIBUTION_GRAPHIC } from "~/constants/chartAttribution";
-import { ITN_SERIES } from "~/constants/itn";
+import { ITN_SERIES, ITN_COLORS } from "~/constants/itn";
 import { itnChartTooltipFormatter } from "./tooltipFormatters/itnChartTooltipFormatter";
-
 import {
+    itnStackedTooltipFormatter,
+    formatStackedAxisLabel,
+    formatContinuousAxisLabel,
+} from "./tooltipFormatters/itnStackedTooltipFormatter";
+import {
+    DataZoomComponent,
+    GraphicComponent,
+    GridComponent,
+    LegendComponent,
     TitleComponent,
     ToolboxComponent,
     TooltipComponent,
-    GridComponent,
-    DataZoomComponent,
-    LegendComponent,
-    GraphicComponent,
 } from "echarts/components";
 import { LineChart } from "echarts/charts";
 import { UniversalTransition } from "echarts/features";
 import { CanvasRenderer } from "echarts/renderers";
+
 echarts.registerLocale("FR", langFR);
 echarts.use([
     TitleComponent,
@@ -48,11 +56,185 @@ const initOptions = computed(() => ({
 }));
 provide(INIT_OPTIONS_KEY, initOptions);
 
-const colorEcartType = "rgba(175, 175, 175, 1)";
-const colorExtremes = "rgba(100, 100, 100, 0.2)";
+const colorEcartType = ITN_COLORS.ECART_TYPE;
+const colorExtremes = ITN_COLORS.EXTREMES;
+
+function buildStackedOption(
+    timeSeries: NationalIndicatorDataPoint[],
+    granularity: "month" | "day",
+): ECOption {
+    function getXKey(dateStr: string): string {
+        const d = new Date(dateStr);
+        const m = String(d.getMonth() + 1).padStart(2, "0");
+        return granularity === "month"
+            ? m
+            : `${m}-${String(d.getDate()).padStart(2, "0")}`;
+    }
+
+    const allPositions = [
+        ...new Set(timeSeries.map((p) => getXKey(p.date))),
+    ].sort();
+
+    // Baseline: première occurrence par position (identique pour toutes les années)
+    const baselineByPos = new Map<string, NationalIndicatorDataPoint>();
+    for (const p of timeSeries) {
+        const k = getXKey(p.date);
+        if (!baselineByPos.has(k)) baselineByPos.set(k, p);
+    }
+
+    // Températures par année
+    const byYear = new Map<number, Map<string, number>>();
+    for (const p of timeSeries) {
+        const year = new Date(p.date).getFullYear();
+        const k = getXKey(p.date);
+        if (!byYear.has(year)) byYear.set(year, new Map());
+        byYear.get(year)!.set(k, p.temperature);
+    }
+    const years = [...byYear.keys()].sort();
+
+    const baselineSource = allPositions.map((pos) => {
+        const p = baselineByPos.get(pos)!;
+        return [
+            pos,
+            p.baseline_min,
+            p.baseline_max - p.baseline_min,
+            p.baseline_std_dev_lower,
+            p.baseline_std_dev_upper - p.baseline_std_dev_lower,
+            p.baseline_mean,
+        ];
+    });
+
+    const baselineSeries: ECOption["series"] = [
+        {
+            type: "line",
+            encode: { x: "position", y: "baseline_min" },
+            stack: "extreme",
+            stackStrategy: "all",
+            symbol: "none",
+            lineStyle: { opacity: 0 },
+            areaStyle: { color: "transparent" },
+            tooltip: { show: false },
+        },
+        {
+            name: ITN_SERIES.extremes,
+            type: "line",
+            encode: { x: "position", y: "baseline_band" },
+            stack: "extreme",
+            stackStrategy: "all",
+            symbol: "none",
+            color: colorExtremes,
+            lineStyle: { opacity: 0 },
+            areaStyle: { color: colorExtremes },
+        },
+        {
+            type: "line",
+            encode: { x: "position", y: "baseline_std_dev_lower" },
+            stack: "std",
+            stackStrategy: "all",
+            symbol: "none",
+            lineStyle: { opacity: 0 },
+            areaStyle: { color: "transparent" },
+            tooltip: { show: false },
+        },
+        {
+            name: ITN_SERIES.stdDev,
+            type: "line",
+            encode: { x: "position", y: "baseline_std_dev_band" },
+            stack: "std",
+            stackStrategy: "all",
+            symbol: "none",
+            color: colorEcartType,
+            lineStyle: { opacity: 0 },
+            areaStyle: { color: colorEcartType },
+        },
+        {
+            name: ITN_SERIES.temperature,
+            type: "line",
+            encode: { x: "position", y: "baseline_mean" },
+            symbol: "none",
+            lineStyle: { width: 2, color: "#333" },
+            z: 5,
+        },
+    ];
+
+    const yearSeries: ECOption["series"] = years.map((year) => ({
+        name: String(year),
+        type: "line",
+        data: allPositions.map((pos) => [
+            pos,
+            byYear.get(year)?.get(pos) ?? null,
+        ]),
+        symbol: "none",
+        lineStyle: { width: 1.5 },
+        connectNulls: false,
+        z: 10,
+    }));
+
+    return {
+        dataset: {
+            dimensions: [
+                "position",
+                "baseline_min",
+                "baseline_band",
+                "baseline_std_dev_lower",
+                "baseline_std_dev_band",
+                "baseline_mean",
+            ],
+            source: baselineSource,
+        },
+        grid: { left: 30, right: 10, bottom: 150, containLabel: true },
+        xAxis: {
+            type: "category",
+            data: allPositions,
+            axisLabel: {
+                interval:
+                    granularity === "day"
+                        ? (_index: number, value: string) =>
+                              value.endsWith("-01")
+                        : 0,
+                formatter: (val: string) =>
+                    formatStackedAxisLabel(val, granularity),
+            },
+        },
+        yAxis: {
+            type: "value",
+            name: "Température (°C)",
+            nameRotate: 90,
+            nameLocation: "middle",
+            nameGap: 40,
+        },
+        series: [...baselineSeries, ...yearSeries],
+        legend: {
+            data: [
+                ITN_SERIES.extremes,
+                ITN_SERIES.baseline,
+                ITN_SERIES.temperature,
+                ...years.map(String),
+            ],
+            bottom: 85,
+        },
+        title: { text: "Indicateur thermique national", left: "center" },
+        tooltip: {
+            trigger: "axis",
+            formatter: (params) =>
+                itnStackedTooltipFormatter(params, granularity),
+        },
+        emphasis: { focus: "none", disabled: true },
+        graphic: CHART_ATTRIBUTION_GRAPHIC,
+    };
+}
 
 const option = computed<ECOption>(() => {
     const data = props.adapter.data.value;
+
+    if (props.adapter.chartType?.value === "stacked" && data) {
+        const gran = props.adapter.granularity.value;
+        return buildStackedOption(
+            data.time_series,
+            gran === "year" ? "month" : gran,
+        );
+    }
+
     const timeSeries = insertCrossingPoints(data?.time_series ?? []);
 
     return {
@@ -104,7 +286,16 @@ const option = computed<ECOption>(() => {
             bottom: 150,
             containLabel: true,
         },
-        xAxis: { type: "time" },
+        xAxis: {
+            type: "time",
+            ...(props.adapter.granularity.value === "day"
+                ? {
+                      axisLabel: {
+                          formatter: formatContinuousAxisLabel,
+                      },
+                  }
+                : {}),
+        },
         yAxis: {
             type: "value",
             name: "Température (°C)",
@@ -258,7 +449,7 @@ const option = computed<ECOption>(() => {
 <template>
     <VChart
         :ref="adapter.chartRef"
-        :key="adapter.granularity.value"
+        :key="`${adapter.granularity.value}-${adapter.chartType?.value ?? 'line'}`"
         :option="option"
         :init-options="initOptions"
         :loading="adapter.pending.value"

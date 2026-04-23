@@ -28,7 +28,7 @@ const mapDateEnd = computed(() => toISODate(dateEnd.value));
 const heroData = {
     title: "Écart à la normale",
     description:
-        "L'écart de température à la normale est définit comme la différence de la température moyenne sur une période donnée et la température moyenne de référence calculée sur la période 1991–2020 pour une durée équivalente",
+        "L'écart de température à la normale est définit comme la différence de la température moyenne sur une période donnée et la température moyenne de référence calculée sur la période 1991–2020 pour une durée équivalente",
 };
 </script>
 

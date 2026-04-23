@@ -3,11 +3,12 @@ import type {
     TooltipComponentFormatterCallbackParams,
 } from "echarts";
 import type { GranularityType } from "~/components/ui/commons/selectBar/types";
+import { COLORS } from "~/constants/colors";
 
 function formatBarTooltip(param: DefaultLabelFormatterCallbackParams): string {
     const data = param.value as Record<string, number | string>;
-    const hotMarker = `<span style="display:inline-block;margin-right:4px;border-radius:10px;width:10px;height:10px;background-color:#d32f2f;"></span>`;
-    const coldMarker = `<span style="display:inline-block;margin-right:4px;border-radius:10px;width:10px;height:10px;background-color:#1976d2;"></span>`;
+    const hotMarker = `<span style="display:inline-block;margin-right:4px;border-radius:10px;width:10px;height:10px;background-color:${COLORS.cold};"></span>`;
+    const coldMarker = `<span style="display:inline-block;margin-right:4px;border-radius:10px;width:10px;height:10px;background-color:${COLORS.hot};"></span>`;
     return [
         `<b>${data.period}</b>`,
         `${hotMarker} Records de chaleur : ${data.hot}`,
@@ -17,29 +18,18 @@ function formatBarTooltip(param: DefaultLabelFormatterCallbackParams): string {
 
 function formatScatterTooltip(
     paramsArray: DefaultLabelFormatterCallbackParams[],
-    granularity: GranularityType,
+    _granularity: GranularityType,
 ): string {
     const firstParam = paramsArray[0] as DefaultLabelFormatterCallbackParams;
     const scatterData = firstParam.value as Record<string, number | string>;
 
-    const dateOptions: Intl.DateTimeFormatOptions = (() => {
-        if (granularity === "month") {
-            return { year: "numeric", month: "long" };
-        }
-        if (granularity === "year") {
-            return { year: "numeric" };
-        }
-        return {
-            weekday: "short",
-            day: "numeric",
-            month: "short",
-            year: "numeric",
-        };
-    })();
-
     const formattedDate = new Date(
         scatterData.date as string,
-    ).toLocaleDateString("fr-FR", dateOptions);
+    ).toLocaleDateString("fr-FR", {
+        day: "2-digit",
+        month: "2-digit",
+        year: "numeric",
+    });
 
     const tooltipLabelFormatter = (
         serie: DefaultLabelFormatterCallbackParams,

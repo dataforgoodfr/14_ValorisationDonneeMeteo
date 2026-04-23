@@ -7,7 +7,7 @@ on:
 
 
 jobs:
-  test-backend:
+  test-backend-frontend:
     runs-on: ubuntu-24.04
 
     steps:
@@ -44,6 +44,16 @@ jobs:
         run: |
           cd frontend
           npm ci --legacy-peer-deps
+          cp .env.example .env
+
+      - name: Run backend
+        working-directory: backend
+        run: |
+          uv run python manage.py runserver  0.0.0.0:8000 &
+          sleep 5
+
+
+
 
       - name: Run frontend tests
         working-directory: frontend

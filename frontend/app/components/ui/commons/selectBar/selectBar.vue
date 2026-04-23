@@ -1,10 +1,11 @@
 <script setup lang="ts">
 import MonthPicker from "./monthPicker.vue";
 import YearPicker from "./yearPicker.vue";
+import StackedYearPicker from "./stackedYearPicker.vue";
 import DayPicker from "./dayPicker.vue";
 import SliceType from "./sliceType.vue";
 import RecordsPeriodSlice from "./recordsPeriodSlice.vue";
-import ExportMenu from "../exportMenu.vue";
+import ExportMenu from "~/components/ui/commons/exportMenu.vue";
 import type {
     GranularityType,
     SelectBarAdapter,
@@ -24,10 +25,14 @@ const localEndDate = props.adapter.pickedDateEnd;
 const dates = useCustomDate();
 
 // Granularity Selection values
-const granularityValues = reactive([
+const granularityValues = computed(() => [
     { label: "Jour", value: "day" },
     { label: "Mois", value: "month" },
-    { label: "Année", value: "year" },
+    {
+        label: "Année",
+        value: "year",
+        disabled: props.adapter.chartType?.value === "stacked",
+    },
 ]);
 </script>
 
@@ -52,27 +57,30 @@ const granularityValues = reactive([
                 />
             </UFormField>
 
-            <DayPicker
-                v-if="adapter.granularity.value === 'day'"
-                v-model:start-date="localStartDate"
-                v-model:end-date="localEndDate"
-                :min-date="dates.absoluteMinDataDate.value"
-                :max-date="dates.today.value"
-            />
-            <MonthPicker
-                v-if="adapter.granularity.value === 'month'"
-                v-model:start-date="localStartDate"
-                v-model:end-date="localEndDate"
-                :min-date="dates.absoluteMinDataDate.value"
-                :max-date="dates.today.value"
-            />
-            <YearPicker
-                v-if="adapter.granularity.value === 'year'"
-                v-model:start-date="localStartDate"
-                v-model:end-date="localEndDate"
-                :min-date="dates.absoluteMinDataDate.value"
-                :max-date="dates.today.value"
-            />
+            <template v-if="adapter.chartType?.value !== 'stacked'">
+                <DayPicker
+                    v-if="adapter.granularity.value === 'day'"
+                    v-model:start-date="localStartDate"
+                    v-model:end-date="localEndDate"
+                    :min-date="dates.absoluteMinDataDate.value"
+                    :max-date="dates.today.value"
+                />
+                <MonthPicker
+                    v-if="adapter.granularity.value === 'month'"
+                    v-model:start-date="localStartDate"
+                    v-model:end-date="localEndDate"
+                    :min-date="dates.absoluteMinDataDate.value"
+                    :max-date="dates.today.value"
+                />
+                <YearPicker
+                    v-if="adapter.granularity.value === 'year'"
+                    v-model:start-date="localStartDate"
+                    v-model:end-date="localEndDate"
+                    :min-date="dates.absoluteMinDataDate.value"
+                    :max-date="dates.today.value"
+                />
+            </template>
+            <StackedYearPicker v-if="adapter.chartType?.value === 'stacked'" />
             <SelectChartType v-if="adapter.features.hasChartTypeSelector" />
 
             <USeparator
@@ -82,18 +90,19 @@ const granularityValues = reactive([
             />
         </div>
 
-        <div id="right-side" class="flex md:flex-1 gap-6 items-center">
+        <div id="right-side" class="flex flex-1 gap-6 items-center">
             <template
                 v-if="
                     (adapter.features.hasSliceType &&
-                        adapter.chartType?.value !== 'calendar') ||
+                        adapter.chartType?.value !== 'calendar' &&
+                        adapter.chartType?.value !== 'stacked') ||
                     adapter.features.hasRecordsPeriodSlice
                 "
             >
                 <UTooltip
                     :disabled="adapter.granularity.value !== 'day'"
                     :disable-closing-trigger="true"
-                    arrow
+                    :arrow="true"
                     :delay-duration="0"
                     text="Changez la Granularité pour activer cette option."
                     :content="{

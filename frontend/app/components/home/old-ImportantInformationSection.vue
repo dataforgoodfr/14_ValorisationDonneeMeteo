@@ -1,13 +1,10 @@
 <script setup lang="ts">
 import Card from "./Card.vue";
 
-const {
-    yesterday,
-    yesterdayTemperature,
-    gap,
-    yesterdayLastYear,
-    temperatureChangeYearOverYear,
-} = useHomeData();
+const { yesterdayTemperature, gap, temperatureChangeYearOverYear } =
+    useHomeData();
+
+const { yesterday, yesterdayLastYear } = useCustomDate();
 </script>
 <template>
     <h3>LES INFORMATIONS À RETENIR</h3>

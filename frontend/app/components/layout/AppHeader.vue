@@ -19,13 +19,12 @@ const items = computed<NavigationMenuItem[]>(() => [
                 icon: "i-lucide-thermometer-sun",
                 active: route.path.startsWith("/itn"),
             },
-            {
-                disabled: true,
-                label: "Min/max",
-                to: "/itn",
-                icon: "i-lucide-diff",
-                // active: route.path.startsWith("/itn"),
-            },
+            // {
+            //     label: "Min/max",
+            //     to: "/itn",
+            //     icon: "i-lucide-diff",
+            //     active: route.path.startsWith("/min-max"),
+            // },
             {
                 label: "Records",
                 to: "/records",
@@ -67,7 +66,7 @@ const items = computed<NavigationMenuItem[]>(() => [
                 :items="items"
                 :ui="{
                     content: 'min-w-fit',
-                    link: 'border border-default rounded-md text-black',
+                    link: 'border rounded-md',
                     list: 'gap-2',
                 }"
             />

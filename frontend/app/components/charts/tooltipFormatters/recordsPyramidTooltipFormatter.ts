@@ -1,7 +1,5 @@
 import type { TooltipComponentFormatterCallbackParams } from "echarts";
-
-const COLOR_HOT = "#d32f2f";
-const COLOR_COLD = "#1976d2";
+import { COLORS } from "~/constants/colors";
 
 export function recordsPyramidTooltipFormatter(
     params: TooltipComponentFormatterCallbackParams,
@@ -20,8 +18,8 @@ export function recordsPyramidTooltipFormatter(
 
     return (
         `<b>${label}</b><br/>` +
-        `<span style="color:${COLOR_HOT}">● Records de chaleur : ${row.hot}</span><br/>` +
-        `<span style="color:${COLOR_COLD}">● Records de froid : ${row.cold}</span><br/>` +
+        `<span style="color:${COLORS.hot}">● Records de chaleur : ${row.hot}</span><br/>` +
+        `<span style="color:${COLORS.cold}">● Records de froid : ${row.cold}</span><br/>` +
         `<span style="color:#aaa">Total : ${row.hot + row.cold}</span>`
     );
 }

@@ -9,10 +9,12 @@ export default defineNuxtConfig({
     modules: [
         "@nuxt/eslint",
         "@nuxt/test-utils",
+        "@nuxt/test-utils/module",
         "@nuxt/ui",
         "@nuxt/image",
         "@nuxt/fonts",
         "@nuxt/icon",
+        "@nuxtjs/color-mode",
         "nuxt-echarts",
         "@pinia/nuxt",
         "@primevue/nuxt-module",
@@ -28,7 +30,7 @@ export default defineNuxtConfig({
     },
     css: ["~/assets/css/main.css"],
     ui: {
-        colorMode: false,
+        colorMode: true,
     },
     fonts: {
         provider: "google",

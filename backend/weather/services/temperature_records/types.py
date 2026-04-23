@@ -33,3 +33,6 @@ class TemperatureRecordEntry:
     lat: float
     lon: float
     alt: float
+    classe_recente: int
+    date_de_creation: dt.date
+    date_de_fermeture: dt.date | None

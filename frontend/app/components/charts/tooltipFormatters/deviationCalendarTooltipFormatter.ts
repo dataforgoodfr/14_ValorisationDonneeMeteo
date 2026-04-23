@@ -24,7 +24,7 @@ export function deviationCalendarTooltipFormatter(
             ? `${xLabel} · ${yLabel}`
             : `${yLabel}/${xLabel}`;
 
-    const col = val >= 0 ? COLORS.positive : COLORS.negative;
+    const col = val >= 0 ? COLORS.hot : COLORS.cold;
     const plusSign = val >= 0 ? "+" : "";
     const station = params.seriesName;
 

@@ -7,42 +7,6 @@ from django.db import connection
 BASE_DIR = pathlib.Path(__file__).resolve().parents[2]  # ajuste selon ton arbo
 
 
-def insert_station(code: str, name: str = "Station test", department: int = 1) -> None:
-    now = dt.datetime.now()
-    with connection.cursor() as cur:
-        cur.execute(
-            """
-            INSERT INTO public."Station"
-                ("createdAt", "updatedAt", "id", "nom",
-                 "departement", "frequence",
-                 "posteOuvert", "typePoste",
-                 "lon", "lat", "alt", "postePublic")
-            VALUES
-                (%(created)s, %(updated)s, %(id)s, %(name)s,
-                 %(dept)s, 'horaire',
-                 '1', 1,
-                 0.0, 0.0, 0.0, '1')
-            ON CONFLICT ("id", "frequence") DO UPDATE SET "nom" = EXCLUDED."nom"
-            """,
-            {
-                "created": now,
-                "updated": now,
-                "id": code,
-                "name": name,
-                "dept": department,
-            },
-        )
-        cur.execute(
-            """
-            INSERT INTO public."station_creation_date"
-                ("station_code", "annee_de_creation")
-            VALUES (%(code)s, 2000)
-            ON CONFLICT ("station_code") DO NOTHING
-            """,
-            {"code": code},
-        )
-
-
 def insert_quotidienne(
     day: dt.date,
     code: str,

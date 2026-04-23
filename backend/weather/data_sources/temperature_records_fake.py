@@ -24,6 +24,9 @@ _FAKE_HOT_RECORDS: list[TemperatureRecordEntry] = [
         lat=48.718,
         lon=2.397,
         alt=86.0,
+        classe_recente=1,
+        date_de_creation=dt.date(1921, 1, 1),
+        date_de_fermeture=None,
     ),
     TemperatureRecordEntry(
         "07149",
@@ -34,6 +37,9 @@ _FAKE_HOT_RECORDS: list[TemperatureRecordEntry] = [
         lat=48.718,
         lon=2.397,
         alt=86.0,
+        classe_recente=1,
+        date_de_creation=dt.date(1921, 1, 1),
+        date_de_fermeture=None,
     ),
     TemperatureRecordEntry(
         "07149",
@@ -44,6 +50,9 @@ _FAKE_HOT_RECORDS: list[TemperatureRecordEntry] = [
         lat=48.718,
         lon=2.397,
         alt=86.0,
+        classe_recente=1,
+        date_de_creation=dt.date(1921, 1, 1),
+        date_de_fermeture=None,
     ),
     # BOURGES : 2 records progressifs de chaud
     TemperatureRecordEntry(
@@ -55,6 +64,9 @@ _FAKE_HOT_RECORDS: list[TemperatureRecordEntry] = [
         lat=47.059167,
         lon=2.359833,
         alt=161.0,
+        classe_recente=1,
+        date_de_creation=dt.date(1945, 1, 1),
+        date_de_fermeture=None,
     ),
     TemperatureRecordEntry(
         "07255",
@@ -65,6 +77,9 @@ _FAKE_HOT_RECORDS: list[TemperatureRecordEntry] = [
         lat=47.059167,
         lon=2.359833,
         alt=161.0,
+        classe_recente=1,
+        date_de_creation=dt.date(1945, 1, 1),
+        date_de_fermeture=None,
     ),
     # TOULOUSE-BLAGNAC : 2 records progressifs de chaud
     TemperatureRecordEntry(
@@ -76,6 +91,9 @@ _FAKE_HOT_RECORDS: list[TemperatureRecordEntry] = [
         lat=43.621,
         lon=1.378833,
         alt=151.0,
+        classe_recente=1,
+        date_de_creation=dt.date(1947, 1, 1),
+        date_de_fermeture=None,
     ),
     TemperatureRecordEntry(
         "07630",
@@ -86,6 +104,9 @@ _FAKE_HOT_RECORDS: list[TemperatureRecordEntry] = [
         lat=43.621,
         lon=1.378833,
         alt=151.0,
+        classe_recente=1,
+        date_de_creation=dt.date(1947, 1, 1),
+        date_de_fermeture=None,
     ),
     # LYON-BRON : 2 records progressifs de chaud
     TemperatureRecordEntry(
@@ -97,6 +118,9 @@ _FAKE_HOT_RECORDS: list[TemperatureRecordEntry] = [
         lat=45.721333,
         lon=4.949167,
         alt=202.0,
+        classe_recente=1,
+        date_de_creation=dt.date(1888, 1, 1),
+        date_de_fermeture=None,
     ),
     TemperatureRecordEntry(
         "07481",
@@ -107,6 +131,9 @@ _FAKE_HOT_RECORDS: list[TemperatureRecordEntry] = [
         lat=45.721333,
         lon=4.949167,
         alt=202.0,
+        classe_recente=1,
+        date_de_creation=dt.date(1888, 1, 1),
+        date_de_fermeture=None,
     ),
 ]
 
@@ -121,6 +148,9 @@ _FAKE_COLD_RECORDS: list[TemperatureRecordEntry] = [
         lat=48.718,
         lon=2.397,
         alt=86.0,
+        classe_recente=1,
+        date_de_creation=dt.date(1921, 1, 1),
+        date_de_fermeture=None,
     ),
     TemperatureRecordEntry(
         "07149",
@@ -131,6 +161,9 @@ _FAKE_COLD_RECORDS: list[TemperatureRecordEntry] = [
         lat=48.718,
         lon=2.397,
         alt=86.0,
+        classe_recente=1,
+        date_de_creation=dt.date(1921, 1, 1),
+        date_de_fermeture=None,
     ),
     TemperatureRecordEntry(
         "07149",
@@ -141,6 +174,9 @@ _FAKE_COLD_RECORDS: list[TemperatureRecordEntry] = [
         lat=48.718,
         lon=2.397,
         alt=86.0,
+        classe_recente=1,
+        date_de_creation=dt.date(1921, 1, 1),
+        date_de_fermeture=None,
     ),
     # BOURGES : 2 records progressifs de froid
     TemperatureRecordEntry(
@@ -152,6 +188,9 @@ _FAKE_COLD_RECORDS: list[TemperatureRecordEntry] = [
         lat=47.059167,
         lon=2.359833,
         alt=161.0,
+        classe_recente=1,
+        date_de_creation=dt.date(1945, 1, 1),
+        date_de_fermeture=None,
     ),
     TemperatureRecordEntry(
         "07255",
@@ -162,6 +201,9 @@ _FAKE_COLD_RECORDS: list[TemperatureRecordEntry] = [
         lat=47.059167,
         lon=2.359833,
         alt=161.0,
+        classe_recente=1,
+        date_de_creation=dt.date(1945, 1, 1),
+        date_de_fermeture=None,
     ),
     # TOULOUSE-BLAGNAC : 2 records progressifs de froid
     TemperatureRecordEntry(
@@ -173,6 +215,9 @@ _FAKE_COLD_RECORDS: list[TemperatureRecordEntry] = [
         lat=43.621,
         lon=1.378833,
         alt=151.0,
+        classe_recente=1,
+        date_de_creation=dt.date(1947, 1, 1),
+        date_de_fermeture=None,
     ),
     TemperatureRecordEntry(
         "07630",
@@ -183,6 +228,9 @@ _FAKE_COLD_RECORDS: list[TemperatureRecordEntry] = [
         lat=43.621,
         lon=1.378833,
         alt=151.0,
+        classe_recente=1,
+        date_de_creation=dt.date(1947, 1, 1),
+        date_de_fermeture=None,
     ),
 ]
 

@@ -1,8 +1,8 @@
-import type { SelectBarAdapter } from "~/components/ui/commons/selectBar/types";
 import type {
     NationalIndicatorDataPoint,
     NationalIndicatorResponse,
 } from "~/types/api";
+import type { SelectBarAdapter } from "~/components/ui/commons/selectBar/types";
 import { useItnStore } from "#imports";
 
 export const useItnSelectBarAdapter = (): SelectBarAdapter<
@@ -21,7 +21,10 @@ export const useItnSelectBarAdapter = (): SelectBarAdapter<
         sliceType,
         sliceDatepickerDate,
         itnData,
-        pending,
+        chartType,
+        selectedYears,
+        effectiveData,
+        effectivePending,
     } = storeToRefs(store);
 
     return {
@@ -33,14 +36,29 @@ export const useItnSelectBarAdapter = (): SelectBarAdapter<
         sliceType,
         sliceDatepickerDate,
         chartRef: itnChartRef,
-        data: itnData,
-        pending,
+        data: effectiveData,
+        pending: effectivePending,
+        chartType,
+        selectedYears,
+        chartTypeOptions: [
+            {
+                label: "Continu",
+                value: "line",
+                icon: "i-lucide-chart-line",
+            },
+            {
+                label: "Superposé",
+                value: "stacked",
+                icon: "i-lucide-square-stack",
+            },
+        ],
         setGranularity: store.setGranularity,
+        setChartType: store.setChartType,
         turnOffSliceType: store.turnOffSliceType,
         features: {
             hasSliceType: true,
             hasRecordsPeriodSlice: false,
-            hasChartTypeSelector: false,
+            hasChartTypeSelector: true,
             hasExport: true,
         },
         exportConfig: {

@@ -1,52 +1,43 @@
 <template>
     <div class="flex flex-col gap-3 w-52 shrink-0 py-2">
-        <!-- <Card // à ajouter une fois le endpoint enrichi
+        <Card
             title="ITN moyen"
             tooltip-text="Moyenne de l'Indicateur Thermique National sur la période sélectionnée."
         >
             <template #kpi>
-                <p
-                    class="font-semibold text-4xl mb-1"
-                    :class="
-                        (hotKpi?.itn_mean ?? 0) >= 0
-                            ? 'text-red-400'
-                            : 'text-blue-400'
-                    "
-                >
-                    <span v-if="hotKpi?.itn_mean != null">
-                        {{ hotKpi.itn_mean >= 0 ? "+" : ""
-                        }}{{ hotKpi.itn_mean.toFixed(1) }} °C
-                    </span>
+                <p class="font-semibold text-4xl mb-1 text-red-400">
+                    <span v-if="kpi != null">{{
+                        kpi.itn_mean?.toFixed(1)
+                    }}</span>
                     <span v-else class="text-muted">—</span>
                 </p>
             </template>
-            <template v-if="hotKpi?.deviation_from_normal != null" #variation>
+            <template v-if="kpi.deviation_from_normal != null" #variation>
                 <span class="text-sm">
-                    {{
-                        hotKpi.deviation_from_normal >= 0 ? "+" : ""
-                    }}{{ hotKpi.deviation_from_normal.toFixed(1) }}°C
+                    {{ kpi.deviation_from_normal >= 0 ? "+" : ""
+                    }}{{ kpi.deviation_from_normal.toFixed(1) }}
                 </span>
                 <UIcon
-                    v-if="hotKpi.deviation_from_normal < 0"
+                    v-if="kpi.deviation_from_normal < 0"
                     name="i-lucide-arrow-down-right"
                     class="text-blue-400"
                 />
                 <UIcon
-                    v-if="hotKpi.deviation_from_normal > 0"
+                    v-if="kpi.deviation_from_normal > 0"
                     name="i-lucide-arrow-up-right"
                     class="text-red-400"
                 />
-                vs normale
+                vs période des normales
             </template>
-        </Card> -->
+        </Card>
 
         <Card
-            title="Jours de chaleur"
-            tooltip-text="Nombre de jours avec excédent de chaleur sur la période sélectionnée."
+            title="Nombre de jours anormalement chauds"
+            tooltip-text="Nombre de jours, sur la période sélectionnée, pour lesquels la température en France est supérieure aux normales."
         >
             <template #kpi>
                 <p class="font-semibold text-4xl mb-1 text-red-400">
-                    <span v-if="hotKpi != null">{{ hotKpi.count }}</span>
+                    <span v-if="kpi != null">{{ kpi.hot_peak_count }}</span>
                     <span v-else class="text-muted">—</span>
                 </p>
             </template>
@@ -57,7 +48,7 @@
                 <UIcon
                     v-if="hotDiff < 0"
                     name="i-lucide-arrow-down-right"
-                    class="text-blue-400"
+                    class="text-red-400"
                 />
                 <UIcon
                     v-if="hotDiff > 0"
@@ -69,12 +60,12 @@
         </Card>
 
         <Card
-            title="Jours de froid"
-            tooltip-text="Nombre de jours avec excédent de froid sur la période sélectionnée."
+            title="Nombre de jours anormalement froids"
+            tooltip-text="Nombre de jours, sur la période sélectionnée, pour lesquels la température en France est inférieure aux normales."
         >
             <template #kpi>
                 <p class="font-semibold text-4xl mb-1 text-blue-400">
-                    <span v-if="coldKpi != null">{{ coldKpi.count }}</span>
+                    <span v-if="kpi != null">{{ kpi.cold_peak_count }}</span>
                     <span v-else class="text-muted">—</span>
                 </p>
             </template>
@@ -85,7 +76,7 @@
                 <UIcon
                     v-if="coldDiff < 0"
                     name="i-lucide-arrow-down-right"
-                    class="text-red-400"
+                    class="text-blue-400"
                 />
                 <UIcon
                     v-if="coldDiff > 0"
@@ -107,53 +98,20 @@ import type { NationalIndicatorKpiParams } from "~/types/api";
 const store = useItnStore();
 const { pickedDateStart, pickedDateEnd } = storeToRefs(store);
 
-const prevPeriod = computed(() => {
-    const start = new Date(pickedDateStart.value);
-    const end = new Date(pickedDateEnd.value);
-    const durationMs = end.getTime() - start.getTime();
-    const prevEnd = new Date(start.getTime() - 24 * 60 * 60 * 1000);
-    const prevStart = new Date(
-        start.getTime() - durationMs - 24 * 60 * 60 * 1000,
-    );
-    return {
-        date_start: dateToStringYMD(prevStart),
-        date_end: dateToStringYMD(prevEnd),
-    };
-});
-
-const hotParams = computed<NationalIndicatorKpiParams>(() => ({
+const params = computed<NationalIndicatorKpiParams>(() => ({
     date_start: dateToStringYMD(new Date(pickedDateStart.value)),
     date_end: dateToStringYMD(new Date(pickedDateEnd.value)),
-    type: "hot",
 }));
 
-const coldParams = computed<NationalIndicatorKpiParams>(() => ({
-    date_start: dateToStringYMD(new Date(pickedDateStart.value)),
-    date_end: dateToStringYMD(new Date(pickedDateEnd.value)),
-    type: "cold",
-}));
-
-const prevHotParams = computed<NationalIndicatorKpiParams>(() => ({
-    ...prevPeriod.value,
-    type: "hot",
-}));
-const prevColdParams = computed<NationalIndicatorKpiParams>(() => ({
-    ...prevPeriod.value,
-    type: "cold",
-}));
-
-const { data: hotKpi } = useNationalIndicatorKpi(hotParams);
-const { data: coldKpi } = useNationalIndicatorKpi(coldParams);
-const { data: prevHotKpi } = useNationalIndicatorKpi(prevHotParams);
-const { data: prevColdKpi } = useNationalIndicatorKpi(prevColdParams);
+const { data: kpi } = useNationalIndicatorKpi(params);
 
 const hotDiff = computed(() => {
-    if (hotKpi.value == null || prevHotKpi.value == null) return null;
-    return hotKpi.value.count - prevHotKpi.value.count;
+    if (kpi.value == null) return null;
+    return kpi.value.hot_peak_count - kpi.value.previous.hot_peak_count;
 });
 
 const coldDiff = computed(() => {
-    if (coldKpi.value == null || prevColdKpi.value == null) return null;
-    return coldKpi.value.count - prevColdKpi.value.count;
+    if (kpi.value == null) return null;
+    return kpi.value.cold_peak_count - kpi.value.previous.cold_peak_count;
 });
 </script>

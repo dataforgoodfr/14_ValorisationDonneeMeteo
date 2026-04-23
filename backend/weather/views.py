@@ -248,6 +248,9 @@ class TemperatureRecordsAPIView(APIView):
                     "lat": e.lat,
                     "lon": e.lon,
                     "alt": e.alt,
+                    "classe_recente": e.classe_recente,
+                    "date_de_creation": e.date_de_creation,
+                    "date_de_fermeture": e.date_de_fermeture,
                 }
                 for e in entries
             ],
@@ -405,22 +408,21 @@ class NationalIndicatorKpiAPIView(APIView):
             baseline_data_source=deps.baseline_data_source,
             date_start=params["date_start"],
             date_end=params["date_end"],
-            peak_type=params.get("type"),
         )
 
+        def period_payload(stats):
+            return {
+                "hot_peak_count": stats.hot_peak_count,
+                "cold_peak_count": stats.cold_peak_count,
+                "days_above_baseline": stats.days_above_baseline,
+                "days_below_baseline": stats.days_below_baseline,
+                "itn_mean": stats.itn_mean,
+                "deviation_from_normal": stats.deviation_from_normal,
+            }
+
         payload = {
-            "count": result.count,
-            "itn_mean": result.itn_mean,
-            "deviation_from_normal": result.deviation_from_normal,
-            "days": [
-                {
-                    "date": d.date,
-                    "temperature": d.temperature,
-                    "baseline_mean": d.baseline_mean,
-                    "baseline_std_dev": d.baseline_std_dev,
-                }
-                for d in result.days
-            ],
+            **period_payload(result.current),
+            "previous": period_payload(result.previous),
         }
 
         out = NationalIndicatorKpiResponseSerializer(data=payload)

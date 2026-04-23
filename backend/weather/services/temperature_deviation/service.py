@@ -738,6 +738,9 @@ def compute_temperature_deviation_overview(
                 "temperature_mean": round(s.temperature_mean, 2),
                 "baseline_mean": round(s.baseline_mean, 2),
                 "deviation": round(s.deviation, 2),
+                "classe_recente": s.classe_recente,
+                "date_de_creation": s.date_de_creation,
+                "date_de_fermeture": s.date_de_fermeture,
             }
             for s in result.stations
         ],

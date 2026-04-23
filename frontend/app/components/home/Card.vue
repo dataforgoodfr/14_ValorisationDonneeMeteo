@@ -7,36 +7,35 @@ interface Props {
 const props = defineProps<Props>();
 </script>
 <template>
-    <UCard class="border border-[#82C4E8] flex flex-col">
-        <template #header>
-            <div class="flex items-center justify-between">
-                <h1 class="text-sm font-semibold">
+    <UCard class="border border-blue-350 flex flex-col">
+        <template #default>
+            <div class="flex items-center justify-between pb-2">
+                <h1 class="text-sm font-semibold text-blue-350">
                     {{ props.title }}
                 </h1>
-                <UTooltip :text="props.tooltipText">
+                <UTooltip :text="props.tooltipText" class="text-blue-350">
                     <UIcon name="i-lucide-circle-question-mark" />
                 </UTooltip>
             </div>
-        </template>
-        <template #default>
+
             <slot name="kpi" />
             <div
                 v-if="$slots['kpi-context-box']"
-                class="kpi-context-box py-1 px-2 rounded-lg leading-none"
+                class="kpi-context-box py-1 px-2 rounded-lg leading-none bg-amber-700 border-amber-500 border"
             >
-                <span class="text-xs font-medium text-gray-500">
+                <span class="text-xs font-medium text-amber-500">
                     <slot name="kpi-context-box" />
                 </span>
             </div>
             <div v-if="$slots['kpi-context-text']" class="mt-2">
                 <span
-                    class="kpi-context-text text-xs text-gray-500 leading-none"
+                    class="kpi-context-text text-xs text-slate-300 leading-none"
                 >
                     <slot name="kpi-context-text" />
                 </span>
             </div>
             <div v-if="$slots['variation']" class="flex items-center mt-1">
-                <span class="blue text-xs">
+                <span class="text-xs text-blue-350">
                     <slot name="variation" />
                 </span>
             </div>
@@ -45,22 +44,7 @@ const props = defineProps<Props>();
 </template>
 
 <style lang="css" scoped>
-[data-slot="header"] {
-    h1,
-    span {
-        color: #82c4e8;
-    }
-}
-.kpi-context-box {
-    background-color: #894b00;
-    border: 1px solid #efb100;
-    > span {
-        color: #efb100;
-    }
-}
-
 .kpi-context-text {
-    color: #90a1b9;
     font-family: Fira Code;
 }
 </style>
