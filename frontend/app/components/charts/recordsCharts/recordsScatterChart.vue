@@ -103,18 +103,19 @@ const option = computed<ECOption>(() => {
             ...(showStackedBar ? barDataset() : []),
         ],
         grid: plots.map((plot, index) => {
-            if (showStackedBar) {
-                if (plot === "scatter") {
-                    return { top: "8%", height: "55%", left: 30, right: 10 };
-                }
-                return { top: "72%", height: "20%", left: 30, right: 10 };
+            if (!showStackedBar) {
+                return {
+                    top: `${index * (100 / plots.length) + 8}%`,
+                    height: `${100 / plots.length - 15}%`,
+                    left: 30,
+                    right: 10,
+                };
             }
-            return {
-                top: `${index * (100 / plots.length) + 8}%`,
-                height: `${100 / plots.length - 15}%`,
-                left: 30,
-                right: 10,
-            };
+
+            if (plot === "scatter") {
+                return { top: "8%", height: "55%", left: 30, right: 10 };
+            }
+            return { top: "72%", height: "20%", left: 30, right: 10 };
         }),
         xAxis: plots.map((_, index) => ({
             type: "time",
