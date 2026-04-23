@@ -20,6 +20,7 @@ import {
     countByPeriod,
     scatterSeries,
 } from "~/utils/recordsChartUtils";
+import { COLORS } from "~/constants/colors";
 
 echarts.registerLocale("FR", langFR);
 echarts.use([
@@ -43,7 +44,7 @@ const props = defineProps<Props>();
 // provide init-options
 const renderer = ref<"svg" | "canvas">("canvas");
 const initOptions = computed(() => ({
-    height: 600,
+    height: 520,
     locale: "FR",
     renderer: renderer.value,
 }));
@@ -102,12 +103,21 @@ const option = computed<ECOption>(() => {
             ]),
             ...(showStackedBar ? barDataset() : []),
         ],
-        grid: plots.map((_, index) => ({
-            top: `${index * (100 / plots.length) + 8}%`,
-            height: `${100 / plots.length - 15}%`,
-            left: 30,
-            right: 10,
-        })),
+        grid: plots.map((plot, index) => {
+            if (!showStackedBar) {
+                return {
+                    top: `${index * (100 / plots.length) + 8}%`,
+                    height: `${100 / plots.length - 15}%`,
+                    left: 30,
+                    right: 10,
+                };
+            }
+
+            if (plot === "scatter") {
+                return { top: "8%", height: "55%", left: 30, right: 10 };
+            }
+            return { top: "72%", height: "20%", left: 30, right: 10 };
+        }),
         xAxis: plots.map((_, index) => ({
             type: "time",
             gridIndex: index,
@@ -148,8 +158,8 @@ const option = computed<ECOption>(() => {
                     name: "Records de chaleur",
                     datasetIndex: index * 2,
                     encode: { x: "date", y: "value" },
-                    color: "#d32f2f",
-                    symbolSize: 10,
+                    color: COLORS.hot,
+                    symbolSize: 5,
                     xAxisIndex: index,
                     yAxisIndex: index,
                 }),
@@ -157,8 +167,8 @@ const option = computed<ECOption>(() => {
                     name: "Records de froid",
                     datasetIndex: index * 2 + 1,
                     encode: { x: "date", y: "value" },
-                    color: "#1976d2",
-                    symbolSize: 10,
+                    color: COLORS.cold,
+                    symbolSize: 5,
                     xAxisIndex: index,
                     yAxisIndex: index,
                 }),
@@ -169,7 +179,7 @@ const option = computed<ECOption>(() => {
                           name: "Records de chaleur",
                           datasetIndex: territoryPlots.length * 2,
                           encode: { x: "period", y: "hot" },
-                          color: "#d32f2f",
+                          color: COLORS.hot,
                           stack: "records",
                           xAxisIndex: 1,
                           yAxisIndex: 1,
@@ -178,7 +188,7 @@ const option = computed<ECOption>(() => {
                           name: "Records de froid",
                           datasetIndex: territoryPlots.length * 2,
                           encode: { x: "period", y: "cold" },
-                          color: "#1976d2",
+                          color: COLORS.cold,
                           stack: "records",
                           xAxisIndex: 1,
                           yAxisIndex: 1,
@@ -189,7 +199,7 @@ const option = computed<ECOption>(() => {
         title: territoryPlots.map((plot, index) => ({
             text: plot.name,
             right: "right",
-            top: `${index * (100 / plots.length) + 2}%`,
+            top: showStackedBar ? "2%" : `${index * (100 / plots.length) + 2}%`,
         })),
         axisPointer: {
             link: [{ xAxisIndex: "all" }],
