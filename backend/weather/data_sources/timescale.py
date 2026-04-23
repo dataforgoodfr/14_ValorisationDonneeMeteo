@@ -705,7 +705,7 @@ class MaterializedTemperatureRecordsDataSource:
 
     def fetch_records(
         self, request: TemperatureRecordsRequest
-    ) -> TemperatureRecordEntry:
+    ) -> list[TemperatureRecordEntry]:
         record_type = "TX" if request.type_records == "hot" else "TN"
 
         if request.period_type == "month":
