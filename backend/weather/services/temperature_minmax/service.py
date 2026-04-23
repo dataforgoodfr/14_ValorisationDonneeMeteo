@@ -9,12 +9,13 @@ from weather.utils.date_range import (
     period_start,
 )
 
-from .protocols import MinMaxGraphDataSource
+from .protocols import MinMaxGraphDataSource, MinMaxOverviewDataSource
 from .types import (
     DailyMinMaxPoint,
     MinMaxGraphPoint,
     MinMaxGraphQuery,
     MinMaxGraphResult,
+    MinMaxOverviewQuery,
     NationalMinMaxSeries,
     StationMinMaxSeries,
 )
@@ -121,3 +122,36 @@ def compute_minmax_graph(
         }
 
     return payload
+
+
+def compute_minmax_overview(
+    *,
+    data_source: MinMaxOverviewDataSource,
+    query: MinMaxOverviewQuery,
+) -> dict:
+    result = data_source.fetch_station_overview(query)
+
+    return {
+        "pagination": {
+            "total_count": result.pagination.total_count,
+            "limit": result.pagination.limit,
+            "offset": result.pagination.offset,
+        },
+        "stations": [
+            {
+                "station_id": s.station_id,
+                "station_name": s.station_name,
+                "textreme_mean": round(s.textreme_mean, 2),
+                "tmean_mean": round(s.tmean_mean, 2),
+                "lat": s.lat,
+                "lon": s.lon,
+                "alt": s.alt,
+                "department": s.department,
+                "region": s.region,
+                "classe": s.classe,
+                "annee_de_creation": s.annee_de_creation,
+                "annee_de_fermeture": s.annee_de_fermeture,
+            }
+            for s in result.stations
+        ],
+    }
