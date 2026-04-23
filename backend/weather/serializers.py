@@ -489,6 +489,19 @@ class TemperatureDeviationOverviewQuerySerializer(serializers.Serializer):
     alt_min = serializers.FloatField(required=False, allow_null=True)
     alt_max = serializers.FloatField(required=False, allow_null=True)
 
+    classe_recente_min = serializers.IntegerField(
+        required=False, allow_null=True, min_value=1, max_value=5
+    )
+    classe_recente_max = serializers.IntegerField(
+        required=False, allow_null=True, min_value=1, max_value=5
+    )
+
+    date_de_creation_min = serializers.DateField(required=False, allow_null=True)
+    date_de_creation_max = serializers.DateField(required=False, allow_null=True)
+
+    date_de_fermeture_min = serializers.DateField(required=False, allow_null=True)
+    date_de_fermeture_max = serializers.DateField(required=False, allow_null=True)
+
     departments = CommaSeparatedStringListField(required=False)
     regions = CommaSeparatedStringListField(required=False)
 
@@ -549,6 +562,33 @@ class TemperatureDeviationOverviewQuerySerializer(serializers.Serializer):
                 {"alt_max": "alt_max doit être >= alt_min."}
             )
 
+        cl_min = attrs.get("classe_recente_min")
+        cl_max = attrs.get("classe_recente_max")
+        if cl_min is not None and cl_max is not None and cl_min > cl_max:
+            raise serializers.ValidationError(
+                {
+                    "classe_recente_max": "classe_recente_max doit être >= classe_recente_min."
+                }
+            )
+
+        dc_min = attrs.get("date_de_creation_min")
+        dc_max = attrs.get("date_de_creation_max")
+        if dc_min is not None and dc_max is not None and dc_min > dc_max:
+            raise serializers.ValidationError(
+                {
+                    "date_de_creation_max": "date_de_creation_max doit être >= date_de_creation_min."
+                }
+            )
+
+        df_min = attrs.get("date_de_fermeture_min")
+        df_max = attrs.get("date_de_fermeture_max")
+        if df_min is not None and df_max is not None and df_min > df_max:
+            raise serializers.ValidationError(
+                {
+                    "date_de_fermeture_max": "date_de_fermeture_max doit être >= date_de_fermeture_min."
+                }
+            )
+
         station_search = attrs.get("station_search")
         if station_search is not None:
             attrs["station_search"] = station_search.strip()
@@ -563,6 +603,21 @@ class TemperatureDeviationOverviewQuerySerializer(serializers.Serializer):
         attrs["deviation_max"] = dmax if "deviation_max" in attrs else None
         attrs["alt_min"] = alt_min if "alt_min" in attrs else None
         attrs["alt_max"] = alt_max if "alt_max" in attrs else None
+
+        attrs["classe_recente_min"] = cl_min if "classe_recente_min" in attrs else None
+        attrs["classe_recente_max"] = cl_max if "classe_recente_max" in attrs else None
+        attrs["date_de_creation_min"] = (
+            dc_min if "date_de_creation_min" in attrs else None
+        )
+        attrs["date_de_creation_max"] = (
+            dc_max if "date_de_creation_max" in attrs else None
+        )
+        attrs["date_de_fermeture_min"] = (
+            df_min if "date_de_fermeture_min" in attrs else None
+        )
+        attrs["date_de_fermeture_max"] = (
+            df_max if "date_de_fermeture_max" in attrs else None
+        )
 
         attrs["departments"] = attrs.get("departments", ())
         attrs["regions"] = attrs.get("regions", ())

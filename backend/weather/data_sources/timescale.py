@@ -450,6 +450,44 @@ class TimescaleTemperatureDeviationDailyDataSource(
             where_clauses.append("alt <= %s")
             params.append(query.alt_max)
 
+        if query.classe_recente_min is not None:
+            where_clauses.append("classe_recente >= %s")
+            params.append(query.classe_recente_min)
+
+        if query.classe_recente_max is not None:
+            where_clauses.append("classe_recente <= %s")
+            params.append(query.classe_recente_max)
+
+        if query.date_de_creation_min is not None:
+            where_clauses.append("annee_de_creation >= %s")
+            params.append(query.date_de_creation_min.year)
+
+        if query.date_de_creation_max is not None:
+            where_clauses.append("annee_de_creation <= %s")
+            params.append(query.date_de_creation_max.year)
+
+        if (
+            query.date_de_fermeture_min is not None
+            and query.date_de_fermeture_max is not None
+        ):
+            where_clauses.append(
+                "(annee_de_fermeture IS NOT NULL"
+                " AND annee_de_fermeture >= %s"
+                " AND annee_de_fermeture <= %s)"
+            )
+            params.append(query.date_de_fermeture_min.year)
+            params.append(query.date_de_fermeture_max.year)
+        elif query.date_de_fermeture_min is not None:
+            where_clauses.append(
+                "(annee_de_fermeture IS NULL OR annee_de_fermeture >= %s)"
+            )
+            params.append(query.date_de_fermeture_min.year)
+        elif query.date_de_fermeture_max is not None:
+            where_clauses.append(
+                "(annee_de_fermeture IS NOT NULL AND annee_de_fermeture <= %s)"
+            )
+            params.append(query.date_de_fermeture_max.year)
+
         if query.departments:
             where_clauses.append("department = ANY(%s)")
             params.append(list(query.departments))
