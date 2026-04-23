@@ -396,7 +396,7 @@ class TimescaleTemperatureDeviationDailyDataSource(
 
         order_sql = ordering_map[query.ordering]
 
-        where_clauses = []
+        where_clauses = ["classe_recente BETWEEN 1 AND 4"]
         params: list = [query.date_start, query.date_end]
 
         if query.station_search:
@@ -537,7 +537,7 @@ class TimescaleTemperatureDeviationDailyDataSource(
                 temperature_mean=float(row["temperature_mean"]),
                 baseline_mean=float(row["baseline_mean"]),
                 deviation=float(row["deviation"]),
-                classe_recente=_classe_recente(row["classe_recente"]),
+                classe_recente=row["classe_recente"],
                 date_de_creation=_date_de_creation(row["annee_de_creation"]),
                 date_de_fermeture=_date_de_fermeture(row["annee_de_fermeture"]),
             )
@@ -599,7 +599,8 @@ class TimescaleTemperatureRecordsDataSource:
                 s.annee_de_fermeture
             FROM ordered o
             JOIN public.v_station s ON s.station_code = o."NUM_POSTE"
-            WHERE o.prev_val IS NULL OR o."{col}" {cmp} o.prev_val
+            WHERE (o.prev_val IS NULL OR o."{col}" {cmp} o.prev_val)
+              AND s.classe_recente BETWEEN 1 AND 3
             ORDER BY s.name, o."AAAAMMJJ"
         """
 
@@ -622,7 +623,7 @@ class TimescaleTemperatureRecordsDataSource:
                 lat=row["lat"],
                 lon=row["lon"],
                 alt=row["alt"],
-                classe_recente=_classe_recente(row["classe_recente"]),
+                classe_recente=row["classe_recente"],
                 date_de_creation=_date_de_creation(row["annee_de_creation"]),
                 date_de_fermeture=_date_de_fermeture(row["annee_de_fermeture"]),
             )
@@ -747,6 +748,7 @@ class MaterializedTemperatureRecordsDataSource:
                 FROM public.mv_records_battus m
             LEFT JOIN public.v_station vs ON vs.station_code = m.station_code
             WHERE {where}
+              AND vs.classe_recente BETWEEN 1 AND 3
             ORDER BY station_name, record_date
         """
 
@@ -769,7 +771,7 @@ class MaterializedTemperatureRecordsDataSource:
                 lat=row["lat"],
                 lon=row["lon"],
                 alt=row["alt"],
-                classe_recente=_classe_recente(row["classe_recente"]),
+                classe_recente=row["classe_recente"],
                 date_de_creation=_date_de_creation(row["annee_de_creation"]),
                 date_de_fermeture=_date_de_fermeture(row["annee_de_fermeture"]),
             )
@@ -895,6 +897,7 @@ class HybridTemperatureRecordsDataSource:
             JOIN public.v_station vs ON vs.station_code = o."NUM_POSTE"
             WHERE o."{col}" {cmp} o.prev_val
               AND o."AAAAMMJJ" >= make_date(vs.annee_de_creation + 20, 1, 1)
+              AND vs.classe_recente BETWEEN 1 AND 3
               {date_filter_clauses}
               {terr_filter_clause}
             ORDER BY vs.name, o."AAAAMMJJ"
@@ -932,7 +935,7 @@ class HybridTemperatureRecordsDataSource:
                 lat=row["lat"],
                 lon=row["lon"],
                 alt=row["alt"],
-                classe_recente=_classe_recente(row["classe_recente"]),
+                classe_recente=row["classe_recente"],
                 date_de_creation=_date_de_creation(row["annee_de_creation"]),
                 date_de_fermeture=_date_de_fermeture(row["annee_de_fermeture"]),
             )
@@ -1046,11 +1049,6 @@ class TimescaleRecordsDataSource:
             )
 
         return tuple(result)
-
-
-def _classe_recente(classe: int | None) -> int:
-    """Retourne la classe récente de la station, ou 9999 si inconnue (NULL en base)."""
-    return classe if classe is not None else 9999
 
 
 def _date_de_creation(annee: int) -> dt.date:
