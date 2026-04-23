@@ -1,16 +1,20 @@
 import type {
-    TemperatureDeviationGraphParams,
     Station,
+    TemperatureDeviationGraphParams,
     TemperatureDeviationGraphResponse,
     TemperatureDeviationGraphStationSerie,
 } from "~/types/api";
-import { useCustomDate, dateToStringYMD } from "#imports";
 import type {
+    ChartType,
     GranularityType,
     SliceType,
-    ChartType,
 } from "~/components/ui/commons/selectBar/types";
 import type { DeviationStationIdAndName } from "~/types/common";
+import {
+    getFirstDayOfYearInLocal,
+    getLastAvailableDayOfYearInLocal,
+} from "~/utils/date";
+import { useCustomDate } from "#imports";
 
 const dates = useCustomDate();
 
@@ -147,10 +151,14 @@ export const useDeviationStore = defineStore("deviationStore", () => {
             : chartData.stations;
     };
 
-    watch(isGranularityYear, (value) => {
-        if (value) {
-            pickedDateStart.value = setToFirstDayOfYear(pickedDateStart.value);
-            pickedDateEnd.value = setToLastDayOfYear(pickedDateEnd.value);
+    watch(isGranularityYear, (isGranularityYear) => {
+        if (isGranularityYear) {
+            pickedDateStart.value = getFirstDayOfYearInLocal(
+                pickedDateStart.value,
+            );
+            pickedDateEnd.value = getLastAvailableDayOfYearInLocal(
+                pickedDateEnd.value,
+            );
         }
     });
 
