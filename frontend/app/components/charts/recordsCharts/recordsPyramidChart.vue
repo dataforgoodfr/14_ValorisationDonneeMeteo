@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import * as echarts from "echarts/core";
 import langFR from "~/i18n/langFR.js";
+import { useResizeObserver } from "@vueuse/core";
 import type { SelectBarAdapter } from "~/components/ui/commons/selectBar/types";
 import type { TemperatureRecordsGraphResponse } from "~/types/api";
 import type { XAXisOption, YAXisOption } from "echarts/types/dist/shared";
@@ -22,6 +23,14 @@ interface Props {
 }
 
 const props = defineProps<Props>();
+
+const containerRef = ref<HTMLElement | null>(null);
+const INITIAL_CONTAINER_WIDTH = 900;
+const containerWidth = ref(INITIAL_CONTAINER_WIDTH);
+useResizeObserver(containerRef, (entries) => {
+    const width = entries[0]?.contentRect.width;
+    if (width !== undefined) containerWidth.value = width;
+});
 
 const renderer = ref<"svg" | "canvas">("canvas");
 const initOptions = computed(() => ({
@@ -76,10 +85,14 @@ const option = computed<ECOption>(() => {
         ),
     );
 
-    const rightOfLeftGrid = { year: "53%", month: "53.5%", day: "54%" }[
+    const rightOfLeftGridPercent = { year: 53, month: 53.5, day: 54 }[
         granularity
     ];
-    const labelMargin = { year: 27, month: 31, day: 35 }[granularity];
+    const rightOfLeftGrid = `${rightOfLeftGridPercent}%`;
+    // margin calibré pour centrer le label à 50% quelle que soit la largeur du container
+    const labelMargin = Math.round(
+        ((rightOfLeftGridPercent - 50) / 100) * containerWidth.value,
+    );
     const slotSize = 100 / N;
 
     // Positions verticales du subplot i dans le conteneur (en %)
@@ -137,6 +150,7 @@ const option = computed<ECOption>(() => {
                 gridIndex: 2 * i + 1,
                 axisLabel: {
                     margin: labelMargin,
+                    width: labelMargin * 2,
                     align: "center",
                     fontSize: 12,
                     fontWeight: "bold",
@@ -194,13 +208,15 @@ const option = computed<ECOption>(() => {
 </script>
 
 <template>
-    <VChart
-        :ref="adapter.chartRef"
-        :key="`${adapter.granularity.value}-${adapter.chartType?.value}`"
-        :option="option"
-        :init-options="initOptions"
-        :loading="adapter.pending.value"
-        :loading-options="{ text: 'Chargement…', color: '#3b82f6' }"
-        autoresize
-    />
+    <div ref="containerRef">
+        <VChart
+            :ref="adapter.chartRef"
+            :key="`${adapter.granularity.value}-${adapter.chartType?.value}`"
+            :option="option"
+            :init-options="initOptions"
+            :loading="adapter.pending.value"
+            :loading-options="{ text: 'Chargement…', color: '#3b82f6' }"
+            autoresize
+        />
+    </div>
 </template>
