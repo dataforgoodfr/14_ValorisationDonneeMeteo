@@ -1,8 +1,8 @@
 <script setup lang="ts">
-import ImportantInformationSection from "../home/ImportantInformationSection/ImportantInformationSection.vue";
-import TodaySection from "../home/TodaySection/TodaySection.vue";
-import LastMonthSection from "../home/Last30DaysSection/LastMonthSection.vue";
-import LastYearSection from "../home/Last365DaysSection/LastYearSection.vue";
+import ImportantInformationSection from "~/components/home/ImportantInformationSection/ImportantInformationSection.vue";
+import TodaySection from "~/components/home/TodaySection/TodaySection.vue";
+import LastMonthSection from "~/components/home/Last30DaysSection/LastMonthSection.vue";
+import LastYearSection from "~/components/home/Last365DaysSection/LastYearSection.vue";
 </script>
 
 <template>
