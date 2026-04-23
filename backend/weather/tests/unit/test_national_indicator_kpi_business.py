@@ -210,8 +210,8 @@ def test_previous_period_dates_are_correct():
 
     assert calls[0] == (dt.date(2024, 1, 10), dt.date(2024, 1, 14))
     assert calls[1] == (dt.date(2024, 1, 5), dt.date(2024, 1, 9))
-    assert result.current.itn_mean is None
-    assert result.previous.itn_mean is None
+    assert result.current.itn_mean == 0
+    assert result.previous.itn_mean == 0
 
 
 def test_previous_period_computes_independent_stats():
