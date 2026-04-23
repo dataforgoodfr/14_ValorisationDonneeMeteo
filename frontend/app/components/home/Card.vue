@@ -7,7 +7,7 @@ interface Props {
 const props = defineProps<Props>();
 </script>
 <template>
-    <UCard class="border border-blue-350 flex flex-col">
+    <UCard class="border border-blue-350 flex flex-col dark:bg-dark-850">
         <template #default>
             <div class="flex items-center justify-between pb-2">
                 <h1 class="text-sm font-semibold text-blue-350">
