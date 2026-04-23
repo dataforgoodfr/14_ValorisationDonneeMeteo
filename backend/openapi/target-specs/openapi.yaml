@@ -1884,6 +1884,28 @@ components:
             alt_max:
               type: number
               nullable: true
+            classe_recente_min:
+              type: integer
+              nullable: true
+            classe_recente_max:
+              type: integer
+              nullable: true
+            date_de_creation_min:
+              type: string
+              format: date
+              nullable: true
+            date_de_creation_max:
+              type: string
+              format: date
+              nullable: true
+            date_de_fermeture_min:
+              type: string
+              format: date
+              nullable: true
+            date_de_fermeture_max:
+              type: string
+              format: date
+              nullable: true
             departments:
               type: array
               items:
