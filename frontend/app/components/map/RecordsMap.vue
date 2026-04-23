@@ -1,34 +1,39 @@
 <template>
-    <div class="flex flex-col gap-2 w-[500px] flex-shrink-0">
-        <div class="flex flex-col gap-0.5">
-            <div class="flex items-baseline gap-2">
-                <span class="text-sm text-muted">
-                    Record
-                    {{ store.typeRecords === "hot" ? "chaud" : "froid" }}
-                    le plus extrême
-                </span>
-                <span
-                    v-if="extremeStation"
-                    class="text-lg font-semibold"
-                    :class="
-                        store.typeRecords === 'hot'
-                            ? 'text-red-400'
-                            : 'text-blue-400'
-                    "
-                >
-                    {{ extremeStation.record_value >= 0 ? "+" : ""
-                    }}{{ extremeStation.record_value.toFixed(1) }} °C
-                </span>
-                <span v-else class="text-lg font-semibold text-muted">—</span>
-            </div>
-            <div v-if="extremeStation" class="text-xs text-muted">
-                {{ extremeStation.station_name }} ·
-                {{ extremeStation.department }} ·
-                {{ formatDate(extremeStation.record_date) }}
-            </div>
-            <div v-else class="text-xs text-muted">—</div>
+    <div
+        class="flex flex-col items-center justify-center gap-2 w-[500px] flex-shrink-0"
+    >
+        <div class="flex items-baseline gap-2">
+            <Card
+                title="Record absolu en France"
+                tooltip-text="Record le plus extrêùe en France métropolitaine pour la période sélectionnée."
+            >
+                <template #kpi>
+                    <span
+                        v-if="extremeStation"
+                        class="text-lg font-semibold"
+                        :class="
+                            store.typeRecords === 'hot'
+                                ? 'text-red-400'
+                                : 'text-blue-400'
+                        "
+                    >
+                        {{ extremeStation.record_value >= 0 ? "+" : ""
+                        }}{{ extremeStation.record_value.toFixed(1) }} °C
+                    </span>
+                </template>
+                <template #kpi-context-text>
+                    <span v-if="extremeStation" class="text-xs text-muted">
+                        {{ extremeStation.station_name }}
+                        <span v-if="extremeStation.department"
+                            >({{ extremeStation.department }}) -
+                        </span>
+                        <span v-if="extremeStation.record_date">{{
+                            formatDate(extremeStation.record_date)
+                        }}</span>
+                    </span>
+                </template>
+            </Card>
         </div>
-
         <StationMap
             :stations="mappableStations"
             :color-config="RECORDS_MAP_COLORS"
@@ -44,6 +49,7 @@ import type { MappableStation } from "~/types/api";
 import { RECORDS_MAP_COLORS } from "~/constants/colors";
 import { formatRecordsMapTooltip } from "~/components/map/tooltipFormatters/recordsMapTooltipFormatter";
 import StationMap from "~/components/map/StationMap.vue";
+import Card from "~/components/home/Card.vue";
 
 const store = useRecordsTableStore();
 

@@ -1,28 +1,32 @@
 <template>
-    <div class="flex flex-col gap-2 w-[500px] flex-shrink-0">
+    <div
+        class="flex flex-col items-center justify-center gap-2 w-[500px] flex-shrink-0"
+    >
         <div class="flex flex-col gap-0.5">
             <div class="flex items-baseline gap-2">
-                <span class="text-sm text-muted">Écart à la normale moyen</span>
-                <span
-                    v-if="nationalDeviation != null"
-                    class="text-lg font-semibold"
-                    :class="
-                        nationalDeviation >= 0
-                            ? 'text-red-400'
-                            : 'text-blue-400'
-                    "
+                <Card
+                    title="Ecart à la normale en France"
+                    tooltip-text="Ecart à la normale moyen en France métropolitaine sur la période sélectionnée."
                 >
-                    {{ nationalDeviation >= 0 ? "+" : ""
-                    }}{{ nationalDeviation.toFixed(1) }} °C
-                </span>
-                <span v-else class="text-lg font-semibold text-muted">—</span>
-            </div>
-            <div class="text-xs text-muted">
-                <span v-if="baseline"
-                    >Période des normales : {{ baseline }}</span
-                >
-                <span v-if="baseline"> · </span>
-                en France métropolitaine
+                    <template #kpi>
+                        <p class="font-semibold text-4xl mb-1 text-red-400">
+                            <span v-if="kpi.deviation_from_normal != null"
+                                ><span
+                                    >{{
+                                        kpi.deviation_from_normal >= 0
+                                            ? "+"
+                                            : ""
+                                    }}{{ kpi.deviation_from_normal.toFixed(1) }}
+                                    °C
+                                </span>
+                            </span>
+                            <span v-else class="text-muted">—</span>
+                        </p>
+                    </template>
+                    <template #kpi-context-text>
+                        période des normales: 1991-2020
+                    </template>
+                </Card>
             </div>
         </div>
 
@@ -36,15 +40,28 @@
 </template>
 
 <script setup lang="ts">
-import type { DeviationMapParams, MappableStation } from "~/types/api";
+import type {
+    DeviationMapParams,
+    MappableStation,
+    NationalIndicatorKpiParams,
+} from "~/types/api";
 import { DEVIATION_MAP_COLORS } from "~/constants/colors";
 import { formatDeviationMapTooltip } from "~/components/map/tooltipFormatters/deviationMapTooltipFormatter";
 import StationMap from "~/components/map/StationMap.vue";
+import Card from "~/components/home/Card.vue";
+import { dateToStringYMD } from "#imports";
 
 const props = defineProps<{
     dateStart: string;
     dateEnd: string;
 }>();
+
+const paramsItn = computed<NationalIndicatorKpiParams>(() => ({
+    date_start: dateToStringYMD(new Date(props.dateStart)),
+    date_end: dateToStringYMD(new Date(props.dateEnd)),
+}));
+
+const { data: kpi } = useNationalIndicatorKpi(paramsItn);
 
 const params = computed<DeviationMapParams>(() => ({
     date_start: props.dateStart,
@@ -54,16 +71,6 @@ const params = computed<DeviationMapParams>(() => ({
 
 const { data: stationsData, execute: fetchStations } =
     useTemperatureDeviationMap(params, "deviation-map");
-
-const nationalDeviation = computed(
-    () => stationsData.value?.national.deviation_mean ?? null,
-);
-
-const baseline = computed(() => {
-    const b = stationsData.value?.metadata.baseline;
-    if (!b) return null;
-    return b.replace("-", " – ");
-});
 
 const mappableStations = computed<MappableStation[]>(
     () =>
