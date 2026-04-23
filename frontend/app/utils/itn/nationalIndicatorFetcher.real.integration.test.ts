@@ -34,12 +34,14 @@ describe("fetchNationalIndicatorForYear", () => {
         const timeSeries = apiResponse.time_series;
 
         expect(timeSeries).toHaveLength(12);
-        expect(timeSeries[0]).toHaveProperty("date");
-        expect(timeSeries[0]).toHaveProperty("temperature");
-        expect(timeSeries[0]).toHaveProperty("baseline_mean");
-        expect(timeSeries[0]).toHaveProperty("baseline_std_dev_upper");
-        expect(timeSeries[0]).toHaveProperty("baseline_std_dev_lower");
-        expect(timeSeries[0]).toHaveProperty("baseline_max");
-        expect(timeSeries[0]).toHaveProperty("baseline_min");
+        expect(timeSeries[0]).toMatchObject({
+            date: expect.any(String),
+            temperature: expect.any(Number),
+            baseline_mean: expect.any(Number),
+            baseline_std_dev_upper: expect.any(Number),
+            baseline_std_dev_lower: expect.any(Number),
+            baseline_max: expect.any(Number),
+            baseline_min: expect.any(Number),
+        });
     });
 });
