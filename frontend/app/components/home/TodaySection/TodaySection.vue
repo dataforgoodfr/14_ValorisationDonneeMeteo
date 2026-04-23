@@ -2,7 +2,9 @@
 import GoToDataLink from "../GoToDataLink.vue";
 import ITNCard from "../ImportantInformationSection/ITNCard.vue";
 import Section from "../Section.vue";
+import MinMaxCard from "../MinMaxCard.vue";
 
+const { yesterday } = useCustomDate();
 const today = new Date();
 </script>
 <template>
@@ -10,8 +12,18 @@ const today = new Date();
         <Section :title="`AUJOURD'HUI - ${formatDateLongForDisplay(today)}`">
             <h2 class="text-primary pb-2">MIN-MAX DU JOUR</h2>
             <div class="flex flex-col gap-2">
-                <ITNCard />
-                <ITNCard />
+                <MinMaxCard
+                    hot-cold="hot"
+                    temperature="29,2"
+                    :date="yesterday"
+                    city="Quimper"
+                />
+                <MinMaxCard
+                    hot-cold="cold"
+                    temperature="16,8"
+                    :date="yesterday"
+                    city="Quimper"
+                />
             </div>
             <GoToDataLink :data-url="'/itn'" />
 
