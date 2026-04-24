@@ -1,5 +1,10 @@
 export default defineAppConfig({
     ui: {
+        select: {
+            slots: {
+                content: "w-auto min-w-(--reka-select-trigger-width)",
+            },
+        },
         card: {
             slots: {
                 root: "rounded-lg overflow-hidden",
