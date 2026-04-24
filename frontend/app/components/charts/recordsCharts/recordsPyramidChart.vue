@@ -13,6 +13,7 @@ import {
 } from "~/utils/recordsChartUtils";
 import { recordsPyramidTooltipFormatter } from "~/components/charts/tooltipFormatters/recordsPyramidTooltipFormatter";
 import { COLORS } from "~/constants/colors";
+import { FONT_CHARTS } from "~/constants/fonts";
 type CategoryYAxisOption = Extract<YAXisOption, { type?: "category" }>;
 type ValueXAxisOption = Extract<XAXisOption, { type?: "value" }>;
 
@@ -153,7 +154,7 @@ const option = computed<ECOption>(() => {
                     margin: labelMargin,
                     width: labelMargin * 2,
                     align: "center",
-                    fontSize: 12,
+                    fontSize: FONT_CHARTS.fontSize,
                     fontWeight: "bold",
                 },
                 axisTick: { show: false },
@@ -171,14 +172,14 @@ const option = computed<ECOption>(() => {
                 text: pd.name,
                 right: "right",
                 top: `${i * slotSize + 2}%`,
-                textStyle: { fontSize: 12 },
+                textStyle: { fontSize: FONT_CHARTS.fontSize },
             })),
             {
                 text: "Nombre de records",
                 bottom: 25,
                 left: "50%",
                 textAlign: "center",
-                textStyle: { fontSize: 12, color: "#fff" },
+                textStyle: { fontSize: FONT_CHARTS.fontSize, color: "#fff" },
             },
         ],
         legend: {
