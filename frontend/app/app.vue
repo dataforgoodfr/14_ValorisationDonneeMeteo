@@ -2,7 +2,7 @@
 import AppFooter from "./components/layout/AppFooter.vue";
 import AppHeader from "./components/layout/AppHeader.vue";
 import { fr } from "@nuxt/ui/locale";
-import { ECHART_DARK_THEME } from "~/utils/echartsTheme";
+import { ECHART_DARK_THEME } from "~/constants/echartsTheme";
 
 const colorMode = useColorMode();
 colorMode.value = "dark";

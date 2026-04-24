@@ -10,7 +10,7 @@ import {
     makeSortableColFactory,
     temperatureBadgeClass,
     truncatedCell,
-} from "~/utils/tableUtils";
+} from "~/constants/tableUtils";
 import { storeToRefs } from "pinia";
 import { useDeviationTableStore } from "~/stores/deviationTableStore";
 import DeviationFilterBar from "~/components/table/deviation/DeviationFilterBar.vue";
