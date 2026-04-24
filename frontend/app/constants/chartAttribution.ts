@@ -1,12 +1,17 @@
 import type { GraphicComponentOption } from "echarts";
+import { COLORS } from "~/constants/colors";
+
+export const ATTRIBUTION_TEXT =
+    "Source : Météo-France opensource data\nCrédit : Infoclimat, DataForGood";
+export const ATTRIBUTION_FONT_SIZE = 10;
 
 export const CHART_ATTRIBUTION_GRAPHIC: GraphicComponentOption = {
     type: "text",
     right: 10,
     bottom: 0,
     style: {
-        text: "Source : Météo-France opensource data\nCrédit : Infoclimat, DataForGood",
-        fill: "#3e3e3e",
-        fontSize: 10,
+        text: ATTRIBUTION_TEXT,
+        fill: COLORS.foreground,
+        fontSize: ATTRIBUTION_FONT_SIZE,
     },
 };

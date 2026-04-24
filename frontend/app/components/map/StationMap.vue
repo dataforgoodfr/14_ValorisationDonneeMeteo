@@ -5,6 +5,7 @@
             class="w-full rounded-lg overflow-hidden"
             style="height: 480px"
         />
+        <MapAttribution />
         <div
             class="absolute bottom-4 left-1/2 -translate-x-1/2 flex flex-col items-center gap-1 pointer-events-none"
         >
@@ -223,7 +224,15 @@ onMounted(async () => {
                             [-5.2, 41.3],
                             [9.6, 51.1],
                         ],
-                        { padding: 40, duration: 500 },
+                        {
+                            padding: {
+                                top: 50,
+                                right: 50,
+                                bottom: 50,
+                                left: 40,
+                            },
+                            duration: 500,
+                        },
                     );
                 el.appendChild(btn);
                 return el;
@@ -240,7 +249,10 @@ onMounted(async () => {
                 [-5.2, 41.3],
                 [9.6, 51.1],
             ],
-            { padding: 40, duration: 0 },
+            {
+                padding: { top: -10, right: 50, bottom: 50, left: 40 },
+                duration: 0,
+            },
         );
     });
 
