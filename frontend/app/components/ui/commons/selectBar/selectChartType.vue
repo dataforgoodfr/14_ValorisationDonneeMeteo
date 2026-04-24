@@ -26,7 +26,7 @@ const chartTypes = adapter.chartTypeOptions;
                     base:
                         adapter.chartType.value === item.value
                             ? 'bg-blue-350 ring-1 ring-blue-350 text-white'
-                            : 'bg-transparent ring-1 ring-blue-350 text-white',
+                            : 'bg-transparent ring-1 ring-blue-350 text-black dark:text-white',
                 }"
                 @click="adapter.setChartType(item.value as ChartType)"
             />
