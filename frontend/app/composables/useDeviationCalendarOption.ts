@@ -17,6 +17,7 @@ import type {
 import type { GranularityType } from "~/components/ui/commons/selectBar/types";
 import type { DeviationStationIdAndName } from "~/types/common";
 import { MONTH_SHORT } from "~/constants/months";
+import { FONT_CHARTS } from "~/constants/fonts";
 
 // transforme "Jan-2024" en nombre comparable
 function toMonthNumber(monthLabel: string): number {
@@ -230,7 +231,7 @@ export function useDeviationCalendarOption(
             axisLine: { lineStyle: { color: "#3a5080" } },
             axisLabel: {
                 color: "#000000",
-                fontSize: 11,
+                fontSize: FONT_CHARTS.fontSize,
                 interval: labelInterval,
                 rotate: labelRotate,
             },
@@ -239,7 +240,7 @@ export function useDeviationCalendarOption(
             nameGap: granularity === "year" ? 25 : 38,
             nameTextStyle: {
                 color: COLORS.value.foreground,
-                fontSize: 12,
+                fontSize: FONT_CHARTS.fontSize,
                 fontWeight: "bold",
             },
         });
@@ -251,13 +252,16 @@ export function useDeviationCalendarOption(
             splitArea: { show: true },
             axisTick: { show: false },
             axisLine: { lineStyle: { color: "#3a5080" } },
-            axisLabel: { color: COLORS.value.foreground, fontSize: 11 },
+            axisLabel: {
+                color: COLORS.value.foreground,
+                fontSize: FONT_CHARTS.fontSize,
+            },
             name: yAxisName,
             nameLocation: "middle",
             nameGap: 35,
             nameTextStyle: {
                 color: COLORS.value.foreground,
-                fontSize: 12,
+                fontSize: FONT_CHARTS.fontSize,
                 fontWeight: "bold",
             },
         });
@@ -267,7 +271,7 @@ export function useDeviationCalendarOption(
             top: `${top - 4}%`,
             right: "12%",
             textStyle: {
-                fontSize: 12,
+                fontSize: FONT_CHARTS.fontSize,
                 fontWeight: "bold",
                 color: COLORS.value.foreground,
             },
