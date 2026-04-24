@@ -13,7 +13,8 @@ export default defineAppConfig({
         table: {
             slots: {
                 tbody: "divide-y dark:divide-blue-350",
-                td: "dark:text-blue-350",
+                td: "dark:text-blue-350 text-base",
+                th: "text-base",
             },
         },
         card: {
