@@ -10,7 +10,7 @@ const lines = ATTRIBUTION_TEXT.split("\n");
 
 <template>
     <div
-        class="absolute bottom-0 right-2 pointer-events-none text-right leading-tight"
+        class="pointer-events-none text-right leading-tight"
         :style="{
             fontSize: `${ATTRIBUTION_FONT_SIZE}px`,
             color: COLORS.foreground,

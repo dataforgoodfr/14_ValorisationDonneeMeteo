@@ -1,36 +1,38 @@
 <template>
-    <div class="relative">
-        <div
-            ref="mapContainer"
-            class="w-full rounded-lg overflow-hidden"
-            style="height: 480px"
-        />
-        <MapAttribution />
-        <div
-            class="absolute bottom-4 left-1/2 -translate-x-1/2 flex flex-col items-center gap-1 pointer-events-none"
-        >
-            <span class="text-xs" :style="{ color: COLORS.foreground }">{{
-                legendLabel
-            }}</span>
+    <div>
+        <div class="relative">
             <div
-                class="rounded-full"
-                :style="{
-                    width: '160px',
-                    height: '12px',
-                    background: `linear-gradient(to right, ${legendGradient})`,
-                }"
+                ref="mapContainer"
+                class="w-full rounded-lg overflow-hidden"
+                style="height: 480px"
             />
             <div
-                class="flex justify-between w-full text-xs"
-                :style="{ color: COLORS.foreground }"
+                class="absolute bottom-0 left-1/2 -translate-x-1/2 flex flex-col items-center gap-1 pointer-events-none"
             >
-                <span>{{ colorConfig.min }}°C</span>
-                <span
-                    >{{ colorConfig.max > 0 ? "+" : ""
-                    }}{{ colorConfig.max }}°C</span
+                <span class="text-xs" :style="{ color: COLORS.foreground }">{{
+                    legendLabel
+                }}</span>
+                <div
+                    class="rounded-full"
+                    :style="{
+                        width: '160px',
+                        height: '12px',
+                        background: `linear-gradient(to right, ${legendGradient})`,
+                    }"
+                />
+                <div
+                    class="flex justify-between w-full text-xs"
+                    :style="{ color: COLORS.foreground }"
                 >
+                    <span>{{ colorConfig.min }}°C</span>
+                    <span
+                        >{{ colorConfig.max > 0 ? "+" : ""
+                        }}{{ colorConfig.max }}°C</span
+                    >
+                </div>
             </div>
         </div>
+        <MapAttribution class="mt-2" />
     </div>
 </template>
 
