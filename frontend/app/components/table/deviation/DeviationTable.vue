@@ -53,9 +53,8 @@ const { setOrdering } = store;
 
 interface TableRow {
     station_name: string;
-    departement: string | undefined;
+    department: string | undefined;
     region: string | undefined;
-    // altitude: number | undefined;
     deviation: number | undefined;
     temperatureMean: number | undefined;
 }
@@ -63,9 +62,8 @@ interface TableRow {
 const tableData = computed<TableRow[]>(() =>
     (deviationData.value?.stations ?? []).map((s) => ({
         station_name: s.station_name,
-        departement: s.department,
+        department: s.department,
         region: s.region,
-        // altitude: s.alt,
         deviation: s.deviation,
         temperatureMean: s.temperature_mean,
     })),
@@ -74,96 +72,40 @@ const tableData = computed<TableRow[]>(() =>
 const deviationBadgeColor = (deviation: number) =>
     deviation >= 0 ? "error" : "info";
 
+function sortableCol(
+    key: string,
+    label: string,
+    options: { sortKey?: string; meta?: object } = {},
+) {
+    const sortKey = options.sortKey ?? key;
+    return {
+        accessorKey: key,
+        header: () =>
+            h(UButton, {
+                variant: "ghost",
+                label,
+                title: label,
+                trailingIcon: ordering.value.includes(sortKey)
+                    ? ordering.value.startsWith("-")
+                        ? "i-lucide-arrow-down"
+                        : "i-lucide-arrow-up"
+                    : "i-lucide-arrow-up-down",
+                color: "neutral",
+                class: "-mx-2.5 font-semibold text-highlighted w-full justify-center",
+                onClick: () => setOrdering(sortKey),
+            }),
+        ...(options.meta ? { meta: options.meta } : {}),
+    };
+}
+
+const centered = { meta: { class: { td: "text-center" } } };
+
 const columns: TableColumn<TableRow>[] = [
+    sortableCol("station_name", "Station"),
+    sortableCol("department", "Département", centered),
+    sortableCol("region", "Région", centered),
     {
-        accessorKey: "station_name",
-        header: () =>
-            h(UButton, {
-                variant: "ghost",
-                label: "Station",
-                title: "Station",
-                trailingIcon: ordering.value.includes("station_name")
-                    ? ordering.value.startsWith("-")
-                        ? "i-lucide-arrow-down"
-                        : "i-lucide-arrow-up"
-                    : "i-lucide-arrow-up-down",
-                color: "neutral",
-                class: "-mx-2.5 font-semibold text-highlighted w-full justify-center",
-                onClick: () => setOrdering("station_name"),
-            }),
-    },
-    {
-        accessorKey: "departement",
-        header: () =>
-            h(UButton, {
-                variant: "ghost",
-                label: "Département",
-                title: "Département",
-                trailingIcon: ordering.value.includes("departement")
-                    ? ordering.value.startsWith("-")
-                        ? "i-lucide-arrow-down"
-                        : "i-lucide-arrow-up"
-                    : "i-lucide-arrow-up-down",
-                color: "neutral",
-                class: "-mx-2.5 font-semibold text-highlighted w-full justify-center",
-                onClick: () => setOrdering("departement"),
-            }),
-        meta: { class: { td: "text-center" } },
-    },
-    {
-        accessorKey: "region",
-        header: () =>
-            h(UButton, {
-                variant: "ghost",
-                label: "Région",
-                title: "Région",
-                trailingIcon: ordering.value.includes("region")
-                    ? ordering.value.startsWith("-")
-                        ? "i-lucide-arrow-down"
-                        : "i-lucide-arrow-up"
-                    : "i-lucide-arrow-up-down",
-                color: "neutral",
-                class: "-mx-2.5 font-semibold text-highlighted w-full justify-center",
-                onClick: () => setOrdering("region"),
-            }),
-        meta: { class: { td: "text-center" } },
-    },
-    // {
-    //     accessorKey: "altitude",
-    //     header: () =>
-    //         h(UButton, {
-    //             variant: "ghost",
-    //             label: "Altitude (m)",
-    //             title: "Altitude (m)",
-    //             trailingIcon: ordering.value.includes("altitude")
-    //                 ? ordering.value.startsWith("-")
-    //                     ? "i-lucide-arrow-down"
-    //                     : "i-lucide-arrow-up"
-    //                 : "i-lucide-arrow-up-down",
-    //             color: "neutral",
-    //             class: "-mx-2.5 font-semibold text-highlighted w-full justify-center",
-    //             onClick: () => setOrdering("alt"),
-    //         }),
-    //     meta: { class: { td: "text-center" } },
-    //     cell: ({ row }) => `${row.getValue<number>("altitude")} m`,
-    // },
-    {
-        accessorKey: "deviation",
-        header: () =>
-            h(UButton, {
-                variant: "ghost",
-                label: "Écart à la normale (°C)",
-                title: "Écart à la normale (°C)",
-                trailingIcon: ordering.value.includes("deviation")
-                    ? ordering.value.startsWith("-")
-                        ? "i-lucide-arrow-down"
-                        : "i-lucide-arrow-up"
-                    : "i-lucide-arrow-up-down",
-                color: "neutral",
-                class: "-mx-2.5 font-semibold text-highlighted w-full justify-center",
-                onClick: () => setOrdering("deviation"),
-            }),
-        meta: { class: { td: "text-center" } },
+        ...sortableCol("deviation", "Écart à la normale (°C)", centered),
         cell: ({ row }) =>
             h(
                 UBadge,
@@ -176,22 +118,10 @@ const columns: TableColumn<TableRow>[] = [
             ),
     },
     {
-        accessorKey: "temperatureMean",
-        header: () =>
-            h(UButton, {
-                variant: "ghost",
-                label: "Température Moyenne (°C)",
-                title: "Température Moyenne (°C)",
-                trailingIcon: ordering.value.includes("temperatureMean")
-                    ? ordering.value.startsWith("-")
-                        ? "i-lucide-arrow-down"
-                        : "i-lucide-arrow-up"
-                    : "i-lucide-arrow-up-down",
-                color: "neutral",
-                class: "-mx-2.5 font-semibold text-highlighted w-full justify-center",
-                onClick: () => setOrdering("temperature_mean"),
-            }),
-        meta: { class: { td: "text-center" } },
+        ...sortableCol("temperatureMean", "Température Moyenne (°C)", {
+            sortKey: "temperature_mean",
+            ...centered,
+        }),
         cell: ({ row }) =>
             `${row.getValue<number>("temperatureMean").toFixed(1)}`,
     },
