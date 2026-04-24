@@ -7,8 +7,8 @@ import { COLORS } from "~/constants/colors";
 
 function formatBarTooltip(param: DefaultLabelFormatterCallbackParams): string {
     const data = param.value as Record<string, number | string>;
-    const hotMarker = `<span style="display:inline-block;margin-right:4px;border-radius:10px;width:10px;height:10px;background-color:${COLORS.cold};"></span>`;
-    const coldMarker = `<span style="display:inline-block;margin-right:4px;border-radius:10px;width:10px;height:10px;background-color:${COLORS.hot};"></span>`;
+    const hotMarker = `<span style="display:inline-block;margin-right:4px;border-radius:10px;width:10px;height:10px;background-color:${COLORS.hot};"></span>`;
+    const coldMarker = `<span style="display:inline-block;margin-right:4px;border-radius:10px;width:10px;height:10px;background-color:${COLORS.cold};"></span>`;
     return [
         `<b>${data.period}</b>`,
         `${hotMarker} Records de chaleur : ${data.hot}`,
