@@ -161,7 +161,7 @@ const dataForGoodSocials = [
             <div class="py-4">
                 <p class="text-sm text-muted">
                     Tous droits réservés &mdash; &copy;
-                    {{ new Date().getFullYear() }} InfoClimat et Data for Good
+                    {{ new Date().getFullYear() }} Infoclimat et Data for Good
                 </p>
             </div>
         </UContainer>
