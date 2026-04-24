@@ -5,7 +5,8 @@ import { fr } from "@nuxt/ui/locale";
 import { ECHART_DARK_THEME } from "~/utils/echartsTheme";
 
 const colorMode = useColorMode();
-colorMode.preference = "dark";
+colorMode.value = "light";
+colorMode.preference = "light";
 
 if (colorMode.value === "dark") {
     provide(THEME_KEY, ECHART_DARK_THEME);
