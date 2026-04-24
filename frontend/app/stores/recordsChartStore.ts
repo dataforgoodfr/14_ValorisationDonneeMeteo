@@ -78,27 +78,21 @@ export const useRecordsChartStore = defineStore("recordChartStore", () => {
     );
 
     const territoire = computed(() => {
-        const stations = selectedElements.value.filter(
-            (el) => el.type === TerritoryFilterType.STATION,
-        );
-        if (stations.length > 1) return "france";
-        const first = selectedElements.value[0];
-        if (!first || first.type === TerritoryFilterType.TERRITORY)
-            return "france";
-        if (first.type === TerritoryFilterType.STATION) return "station";
-        if (first.type === TerritoryFilterType.DEPARTMENT) return "department";
+        const els = selectedElements.value;
+        if (els.length !== 1) return "france";
+        const only = els[0]!;
+        if (only.type === TerritoryFilterType.TERRITORY) return "france";
+        if (only.type === TerritoryFilterType.STATION) return "station";
+        if (only.type === TerritoryFilterType.DEPARTMENT) return "department";
         return "region";
     });
 
     const territoireId = computed<string | undefined>(() => {
-        const stations = selectedElements.value.filter(
-            (el) => el.type === TerritoryFilterType.STATION,
-        );
-        if (stations.length > 1) return undefined;
-        const first = selectedElements.value[0];
-        if (!first || first.type === TerritoryFilterType.TERRITORY)
-            return undefined;
-        return first.id;
+        const els = selectedElements.value;
+        if (els.length !== 1) return undefined;
+        const only = els[0]!;
+        if (only.type === TerritoryFilterType.TERRITORY) return undefined;
+        return only.id;
     });
 
     const params = computed<TemperatureRecordsGraphParams>(() => ({
@@ -201,12 +195,6 @@ export const useRecordsChartStore = defineStore("recordChartStore", () => {
             )
         )
             return;
-        if (
-            selectedElements.value.length > 0 &&
-            selectedElements.value[0]?.type !== TerritoryFilterType.STATION
-        ) {
-            selectedElements.value = [];
-        }
         selectedElements.value = [
             ...selectedElements.value,
             {

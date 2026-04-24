@@ -75,20 +75,17 @@ export function countByPeriod(
     );
 }
 
-export function buildTerritoryPlots(
-    selectedTerritories: Array<{ type: string; id: string; value: string }>,
+function recordsForTerritory(
+    territory: { type: string; id: string },
     data: TemperatureRecordsGraphResponse,
-): { name: string; hot: RecordEntry[]; cold: RecordEntry[] }[] {
-    const stationTerritories = selectedTerritories.filter(
-        (t) => t.type === "STATION",
-    );
-
-    if (stationTerritories.length > 1) {
-        return stationTerritories.map((t) => ({
-            name: t.value,
+): { hot: RecordEntry[]; cold: RecordEntry[] } {
+    if (territory.type === "STATION") {
+        return {
             hot: data.records
                 .filter(
-                    (r) => r.type_records === "hot" && r.station_id === t.id,
+                    (r) =>
+                        r.type_records === "hot" &&
+                        r.station_id === territory.id,
                 )
                 .map((r) => ({
                     date: r.date,
@@ -97,22 +94,35 @@ export function buildTerritoryPlots(
                 })),
             cold: data.records
                 .filter(
-                    (r) => r.type_records === "cold" && r.station_id === t.id,
+                    (r) =>
+                        r.type_records === "cold" &&
+                        r.station_id === territory.id,
                 )
                 .map((r) => ({
                     date: r.date,
                     value: r.valeur,
                     station: r.station_name,
                 })),
-        }));
+        };
     }
+    return { hot: flattenHotRecords(data), cold: flattenColdRecords(data) };
+}
 
-    const name = selectedTerritories[0]?.value ?? "France Métropolitaine";
-    return [
-        {
-            name,
-            hot: flattenHotRecords(data),
-            cold: flattenColdRecords(data),
-        },
-    ];
+export function buildTerritoryPlots(
+    selectedTerritories: Array<{ type: string; id: string; value: string }>,
+    data: TemperatureRecordsGraphResponse,
+): { name: string; hot: RecordEntry[]; cold: RecordEntry[] }[] {
+    if (selectedTerritories.length === 0) {
+        return [
+            {
+                name: "France Métropolitaine",
+                hot: flattenHotRecords(data),
+                cold: flattenColdRecords(data),
+            },
+        ];
+    }
+    return selectedTerritories.map((t) => ({
+        name: t.value,
+        ...recordsForTerritory(t, data),
+    }));
 }

@@ -232,7 +232,7 @@ const option = computed<ECOption>(() => {
 <template>
     <VChart
         :ref="adapter.chartRef"
-        :key="adapter.granularity.value"
+        :key="`${adapter.granularity.value}-${adapter.selectedElements?.value?.map((e) => e.id).join('-')}`"
         :option="option"
         :init-options="initOptions"
         :loading="adapter.pending.value"

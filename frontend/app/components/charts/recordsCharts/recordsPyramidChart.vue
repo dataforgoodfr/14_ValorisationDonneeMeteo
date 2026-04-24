@@ -208,15 +208,13 @@ const option = computed<ECOption>(() => {
 </script>
 
 <template>
-    <div ref="containerRef">
-        <VChart
-            :ref="adapter.chartRef"
-            :key="`${adapter.granularity.value}-${adapter.chartType?.value}`"
-            :option="option"
-            :init-options="initOptions"
-            :loading="adapter.pending.value"
-            :loading-options="{ text: 'Chargement…', color: '#3b82f6' }"
-            autoresize
-        />
-    </div>
+    <VChart
+        :ref="adapter.chartRef"
+        :key="`${adapter.granularity.value}-${adapter.chartType?.value}-${adapter.selectedElements?.value?.map((e) => e.id).join('-')}`"
+        :option="option"
+        :init-options="initOptions"
+        :loading="adapter.pending.value"
+        :loading-options="{ text: 'Chargement…', color: '#3b82f6' }"
+        autoresize
+    />
 </template>
