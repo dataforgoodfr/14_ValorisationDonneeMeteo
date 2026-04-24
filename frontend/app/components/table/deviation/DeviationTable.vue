@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import type { TableColumn } from "@nuxt/ui";
-import type { CellContext, HeaderContext } from "@tanstack/vue-table";
 import { h } from "vue";
 import { UBadge, UButton } from "#components";
 import {
@@ -17,6 +16,7 @@ import DayPicker from "~/components/ui/commons/selectBar/dayPicker.vue";
 import { useCustomDate } from "~/composables/useCustomDate";
 import type { TemperatureDeviationResponse } from "~/types/api";
 import { buildDeviationCsv } from "~/utils/deviationCsv";
+
 const props = withDefaults(defineProps<{ showFilters?: boolean }>(), {
     showFilters: true,
 });
@@ -85,11 +85,11 @@ function sortableCol(
     label: string,
     options: {
         sortKey?: string;
-        meta?: object;
-        headerCustom?: (props: HeaderContext<TableRow, unknown>) => unknown;
-        cellCustom?: (props: CellContext<TableRow, unknown>) => unknown;
+        meta?: TableColumn<TableRow>["meta"];
+        headerCustom?: TableColumn<TableRow>["header"];
+        cellCustom?: TableColumn<TableRow>["cell"];
     } = {},
-) {
+): TableColumn<TableRow> {
     const sortKey = options.sortKey ?? key;
     return {
         accessorKey: key,
@@ -124,11 +124,9 @@ const columns: TableColumn<TableRow>[] = [
         meta: REGION_META,
         cellCustom: ({ row }) => truncatedCell(row.getValue("region")),
     }),
-    {
-        ...sortableCol("deviation", "Écart à la normale (°C)", {
-            meta: CENTERED_TD,
-        }),
-        header: () =>
+    sortableCol("deviation", "Écart à la normale (°C)", {
+        meta: CENTERED_TD,
+        headerCustom: () =>
             h(
                 UButton,
                 {
@@ -149,7 +147,7 @@ const columns: TableColumn<TableRow>[] = [
                         "Écart à la\nnormale",
                     ),
             ),
-        cell: ({ row }) =>
+        cellCustom: ({ row }) =>
             h(
                 UBadge,
                 {
@@ -165,13 +163,11 @@ const columns: TableColumn<TableRow>[] = [
                 },
                 () => `${row.getValue<number>("deviation").toFixed(1)} °C`,
             ),
-    },
-    {
-        ...sortableCol("temperatureMean", "Température Moyenne (°C)", {
-            sortKey: "temperature_mean",
-            meta: CENTERED_TD,
-        }),
-        header: () =>
+    }),
+    sortableCol("temperatureMean", "Température Moyenne (°C)", {
+        sortKey: "temperature_mean",
+        meta: CENTERED_TD,
+        headerCustom: () =>
             h(
                 UButton,
                 {
@@ -192,9 +188,9 @@ const columns: TableColumn<TableRow>[] = [
                         "Température\nMoyenne",
                     ),
             ),
-        cell: ({ row }) =>
+        cellCustom: ({ row }) =>
             `${row.getValue<number>("temperatureMean").toFixed(1)} °C`,
-    },
+    }),
 ];
 </script>
 
