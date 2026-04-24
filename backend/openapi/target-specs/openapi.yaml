@@ -673,6 +673,12 @@ paths:
         - le type de record (`hot` ou `cold`)
 
         - le tri des résultats (`sort`)
+        
+        - la classe de qualité de la station (`classe_recente_min` / `classe_recente_max`)
+
+        - l'année de création de la station (`date_de_creation_min` / `date_de_creation_max`)
+
+        - l'année de fermeture de la station (`date_de_fermeture_min` / `date_de_fermeture_max`)
 
         Exemples de requêtes :
 
@@ -777,6 +783,55 @@ paths:
             type: string
           default: record_value
           example: "-record_value,station_name"
+        - name: classe_recente_min
+          in: query
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 5
+          description: Classe de qualité minimale incluse (1=meilleure).
+        - name: classe_recente_max
+          in: query
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 5
+          description: Classe de qualité maximale incluse (5=moins fiable).
+        - name: date_de_creation_min
+          in: query
+          required: false
+          schema:
+            type: string
+            format: date
+          description: Date de création minimale incluse (YYYY-MM-DD). Seule l'année est utilisée.
+        - name: date_de_creation_max
+          in: query
+          required: false
+          schema:
+            type: string
+            format: date
+          description: Date de création maximale incluse (YYYY-MM-DD). Seule l'année est utilisée.
+        - name: date_de_fermeture_min
+          in: query
+          required: false
+          schema:
+            type: string
+            format: date
+          description: >
+            Date de fermeture minimale incluse (YYYY-MM-DD, seule l'année est utilisée).
+            Si utilisé seul, les stations toujours ouvertes (date_de_fermeture null) sont incluses.
+            Si combiné avec date_de_fermeture_max, les stations ouvertes sont exclues.
+        - name: date_de_fermeture_max
+          in: query
+          required: false
+          schema:
+            type: string
+            format: date
+          description: >
+            Date de fermeture maximale incluse (YYYY-MM-DD, seule l'année est utilisée).
+            Les stations toujours ouvertes (date_de_fermeture null) sont exclues.
       responses:
         "200":
           description: Liste paginée des records de température par station.
