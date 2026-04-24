@@ -8,7 +8,7 @@
         <div
             class="absolute bottom-4 left-1/2 -translate-x-1/2 flex flex-col items-center gap-1 pointer-events-none"
         >
-            <span class="text-xs" :style="{ color: COLORS.foreground }">{{
+            <span class="text-xs" :style="{ color: mapColors.foreground }">{{
                 legendLabel
             }}</span>
             <div
@@ -57,7 +57,9 @@ import type {
     MappableStation,
     MapTooltipFormatter,
 } from "~/types/api";
-import { COLORS } from "~/constants/colors";
+import { useMapColors } from "~/constants/colors";
+
+const mapColors = useMapColors();
 
 interface DepartmentProperties {
     code: string;
@@ -90,7 +92,7 @@ const BLANK_STYLE: maplibregl.StyleSpecification = {
         {
             id: "background",
             type: "background",
-            paint: { "background-color": COLORS.value.background },
+            paint: { "background-color": mapColors.value.transparent },
         },
     ],
 };
@@ -277,14 +279,17 @@ onMounted(async () => {
             id: "france-dep-fill",
             type: "fill",
             source: "france-dep",
-            paint: { "fill-color": COLORS.value.background, "fill-opacity": 1 },
+            paint: {
+                "fill-color": mapColors.value.transparent,
+                "fill-opacity": 1,
+            },
         });
         map!.addLayer({
             id: "france-dep-border",
             type: "line",
             source: "france-dep",
             paint: {
-                "line-color": COLORS.value.foreground,
+                "line-color": mapColors.value.foreground,
                 "line-width": 0.3,
             },
         });
@@ -297,7 +302,10 @@ onMounted(async () => {
             id: "france-reg-border",
             type: "line",
             source: "france-reg",
-            paint: { "line-color": COLORS.value.foreground, "line-width": 1 },
+            paint: {
+                "line-color": mapColors.value.foreground,
+                "line-width": 1,
+            },
         });
 
         initLayers();
@@ -317,4 +325,12 @@ watch(
         if (mapReady.value) setStationsData(stations);
     },
 );
+
+watch(mapColors, (colors) => {
+    if (!map || !mapReady.value) return;
+    map.setPaintProperty("background", "background-color", colors.transparent);
+    map.setPaintProperty("france-dep-fill", "fill-color", colors.transparent);
+    map.setPaintProperty("france-dep-border", "line-color", colors.foreground);
+    map.setPaintProperty("france-reg-border", "line-color", colors.foreground);
+});
 </script>

@@ -1,6 +1,8 @@
 <script setup lang="ts">
 import type { NavigationMenuItem } from "@nuxt/ui";
 
+const colorMode = useColorMode();
+
 const route = useRoute();
 
 const items = computed<NavigationMenuItem[]>(() => [
@@ -30,18 +32,6 @@ const items = computed<NavigationMenuItem[]>(() => [
                 to: "/records",
                 icon: "i-lucide-sun-snow",
                 active: route.path.startsWith("/records"),
-            },
-        ],
-    },
-    {
-        disabled: true,
-        label: "Pluviométrie",
-        children: [
-            {
-                //To be filled
-            },
-            {
-                //To be filled
             },
         ],
     },
@@ -77,13 +67,25 @@ const items = computed<NavigationMenuItem[]>(() => [
                 <UButton
                     color="neutral"
                     variant="outline"
-                    icon="i-lucide-cloud-sun-rain"
-                    label="Tout Infoclimat"
+                    label="Site Infoclimat.fr"
                     to="https://www.infoclimat.fr/"
                     target="_blank"
                     aria-label="infoclimat"
                 />
             </UTooltip>
+            <USwitch
+                :model-value="colorMode.value === 'dark'"
+                unchecked-icon="i-lucide-sun"
+                checked-icon="i-lucide-moon"
+                aria-label="Basculer le thème"
+                :ui="{
+                    base: 'dark:!bg-transparent dark:ring-1 dark:ring-white/20',
+                    thumb: 'dark:bg-black',
+                }"
+                @update:model-value="
+                    (val) => (colorMode.preference = val ? 'dark' : 'light')
+                "
+            />
         </template>
 
         <template #body>

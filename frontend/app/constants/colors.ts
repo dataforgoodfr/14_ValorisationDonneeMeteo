@@ -7,12 +7,14 @@ const TEMPERATURE_COLORS = {
 const DARK_COLORS = {
     background: "#202d43",
     foreground: "#6690a7",
+    transparent: "#202d4300",
     cold: TEMPERATURE_COLORS.cold,
     hot: TEMPERATURE_COLORS.hot,
 };
 const LIGHT_COLORS = {
     background: "#FFFFFF",
     foreground: "#000000",
+    transparent: "#ffffff00",
     cold: TEMPERATURE_COLORS.cold,
     hot: TEMPERATURE_COLORS.hot,
 };
@@ -20,6 +22,11 @@ const LIGHT_COLORS = {
 export const COLORS = computed(() =>
     colorMode.value === "dark" ? DARK_COLORS : LIGHT_COLORS,
 );
+
+export function useMapColors() {
+    const cm = useColorMode();
+    return computed(() => (cm.value === "dark" ? DARK_COLORS : LIGHT_COLORS));
+}
 
 const deviationMin = -5;
 const deviationMax = 5;

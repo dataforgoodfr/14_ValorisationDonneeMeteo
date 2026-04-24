@@ -5,12 +5,15 @@ import { fr } from "@nuxt/ui/locale";
 import { ECHART_DARK_THEME } from "~/constants/echartsTheme";
 
 const colorMode = useColorMode();
-colorMode.value = "dark";
-colorMode.preference = "light";
 
-if (colorMode.value === "dark") {
-    provide(THEME_KEY, ECHART_DARK_THEME);
+if (colorMode.preference === "system") {
+    colorMode.preference = "light";
 }
+
+const echartsTheme = computed(() =>
+    colorMode.value === "dark" ? ECHART_DARK_THEME : undefined,
+);
+provide(THEME_KEY, echartsTheme);
 </script>
 
 <template>
