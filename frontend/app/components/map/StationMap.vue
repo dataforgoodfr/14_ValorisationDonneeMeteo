@@ -202,6 +202,37 @@ onMounted(async () => {
         interactive: true,
     });
 
+    map.addControl(
+        new maplibregl.NavigationControl({ showCompass: false }),
+        "top-right",
+    );
+
+    map.addControl(
+        {
+            onAdd(m) {
+                const el = document.createElement("div");
+                el.className = "maplibregl-ctrl maplibregl-ctrl-group";
+                const btn = document.createElement("button");
+                btn.type = "button";
+                btn.title = "Réinitialiser la vue";
+                btn.setAttribute("aria-label", "Réinitialiser la vue");
+                btn.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="29" height="20" viewBox="0 0 20 20" fill="none"><path d="M3 7V3h4M17 7V3h-4M3 13v4h4M17 13v4h-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
+                btn.onclick = () =>
+                    m.fitBounds(
+                        [
+                            [-5.2, 41.3],
+                            [9.6, 51.1],
+                        ],
+                        { padding: 40, duration: 500 },
+                    );
+                el.appendChild(btn);
+                return el;
+            },
+            onRemove() {},
+        },
+        "top-right",
+    );
+
     map.once("load", () => {
         map!.resize();
         map!.fitBounds(
