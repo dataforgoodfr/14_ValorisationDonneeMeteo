@@ -79,6 +79,34 @@ export function buildTerritoryPlots(
     selectedTerritories: Array<{ type: string; id: string; value: string }>,
     data: TemperatureRecordsGraphResponse,
 ): { name: string; hot: RecordEntry[]; cold: RecordEntry[] }[] {
+    const stationTerritories = selectedTerritories.filter(
+        (t) => t.type === "STATION",
+    );
+
+    if (stationTerritories.length > 1) {
+        return stationTerritories.map((t) => ({
+            name: t.value,
+            hot: data.records
+                .filter(
+                    (r) => r.type_records === "hot" && r.station_id === t.id,
+                )
+                .map((r) => ({
+                    date: r.date,
+                    value: r.valeur,
+                    station: r.station_name,
+                })),
+            cold: data.records
+                .filter(
+                    (r) => r.type_records === "cold" && r.station_id === t.id,
+                )
+                .map((r) => ({
+                    date: r.date,
+                    value: r.valeur,
+                    station: r.station_name,
+                })),
+        }));
+    }
+
     const name = selectedTerritories[0]?.value ?? "France Métropolitaine";
     return [
         {

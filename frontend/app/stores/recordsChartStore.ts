@@ -78,6 +78,10 @@ export const useRecordsChartStore = defineStore("recordChartStore", () => {
     );
 
     const territoire = computed(() => {
+        const stations = selectedElements.value.filter(
+            (el) => el.type === TerritoryFilterType.STATION,
+        );
+        if (stations.length > 1) return "france";
         const first = selectedElements.value[0];
         if (!first || first.type === TerritoryFilterType.TERRITORY)
             return "france";
@@ -87,6 +91,10 @@ export const useRecordsChartStore = defineStore("recordChartStore", () => {
     });
 
     const territoireId = computed<string | undefined>(() => {
+        const stations = selectedElements.value.filter(
+            (el) => el.type === TerritoryFilterType.STATION,
+        );
+        if (stations.length > 1) return undefined;
         const first = selectedElements.value[0];
         if (!first || first.type === TerritoryFilterType.TERRITORY)
             return undefined;
@@ -185,7 +193,22 @@ export const useRecordsChartStore = defineStore("recordChartStore", () => {
     }
 
     function setStationFilter(station: Station) {
+        if (
+            selectedElements.value.some(
+                (el) =>
+                    el.type === TerritoryFilterType.STATION &&
+                    el.id === station.code,
+            )
+        )
+            return;
+        if (
+            selectedElements.value.length > 0 &&
+            selectedElements.value[0]?.type !== TerritoryFilterType.STATION
+        ) {
+            selectedElements.value = [];
+        }
         selectedElements.value = [
+            ...selectedElements.value,
             {
                 id: station.code,
                 value: `${station.nom} (${station.departement})`,
