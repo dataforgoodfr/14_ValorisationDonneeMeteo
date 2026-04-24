@@ -41,24 +41,26 @@ const heroData = {
                     </div>
                     <UButtonGroup>
                         <UButton
+                            :ui="{
+                                base:
+                                    store.typeRecords === 'hot'
+                                        ? 'bg-rose-200 text-rose-600 ring-1 ring-rose-300'
+                                        : '',
+                            }"
                             color="neutral"
                             variant="outline"
-                            :class="
-                                store.typeRecords === 'hot'
-                                    ? 'bg-rose-200! text-rose-600! border-rose-300!'
-                                    : ''
-                            "
                             label="Chaud"
                             @click="store.typeRecords = 'hot'"
                         />
                         <UButton
+                            :ui="{
+                                base:
+                                    store.typeRecords === 'cold'
+                                        ? 'bg-blue-200 text-blue-650 ring-1 ring-blue-300'
+                                        : '',
+                            }"
                             color="neutral"
                             variant="outline"
-                            :class="
-                                store.typeRecords === 'cold'
-                                    ? 'bg-blue-200! text-blue-900! border-blue-300!'
-                                    : ''
-                            "
                             label="Froid"
                             @click="store.typeRecords = 'cold'"
                         />

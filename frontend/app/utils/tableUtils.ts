@@ -23,9 +23,9 @@ export function truncatedCell(value: string) {
 }
 
 export const HOT_BADGE_CLASS =
-    "bg-red-200! ring-1! ring-red-450/25! text-red-450!";
+    "bg-rose-200! ring-1! ring-red-450/25! text-rose-600!";
 export const COLD_BADGE_CLASS =
-    "bg-slate-200! ring-1! ring-blue-350/25! text-blue-600!";
+    "bg-slate-200! ring-1! ring-blue-350/25! text-blue-650!";
 
 export function temperatureBadgeClass(isHot: boolean): string {
     return isHot ? HOT_BADGE_CLASS : COLD_BADGE_CLASS;
