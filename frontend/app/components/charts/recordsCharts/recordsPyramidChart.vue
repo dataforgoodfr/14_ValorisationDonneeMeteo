@@ -109,7 +109,6 @@ const option = computed<ECOption>(() => {
     };
 
     const option: ECOption = {
-        textStyle: { color: "#fff" },
         dataset: periodData.map(
             ({ hotByPeriod, coldByPeriod, allPeriods }) => ({
                 dimensions: ["period", "hot", "cold"],
@@ -191,7 +190,7 @@ const option = computed<ECOption>(() => {
                 name: "Records de froid",
                 datasetIndex: i,
                 encode: { x: "cold", y: "period" },
-                color: COLORS.cold,
+                color: COLORS.value.cold,
                 xAxisIndex: 2 * i,
                 yAxisIndex: 2 * i,
             }),
@@ -199,7 +198,7 @@ const option = computed<ECOption>(() => {
                 name: "Records de chaleur",
                 datasetIndex: i,
                 encode: { x: "hot", y: "period" },
-                color: COLORS.hot,
+                color: COLORS.value.hot,
                 xAxisIndex: 2 * i + 1,
                 yAxisIndex: 2 * i + 1,
             }),

@@ -39,7 +39,7 @@ const heroData = {
             :description="heroData.description"
         />
 
-        <div class="flex flex-col gap-4 bg-elevated rounded-lg p-14">
+        <div class="flex flex-col gap-4 dark:bg-elevated rounded-lg p-14">
             <DayPicker
                 v-model:start-date="dateStart"
                 v-model:end-date="dateEnd"

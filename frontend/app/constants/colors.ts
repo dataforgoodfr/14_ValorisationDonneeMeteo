@@ -1,15 +1,27 @@
-export const COLORS = {
-    background: "#202d43",
-    foreground: "#6690a7",
-    cold: "#1976D2",
-    hot: "#d32F2F",
-};
+const colorMode = useColorMode();
+
+export const COLORS = computed(() => {
+    if (colorMode.value === "dark") {
+        return {
+            background: "#202d43",
+            foreground: "#6690a7",
+            cold: "#1976D2",
+            hot: "#d32F2F",
+        };
+    }
+    return {
+        background: "#FFFFFF",
+        foreground: "#000000",
+        cold: "#1976D2",
+        hot: "#d32F2F",
+    };
+});
 
 const deviationMin = -5;
 const deviationMax = 5;
 
 const deviationStops: [number, string][] = [
-    [deviationMin, COLORS.cold],
+    [deviationMin, COLORS.value.cold],
     [deviationMin * 0.6, "hsl(210, 85%, 75%)"],
     [deviationMin * 0.2, "hsl(180, 90%, 85%)"],
     [deviationMin * 0.05, "hsl(160, 95%, 90%)"],
@@ -17,7 +29,7 @@ const deviationStops: [number, string][] = [
     [deviationMax * 0.05, "hsl(50, 96%, 90%)"],
     [deviationMax * 0.2, "hsl(30, 90%, 85%)"],
     [deviationMax * 0.6, "hsl(0, 85%, 75%)"],
-    [deviationMax, COLORS.hot],
+    [deviationMax, COLORS.value.hot],
 ];
 
 export const DEVIATION_MAP_COLORS = {
@@ -30,7 +42,7 @@ const recordsMin = -20;
 const recordsMax = 40;
 
 const recordsStops: [number, string][] = [
-    [-20, COLORS.cold],
+    [-20, COLORS.value.cold],
     [-8, "hsl(210, 85%, 75%)"],
     [0, "hsl(180, 90%, 85%)"],
     [7, "hsl(160, 95%, 90%)"],
@@ -38,7 +50,7 @@ const recordsStops: [number, string][] = [
     [18, "hsl(50, 96%, 90%)"],
     [25, "hsl(30, 90%, 85%)"],
     [33, "hsl(0, 85%, 75%)"],
-    [40, COLORS.hot],
+    [40, COLORS.value.hot],
 ];
 
 export const RECORDS_MAP_COLORS = {

@@ -68,7 +68,6 @@ const barOption = computed<ECOption>(() => {
     const plotAmountToDisplay = stationsAndNational.length || 1;
 
     const option: ECOption = {
-        textStyle: { color: "#fff" },
         dataset: stationsAndNational.map((stationOrNational) => ({
             dimensions: [
                 "date",
@@ -125,7 +124,7 @@ const barOption = computed<ECOption>(() => {
                 stack: `deviation-${index}`,
                 datasetIndex: index,
                 encode: { x: "date", y: "deviation_positive" },
-                color: COLORS.hot,
+                color: COLORS.value.hot,
                 tooltip: { show: true },
                 xAxisIndex: index,
                 yAxisIndex: index,
@@ -136,7 +135,7 @@ const barOption = computed<ECOption>(() => {
                 stack: `deviation-${index}`,
                 datasetIndex: index,
                 encode: { x: "date", y: "deviation_negative" },
-                color: COLORS.cold,
+                color: COLORS.value.cold,
                 tooltip: { show: true },
                 xAxisIndex: index,
                 yAxisIndex: index,

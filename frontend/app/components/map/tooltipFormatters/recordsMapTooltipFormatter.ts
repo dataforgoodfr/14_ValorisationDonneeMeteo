@@ -6,7 +6,7 @@ export function formatRecordsMapTooltip(
     recordDate: string | null,
 ): string {
     const sign = value >= 0 ? "+" : "";
-    const color = value >= 0 ? COLORS.hot : COLORS.cold;
+    const color = value >= 0 ? COLORS.value.hot : COLORS.value.cold;
     const formattedDate = recordDate
         ? new Date(recordDate).toLocaleDateString("fr-FR")
         : null;

@@ -91,7 +91,6 @@ const option = computed<ECOption>(() => {
     };
 
     return {
-        textStyle: { color: "#fff" },
         dataset: [
             ...territoryPlots.flatMap((territory) => [
                 {
@@ -166,7 +165,7 @@ const option = computed<ECOption>(() => {
                     name: "Records de chaleur",
                     datasetIndex: index * 2,
                     encode: { x: "date", y: "value" },
-                    color: COLORS.hot,
+                    color: COLORS.value.hot,
                     symbolSize: 5,
                     xAxisIndex: index,
                     yAxisIndex: index,
@@ -175,7 +174,7 @@ const option = computed<ECOption>(() => {
                     name: "Records de froid",
                     datasetIndex: index * 2 + 1,
                     encode: { x: "date", y: "value" },
-                    color: COLORS.cold,
+                    color: COLORS.value.cold,
                     symbolSize: 5,
                     xAxisIndex: index,
                     yAxisIndex: index,
@@ -187,7 +186,7 @@ const option = computed<ECOption>(() => {
                           name: "Records de chaleur",
                           datasetIndex: territoryPlots.length * 2,
                           encode: { x: "period", y: "hot" },
-                          color: COLORS.hot,
+                          color: COLORS.value.hot,
                           stack: "records",
                           xAxisIndex: 1,
                           yAxisIndex: 1,
@@ -196,7 +195,7 @@ const option = computed<ECOption>(() => {
                           name: "Records de froid",
                           datasetIndex: territoryPlots.length * 2,
                           encode: { x: "period", y: "cold" },
-                          color: COLORS.cold,
+                          color: COLORS.value.cold,
                           stack: "records",
                           xAxisIndex: 1,
                           yAxisIndex: 1,

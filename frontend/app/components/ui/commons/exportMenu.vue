@@ -56,7 +56,7 @@ function exportAsPng() {
     const dataURL = chartRef.value.getDataURL({
         type: "png",
         pixelRatio: 2,
-        backgroundColor: COLORS.background,
+        backgroundColor: COLORS.value.background,
         excludeComponents: ["dataZoom"],
     });
 
@@ -186,8 +186,7 @@ function exportAsHTML() {
             label="Exporter"
             icon="i-lucide-download"
             color="neutral"
-            variant="solid"
-            class="bg-slate-450! ring-1! ring-blue-350! text-white!"
+            class="dark:bg-slate-450! dark:ring-1! dark:ring-blue-350! dark:text-white!"
         />
     </UDropdownMenu>
 </template>

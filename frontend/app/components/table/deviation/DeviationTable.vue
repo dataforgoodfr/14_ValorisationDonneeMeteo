@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import type { TableColumn } from "@nuxt/ui";
+import type { CellContext, HeaderContext } from "@tanstack/vue-table";
 import { h } from "vue";
 import { UBadge, UButton } from "#components";
 import {
@@ -85,8 +86,8 @@ function sortableCol(
     options: {
         sortKey?: string;
         meta?: object;
-        headerCustom?: (props: any) => any;
-        cellCustom?: (props: any) => any;
+        headerCustom?: (props: HeaderContext<TableRow, unknown>) => unknown;
+        cellCustom?: (props: CellContext<TableRow, unknown>) => unknown;
     } = {},
 ) {
     const sortKey = options.sortKey ?? key;
@@ -112,8 +113,6 @@ function sortableCol(
         ...(options.meta ? { meta: options.meta } : {}),
     };
 }
-
-const centered = { meta: { class: { td: "text-center" } } };
 
 const columns: TableColumn<TableRow>[] = [
     sortableCol("station_name", "Station", {
