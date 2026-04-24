@@ -7,6 +7,7 @@ import {
     REGION_META,
     STATION_META,
     TABLE_HEADER_BTN_MULTILINE_CLASS,
+    TEMPERATURE_BADGE_SIZE,
     makeSortableColFactory,
     temperatureBadgeClass,
     truncatedCell,
@@ -129,6 +130,7 @@ const columns = [
                         ),
                     ],
                     variant: "subtle",
+                    size: TEMPERATURE_BADGE_SIZE,
                     color: deviationBadgeColor(row.getValue("deviation")),
                 },
                 () =>

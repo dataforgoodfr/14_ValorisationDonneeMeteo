@@ -1,16 +1,20 @@
 const colorMode = useColorMode();
+const TEMPERATURE_COLORS = {
+    cold: "#1976D2",
+    hot: "#d32F2F",
+};
 
 const DARK_COLORS = {
     background: "#202d43",
     foreground: "#6690a7",
-    cold: "#1976D2",
-    hot: "#d32F2F",
+    cold: TEMPERATURE_COLORS.cold,
+    hot: TEMPERATURE_COLORS.hot,
 };
 const LIGHT_COLORS = {
     background: "#FFFFFF",
     foreground: "#000000",
-    cold: "#1976D2",
-    hot: "#d32F2F",
+    cold: TEMPERATURE_COLORS.cold,
+    hot: TEMPERATURE_COLORS.hot,
 };
 
 export const COLORS = computed(() =>
