@@ -266,6 +266,49 @@ class FakeTemperatureRecordsDataSource:
             depts = set(departments_for_region(request.territoire_id or ""))
             results = [e for e in results if e.department in depts]
 
+        if request.classe_recente_min is not None:
+            results = [
+                e for e in results if e.classe_recente >= request.classe_recente_min
+            ]
+        if request.classe_recente_max is not None:
+            results = [
+                e for e in results if e.classe_recente <= request.classe_recente_max
+            ]
+        if request.date_de_creation_min is not None:
+            results = [
+                e for e in results if e.date_de_creation >= request.date_de_creation_min
+            ]
+        if request.date_de_creation_max is not None:
+            results = [
+                e for e in results if e.date_de_creation <= request.date_de_creation_max
+            ]
+        if (
+            request.date_de_fermeture_min is not None
+            and request.date_de_fermeture_max is not None
+        ):
+            results = [
+                e
+                for e in results
+                if e.date_de_fermeture is not None
+                and request.date_de_fermeture_min
+                <= e.date_de_fermeture
+                <= request.date_de_fermeture_max
+            ]
+        elif request.date_de_fermeture_min is not None:
+            results = [
+                e
+                for e in results
+                if e.date_de_fermeture is None
+                or e.date_de_fermeture >= request.date_de_fermeture_min
+            ]
+        elif request.date_de_fermeture_max is not None:
+            results = [
+                e
+                for e in results
+                if e.date_de_fermeture is not None
+                and e.date_de_fermeture <= request.date_de_fermeture_max
+            ]
+
         total_count = len(results)
 
         page = request.page

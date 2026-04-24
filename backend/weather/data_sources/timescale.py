@@ -652,6 +652,42 @@ class TimescaleTemperatureRecordsDataSource:
         else:
             order_sql = f'o."{col}" DESC, s.name ASC'
 
+        extra_where_parts = []
+        if request.classe_recente_min is not None:
+            extra_where_parts.append("AND s.classe_recente >= %s")
+            params.append(request.classe_recente_min)
+        if request.classe_recente_max is not None:
+            extra_where_parts.append("AND s.classe_recente <= %s")
+            params.append(request.classe_recente_max)
+        if request.date_de_creation_min is not None:
+            extra_where_parts.append("AND s.annee_de_creation >= %s")
+            params.append(request.date_de_creation_min.year)
+        if request.date_de_creation_max is not None:
+            extra_where_parts.append("AND s.annee_de_creation <= %s")
+            params.append(request.date_de_creation_max.year)
+        if (
+            request.date_de_fermeture_min is not None
+            and request.date_de_fermeture_max is not None
+        ):
+            extra_where_parts.append(
+                "AND (s.annee_de_fermeture IS NOT NULL"
+                " AND s.annee_de_fermeture >= %s"
+                " AND s.annee_de_fermeture <= %s)"
+            )
+            params.append(request.date_de_fermeture_min.year)
+            params.append(request.date_de_fermeture_max.year)
+        elif request.date_de_fermeture_min is not None:
+            extra_where_parts.append(
+                "AND (s.annee_de_fermeture IS NULL OR s.annee_de_fermeture >= %s)"
+            )
+            params.append(request.date_de_fermeture_min.year)
+        elif request.date_de_fermeture_max is not None:
+            extra_where_parts.append(
+                "AND (s.annee_de_fermeture IS NOT NULL AND s.annee_de_fermeture <= %s)"
+            )
+            params.append(request.date_de_fermeture_max.year)
+        extra_where_sql = "\n              ".join(extra_where_parts)
+
         base_sql = f"""
             WITH ordered AS (
                 SELECT
@@ -706,6 +742,7 @@ class TimescaleTemperatureRecordsDataSource:
             JOIN public.v_station_records s ON s.station_code = o."NUM_POSTE"
             WHERE (o.prev_val IS NULL OR o."{col}" {cmp} o.prev_val)
               AND s.classe_recente BETWEEN 1 AND 3
+              {extra_where_sql}
             ORDER BY {order_sql}
             LIMIT %s OFFSET %s
         """
@@ -878,6 +915,40 @@ class MaterializedTemperatureRecordsDataSource:
         if terr_clause:
             clauses.append(terr_clause)
             params.update(terr_params)
+
+        if request.classe_recente_min is not None:
+            clauses.append("vs.classe_recente >= %(cr_min)s")
+            params["cr_min"] = request.classe_recente_min
+        if request.classe_recente_max is not None:
+            clauses.append("vs.classe_recente <= %(cr_max)s")
+            params["cr_max"] = request.classe_recente_max
+        if request.date_de_creation_min is not None:
+            clauses.append("vs.annee_de_creation >= %(dc_min)s")
+            params["dc_min"] = request.date_de_creation_min.year
+        if request.date_de_creation_max is not None:
+            clauses.append("vs.annee_de_creation <= %(dc_max)s")
+            params["dc_max"] = request.date_de_creation_max.year
+        if (
+            request.date_de_fermeture_min is not None
+            and request.date_de_fermeture_max is not None
+        ):
+            clauses.append(
+                "(vs.annee_de_fermeture IS NOT NULL"
+                " AND vs.annee_de_fermeture >= %(df_min)s"
+                " AND vs.annee_de_fermeture <= %(df_max)s)"
+            )
+            params["df_min"] = request.date_de_fermeture_min.year
+            params["df_max"] = request.date_de_fermeture_max.year
+        elif request.date_de_fermeture_min is not None:
+            clauses.append(
+                "(vs.annee_de_fermeture IS NULL OR vs.annee_de_fermeture >= %(df_min)s)"
+            )
+            params["df_min"] = request.date_de_fermeture_min.year
+        elif request.date_de_fermeture_max is not None:
+            clauses.append(
+                "(vs.annee_de_fermeture IS NOT NULL AND vs.annee_de_fermeture <= %(df_max)s)"
+            )
+            params["df_max"] = request.date_de_fermeture_max.year
 
         where = " AND ".join(clauses)
 
@@ -1061,6 +1132,43 @@ class HybridTemperatureRecordsDataSource:
         date_filter_clauses = "\n              ".join(date_filter_parts)
         terr_filter_clause = f"AND {terr_clause}" if terr_clause else ""
 
+        station_filter_extra: dict = {}
+        station_filter_parts = []
+        if request.classe_recente_min is not None:
+            station_filter_parts.append("AND vs.classe_recente >= %(cr_min)s")
+            station_filter_extra["cr_min"] = request.classe_recente_min
+        if request.classe_recente_max is not None:
+            station_filter_parts.append("AND vs.classe_recente <= %(cr_max)s")
+            station_filter_extra["cr_max"] = request.classe_recente_max
+        if request.date_de_creation_min is not None:
+            station_filter_parts.append("AND vs.annee_de_creation >= %(dc_min)s")
+            station_filter_extra["dc_min"] = request.date_de_creation_min.year
+        if request.date_de_creation_max is not None:
+            station_filter_parts.append("AND vs.annee_de_creation <= %(dc_max)s")
+            station_filter_extra["dc_max"] = request.date_de_creation_max.year
+        if (
+            request.date_de_fermeture_min is not None
+            and request.date_de_fermeture_max is not None
+        ):
+            station_filter_parts.append(
+                "AND (vs.annee_de_fermeture IS NOT NULL"
+                " AND vs.annee_de_fermeture >= %(df_min)s"
+                " AND vs.annee_de_fermeture <= %(df_max)s)"
+            )
+            station_filter_extra["df_min"] = request.date_de_fermeture_min.year
+            station_filter_extra["df_max"] = request.date_de_fermeture_max.year
+        elif request.date_de_fermeture_min is not None:
+            station_filter_parts.append(
+                "AND (vs.annee_de_fermeture IS NULL OR vs.annee_de_fermeture >= %(df_min)s)"
+            )
+            station_filter_extra["df_min"] = request.date_de_fermeture_min.year
+        elif request.date_de_fermeture_max is not None:
+            station_filter_parts.append(
+                "AND (vs.annee_de_fermeture IS NOT NULL AND vs.annee_de_fermeture <= %(df_max)s)"
+            )
+            station_filter_extra["df_max"] = request.date_de_fermeture_max.year
+        station_filter_clauses = "\n              ".join(station_filter_parts)
+
         sql = f"""
             WITH mv_seeds AS (
                 SELECT station_code, {agg}(record_value) AS seed_val
@@ -1111,6 +1219,7 @@ class HybridTemperatureRecordsDataSource:
               AND vs.classe_recente BETWEEN 1 AND 3
               {date_filter_clauses}
               {terr_filter_clause}
+              {station_filter_clauses}
             ORDER BY vs.name, o."AAAAMMJJ"
         """
 
@@ -1121,6 +1230,7 @@ class HybridTemperatureRecordsDataSource:
             "cutoff_date": cutoff_date,
             **period_named_params,
             **terr_named_params,
+            **station_filter_extra,
         }
         if request.date_start:
             params["date_start"] = request.date_start
