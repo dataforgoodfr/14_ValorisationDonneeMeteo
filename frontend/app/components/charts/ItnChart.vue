@@ -171,7 +171,6 @@ function buildStackedOption(
     }));
 
     return {
-        textStyle: { color: "#fff" },
         dataset: {
             dimensions: [
                 "position",
@@ -239,7 +238,6 @@ const option = computed<ECOption>(() => {
     const timeSeries = insertCrossingPoints(data?.time_series ?? []);
 
     return {
-        textStyle: { color: "#fff" },
         dataset: {
             dimensions: [
                 "date",

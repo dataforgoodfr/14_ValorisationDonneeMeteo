@@ -18,8 +18,8 @@ export function recordsPyramidTooltipFormatter(
 
     return (
         `<b>${label}</b><br/>` +
-        `<span style="color:${COLORS.hot}">● Records de chaleur : ${row.hot}</span><br/>` +
-        `<span style="color:${COLORS.cold}">● Records de froid : ${row.cold}</span><br/>` +
+        `<span style="color:${COLORS.value.hot}">● Records de chaleur : ${row.hot}</span><br/>` +
+        `<span style="color:${COLORS.value.cold}">● Records de froid : ${row.cold}</span><br/>` +
         `<span style="color:#aaa">Total : ${row.hot + row.cold}</span>`
     );
 }

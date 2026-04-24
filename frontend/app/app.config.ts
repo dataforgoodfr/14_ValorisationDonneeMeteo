@@ -7,13 +7,13 @@ export default defineAppConfig({
         },
         header: {
             slots: {
-                root: "bg-dark-950",
+                root: "dark:bg-dark-950",
             },
         },
         table: {
             slots: {
-                tbody: "divide-y divide-blue-350",
-                td: "text-blue-350",
+                tbody: "divide-y dark:divide-blue-350",
+                td: "dark:text-blue-350",
             },
         },
         card: {

@@ -1,6 +1,16 @@
 <template>
-    <div>
-        <div class="relative">
+    <div class="relative">
+        <div
+            ref="mapContainer"
+            class="w-full rounded-lg overflow-hidden"
+            style="height: 480px"
+        />
+        <div
+            class="absolute bottom-4 left-1/2 -translate-x-1/2 flex flex-col items-center gap-1 pointer-events-none"
+        >
+            <span class="text-xs" :style="{ color: COLORS.value.foreground }">{{
+                legendLabel
+            }}</span>
             <div
                 ref="mapContainer"
                 class="w-full rounded-lg overflow-hidden"
@@ -80,7 +90,7 @@ const BLANK_STYLE: maplibregl.StyleSpecification = {
         {
             id: "background",
             type: "background",
-            paint: { "background-color": COLORS.background },
+            paint: { "background-color": COLORS.value.background },
         },
     ],
 };
@@ -267,14 +277,14 @@ onMounted(async () => {
             id: "france-dep-fill",
             type: "fill",
             source: "france-dep",
-            paint: { "fill-color": COLORS.background, "fill-opacity": 1 },
+            paint: { "fill-color": COLORS.value.background, "fill-opacity": 1 },
         });
         map!.addLayer({
             id: "france-dep-border",
             type: "line",
             source: "france-dep",
             paint: {
-                "line-color": COLORS.foreground,
+                "line-color": COLORS.value.foreground,
                 "line-width": 0.3,
             },
         });
@@ -287,7 +297,7 @@ onMounted(async () => {
             id: "france-reg-border",
             type: "line",
             source: "france-reg",
-            paint: { "line-color": COLORS.foreground, "line-width": 1 },
+            paint: { "line-color": COLORS.value.foreground, "line-width": 1 },
         });
 
         initLayers();

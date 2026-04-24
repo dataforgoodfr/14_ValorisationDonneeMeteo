@@ -7,7 +7,9 @@ import { ECHART_DARK_THEME } from "~/utils/echartsTheme";
 const colorMode = useColorMode();
 colorMode.preference = "dark";
 
-provide(THEME_KEY, ECHART_DARK_THEME);
+if (colorMode.value === "dark") {
+    provide(THEME_KEY, ECHART_DARK_THEME);
+}
 </script>
 
 <template>
