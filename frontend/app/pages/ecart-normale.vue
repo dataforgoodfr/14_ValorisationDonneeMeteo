@@ -39,7 +39,7 @@ const heroData = {
             :description="heroData.description"
         />
 
-        <div class="flex flex-col gap-4">
+        <div class="flex flex-col gap-4 bg-elevated rounded-lg p-14">
             <DayPicker
                 v-model:start-date="dateStart"
                 v-model:end-date="dateEnd"
@@ -71,7 +71,6 @@ const heroData = {
                     <DeviationChart
                         :adapter="selectBarAdapter"
                         :chart-type="chartType"
-                        class="px-3 py-2"
                     />
                 </ClientOnly>
             </template>

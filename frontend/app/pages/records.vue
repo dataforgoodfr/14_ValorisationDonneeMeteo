@@ -30,7 +30,7 @@ const heroData = {
             :description="heroData.description"
         />
         <div class="flex gap-24 flex-col">
-            <div class="flex flex-col gap-4">
+            <div class="flex flex-col gap-4 bg-elevated rounded-lg p-14">
                 <div class="flex items-end gap-4">
                     <div class="flex flex-col gap-1">
                         <p class="text-sm text-muted">Période</p>
@@ -42,20 +42,22 @@ const heroData = {
                     <UButtonGroup>
                         <UButton
                             color="neutral"
-                            :variant="
+                            variant="outline"
+                            :class="
                                 store.typeRecords === 'hot'
-                                    ? 'subtle'
-                                    : 'outline'
+                                    ? 'bg-rose-200! text-rose-600! border-rose-300!'
+                                    : ''
                             "
                             label="Chaud"
                             @click="store.typeRecords = 'hot'"
                         />
                         <UButton
                             color="neutral"
-                            :variant="
+                            variant="outline"
+                            :class="
                                 store.typeRecords === 'cold'
-                                    ? 'subtle'
-                                    : 'outline'
+                                    ? 'bg-blue-200! text-blue-900! border-blue-300!'
+                                    : ''
                             "
                             label="Froid"
                             @click="store.typeRecords = 'cold'"
@@ -83,7 +85,7 @@ const heroData = {
                     <SearchByTerritoryType />
                 </template>
                 <template #chart>
-                    <div class="flex flex-col gap-4 px-3 py-2">
+                    <div class="flex flex-col gap-4">
                         <UTabs
                             v-model="selectBarAdapter.recordKind!.value"
                             :items="[

@@ -67,6 +67,7 @@ const barOption = computed<ECOption>(() => {
     const plotAmountToDisplay = stationsAndNational.length || 1;
 
     const option: ECOption = {
+        textStyle: { color: "#fff" },
         dataset: stationsAndNational.map((stationOrNational) => ({
             dimensions: [
                 "date",

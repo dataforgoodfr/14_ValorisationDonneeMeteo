@@ -90,6 +90,7 @@ const option = computed<ECOption>(() => {
     };
 
     return {
+        textStyle: { color: "#fff" },
         dataset: [
             ...territoryPlots.flatMap((territory) => [
                 {
