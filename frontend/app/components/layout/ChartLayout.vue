@@ -51,7 +51,7 @@ const sidebarOpen = ref(false);
                 </Transition>
             </aside>
 
-            <div class="flex-1 min-w-0 p-14">
+            <div class="flex-1 min-w-0 p-4">
                 <slot name="chart" />
             </div>
         </div>

@@ -21,7 +21,7 @@ import {
     scatterSeries,
 } from "~/utils/recordsChartUtils";
 import { COLORS } from "~/constants/colors";
-import { FONT_CHARTS } from "~/constants/fonts";
+import { FONT_CHARTS, GRAPH_RECORDS_POSITION } from "~/constants/fonts";
 
 echarts.registerLocale("FR", langFR);
 echarts.use([
@@ -45,7 +45,7 @@ const props = defineProps<Props>();
 // provide init-options
 const renderer = ref<"svg" | "canvas">("canvas");
 const initOptions = computed(() => ({
-    height: 520,
+    height: GRAPH_RECORDS_POSITION.height,
     locale: "FR",
     renderer: renderer.value,
 }));
