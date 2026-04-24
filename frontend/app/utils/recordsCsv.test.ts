@@ -10,6 +10,9 @@ const makeRecord = (
     department: "75",
     record_value: 42.6,
     record_date: "2019-06-28",
+    lat: 0,
+    lon: 0,
+    alt: 0,
     ...overrides,
 });
 
