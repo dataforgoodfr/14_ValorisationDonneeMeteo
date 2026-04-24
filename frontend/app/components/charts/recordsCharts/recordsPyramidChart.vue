@@ -13,7 +13,7 @@ import {
 } from "~/utils/recordsChartUtils";
 import { recordsPyramidTooltipFormatter } from "~/components/charts/tooltipFormatters/recordsPyramidTooltipFormatter";
 import { COLORS } from "~/constants/colors";
-import { FONT_CHARTS } from "~/constants/fonts";
+import { FONT_CHARTS, GRAPH_RECORDS_POSITION } from "~/constants/fonts";
 type CategoryYAxisOption = Extract<YAXisOption, { type?: "category" }>;
 type ValueXAxisOption = Extract<XAXisOption, { type?: "value" }>;
 
@@ -35,7 +35,7 @@ useResizeObserver(containerRef, (entries) => {
 
 const renderer = ref<"svg" | "canvas">("canvas");
 const initOptions = computed(() => ({
-    height: 520,
+    height: GRAPH_RECORDS_POSITION.height,
     locale: "FR",
     renderer: renderer.value,
 }));
