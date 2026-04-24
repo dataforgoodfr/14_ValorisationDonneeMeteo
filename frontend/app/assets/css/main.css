@@ -18,6 +18,15 @@
 p {
     font-family: "DM Sans";
 }
+
+button,
+a,
+[role="button"],
+[role="menuitem"],
+[role="option"],
+select {
+    cursor: pointer;
+}
 @theme static {
     --color-red-900: #7a1520;
     --color-red-700: #c0392b;
