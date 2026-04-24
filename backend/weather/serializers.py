@@ -411,6 +411,16 @@ class TemperatureRecordsQuerySerializer(serializers.Serializer):
         default="france",
     )
     territoire_id = serializers.CharField(required=False)
+    classe_recente_min = serializers.IntegerField(
+        required=False, allow_null=True, min_value=1, max_value=5
+    )
+    classe_recente_max = serializers.IntegerField(
+        required=False, allow_null=True, min_value=1, max_value=5
+    )
+    date_de_creation_min = serializers.DateField(required=False, allow_null=True)
+    date_de_creation_max = serializers.DateField(required=False, allow_null=True)
+    date_de_fermeture_min = serializers.DateField(required=False, allow_null=True)
+    date_de_fermeture_max = serializers.DateField(required=False, allow_null=True)
 
     def validate_sort(self, value) -> str:
         """Valide le format du paramètre sort."""
@@ -455,6 +465,40 @@ class TemperatureRecordsQuerySerializer(serializers.Serializer):
             raise serializers.ValidationError(
                 {"territoire_id": f"Requis si territoire={territoire}."}
             )
+
+        cr_min = attrs.get("classe_recente_min")
+        cr_max = attrs.get("classe_recente_max")
+        if cr_min is not None and cr_max is not None and cr_min > cr_max:
+            raise serializers.ValidationError(
+                {
+                    "classe_recente_max": "classe_recente_max doit être >= classe_recente_min."
+                }
+            )
+
+        dc_min = attrs.get("date_de_creation_min")
+        dc_max = attrs.get("date_de_creation_max")
+        if dc_min is not None and dc_max is not None and dc_min > dc_max:
+            raise serializers.ValidationError(
+                {
+                    "date_de_creation_max": "date_de_creation_max doit être >= date_de_creation_min."
+                }
+            )
+
+        df_min = attrs.get("date_de_fermeture_min")
+        df_max = attrs.get("date_de_fermeture_max")
+        if df_min is not None and df_max is not None and df_min > df_max:
+            raise serializers.ValidationError(
+                {
+                    "date_de_fermeture_max": "date_de_fermeture_max doit être >= date_de_fermeture_min."
+                }
+            )
+
+        attrs.setdefault("classe_recente_min", None)
+        attrs.setdefault("classe_recente_max", None)
+        attrs.setdefault("date_de_creation_min", None)
+        attrs.setdefault("date_de_creation_max", None)
+        attrs.setdefault("date_de_fermeture_min", None)
+        attrs.setdefault("date_de_fermeture_max", None)
 
         return attrs
 

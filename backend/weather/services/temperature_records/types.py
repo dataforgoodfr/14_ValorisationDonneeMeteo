@@ -21,6 +21,12 @@ class TemperatureRecordsRequest:
     date_end: dt.date | None = None
     territoire: str | None = None  # "france" | "region" | "department" | "station"
     territoire_id: str | None = None
+    classe_recente_min: int | None = None
+    classe_recente_max: int | None = None
+    date_de_creation_min: dt.date | None = None
+    date_de_creation_max: dt.date | None = None
+    date_de_fermeture_min: dt.date | None = None
+    date_de_fermeture_max: dt.date | None = None
     page: int = 1
     page_size: int = 50
     sort: str = "record_value"  # "record_value", "-record_value", "record_value,station_name", "-record_value,station_name",  "record_date", "department".
