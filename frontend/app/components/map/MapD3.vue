@@ -1,7 +1,5 @@
 <template>
-    <div
-        class="flex flex-col items-center justify-center gap-2 w-[500px] flex-shrink-0"
-    >
+    <div class="flex flex-col gap-2 w-[700px] flex-shrink-0">
         <div class="flex flex-col gap-0.5">
             <div class="flex items-baseline gap-2">
                 <Card

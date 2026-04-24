@@ -3,7 +3,7 @@
         <div
             ref="mapContainer"
             class="w-full rounded-lg overflow-hidden"
-            style="height: 480px"
+            style="height: 700px"
         />
         <div
             class="absolute bottom-4 left-1/2 -translate-x-1/2 flex flex-col items-center gap-1 pointer-events-none"
