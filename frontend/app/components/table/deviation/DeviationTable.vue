@@ -207,9 +207,7 @@ const columns: TableColumn<TableRow>[] = [
             <UButton
                 label="Exporter CSV"
                 icon="i-lucide-download"
-                color="neutral"
-                variant="solid"
-                class="bg-slate-450! ring-1! ring-blue-350! text-white!"
+                :ui="{ base: 'bg-slate-450 ring-1 ring-blue-350 text-white' }"
                 :disabled="pending"
                 @click="downloadCsv"
             />

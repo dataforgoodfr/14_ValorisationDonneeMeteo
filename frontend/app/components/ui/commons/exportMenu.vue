@@ -185,8 +185,7 @@ function exportAsHTML() {
         <UButton
             label="Exporter"
             icon="i-lucide-download"
-            color="neutral"
-            class="dark:bg-slate-450! dark:ring-1! dark:ring-blue-350! dark:text-white!"
+            :ui="{ base: 'bg-slate-450 ring-1 ring-blue-350 text-white' }"
         />
     </UDropdownMenu>
 </template>
