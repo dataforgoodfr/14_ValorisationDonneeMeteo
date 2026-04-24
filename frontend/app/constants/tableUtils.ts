@@ -30,6 +30,8 @@ export const EXPORT_BTN_UI = {
     base: "bg-slate-450 ring-1 ring-blue-350 text-white",
 };
 
+export const TEMPERATURE_BADGE_SIZE = "lg";
+
 export const HOT_BADGE_CLASS =
     "bg-rose-200! ring-1! ring-red-450/25! text-rose-600!";
 export const COLD_BADGE_CLASS =
