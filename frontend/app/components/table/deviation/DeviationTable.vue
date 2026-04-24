@@ -1,11 +1,13 @@
 <script setup lang="ts">
-import type { TableColumn } from "@nuxt/ui";
 import { h } from "vue";
 import { UBadge, UButton } from "#components";
 import {
     CENTERED_TD,
+    EXPORT_BTN_UI,
     REGION_META,
     STATION_META,
+    TABLE_HEADER_BTN_MULTILINE_CLASS,
+    makeSortableColFactory,
     temperatureBadgeClass,
     truncatedCell,
 } from "~/utils/tableUtils";
@@ -80,41 +82,9 @@ const tableData = computed<TableRow[]>(() =>
 const deviationBadgeColor = (deviation: number) =>
     deviation >= 0 ? "error" : "info";
 
-function sortableCol(
-    key: string,
-    label: string,
-    options: {
-        sortKey?: string;
-        meta?: TableColumn<TableRow>["meta"];
-        headerCustom?: TableColumn<TableRow>["header"];
-        cellCustom?: TableColumn<TableRow>["cell"];
-    } = {},
-): TableColumn<TableRow> {
-    const sortKey = options.sortKey ?? key;
-    return {
-        accessorKey: key,
-        header: options.headerCustom
-            ? options.headerCustom
-            : () =>
-                  h(UButton, {
-                      variant: "ghost",
-                      label,
-                      title: label,
-                      trailingIcon: ordering.value.includes(sortKey)
-                          ? ordering.value.startsWith("-")
-                              ? "i-lucide-arrow-down"
-                              : "i-lucide-arrow-up"
-                          : "i-lucide-arrow-up-down",
-                      color: "neutral",
-                      class: "-mx-2.5 font-semibold text-highlighted w-full justify-center",
-                      onClick: () => setOrdering(sortKey),
-                  }),
-        cell: options.cellCustom ? options.cellCustom : undefined,
-        ...(options.meta ? { meta: options.meta } : {}),
-    };
-}
+const sortableCol = makeSortableColFactory<TableRow>(ordering, setOrdering);
 
-const columns: TableColumn<TableRow>[] = [
+const columns = [
     sortableCol("station_name", "Station", {
         meta: STATION_META,
         cellCustom: ({ row }) => truncatedCell(row.getValue("station_name")),
@@ -124,7 +94,7 @@ const columns: TableColumn<TableRow>[] = [
         meta: REGION_META,
         cellCustom: ({ row }) => truncatedCell(row.getValue("region")),
     }),
-    sortableCol("deviation", "Écart à la normale (°C)", {
+    sortableCol("deviation", "Écart à la normale", {
         meta: CENTERED_TD,
         headerCustom: () =>
             h(
@@ -137,7 +107,7 @@ const columns: TableColumn<TableRow>[] = [
                             : "i-lucide-arrow-up"
                         : "i-lucide-arrow-up-down",
                     color: "neutral",
-                    class: "-mx-2.5 font-semibold text-highlighted w-full justify-center whitespace-normal leading-tight text-center",
+                    class: TABLE_HEADER_BTN_MULTILINE_CLASS,
                     onClick: () => setOrdering("deviation"),
                 },
                 () =>
@@ -161,10 +131,11 @@ const columns: TableColumn<TableRow>[] = [
                     variant: "subtle",
                     color: deviationBadgeColor(row.getValue("deviation")),
                 },
-                () => `${row.getValue<number>("deviation").toFixed(1)} °C`,
+                () =>
+                    `${row.getValue<number>("deviation") > 0 ? "+" : ""}${row.getValue<number>("deviation").toFixed(1)} °C`,
             ),
     }),
-    sortableCol("temperatureMean", "Température Moyenne (°C)", {
+    sortableCol("temperatureMean", "Température Moyenne", {
         sortKey: "temperature_mean",
         meta: CENTERED_TD,
         headerCustom: () =>
@@ -178,7 +149,7 @@ const columns: TableColumn<TableRow>[] = [
                             : "i-lucide-arrow-up"
                         : "i-lucide-arrow-up-down",
                     color: "neutral",
-                    class: "-mx-2.5 font-semibold text-highlighted w-full justify-center whitespace-normal leading-tight text-center",
+                    class: TABLE_HEADER_BTN_MULTILINE_CLASS,
                     onClick: () => setOrdering("temperature_mean"),
                 },
                 () =>
@@ -207,7 +178,7 @@ const columns: TableColumn<TableRow>[] = [
             <UButton
                 label="Exporter CSV"
                 icon="i-lucide-download"
-                :ui="{ base: 'bg-slate-450 ring-1 ring-blue-350 text-white' }"
+                :ui="EXPORT_BTN_UI"
                 :disabled="pending"
                 @click="downloadCsv"
             />

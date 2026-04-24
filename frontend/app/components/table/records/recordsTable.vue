@@ -1,5 +1,4 @@
 <script setup lang="ts">
-import type { TableColumn } from "@nuxt/ui";
 import { h } from "vue";
 import { UBadge } from "#components";
 import { storeToRefs } from "pinia";
@@ -8,7 +7,10 @@ import RecordsFilterBar from "~/components/table/records/RecordsFilterBar.vue";
 import { buildRecordsCsv } from "~/utils/recordsCsv";
 import {
     CENTERED_COL,
+    EXPORT_BTN_UI,
+    REGION_META,
     STATION_META,
+    makeSortableColFactory,
     temperatureBadgeClass,
     truncatedCell,
 } from "~/utils/tableUtils";
@@ -51,6 +53,13 @@ const temperatureBadgeColor = computed(() =>
     displayedTypeRecords.value === "hot" ? "error" : "info",
 );
 
+const ordering = ref("");
+function setOrdering(key: string) {
+    if (ordering.value === key) ordering.value = `-${key}`;
+    else if (ordering.value === `-${key}`) ordering.value = "";
+    else ordering.value = key;
+}
+
 interface TableRow {
     name: string;
     departement: string;
@@ -58,7 +67,7 @@ interface TableRow {
     recordDate: string;
 }
 
-const tableData = computed<TableRow[]>(() =>
+const rawTableData = computed<TableRow[]>(() =>
     pagedStations.value.map((s) => ({
         name: s.station_name,
         departement: s.department,
@@ -67,19 +76,34 @@ const tableData = computed<TableRow[]>(() =>
     })),
 );
 
-const columns: TableColumn<TableRow>[] = [
-    {
-        accessorKey: "name",
-        header: "Station",
+const tableData = computed<TableRow[]>(() => {
+    if (!ordering.value) return rawTableData.value;
+    const desc = ordering.value.startsWith("-");
+    const key = (
+        desc ? ordering.value.slice(1) : ordering.value
+    ) as keyof TableRow;
+    const dir = desc ? -1 : 1;
+    return [...rawTableData.value].sort((a, b) => {
+        if (a[key] < b[key]) return -dir;
+        if (a[key] > b[key]) return dir;
+        return 0;
+    });
+});
+
+const sortableCol = makeSortableColFactory<TableRow>(ordering, setOrdering);
+
+const columns = [
+    sortableCol("name", "Station", {
         meta: STATION_META,
-        cell: ({ row }) => truncatedCell(row.getValue("name")),
-    },
-    { accessorKey: "departement", header: "Département", meta: CENTERED_COL },
-    {
-        accessorKey: "record",
-        header: "Record",
+        cellCustom: ({ row }) => truncatedCell(row.getValue("name")),
+    }),
+    sortableCol("departement", "Département", {
+        meta: REGION_META,
+        cellCustom: ({ row }) => truncatedCell(row.getValue("departement")),
+    }),
+    sortableCol("record", "Record", {
         meta: CENTERED_COL,
-        cell: ({ row }) =>
+        cellCustom: ({ row }) =>
             h(
                 UBadge,
                 {
@@ -92,34 +116,31 @@ const columns: TableColumn<TableRow>[] = [
                     variant: "subtle",
                     color: temperatureBadgeColor.value,
                 },
-                () => row.getValue("record"),
+                () => `${row.getValue<number>("record").toFixed(1)} °C`,
             ),
-    },
-    { accessorKey: "recordDate", header: "Date du record", meta: CENTERED_COL },
+    }),
+    sortableCol("recordDate", "Date du record", { meta: CENTERED_COL }),
 ];
 </script>
 
 <template>
     <div class="flex flex-col gap-4">
-        <!-- Filter bar -->
         <div class="flex items-center gap-4">
             <RecordsFilterBar />
             <UButton
                 label="Exporter CSV"
                 icon="i-lucide-download"
                 class="ml-auto"
-                :ui="{ base: 'bg-slate-450 ring-1 ring-blue-350 text-white' }"
+                :ui="EXPORT_BTN_UI"
                 :disabled="pending"
                 @click="downloadCsv"
             />
         </div>
 
-        <!-- Error message -->
         <div v-if="error" class="px-4 py-3 bg-error/10 text-error rounded">
             Error loading stations: {{ error.message }}
         </div>
 
-        <!-- Table -->
         <UTable
             :data="tableData"
             :columns="columns"
@@ -127,7 +148,6 @@ const columns: TableColumn<TableRow>[] = [
             class="flex-1"
         />
 
-        <!-- Pagination -->
         <div class="flex justify-center border-t border-accented pt-4">
             <UPagination
                 v-model:page="page"
