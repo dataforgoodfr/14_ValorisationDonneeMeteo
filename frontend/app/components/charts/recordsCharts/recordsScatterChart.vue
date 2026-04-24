@@ -21,6 +21,7 @@ import {
     scatterSeries,
 } from "~/utils/recordsChartUtils";
 import { COLORS } from "~/constants/colors";
+import { FONT_CHARTS } from "~/constants/fonts";
 
 echarts.registerLocale("FR", langFR);
 echarts.use([
@@ -126,7 +127,10 @@ const option = computed<ECOption>(() => {
             max: props.adapter.pickedDateEnd?.value,
             nameLocation: "middle",
             nameGap: 25,
-            nameTextStyle: { fontSize: 11, fontWeight: "bold" },
+            nameTextStyle: {
+                fontSize: FONT_CHARTS.fontSize,
+                fontWeight: "bold",
+            },
             axisPointer: { type: "line", label: { show: false } },
             boundaryGap: ["3%", "3%"],
             ...{
@@ -149,8 +153,11 @@ const option = computed<ECOption>(() => {
             nameRotate: 90,
             nameLocation: "middle",
             nameGap: 40,
-            nameTextStyle: { fontSize: 10, fontWeight: "bold" },
-            axisLabel: { fontSize: 10 },
+            nameTextStyle: {
+                fontSize: FONT_CHARTS.fontSize,
+                fontWeight: "bold",
+            },
+            axisLabel: { fontSize: FONT_CHARTS.fontSize },
             splitLine: { lineStyle: { type: "dashed" } },
         })),
         series: [
