@@ -8,7 +8,7 @@
         <div
             class="absolute bottom-4 left-1/2 -translate-x-1/2 flex flex-col items-center gap-1 pointer-events-none"
         >
-            <span class="text-xs" :style="{ color: COLORS.value.foreground }">{{
+            <span class="text-xs" :style="{ color: COLORS.foreground }">{{
                 legendLabel
             }}</span>
             <div
@@ -51,10 +51,10 @@ import maplibregl from "maplibre-gl";
 import "maplibre-gl/dist/maplibre-gl.css";
 import * as topojson from "topojson-client";
 import type { FeatureCollection, Geometry, Point } from "geojson";
-import type { Topology, GeometryCollection } from "topojson-specification";
+import type { GeometryCollection, Topology } from "topojson-specification";
 import type {
-    MappableStation,
     MapColorConfig,
+    MappableStation,
     MapTooltipFormatter,
 } from "~/types/api";
 import { COLORS } from "~/constants/colors";
