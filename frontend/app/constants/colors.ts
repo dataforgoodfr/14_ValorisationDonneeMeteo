@@ -1,21 +1,21 @@
 const colorMode = useColorMode();
 
-export const COLORS = computed(() => {
-    if (colorMode.value === "dark") {
-        return {
-            background: "#202d43",
-            foreground: "#6690a7",
-            cold: "#1976D2",
-            hot: "#d32F2F",
-        };
-    }
-    return {
-        background: "#FFFFFF",
-        foreground: "#000000",
-        cold: "#1976D2",
-        hot: "#d32F2F",
-    };
-});
+const DARK_COLORS = {
+    background: "#202d43",
+    foreground: "#6690a7",
+    cold: "#1976D2",
+    hot: "#d32F2F",
+};
+const LIGHT_COLORS = {
+    background: "#FFFFFF",
+    foreground: "#000000",
+    cold: "#1976D2",
+    hot: "#d32F2F",
+};
+
+export const COLORS = computed(() =>
+    colorMode.value === "dark" ? DARK_COLORS : LIGHT_COLORS,
+);
 
 const deviationMin = -5;
 const deviationMax = 5;
