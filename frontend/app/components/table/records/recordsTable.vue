@@ -13,7 +13,7 @@ import {
     makeSortableColFactory,
     temperatureBadgeClass,
     truncatedCell,
-} from "~/utils/tableUtils";
+} from "~/constants/tableUtils";
 
 const store = useRecordsTableStore();
 const {
