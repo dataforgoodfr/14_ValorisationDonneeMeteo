@@ -108,6 +108,7 @@ const option = computed<ECOption>(() => {
     };
 
     const option: ECOption = {
+        textStyle: { color: "#fff" },
         dataset: periodData.map(
             ({ hotByPeriod, coldByPeriod, allPeriods }) => ({
                 dimensions: ["period", "hot", "cold"],
@@ -177,7 +178,7 @@ const option = computed<ECOption>(() => {
                 bottom: 25,
                 left: "50%",
                 textAlign: "center",
-                textStyle: { fontSize: 12, color: "#000000" },
+                textStyle: { fontSize: 12, color: "#fff" },
             },
         ],
         legend: {

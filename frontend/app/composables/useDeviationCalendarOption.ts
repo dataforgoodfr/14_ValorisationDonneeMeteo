@@ -316,6 +316,7 @@ export function useDeviationCalendarOption(
     };
 
     return {
+        textStyle: { color: "#fff" },
         title: titles,
         tooltip: {
             formatter: (params: TopLevelFormatterParams) =>

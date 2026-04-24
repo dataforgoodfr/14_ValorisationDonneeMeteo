@@ -6,6 +6,12 @@ import { storeToRefs } from "pinia";
 import { useRecordsTableStore } from "~/stores/recordsTableStore";
 import RecordsFilterBar from "~/components/table/records/RecordsFilterBar.vue";
 import { buildRecordsCsv } from "~/utils/recordsCsv";
+import {
+    CENTERED_COL,
+    STATION_META,
+    temperatureBadgeClass,
+    truncatedCell,
+} from "~/utils/tableUtils";
 
 const store = useRecordsTableStore();
 const {
@@ -61,25 +67,36 @@ const tableData = computed<TableRow[]>(() =>
     })),
 );
 
-const columns = computed<TableColumn<TableRow>[]>(() => [
-    { accessorKey: "name", header: "Station" },
-    { accessorKey: "departement", header: "Département" },
+const columns: TableColumn<TableRow>[] = [
+    {
+        accessorKey: "name",
+        header: "Station",
+        meta: STATION_META,
+        cell: ({ row }) => truncatedCell(row.getValue("name")),
+    },
+    { accessorKey: "departement", header: "Département", meta: CENTERED_COL },
     {
         accessorKey: "record",
         header: "Record",
+        meta: CENTERED_COL,
         cell: ({ row }) =>
             h(
                 UBadge,
                 {
-                    class: "capitalize",
+                    class: [
+                        "capitalize",
+                        temperatureBadgeClass(
+                            temperatureBadgeColor.value === "error",
+                        ),
+                    ],
                     variant: "subtle",
                     color: temperatureBadgeColor.value,
                 },
                 () => row.getValue("record"),
             ),
     },
-    { accessorKey: "recordDate", header: "Date du record" },
-]);
+    { accessorKey: "recordDate", header: "Date du record", meta: CENTERED_COL },
+];
 </script>
 
 <template>
@@ -91,7 +108,8 @@ const columns = computed<TableColumn<TableRow>[]>(() => [
                 label="Exporter CSV"
                 icon="i-lucide-download"
                 color="neutral"
-                class="ml-auto"
+                variant="solid"
+                class="ml-auto bg-slate-450! ring-1! ring-blue-350! text-white!"
                 :disabled="pending"
                 @click="downloadCsv"
             />

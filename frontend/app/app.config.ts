@@ -5,6 +5,17 @@ export default defineAppConfig({
                 content: "w-auto min-w-(--reka-select-trigger-width)",
             },
         },
+        header: {
+            slots: {
+                root: "bg-dark-950",
+            },
+        },
+        table: {
+            slots: {
+                tbody: "divide-y divide-blue-350",
+                td: "text-blue-350",
+            },
+        },
         card: {
             slots: {
                 root: "rounded-lg overflow-hidden",

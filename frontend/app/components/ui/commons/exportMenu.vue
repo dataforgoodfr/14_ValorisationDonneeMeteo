@@ -182,6 +182,12 @@ function exportAsHTML() {
             side: 'bottom',
         }"
     >
-        <UButton label="Exporter" icon="i-lucide-download" color="neutral" />
+        <UButton
+            label="Exporter"
+            icon="i-lucide-download"
+            color="neutral"
+            variant="solid"
+            class="bg-slate-450! ring-1! ring-blue-350! text-white!"
+        />
     </UDropdownMenu>
 </template>

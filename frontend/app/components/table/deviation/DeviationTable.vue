@@ -2,6 +2,13 @@
 import type { TableColumn } from "@nuxt/ui";
 import { h } from "vue";
 import { UBadge, UButton } from "#components";
+import {
+    CENTERED_TD,
+    REGION_META,
+    STATION_META,
+    temperatureBadgeClass,
+    truncatedCell,
+} from "~/utils/tableUtils";
 import { storeToRefs } from "pinia";
 import { useDeviationTableStore } from "~/stores/deviationTableStore";
 import DeviationFilterBar from "~/components/table/deviation/DeviationFilterBar.vue";
@@ -75,25 +82,33 @@ const deviationBadgeColor = (deviation: number) =>
 function sortableCol(
     key: string,
     label: string,
-    options: { sortKey?: string; meta?: object } = {},
+    options: {
+        sortKey?: string;
+        meta?: object;
+        headerCustom?: (props: any) => any;
+        cellCustom?: (props: any) => any;
+    } = {},
 ) {
     const sortKey = options.sortKey ?? key;
     return {
         accessorKey: key,
-        header: () =>
-            h(UButton, {
-                variant: "ghost",
-                label,
-                title: label,
-                trailingIcon: ordering.value.includes(sortKey)
-                    ? ordering.value.startsWith("-")
-                        ? "i-lucide-arrow-down"
-                        : "i-lucide-arrow-up"
-                    : "i-lucide-arrow-up-down",
-                color: "neutral",
-                class: "-mx-2.5 font-semibold text-highlighted w-full justify-center",
-                onClick: () => setOrdering(sortKey),
-            }),
+        header: options.headerCustom
+            ? options.headerCustom
+            : () =>
+                  h(UButton, {
+                      variant: "ghost",
+                      label,
+                      title: label,
+                      trailingIcon: ordering.value.includes(sortKey)
+                          ? ordering.value.startsWith("-")
+                              ? "i-lucide-arrow-down"
+                              : "i-lucide-arrow-up"
+                          : "i-lucide-arrow-up-down",
+                      color: "neutral",
+                      class: "-mx-2.5 font-semibold text-highlighted w-full justify-center",
+                      onClick: () => setOrdering(sortKey),
+                  }),
+        cell: options.cellCustom ? options.cellCustom : undefined,
         ...(options.meta ? { meta: options.meta } : {}),
     };
 }
@@ -101,16 +116,51 @@ function sortableCol(
 const centered = { meta: { class: { td: "text-center" } } };
 
 const columns: TableColumn<TableRow>[] = [
-    sortableCol("station_name", "Station"),
-    sortableCol("department", "Département", centered),
-    sortableCol("region", "Région", centered),
+    sortableCol("station_name", "Station", {
+        meta: STATION_META,
+        cellCustom: ({ row }) => truncatedCell(row.getValue("station_name")),
+    }),
+    sortableCol("department", "Département", { meta: CENTERED_TD }),
+    sortableCol("region", "Région", {
+        meta: REGION_META,
+        cellCustom: ({ row }) => truncatedCell(row.getValue("region")),
+    }),
     {
-        ...sortableCol("deviation", "Écart à la normale (°C)", centered),
+        ...sortableCol("deviation", "Écart à la normale (°C)", {
+            meta: CENTERED_TD,
+        }),
+        header: () =>
+            h(
+                UButton,
+                {
+                    variant: "ghost",
+                    trailingIcon: ordering.value.includes("deviation")
+                        ? ordering.value.startsWith("-")
+                            ? "i-lucide-arrow-down"
+                            : "i-lucide-arrow-up"
+                        : "i-lucide-arrow-up-down",
+                    color: "neutral",
+                    class: "-mx-2.5 font-semibold text-highlighted w-full justify-center whitespace-normal leading-tight text-center",
+                    onClick: () => setOrdering("deviation"),
+                },
+                () =>
+                    h(
+                        "span",
+                        { class: "whitespace-pre-line" },
+                        "Écart à la\nnormale",
+                    ),
+            ),
         cell: ({ row }) =>
             h(
                 UBadge,
                 {
-                    class: "capitalize",
+                    class: [
+                        "capitalize",
+                        temperatureBadgeClass(
+                            deviationBadgeColor(row.getValue("deviation")) ===
+                                "error",
+                        ),
+                    ],
                     variant: "subtle",
                     color: deviationBadgeColor(row.getValue("deviation")),
                 },
@@ -120,10 +170,31 @@ const columns: TableColumn<TableRow>[] = [
     {
         ...sortableCol("temperatureMean", "Température Moyenne (°C)", {
             sortKey: "temperature_mean",
-            ...centered,
+            meta: CENTERED_TD,
         }),
+        header: () =>
+            h(
+                UButton,
+                {
+                    variant: "ghost",
+                    trailingIcon: ordering.value.includes("temperature_mean")
+                        ? ordering.value.startsWith("-")
+                            ? "i-lucide-arrow-down"
+                            : "i-lucide-arrow-up"
+                        : "i-lucide-arrow-up-down",
+                    color: "neutral",
+                    class: "-mx-2.5 font-semibold text-highlighted w-full justify-center whitespace-normal leading-tight text-center",
+                    onClick: () => setOrdering("temperature_mean"),
+                },
+                () =>
+                    h(
+                        "span",
+                        { class: "whitespace-pre-line" },
+                        "Température\nMoyenne",
+                    ),
+            ),
         cell: ({ row }) =>
-            `${row.getValue<number>("temperatureMean").toFixed(1)}`,
+            `${row.getValue<number>("temperatureMean").toFixed(1)} °C`,
     },
 ];
 </script>
@@ -142,6 +213,8 @@ const columns: TableColumn<TableRow>[] = [
                 label="Exporter CSV"
                 icon="i-lucide-download"
                 color="neutral"
+                variant="solid"
+                class="bg-slate-450! ring-1! ring-blue-350! text-white!"
                 :disabled="pending"
                 @click="downloadCsv"
             />

@@ -2,9 +2,12 @@
 import AppFooter from "./components/layout/AppFooter.vue";
 import AppHeader from "./components/layout/AppHeader.vue";
 import { fr } from "@nuxt/ui/locale";
+import { ECHART_DARK_THEME } from "~/utils/echartsTheme";
 
 const colorMode = useColorMode();
 colorMode.preference = "dark";
+
+provide(THEME_KEY, ECHART_DARK_THEME);
 </script>
 
 <template>
