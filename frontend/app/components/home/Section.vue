@@ -9,7 +9,7 @@ const props = defineProps<Props>();
         <h3 class="flex items-center gap-2 text-slate-500 font-bold">
             {{ props.title }}
         </h3>
-        <div class="wrapper py-8 px-4 rounded-xl bg-dark-850">
+        <div class="wrapper py-8 px-4 rounded-xl bg-blue-50 dark:bg-dark-850">
             <slot name="default" />
         </div>
     </div>

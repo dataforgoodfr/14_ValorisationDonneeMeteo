@@ -2,12 +2,15 @@
 interface Props {
     title: string;
     tooltipText: string;
+    withBorder?: boolean;
 }
 
-const props = defineProps<Props>();
+const props = withDefaults(defineProps<Props>(), { withBorder: true });
 </script>
 <template>
-    <UCard class="border border-blue-350 flex flex-col">
+    <UCard
+        :class="['flex flex-col', props.withBorder && 'border border-blue-350']"
+    >
         <template #default>
             <div class="flex items-center justify-between pb-2">
                 <h1
@@ -26,15 +29,17 @@ const props = defineProps<Props>();
             <slot name="kpi" />
             <div
                 v-if="$slots['kpi-context-box']"
-                class="kpi-context-box py-1 px-2 rounded-lg leading-none bg-amber-700 border-amber-500 border"
+                class="kpi-context-box py-1 px-2 rounded-lg leading-none bg-amber-500 dark:bg-amber-700 border-amber-800 dark:border-amber-500 border"
             >
-                <span class="text-xs font-medium text-amber-500">
+                <span
+                    class="text-xs font-medium text-amber-800 dark:text-amber-500"
+                >
                     <slot name="kpi-context-box" />
                 </span>
             </div>
             <div v-if="$slots['kpi-context-text']" class="mt-2">
                 <span
-                    class="kpi-context-text text-xs text-slate-300 leading-none"
+                    class="kpi-context-text text-xs text-slate-600 dark:text-slate-300 leading-none"
                 >
                     <slot name="kpi-context-text" />
                 </span>

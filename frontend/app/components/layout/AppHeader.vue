@@ -55,8 +55,11 @@ const items = computed<NavigationMenuItem[]>(() => [
                 content-orientation="vertical"
                 :items="items"
                 :ui="{
-                    content: 'min-w-fit',
+                    content: 'w-max',
                     link: 'border rounded-md',
+                    linkLabel: 'overflow-visible',
+                    viewport: 'overflow-visible w-max',
+                    viewportWrapper: 'overflow-visible w-max',
                     list: 'gap-2',
                 }"
             />
@@ -79,7 +82,7 @@ const items = computed<NavigationMenuItem[]>(() => [
                 checked-icon="i-lucide-moon"
                 aria-label="Basculer le thème"
                 :ui="{
-                    base: 'dark:!bg-transparent dark:ring-1 dark:ring-white/20',
+                    base: 'dark:bg-transparent dark:ring-1 dark:ring-white/20',
                     thumb: 'dark:bg-black',
                 }"
                 @update:model-value="

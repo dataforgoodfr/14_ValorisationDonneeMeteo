@@ -1,32 +1,24 @@
 <template>
     <div class="flex flex-col gap-2 w-[700px] flex-shrink-0">
-        <div class="flex flex-col gap-0.5">
-            <div class="flex items-baseline gap-2">
-                <Card
-                    title="Ecart à la normale en France"
-                    tooltip-text="Ecart à la normale moyen en France métropolitaine sur la période sélectionnée."
-                >
-                    <template #kpi>
-                        <p class="font-semibold text-4xl mb-1 text-red-400">
-                            <span v-if="kpi?.deviation_from_normal != null"
-                                ><span
-                                    >{{
-                                        kpi.deviation_from_normal >= 0
-                                            ? "+"
-                                            : ""
-                                    }}{{ kpi.deviation_from_normal.toFixed(1) }}
-                                    °C
-                                </span>
-                            </span>
-                            <span v-else class="text-muted">—</span>
-                        </p>
-                    </template>
-                    <template #kpi-context-text>
-                        période des normales: 1991-2020
-                    </template>
-                </Card>
-            </div>
-        </div>
+        <Card
+            class="w-fit mx-auto"
+            :with-border="false"
+            title="Ecart à la normale en France"
+            tooltip-text="Ecart à la normale moyen en France métropolitaine sur la période sélectionnée."
+        >
+            <template #kpi>
+                <p class="font-semibold text-4xl mb-1 text-red-400">
+                    <span v-if="kpi?.deviation_from_normal != null">
+                        {{ kpi.deviation_from_normal >= 0 ? "+" : ""
+                        }}{{ kpi.deviation_from_normal.toFixed(1) }} °C
+                    </span>
+                    <span v-else class="text-muted">—</span>
+                </p>
+            </template>
+            <template #kpi-context-text>
+                période des normales: 1991-2020
+            </template>
+        </Card>
 
         <StationMap
             :stations="mappableStations"
