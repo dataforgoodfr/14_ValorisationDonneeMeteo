@@ -5,6 +5,7 @@ import ChartLayout from "~/components/layout/ChartLayout.vue";
 import SearchByTerritoryType from "~/components/records/SearchByTerritoryType.vue";
 import { useRecordsSelectBarAdapter } from "~/adapters/recordsSelectBarAdapter";
 import RecordsChart from "~/components/charts/recordsChart.vue";
+import RecordsKpiPanel from "~/components/charts/RecordsKpiPanel.vue";
 import SelectBar from "~/components/ui/commons/selectBar/selectBar.vue";
 import RecordsMap from "~/components/map/RecordsMap.vue";
 import {
@@ -83,19 +84,25 @@ const heroData = {
                     <SearchByTerritoryType />
                 </template>
                 <template #chart>
-                    <div class="flex flex-col gap-4 px-3 py-2">
-                        <UTabs
-                            v-model="selectBarAdapter.recordKind!.value"
-                            :items="[
-                                { label: 'Records absolus', value: 'absolute' },
-                                {
-                                    label: 'Records battus',
-                                    value: 'historical',
-                                },
-                            ]"
-                            class="w-fit"
-                        />
-                        <RecordsChart :adapter="selectBarAdapter" />
+                    <div class="flex gap-4 px-3 py-2">
+                        <div class="flex flex-col gap-4 flex-1">
+                            <UTabs
+                                v-model="selectBarAdapter.recordKind!.value"
+                                :items="[
+                                    {
+                                        label: 'Records absolus',
+                                        value: 'absolute',
+                                    },
+                                    {
+                                        label: 'Records battus',
+                                        value: 'historical',
+                                    },
+                                ]"
+                                class="w-fit"
+                            />
+                            <RecordsChart :adapter="selectBarAdapter" />
+                        </div>
+                        <RecordsKpiPanel :adapter="selectBarAdapter" />
                     </div>
                 </template>
             </ChartLayout>

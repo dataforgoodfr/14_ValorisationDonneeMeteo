@@ -9,6 +9,7 @@ import DeviationTable from "~/components/table/deviation/DeviationTable.vue";
 import DayPicker from "~/components/ui/commons/selectBar/dayPicker.vue";
 import type { ChartType } from "~/components/ui/commons/selectBar/types";
 import MapD3 from "~/components/map/MapD3.vue";
+import DeviationKpiPanel from "~/components/charts/DeviationKpiPanel.vue";
 import { useDeviationTableStore } from "~/stores/deviationTableStore";
 import { useCustomDate } from "~/composables/useCustomDate";
 
@@ -68,11 +69,14 @@ const heroData = {
             </template>
             <template #chart>
                 <ClientOnly>
-                    <DeviationChart
-                        :adapter="selectBarAdapter"
-                        :chart-type="chartType"
-                        class="px-3 py-2"
-                    />
+                    <div class="flex gap-4">
+                        <DeviationChart
+                            :adapter="selectBarAdapter"
+                            :chart-type="chartType"
+                            class="flex-1 px-3 py-2"
+                        />
+                        <DeviationKpiPanel />
+                    </div>
                 </ClientOnly>
             </template>
         </ChartLayout>
