@@ -10,7 +10,7 @@
                 >
                     <template #kpi>
                         <p class="font-semibold text-4xl mb-1 text-red-400">
-                            <span v-if="kpi.deviation_from_normal != null"
+                            <span v-if="kpi?.deviation_from_normal != null"
                                 ><span
                                     >{{
                                         kpi.deviation_from_normal >= 0
