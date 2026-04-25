@@ -328,7 +328,7 @@ def test_itn_mean_is_average_of_all_observed_days():
     assert result.current.itn_mean == 20.0
 
 
-def test_itn_mean_is_zero_when_observed_series_is_empty():
+def test_itn_mean_is_none_when_observed_series_is_empty():
     result = get_national_indicator_kpi(
         observed_data_source=StubObservedDataSource([]),
         baseline_data_source=StubBaselineDataSource({}),
@@ -362,7 +362,7 @@ def test_deviation_from_normal_negative_when_colder_than_baseline():
     assert result.current.deviation_from_normal == pytest.approx(-4.0)
 
 
-def test_deviation_from_normal_is_zero_when_observed_series_is_empty():
+def test_deviation_from_normal_is_none_when_observed_series_is_empty():
     result = get_national_indicator_kpi(
         observed_data_source=StubObservedDataSource([]),
         baseline_data_source=StubBaselineDataSource({}),
