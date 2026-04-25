@@ -1,4 +1,4 @@
-import type { CallbackDataParams } from "echarts/types/dist/shared";
+import type { TooltipComponentFormatterCallbackParams } from "echarts";
 import type { GranularityType } from "~/components/ui/commons/selectBar/types";
 import { MONTH_SHORT } from "~/constants/months";
 import { XX } from "~/utils/string";
@@ -80,7 +80,7 @@ export function formatStackedPosition(
 }
 
 export function itnStackedTooltipFormatter(
-    params: CallbackDataParams | CallbackDataParams[],
+    params: TooltipComponentFormatterCallbackParams,
     granularity: GranularityType,
 ): string {
     if (!Array.isArray(params) || params.length === 0) return "";
