@@ -61,8 +61,8 @@ def _compute_period_stats(
         itn_mean = mean(p.temperature for p in observed)
         deviation_from_normal = itn_mean - mean(baseline_means)
     else:
-        itn_mean = 0  # avoid errors
-        deviation_from_normal = 0  # avoid errors
+        itn_mean = None
+        deviation_from_normal = None
 
     return KpiPeriodStats(
         hot_peak_count=hot_peak_count,
