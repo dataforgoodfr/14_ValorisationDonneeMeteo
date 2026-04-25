@@ -1,7 +1,8 @@
-import { COLORS } from "~/constants/colors";
+import { useMapColors } from "~/constants/colors";
 import type { TooltipComponentFormatterCallbackParams } from "echarts";
 import type { GranularityType } from "~/components/ui/commons/selectBar/types";
 
+const mapColors = useMapColors();
 export function deviationCalendarTooltipFormatter(
     params: TooltipComponentFormatterCallbackParams,
     granularity: GranularityType,
@@ -24,7 +25,7 @@ export function deviationCalendarTooltipFormatter(
             ? `${xLabel} · ${yLabel}`
             : `${yLabel}/${xLabel}`;
 
-    const col = val >= 0 ? COLORS.value.hot : COLORS.value.cold;
+    const col = val >= 0 ? mapColors.value.hot : mapColors.value.cold;
     const plusSign = val >= 0 ? "+" : "";
     const station = params.seriesName;
 

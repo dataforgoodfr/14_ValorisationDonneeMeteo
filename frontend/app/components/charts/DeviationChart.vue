@@ -3,7 +3,7 @@ import * as echarts from "echarts/core";
 import langFR from "~/i18n/langFR.js";
 import type { TemperatureDeviationGraphResponse } from "~/types/api";
 import type { SelectBarAdapter } from "~/components/ui/commons/selectBar/types";
-import { COLORS } from "~/constants/colors";
+import { useMapColors } from "~/constants/colors";
 import { FONT_CHARTS } from "~/constants/fonts";
 import type { EChartsOption } from "echarts";
 import { useDeviationStore } from "#imports";
@@ -43,6 +43,7 @@ interface Props {
 }
 
 const props = defineProps<Props>();
+const mapColors = useMapColors();
 
 const deviationStore = useDeviationStore();
 const { selectedStationsAndNational } = storeToRefs(useDeviationStore());
@@ -124,7 +125,7 @@ const barOption = computed<ECOption>(() => {
                 stack: `deviation-${index}`,
                 datasetIndex: index,
                 encode: { x: "date", y: "deviation_positive" },
-                color: COLORS.value.hot,
+                color: mapColors.value.hot,
                 tooltip: { show: true },
                 xAxisIndex: index,
                 yAxisIndex: index,
@@ -135,7 +136,7 @@ const barOption = computed<ECOption>(() => {
                 stack: `deviation-${index}`,
                 datasetIndex: index,
                 encode: { x: "date", y: "deviation_negative" },
-                color: COLORS.value.cold,
+                color: mapColors.value.cold,
                 tooltip: { show: true },
                 xAxisIndex: index,
                 yAxisIndex: index,

@@ -1,5 +1,4 @@
 import { deviationCalendarTooltipFormatter } from "~/components/charts/tooltipFormatters/deviationCalendarTooltipFormatter";
-import { COLORS } from "~/constants/colors";
 import type { EChartsOption, SeriesOption } from "echarts";
 import type {
     TopLevelFormatterParams,
@@ -18,7 +17,9 @@ import type { GranularityType } from "~/components/ui/commons/selectBar/types";
 import type { DeviationStationIdAndName } from "~/types/common";
 import { MONTH_SHORT } from "~/constants/months";
 import { FONT_CHARTS } from "~/constants/fonts";
+import { useMapColors } from "~/constants/colors";
 
+const mapColors = useMapColors();
 // transforme "Jan-2024" en nombre comparable
 function toMonthNumber(monthLabel: string): number {
     const [monthShortName, year] = monthLabel.split("-");
@@ -239,7 +240,7 @@ export function useDeviationCalendarOption(
             nameLocation: "middle",
             nameGap: granularity === "year" ? 25 : 38,
             nameTextStyle: {
-                color: COLORS.value.foreground,
+                color: mapColors.value.foreground,
                 fontSize: FONT_CHARTS.fontSize,
                 fontWeight: "bold",
             },
@@ -253,14 +254,14 @@ export function useDeviationCalendarOption(
             axisTick: { show: false },
             axisLine: { lineStyle: { color: "#3a5080" } },
             axisLabel: {
-                color: COLORS.value.foreground,
+                color: mapColors.value.foreground,
                 fontSize: FONT_CHARTS.fontSize,
             },
             name: yAxisName,
             nameLocation: "middle",
             nameGap: 35,
             nameTextStyle: {
-                color: COLORS.value.foreground,
+                color: mapColors.value.foreground,
                 fontSize: FONT_CHARTS.fontSize,
                 fontWeight: "bold",
             },
@@ -273,7 +274,7 @@ export function useDeviationCalendarOption(
             textStyle: {
                 fontSize: FONT_CHARTS.fontSize,
                 fontWeight: "bold",
-                color: COLORS.value.foreground,
+                color: mapColors.value.foreground,
             },
         });
 
@@ -302,9 +303,9 @@ export function useDeviationCalendarOption(
         right: "0%",
         bottom: "center",
         inRange: {
-            color: [COLORS.value.cold, "#FFF", COLORS.value.hot],
+            color: [mapColors.value.cold, "#FFF", mapColors.value.hot],
         },
-        textStyle: { color: COLORS.value.foreground },
+        textStyle: { color: mapColors.value.foreground },
         handleStyle: { borderColor: "#3a5080" },
         seriesIndex: series.map((_, i) => i),
         text: ["+ chaud", "+ froid"],

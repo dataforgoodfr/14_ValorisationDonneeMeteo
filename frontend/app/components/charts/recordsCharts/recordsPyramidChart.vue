@@ -12,7 +12,8 @@ import {
     niceMax,
 } from "~/utils/recordsChartUtils";
 import { recordsPyramidTooltipFormatter } from "~/components/charts/tooltipFormatters/recordsPyramidTooltipFormatter";
-import { COLORS } from "~/constants/colors";
+import { useMapColors } from "~/constants/colors";
+
 import { FONT_CHARTS, GRAPH_RECORDS_POSITION } from "~/constants/fonts";
 type CategoryYAxisOption = Extract<YAXisOption, { type?: "category" }>;
 type ValueXAxisOption = Extract<XAXisOption, { type?: "value" }>;
@@ -24,6 +25,7 @@ interface Props {
 }
 
 const props = defineProps<Props>();
+const mapColors = useMapColors();
 
 const containerRef = ref<HTMLElement | null>(null);
 const INITIAL_CONTAINER_WIDTH = 900;
@@ -190,7 +192,7 @@ const option = computed<ECOption>(() => {
                 name: "Records de froid",
                 datasetIndex: i,
                 encode: { x: "cold", y: "period" },
-                color: COLORS.value.cold,
+                color: mapColors.value.cold,
                 xAxisIndex: 2 * i,
                 yAxisIndex: 2 * i,
             }),
@@ -198,7 +200,7 @@ const option = computed<ECOption>(() => {
                 name: "Records de chaleur",
                 datasetIndex: i,
                 encode: { x: "hot", y: "period" },
-                color: COLORS.value.hot,
+                color: mapColors.value.hot,
                 xAxisIndex: 2 * i + 1,
                 yAxisIndex: 2 * i + 1,
             }),

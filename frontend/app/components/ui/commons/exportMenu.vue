@@ -1,7 +1,9 @@
 <script setup lang="ts">
 import type { DropdownMenuItem } from "@nuxt/ui";
 import type { SelectBarAdapter } from "./selectBar/types";
-import { COLORS } from "~/constants/colors";
+import { useMapColors } from "~/constants/colors";
+
+const mapColors = useMapColors();
 
 const adapter = inject<SelectBarAdapter>("selectBarAdapter")!;
 const { exportConfig, chartRef, granularity, pickedDateStart, pickedDateEnd } =
@@ -56,7 +58,7 @@ function exportAsPng() {
     const dataURL = chartRef.value.getDataURL({
         type: "png",
         pixelRatio: 2,
-        backgroundColor: COLORS.value.background,
+        backgroundColor: mapColors.value.background,
         excludeComponents: ["dataZoom"],
     });
 
