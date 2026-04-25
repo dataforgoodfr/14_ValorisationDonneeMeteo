@@ -749,14 +749,21 @@ class MaterializedTemperatureRecordsDataSource:
         sql = f"""
             SELECT station_code, station_name, department, record_value, record_date
             FROM public.mv_records_battus
-            WHERE record_type = %s
-              AND period_type = %s
-                            AND period_value IS NOT DISTINCT FROM %s
+            WHERE record_type = %(r_type)s
+              AND period_type = %(p_type)s
+                            AND period_value IS NOT DISTINCT FROM %(p_value)s
             ORDER BY {order_sql}
         """
 
         with connection.cursor() as cur:
-            cur.execute(sql, [record_type, request.period_type, period_value])
+            cur.execute(
+                sql,
+                {
+                    "r_type": record_type,
+                    "p_type": request.period_type,
+                    "p_value": period_value,
+                },
+            )
             cols = [c.name for c in cur.description]
             rows = [dict(zip(cols, row, strict=False)) for row in cur.fetchall()]
         return [
