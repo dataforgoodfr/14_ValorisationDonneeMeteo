@@ -43,7 +43,6 @@ import type { MappableStation } from "~/types/api";
 import { RECORDS_MAP_COLORS } from "~/constants/colors";
 import { formatRecordsMapTooltip } from "~/components/map/tooltipFormatters/recordsMapTooltipFormatter";
 import StationMap from "~/components/map/StationMap.vue";
-import Card from "~/components/home/Card.vue";
 
 const store = useRecordsTableStore();
 
