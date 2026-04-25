@@ -4,6 +4,7 @@ import ItnKpiPanel from "~/components/charts/ItnKpiPanel.vue";
 import PagesHero from "~/components/layout/PagesHero.vue";
 import SelectBar from "~/components/ui/commons/selectBar/selectBar.vue";
 import ChartLayout from "~/components/layout/ChartLayout.vue";
+import InfoPanel from "~/components/ui/commons/InfoPanel.vue";
 import { useItnSelectBarAdapter } from "~/adapters/itnSelectBarAdapter";
 
 const selectBarAdapter = useItnSelectBarAdapter();
@@ -36,5 +37,24 @@ const heroData = {
                 </div>
             </template>
         </ChartLayout>
+
+        <InfoPanel title="Indicateur Thermique National">
+            <div class="flex flex-col gap-6 text-sm text-dark-300">
+                <section class="flex flex-col gap-2">
+                    <h3 class="font-semibold text-dark-200">Définition</h3>
+                    <p>Contenu à venir.</p>
+                </section>
+                <section class="flex flex-col gap-2">
+                    <h3 class="font-semibold text-dark-200">
+                        Calcul de l'indicateur
+                    </h3>
+                    <p>Contenu à venir.</p>
+                </section>
+                <section class="flex flex-col gap-2">
+                    <h3 class="font-semibold text-dark-200">Sources</h3>
+                    <p>Contenu à venir.</p>
+                </section>
+            </div>
+        </InfoPanel>
     </UContainer>
 </template>

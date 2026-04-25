@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import PagesHero from "~/components/layout/PagesHero.vue";
+import InfoPanel from "~/components/ui/commons/InfoPanel.vue";
 import RecordsTable from "~/components/table/records/recordsTable.vue";
 import ChartLayout from "~/components/layout/ChartLayout.vue";
 import SearchByTerritoryType from "~/components/records/SearchByTerritoryType.vue";
@@ -111,5 +112,30 @@ const heroData = {
                 </template>
             </ChartLayout>
         </div>
+
+        <InfoPanel title="Records">
+            <div class="flex flex-col gap-6 text-sm text-dark-300">
+                <section class="flex flex-col gap-2">
+                    <h3 class="font-semibold text-dark-200">Définition</h3>
+                    <p>Contenu à venir.</p>
+                </section>
+                <section class="flex flex-col gap-2">
+                    <h3 class="font-semibold text-dark-200">
+                        Critères d'éligibilité
+                    </h3>
+                    <p>Contenu à venir.</p>
+                </section>
+                <section class="flex flex-col gap-2">
+                    <h3 class="font-semibold text-dark-200">
+                        Records absolus vs records battus
+                    </h3>
+                    <p>Contenu à venir.</p>
+                </section>
+                <section class="flex flex-col gap-2">
+                    <h3 class="font-semibold text-dark-200">Sources</h3>
+                    <p>Contenu à venir.</p>
+                </section>
+            </div>
+        </InfoPanel>
     </UContainer>
 </template>
