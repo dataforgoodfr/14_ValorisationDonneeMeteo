@@ -1,9 +1,9 @@
-import type { CallbackDataParams } from "echarts/types/dist/shared";
+import type { TooltipComponentFormatterCallbackParams } from "echarts";
 import type { GranularityType } from "~/components/ui/commons/selectBar/types";
 import { TEMPERATURE_COLORS } from "~/constants/colors";
 
 export function deviationCalendarTooltipFormatter(
-    params: CallbackDataParams,
+    params: TooltipComponentFormatterCallbackParams,
     granularity: GranularityType,
     categories: Record<"xAxis" | "yAxis", string[]>,
 ): string {

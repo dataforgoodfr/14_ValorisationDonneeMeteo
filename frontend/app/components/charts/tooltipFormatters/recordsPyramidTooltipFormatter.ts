@@ -1,8 +1,8 @@
-import type { CallbackDataParams } from "echarts/types/dist/shared";
+import type { TooltipComponentFormatterCallbackParams } from "echarts";
 import { TEMPERATURE_COLORS } from "~/constants/colors";
 
 export function recordsPyramidTooltipFormatter(
-    params: CallbackDataParams | CallbackDataParams[],
+    params: TooltipComponentFormatterCallbackParams,
 ): string {
     if (!Array.isArray(params)) return "";
 

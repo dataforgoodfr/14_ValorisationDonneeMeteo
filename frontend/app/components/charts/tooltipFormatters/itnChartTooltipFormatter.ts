@@ -1,9 +1,9 @@
-import type { CallbackDataParams } from "echarts/types/dist/shared";
+import type { TooltipComponentFormatterCallbackParams } from "echarts";
 import type { GranularityType } from "~/components/ui/commons/selectBar/types";
 import { ITN_SERIES } from "~/constants/itn";
 
 export function itnChartTooltipFormatter(
-    params: CallbackDataParams | CallbackDataParams[],
+    params: TooltipComponentFormatterCallbackParams,
     granularity: GranularityType,
 ): string {
     if (!Array.isArray(params)) return "";

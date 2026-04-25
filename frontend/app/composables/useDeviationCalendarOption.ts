@@ -1,12 +1,15 @@
 import { deviationCalendarTooltipFormatter } from "~/components/charts/tooltipFormatters/deviationCalendarTooltipFormatter";
-import type { EChartsOption, SeriesOption } from "echarts";
 import type {
-    TopLevelFormatterParams,
-    XAXisOption,
-    YAXisOption,
+    EChartsOption,
+    SeriesOption,
+    TooltipComponentFormatterCallbackParams,
+} from "echarts";
+import type {
+    ContinousVisualMapOption,
     GridOption,
     TitleOption,
-    ContinousVisualMapOption,
+    XAXisOption,
+    YAXisOption,
 } from "echarts/types/dist/shared";
 import type {
     TemperatureDeviationGraphDataPoint,
@@ -323,7 +326,7 @@ export function useDeviationCalendarOption(
     return {
         title: titles,
         tooltip: {
-            formatter: (params: TopLevelFormatterParams) =>
+            formatter: (params: TooltipComponentFormatterCallbackParams) =>
                 deviationCalendarTooltipFormatter(params, granularity, {
                     xAxis: xCategories,
                     yAxis: yCategories,
