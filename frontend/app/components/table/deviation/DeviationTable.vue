@@ -131,7 +131,6 @@ const columns = [
                     ],
                     variant: "subtle",
                     size: TEMPERATURE_BADGE_SIZE,
-                    color: deviationBadgeColor(row.getValue("deviation")),
                 },
                 () =>
                     `${row.getValue<number>("deviation") > 0 ? "+" : ""}${row.getValue<number>("deviation").toFixed(1)} °C`,

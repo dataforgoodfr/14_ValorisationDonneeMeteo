@@ -10,10 +10,15 @@ const props = defineProps<Props>();
     <UCard class="border border-blue-350 flex flex-col">
         <template #default>
             <div class="flex items-center justify-between pb-2">
-                <h1 class="text-sm font-semibold text-blue-350">
+                <h1
+                    class="text-sm font-semibold text-blue-700 dark:text-blue-350"
+                >
                     {{ props.title }}
                 </h1>
-                <UTooltip :text="props.tooltipText" class="text-blue-350">
+                <UTooltip
+                    :text="props.tooltipText"
+                    class="text-blue-700 dark:text-blue-350"
+                >
                     <UIcon name="i-lucide-circle-question-mark" />
                 </UTooltip>
             </div>
@@ -35,7 +40,7 @@ const props = defineProps<Props>();
                 </span>
             </div>
             <div v-if="$slots['variation']" class="flex items-center mt-1">
-                <span class="text-xs text-blue-350">
+                <span class="text-xs text-blue-700 dark:text-blue-350">
                     <slot name="variation" />
                 </span>
             </div>
