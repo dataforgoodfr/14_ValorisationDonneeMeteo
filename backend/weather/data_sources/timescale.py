@@ -483,7 +483,7 @@ class TimescaleTemperatureDeviationDailyDataSource(
                     s.annee_de_creation AS annee_de_creation,
                     s.annee_de_fermeture AS annee_de_fermeture
                 FROM station_agg a
-                    LEFT JOIN v_station s
+                    LEFT JOIN v_station_deviation s
                         ON s.station_code = a.station_id
                     LEFT JOIN ref_department_region r
                         ON r.departement = s.departement
@@ -608,7 +608,7 @@ class TimescaleTemperatureRecordsDataSource:
                 s.annee_de_creation,
                 s.annee_de_fermeture
             FROM ordered o
-            JOIN public.v_station s ON s.station_code = o."NUM_POSTE"
+            JOIN public.v_station_records s ON s.station_code = o."NUM_POSTE"
             WHERE (o.prev_val IS NULL OR o."{col}" {cmp} o.prev_val)
               AND s.classe_recente BETWEEN 1 AND 3
             ORDER BY s.name, o."AAAAMMJJ"
@@ -756,7 +756,7 @@ class MaterializedTemperatureRecordsDataSource:
         sql = f"""
             SELECT m.station_code, m.station_name, m.department, m.record_value, m.record_date, vs.lat, vs.lon, vs.alt, vs.classe_recente, vs.annee_de_creation, vs.annee_de_fermeture
                 FROM public.mv_records_battus m
-            LEFT JOIN public.v_station vs ON vs.station_code = m.station_code
+            LEFT JOIN public.v_station_records vs ON vs.station_code = m.station_code
             WHERE {where}
               AND vs.classe_recente BETWEEN 1 AND 3
             ORDER BY station_name, record_date
@@ -904,7 +904,7 @@ class HybridTemperatureRecordsDataSource:
                 vs.annee_de_creation,
                 vs.annee_de_fermeture
             FROM ordered o
-            JOIN public.v_station vs ON vs.station_code = o."NUM_POSTE"
+            JOIN public.v_station_records vs ON vs.station_code = o."NUM_POSTE"
             WHERE o."{col}" {cmp} o.prev_val
               AND o."AAAAMMJJ" >= make_date(vs.annee_de_creation + 20, 1, 1)
               AND vs.classe_recente BETWEEN 1 AND 3
