@@ -427,16 +427,7 @@ const option = computed<ECOption>(() => {
                     props.adapter.granularity.value,
                 ),
         },
-        dataZoom: [
-            {
-                type: "slider",
-                minSpan: 20,
-            },
-            {
-                type: "inside",
-                minSpan: 20,
-            },
-        ],
+        dataZoom: [{ type: "inside", minSpan: 20 }],
         emphasis: {
             focus: "none",
             disabled: true, // disables all emphasis state changes on hover
