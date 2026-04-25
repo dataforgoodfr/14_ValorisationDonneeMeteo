@@ -35,7 +35,7 @@ export const TEMPERATURE_BADGE_SIZE = "lg";
 export const HOT_BADGE_CLASS =
     "bg-rose-200! ring-1! ring-red-450/25! text-rose-600!";
 export const COLD_BADGE_CLASS =
-    "bg-slate-200! ring-1! ring-blue-350/25! text-blue-650!";
+    "bg-slate-200! ring-1! ring-blue-350/25! text-blue-650! dark:text-blue-700!";
 
 export function truncatedCell(value: string) {
     return h("span", { class: "block truncate", title: value }, value);
