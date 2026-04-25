@@ -7,7 +7,9 @@ import LastYearSection from "~/components/home/Last365DaysSection/LastYearSectio
 
 <template>
     <div class="py-8">
-        <h1 class="font-extrabold text-4xl mb-2 text-blue-150">
+        <h1
+            class="font-extrabold text-4xl mb-2 text-blue-900 dark:text-blue-150"
+        >
             Tableau de bord national
         </h1>
         <h2 class="mb-4 text-slate-500">

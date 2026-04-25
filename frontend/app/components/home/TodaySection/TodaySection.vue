@@ -8,7 +8,9 @@ const today = new Date();
 <template>
     <div>
         <Section :title="`AUJOURD'HUI - ${formatDateLongForDisplay(today)}`">
-            <h2 class="text-primary pb-2">MIN-MAX DU JOUR</h2>
+            <h2 class="text-blue-700 pb-2 dark:text-primary pb-2">
+                MIN-MAX DU JOUR
+            </h2>
             <div class="flex flex-col gap-2">
                 <ITNCard />
                 <ITNCard />
@@ -17,7 +19,9 @@ const today = new Date();
 
             <div class="border-b to-slate-200" />
 
-            <h2 class="text-primary pb-2 pt-1">RECORDS DE TEMPERATURE</h2>
+            <h2 class="text-blue-700 dark:text-primary pb-2 pt-1">
+                RECORDS DE TEMPERATURE
+            </h2>
             <div class="flex gap-2 md:flex-row flex-col">
                 <ITNCard />
                 <ITNCard />
