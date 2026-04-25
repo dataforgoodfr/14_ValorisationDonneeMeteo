@@ -31,7 +31,7 @@ RÈGLES MÉTIER
 PÉRIMÈTRE
 ---------
 - Période : [1991-01-01, 2021-01-01)
-- Stations : uniquement celles avec station_type < 4 (via v_station)
+- Stations : uniquement celles avec classe_recente <= 4 (via v_station_deviation)
 
 SOURCES
 -------
@@ -39,15 +39,14 @@ SOURCES
     - station_code
     - date
     - tntxm (température max journalière)
-- v_station :
+- v_station_deviation :
     - station_code
-    - station_type
 
 STRUCTURE DE LA REQUÊTE
 -----------------------
 1. base :
     - extraction des données sur la période de référence
-    - filtrage des stations (station_type < 4)
+    - filtrage des stations (classe_recente <= 4)
     - dérivation year / month / day
 
 2. normal_days :
@@ -74,7 +73,7 @@ PERFORMANCE
 
 POINTS DE VIGILANCE
 -------------------
-- Cohérence des station_code entre v_quotidienne_itn et v_station
+- Cohérence des station_code entre v_quotidienne_itn et v_station_deviation
 - Complétude des données autour du 28/02 et 01/03
 - Hypothèse implicite : TNTXM disponible et fiable sur toute la période
 
@@ -87,9 +86,7 @@ CREATE MATERIALIZED VIEW public.baseline_station_daily_mean_1991_2020 AS
 
 WITH allowed_stations AS (
     SELECT s.station_code
-    FROM public.v_station s
-    WHERE s.station_type IS NOT NULL
-      AND s.station_type < 4
+    FROM public.v_station_deviation s
 ),
 
 base AS (
