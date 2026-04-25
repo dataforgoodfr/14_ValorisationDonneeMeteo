@@ -12,34 +12,22 @@
                 legendLabel
             }}</span>
             <div
-                ref="mapContainer"
-                class="w-full rounded-lg overflow-hidden"
-                style="height: 480px"
+                class="rounded-full"
+                :style="{
+                    width: '160px',
+                    height: '12px',
+                    background: `linear-gradient(to right, ${legendGradient})`,
+                }"
             />
             <div
-                class="absolute bottom-0 left-1/2 -translate-x-1/2 flex flex-col items-center gap-1 pointer-events-none"
+                class="flex justify-between w-full text-xs"
+                :style="{ color: mapColors.foreground }"
             >
-                <span class="text-xs" :style="{ color: COLORS.foreground }">{{
-                    legendLabel
-                }}</span>
-                <div
-                    class="rounded-full"
-                    :style="{
-                        width: '160px',
-                        height: '12px',
-                        background: `linear-gradient(to right, ${legendGradient})`,
-                    }"
-                />
-                <div
-                    class="flex justify-between w-full text-xs"
-                    :style="{ color: COLORS.foreground }"
+                <span>{{ colorConfig.min }}°C</span>
+                <span
+                    >{{ colorConfig.max > 0 ? "+" : ""
+                    }}{{ colorConfig.max }}°C</span
                 >
-                    <span>{{ colorConfig.min }}°C</span>
-                    <span
-                        >{{ colorConfig.max > 0 ? "+" : ""
-                        }}{{ colorConfig.max }}°C</span
-                    >
-                </div>
             </div>
         </div>
         <MapAttribution class="mt-2" />

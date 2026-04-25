@@ -1,11 +1,12 @@
-import { COLORS } from "~/constants/colors";
+import { useMapColors } from "~/constants/colors";
 
+const mapColors = useMapColors();
 export function formatDeviationMapTooltip(
     stationName: string,
     deviation: number,
 ): string {
     const sign = deviation >= 0 ? "+" : "";
-    const color = deviation >= 0 ? COLORS.value.hot : COLORS.value.cold;
+    const color = deviation >= 0 ? mapColors.value.hot : mapColors.value.cold;
     return `
         <div style="font-family:sans-serif;font-size:12px;line-height:1.5;padding:2px 4px">
             <div style="font-weight:600;margin-bottom:2px">${stationName}</div>

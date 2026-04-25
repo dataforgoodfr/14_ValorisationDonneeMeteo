@@ -3,8 +3,9 @@ import {
     ATTRIBUTION_TEXT,
     ATTRIBUTION_FONT_SIZE,
 } from "~/constants/chartAttribution";
-import { COLORS } from "~/constants/colors";
+import { useMapColors } from "~/constants/colors";
 
+const mapColors = useMapColors();
 const lines = ATTRIBUTION_TEXT.split("\n");
 </script>
 
@@ -13,7 +14,7 @@ const lines = ATTRIBUTION_TEXT.split("\n");
         class="pointer-events-none text-right leading-tight"
         :style="{
             fontSize: `${ATTRIBUTION_FONT_SIZE}px`,
-            color: COLORS.foreground,
+            color: mapColors.foreground,
         }"
     >
         <div v-for="line in lines" :key="line">{{ line }}</div>

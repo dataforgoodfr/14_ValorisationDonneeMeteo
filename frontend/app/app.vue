@@ -6,10 +6,6 @@ import { ECHART_DARK_THEME } from "~/constants/echartsTheme";
 
 const colorMode = useColorMode();
 
-if (colorMode.preference === "system") {
-    colorMode.preference = "light";
-}
-
 const echartsTheme = computed(() =>
     colorMode.value === "dark" ? ECHART_DARK_THEME : undefined,
 );
