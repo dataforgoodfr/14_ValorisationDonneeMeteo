@@ -60,7 +60,7 @@ const dataForGoodSocials = [
 </script>
 
 <template>
-    <footer class="border-t border-default mt-8">
+    <footer class="bg-[#12161F] border-t border-dark-700 mt-8">
         <UContainer>
             <div class="grid grid-cols-1 gap-10 py-8 sm:grid-cols-3 lg:gap-16">
                 <div class="flex flex-col gap-5">
@@ -69,7 +69,8 @@ const dataForGoodSocials = [
                             name="i-lucide-hexagon"
                             class="size-6 text-primary"
                         />
-                        <span class="font-title font-medium text-base"
+                        <span
+                            class="font-title font-medium text-base text-dark-200"
                             >DataClimat</span
                         >
                     </div>
@@ -77,7 +78,7 @@ const dataForGoodSocials = [
                         <li v-for="link in navLinks" :key="link.label">
                             <NuxtLink
                                 :to="link.to"
-                                class="text-sm text-muted hover:text-foreground transition-colors"
+                                class="text-sm text-dark-400 hover:text-dark-200 transition-colors"
                             >
                                 {{ link.label }}
                             </NuxtLink>
@@ -89,10 +90,12 @@ const dataForGoodSocials = [
                     <div class="flex items-center gap-2">
                         <img
                             src="/images/logo-infoclimat.png"
-                            alt="InfoClimat"
+                            alt="Infoclimat"
                             class="h-7 w-auto"
                         />
-                        <span class="font-medium text-base">InfoClimat</span>
+                        <span class="font-medium text-base text-dark-200"
+                            >Infoclimat</span
+                        >
                     </div>
                     <ul class="space-y-2.5">
                         <li v-for="link in infoclimatLinks" :key="link.label">
@@ -100,7 +103,7 @@ const dataForGoodSocials = [
                                 :href="link.href"
                                 target="_blank"
                                 rel="noopener noreferrer"
-                                class="text-sm text-muted hover:text-foreground transition-colors"
+                                class="text-sm text-dark-400 hover:text-dark-200 transition-colors"
                             >
                                 {{ link.label }}
                             </a>
@@ -114,7 +117,7 @@ const dataForGoodSocials = [
                             target="_blank"
                             rel="noopener noreferrer"
                             :aria-label="social.label"
-                            class="text-muted hover:text-foreground transition-colors"
+                            class="text-dark-400 hover:text-dark-200 transition-colors"
                         >
                             <UIcon :name="social.icon" class="size-5" />
                         </a>
@@ -128,7 +131,9 @@ const dataForGoodSocials = [
                             alt="DataForGood"
                             class="h-7 w-auto"
                         />
-                        <span class="font-medium text-base">DataForGood</span>
+                        <span class="font-medium text-base text-dark-200"
+                            >DataForGood</span
+                        >
                     </div>
                     <ul class="space-y-2.5">
                         <li v-for="link in dataForGoodLinks" :key="link.label">
@@ -136,7 +141,7 @@ const dataForGoodSocials = [
                                 :href="link.href"
                                 target="_blank"
                                 rel="noopener noreferrer"
-                                class="text-sm text-muted hover:text-foreground transition-colors"
+                                class="text-sm text-dark-400 hover:text-dark-200 transition-colors"
                             >
                                 {{ link.label }}
                             </a>
@@ -150,7 +155,7 @@ const dataForGoodSocials = [
                             target="_blank"
                             rel="noopener noreferrer"
                             :aria-label="social.label"
-                            class="text-muted hover:text-foreground transition-colors"
+                            class="text-dark-400 hover:text-dark-200 transition-colors"
                         >
                             <UIcon :name="social.icon" class="size-5" />
                         </a>
@@ -158,9 +163,9 @@ const dataForGoodSocials = [
                 </div>
             </div>
 
-            <div class="py-4">
-                <p class="text-sm text-muted">
-                    Tous droits réservés &mdash; &copy;
+            <div class="border-t border-dark-700 py-4">
+                <p class="text-sm text-dark-400">
+                    Tous droits réservés - &copy;
                     {{ new Date().getFullYear() }} Infoclimat et Data for Good
                 </p>
             </div>
