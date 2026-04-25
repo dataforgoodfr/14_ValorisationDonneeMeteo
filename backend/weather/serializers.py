@@ -271,16 +271,28 @@ class TemperatureRecordsQuerySerializer(serializers.Serializer):
     )
     page = serializers.IntegerField(required=False, default=1)
     page_size = serializers.IntegerField(required=False, default=50)
-    sort_by = serializers.ChoiceField(
-        choices=["record_value", "station_name", "record_date", "department"],
+    sort = serializers.CharField(
         required=False,
         default="record_value",
+        help_text="Champ(s) de tri avec ordre (ex: 'record_value', '-record_value', 'record_value,station_name', '-record_value,station_name')",
     )
-    sort_order = serializers.ChoiceField(
-        choices=["asc", "desc"],
-        required=False,
-        default="desc",
-    )
+
+    def validate_sort(self, value):
+        """Valide le format du paramètre sort."""
+        if not value:
+            return value
+
+        sort_parts = [s.strip() for s in value.split(",")]
+        valid_fields = ["record_value", "station_name", "record_date", "department"]
+
+        for sort_part in sort_parts:
+            field = sort_part.lstrip("-")
+            if field not in valid_fields:
+                raise serializers.ValidationError(
+                    f"Champ de tri '{field}' invalide. Valeurs possibles: {', '.join(valid_fields)}"
+                )
+
+        return value
 
     def validate(self, attrs):
         period_type = attrs.get("period_type", "all_time")

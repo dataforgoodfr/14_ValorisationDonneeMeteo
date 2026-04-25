@@ -561,18 +561,27 @@ class TimescaleTemperatureRecordsDataSource:
 
         period_clause, params = self._period_clause(request)
 
-        # Build ORDER BY clause based on sort_by and sort_order
-        sort_order_sql = "DESC" if request.sort_order == "desc" else "ASC"
-        if request.sort_by == "record_value":
-            order_sql = f'o."{col}" {sort_order_sql}, s.name ASC'
-        elif request.sort_by == "station_name":
-            order_sql = f's.name {sort_order_sql}, o."{col}" DESC'
-        elif request.sort_by == "record_date":
-            order_sql = f'o."AAAAMMJJ" {sort_order_sql}, s.name ASC'
-        elif request.sort_by == "department":
-            order_sql = f's.departement {sort_order_sql}, o."{col}" DESC'
+        sort_parts = [s.strip() for s in request.sort.split(",")]
+
+        field_mapping = {
+            "record_value": f'o."{col}"',
+            "station_name": "s.name",
+            "record_date": 'o."AAAAMMJJ"',
+            "department": "s.departement",
+        }
+
+        order_clauses = []
+        for sort_part in sort_parts:
+            sort_field = sort_part.lstrip("-")
+            sort_order = "DESC" if sort_part.startswith("-") else "ASC"
+
+            if sort_field in field_mapping:
+                order_clauses.append(f"{field_mapping[sort_field]} {sort_order}")
+
+        if order_clauses:
+            order_sql = ", ".join(order_clauses)
         else:
-            order_sql = f'o."{col}" {sort_order_sql}, s.name ASC'
+            order_sql = f'o."{col}" DESC, s.name ASC'
 
         base_sql = f"""
             WITH ordered AS (
@@ -715,23 +724,27 @@ class MaterializedTemperatureRecordsDataSource:
         else:
             period_value = None
 
-        sort_order_sql = "DESC" if request.sort_order == "desc" else "ASC"
-        if request.sort_by == "record_value":
-            order_sql = (
-                f"record_value {sort_order_sql}, station_name ASC, record_date ASC"
-            )
-        elif request.sort_by == "station_name":
-            order_sql = f"station_name {sort_order_sql}, record_date ASC"
-        elif request.sort_by == "record_date":
-            order_sql = f"record_date {sort_order_sql}, station_name ASC"
-        elif request.sort_by == "department":
-            order_sql = (
-                f"department {sort_order_sql}, station_name ASC, record_date ASC"
-            )
+        sort_parts = [s.strip() for s in request.sort.split(",")]
+
+        field_mapping = {
+            "record_value": "record_value",
+            "station_name": "station_name",
+            "record_date": "record_date",
+            "department": "department",
+        }
+
+        order_clauses = []
+        for sort_part in sort_parts:
+            sort_field = sort_part.lstrip("-")
+            sort_order = "DESC" if sort_part.startswith("-") else "ASC"
+
+            if sort_field in field_mapping:
+                order_clauses.append(f"{field_mapping[sort_field]} {sort_order}")
+
+        if order_clauses:
+            order_sql = ", ".join(order_clauses)
         else:
-            order_sql = (
-                f"record_value {sort_order_sql}, station_name ASC, record_date ASC"
-            )
+            order_sql = "record_value DESC, station_name ASC, record_date ASC"
 
         sql = f"""
             SELECT station_code, station_name, department, record_value, record_date
@@ -797,19 +810,40 @@ class HybridTemperatureRecordsDataSource:
         entries: list[TemperatureRecordEntry],
         request: TemperatureRecordsRequest,
     ) -> TemperatureRecordsResult:
-        if request.sort_by or request.sort_order:
-            reverse = request.sort_order == "desc"
+        if request.sort:
+            sort_parts = [s.strip() for s in request.sort.split(",")]
 
             def _sort_key(entry: TemperatureRecordEntry):
-                if request.sort_by == "station_name":
-                    return entry.station_name
-                if request.sort_by == "record_date":
-                    return entry.record_date
-                if request.sort_by == "department":
-                    return entry.department
-                return entry.record_value
+                sort_values = []
+                for sort_part in sort_parts:
+                    sort_field = sort_part.lstrip("-")
+                    reverse = sort_part.startswith("-")
 
-            entries = sorted(entries, key=_sort_key, reverse=reverse)
+                    if sort_field == "station_name":
+                        value = entry.station_name
+                    elif sort_field == "record_date":
+                        value = entry.record_date
+                    elif sort_field == "department":
+                        value = entry.department
+                    else:  # record_value
+                        value = entry.record_value
+
+                    if reverse:
+                        if isinstance(value, str):
+                            value = "".join(chr(255 - ord(c)) for c in value)
+                        elif isinstance(value, int | float):
+                            value = -value
+                        elif hasattr(value, "__neg__"):
+                            try:
+                                value = -value
+                            except TypeError:
+                                pass
+
+                    sort_values.append(value)
+
+                return tuple(sort_values)
+
+            entries = sorted(entries, key=_sort_key)
 
         total_count = len(entries)
         page = request.page

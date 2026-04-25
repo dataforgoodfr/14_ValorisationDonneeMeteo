@@ -410,15 +410,17 @@ paths:
 
         - le type de record (`hot` ou `cold`)
 
-        - le tri des résultats (`sort_by`, `sort_order`)
+        - le tri des résultats (`sort`)
 
         Exemples de requêtes :
 
-        - `period_type=all_time&type_records=hot&sort_by=record_value&sort_order=desc`
+        - `period_type=all_time&type_records=hot&sort=-record_value`
 
         - `period_type=month&month=7&type_records=hot&page=1&page_size=50`
 
-        - `period_type=season&season=summer&type_records=cold&sort_by=station_name&sort_order=asc`
+        - `period_type=season&season=summer&type_records=cold&sort=station_name`
+
+        - `period_type=all_time&type_records=hot&sort=-record_value,station_name`
 
       operationId: getTemperatureRecords
       tags:
@@ -434,7 +436,7 @@ paths:
             - `season` : records pour une saison donnée (paramètre `season` requis)
           schema:
             type: string
-            enum: [ all_time, month, season ]
+            enum: [all_time, month, season]
           default: all_time
         - name: month
           in: query
@@ -457,7 +459,7 @@ paths:
             - `winter` : hiver (décembre–février)
           schema:
             type: string
-            enum: [ spring, summer, autumn, winter ]
+            enum: [spring, summer, autumn, winter]
         - name: type_records
           in: query
           required: false
@@ -467,7 +469,7 @@ paths:
             - `cold` : records froids
           schema:
             type: string
-            enum: [ hot, cold ]
+            enum: [hot, cold]
           default: hot
         - name: page
           in: query
@@ -483,37 +485,36 @@ paths:
           in: query
           required: false
           description: |
-           Nombre de résultats par page (défaut: 50).
+            Nombre de résultats par page (défaut: 50).
           schema:
             type: integer
             minimum: 1
             maximum: 500
           default: 50
           example: 50
-        - name: sort_by
+        - name: sort
           in: query
           required: false
           description: |
-            Champ de tri :
+            Champ(s) de tri avec ordre. Supporte un ou plusieurs critères séparés par des virgules.
+
+            Format : `[field]` pour ascendant, `[-field]` pour descendant.
+
+            Champs disponibles :
             - `record_value` : valeur du record (défaut)
             - `station_name` : nom de la station
             - `record_date` : date du record
             - `department` : département
+
+            Exemples :
+            - `record_value` : tri par valeur croissante
+            - `-record_value` : tri par valeur décroissante
+            - `record_value,station_name` : tri par valeur puis nom croissant
+            - `-record_value,station_name` : tri par valeur décroissante puis nom croissant
           schema:
             type: string
-            enum: [ record_value, station_name, record_date, department ]
           default: record_value
-        - name: sort_order
-          in: query
-          required: false
-          description: |
-            Ordre de tri :
-            - `desc` : descendant (défaut)
-            - `asc` : ascendant
-          schema:
-            type: string
-            enum: [ asc, desc ]
-          default: desc
+          example: "-record_value,station_name"
       responses:
         "200":
           description: Liste paginée des records de température par station.

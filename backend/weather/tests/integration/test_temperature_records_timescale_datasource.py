@@ -34,8 +34,7 @@ def test_fetch_records_hot_month_happy_path():
         period_type="month",
         type_records="hot",
         month=7,
-        sort_by="record_value",
-        sort_order="asc",
+        sort="record_value",
     )
     result = ds.fetch_records(req)
 
@@ -98,8 +97,7 @@ def test_fetch_records_season_aggregates_across_months():
         period_type="season",
         type_records="hot",
         season="summer",
-        sort_by="record_date",
-        sort_order="asc",
+        sort="record_date",
     )
     result = ds.fetch_records(req)
 

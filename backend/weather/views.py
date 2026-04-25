@@ -179,6 +179,44 @@ class TemperatureRecordsAPIView(APIView):
     authentication_classes = []
     permission_classes = []
 
+    @extend_schema(
+        summary="Records de température",
+        description=(
+            "Liste les records de température par station avec support de la pagination et du tri.\n\n"
+            "L'endpoint permet de filtrer :\n"
+            "- le découpage temporel (`period_type`) : tous les temps, par mois ou par saison\n"
+            "- le type de record (`hot` ou `cold`)\n"
+            "- le tri des résultats (`sort`)\n\n"
+            "Exemples de requêtes :\n"
+            "- `period_type=all_time&type_records=hot&sort=-record_value`\n"
+            "- `period_type=month&month=7&type_records=hot&page=1&page_size=50`\n"
+            "- `period_type=season&season=summer&type_records=cold&sort=station_name`\n"
+            "- `period_type=all_time&type_records=hot&sort=-record_value,station_name`"
+        ),
+        parameters=[
+            {
+                "name": "sort",
+                "type": str,
+                "location": "query",
+                "required": False,
+                "default": "record_value",
+                "description": (
+                    "Champ(s) de tri avec ordre. Supporte un ou plusieurs critères séparés par des virgules.\n\n"
+                    "Format : `[field]` pour ascendant, `[-field]` pour descendant.\n\n"
+                    "Champs disponibles :\n"
+                    "- `record_value` : valeur du record (défaut)\n"
+                    "- `station_name` : nom de la station\n"
+                    "- `record_date` : date du record\n"
+                    "- `department` : département\n\n"
+                    "Exemples :\n"
+                    "- `record_value` : tri par valeur croissante\n"
+                    "- `-record_value` : tri par valeur décroissante\n"
+                    "- `record_value,station_name` : tri par valeur puis nom croissant\n"
+                    "- `-record_value,station_name` : tri par valeur décroissante puis nom croissant"
+                ),
+            }
+        ],
+    )
     def get(self, request):
         q = TemperatureRecordsQuerySerializer(data=request.query_params)
         if not q.is_valid():
@@ -201,8 +239,7 @@ class TemperatureRecordsAPIView(APIView):
             season=params.get("season"),
             page=params.get("page", 1),
             page_size=params.get("page_size", 50),
-            sort_by=params.get("sort_by", "record_value"),
-            sort_order=params.get("sort_order", "desc"),
+            sort=params.get("sort", "record_value"),
         )
 
         try:
