@@ -319,7 +319,7 @@ def test_kpi_deviation_from_normal(client: APIClient):
     assert resp.json()["deviation_from_normal"] == pytest.approx(1.0)
 
 
-def test_kpi_itn_mean_is_zero_when_no_observed_data(client: APIClient):
+def test_kpi_itn_mean_is_null_when_no_observed_data(client: APIClient):
     class EmptyObservedDependency(
         NationalIndicatorObservedDataSource,
         NationalIndicatorBaselineDataSource,
