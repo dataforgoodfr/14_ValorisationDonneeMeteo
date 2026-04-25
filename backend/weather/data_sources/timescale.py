@@ -820,7 +820,7 @@ class HybridTemperatureRecordsDataSource:
         if request.sort:
             sort_parts = [s.strip() for s in request.sort.split(",")]
 
-            def _sort_key(entry: TemperatureRecordEntry):
+            def _sort_key(entry: TemperatureRecordEntry) -> tuple:
                 sort_values = []
                 for sort_part in sort_parts:
                     sort_field = sort_part.lstrip("-")
