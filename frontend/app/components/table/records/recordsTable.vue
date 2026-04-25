@@ -116,7 +116,6 @@ const columns = [
                     ],
                     variant: "subtle",
                     size: TEMPERATURE_BADGE_SIZE,
-                    color: temperatureBadgeColor.value,
                 },
                 () => `${row.getValue<number>("record").toFixed(1)} °C`,
             ),
