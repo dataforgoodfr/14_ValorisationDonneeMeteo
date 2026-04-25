@@ -69,7 +69,7 @@ const heroData = {
             </template>
             <template #chart>
                 <ClientOnly>
-                    <div class="flex gap-4">
+                    <div class="flex flex-col md:flex-row gap-4">
                         <DeviationChart
                             :adapter="selectBarAdapter"
                             :chart-type="chartType"
