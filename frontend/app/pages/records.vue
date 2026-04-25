@@ -57,7 +57,7 @@ const heroData = {
                             :ui="{
                                 base:
                                     store.typeRecords === 'cold'
-                                        ? 'bg-blue-200 text-blue-650 ring-1 ring-blue-300 pointer-events-none'
+                                        ? 'bg-blue-200 text-blue-650! dark:text-blue-700! ring-1 ring-blue-300 pointer-events-none'
                                         : '',
                             }"
                             color="neutral"
