@@ -19,7 +19,6 @@ import { MONTH_SHORT } from "~/constants/months";
 import { FONT_CHARTS } from "~/constants/fonts";
 import { useMapColors } from "~/constants/colors";
 
-const mapColors = useMapColors();
 // transforme "Jan-2024" en nombre comparable
 function toMonthNumber(monthLabel: string): number {
     const [monthShortName, year] = monthLabel.split("-");
@@ -165,6 +164,7 @@ export function useDeviationCalendarOption(
     stationsIdAndNames: DeviationStationIdAndName[],
 ): EChartsOption {
     const deviationStore = useDeviationStore();
+    const mapColors = useMapColors();
 
     const stationsAndNational: TemperatureDeviationGraphStationSerie[] =
         deviationStore.stationsAndNationalFormatted(data);

@@ -1,8 +1,5 @@
 import { getStationById } from "~/utils/station";
-import type {
-    DefaultLabelFormatterCallbackParams,
-    TooltipComponentFormatterCallbackParams,
-} from "echarts";
+import type { CallbackDataParams } from "echarts/types/dist/shared";
 import type { GranularityType } from "~/components/ui/commons/selectBar/types";
 import type { DeviationStationIdAndName } from "~/types/common";
 
@@ -14,7 +11,7 @@ interface DeviationChartTooltipParam {
 }
 
 export function deviationChartTooltipFormatter(
-    params: TooltipComponentFormatterCallbackParams,
+    params: CallbackDataParams | CallbackDataParams[],
     granularity: GranularityType,
     stationsIdAndNames: DeviationStationIdAndName[],
 ): string {
@@ -41,9 +38,7 @@ export function deviationChartTooltipFormatter(
         firstParam.date as string,
     ).toLocaleDateString("fr-FR", dateOptions);
 
-    const tooltipLabelFormatter = (
-        serie: DefaultLabelFormatterCallbackParams,
-    ) => {
+    const tooltipLabelFormatter = (serie: CallbackDataParams) => {
         const data = serie.data as DeviationChartTooltipParam;
 
         if (
