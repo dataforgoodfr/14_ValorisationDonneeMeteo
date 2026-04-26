@@ -1,85 +1,9 @@
-import datetime as dt
 import pathlib
 
 import pytest
 from django.db import connection
 
 BASE_DIR = pathlib.Path(__file__).resolve().parents[2]  # ajuste selon ton arbo
-
-
-def insert_quotidienne(
-    day: dt.date,
-    code: str,
-    *,
-    tx: float | None = None,
-    tn: float | None = None,
-) -> None:
-    with connection.cursor() as cur:
-        cur.execute(
-            """
-            INSERT INTO public."Quotidienne"
-                ("NUM_POSTE", "NOM_USUEL", "LAT", "LON", "ALTI", "AAAAMMJJ", "TX", "TN", "TNTXM")
-            VALUES
-                (%(code)s, %(name)s, 0, 0, 0, %(day)s, %(tx)s, %(tn)s, %(tntxm)s)
-            ON CONFLICT ("NUM_POSTE", "AAAAMMJJ")
-            DO UPDATE SET "TX" = EXCLUDED."TX", "TN" = EXCLUDED."TN", "TNTXM" = EXCLUDED."TNTXM"
-            """,
-            {
-                "code": code,
-                "name": f"ST {code}",
-                "day": day,
-                "tx": tx,
-                "tn": tn,
-                "tntxm": ((tx or 0) + (tn or 0)) / 2 if tx and tn else None,
-            },
-        )
-
-
-def insert_mv_record(
-    station_code: str,
-    station_name: str,
-    period_type: str,
-    period_value: str | None,
-    record_type: str,
-    value: float,
-    date: dt.date,
-    department: int = 75,
-) -> None:
-    with connection.cursor() as cur:
-        cur.execute(
-            """
-            INSERT INTO public.mv_records_battus
-                (period_type, period_value, record_type,
-                 station_code, station_name, department,
-                 record_value, record_date)
-            VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
-            """,
-            [
-                period_type,
-                period_value,
-                record_type,
-                station_code,
-                station_name,
-                department,
-                value,
-                date,
-            ],
-        )
-
-
-def set_cutoff(date: dt.date) -> None:
-    with connection.cursor() as cur:
-        cur.execute("TRUNCATE public.mv_records_battus_meta;")
-        cur.execute(
-            "INSERT INTO public.mv_records_battus_meta (cutoff_date) VALUES (%s);",
-            [date],
-        )
-
-
-def clear_mv() -> None:
-    with connection.cursor() as cur:
-        cur.execute("TRUNCATE public.mv_records_battus;")
-        cur.execute("TRUNCATE public.mv_records_battus_meta;")
 
 
 @pytest.fixture(scope="session", autouse=True)
@@ -101,6 +25,9 @@ def setup_db_schema_and_views(django_db_setup, django_db_blocker):
     ).read_text()
     itn_baseline_tables_sql = (
         BASE_DIR / "sql" / "test_tables" / "itn_baseline.sql"
+    ).read_text()
+    itn_daily_observed_table_sql = (
+        BASE_DIR / "sql" / "test_tables" / "mv_itn_daily_observed.sql"
     ).read_text()
 
     with django_db_blocker.unblock():
@@ -128,6 +55,7 @@ def setup_db_schema_and_views(django_db_setup, django_db_blocker):
                     END IF;
                 END $$;
             """)
+            cur.execute("DROP TABLE IF EXISTS public.mv_itn_daily_observed CASCADE;")
             cur.execute("DROP VIEW IF EXISTS public.v_quotidienne_itn CASCADE;")
             cur.execute("DROP VIEW IF EXISTS public.v_station CASCADE;")
             cur.execute(
@@ -140,6 +68,7 @@ def setup_db_schema_and_views(django_db_setup, django_db_blocker):
             cur.execute(v_quot_sql)
             cur.execute(baseline_station_table_sql)
             cur.execute(itn_baseline_tables_sql)
+            cur.execute(itn_daily_observed_table_sql)
             cur.execute(
                 "CREATE TABLE public.mv_records_battus_meta (cutoff_date DATE NOT NULL);"
             )

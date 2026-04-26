@@ -12,6 +12,7 @@ from weather.models import (
     ITNBaselineDaily19912020,
     ITNBaselineMonthly19912020,
     ITNBaselineYearly19912020,
+    ITNDailyObserved,
     QuotidienneITN,
     Station,
 )
@@ -21,7 +22,6 @@ from weather.services.national_indicator.protocols import (
     NationalIndicatorObservedDataSource,
 )
 from weather.services.national_indicator.stations import (
-    ITN_STATION_CODES_FOR_QUERY,
     REIMS_COURCY,
     REIMS_PRUNAY,
     expected_reims_code,
@@ -30,6 +30,7 @@ from weather.services.national_indicator.stations import (
 from weather.services.national_indicator.types import (
     BaselinePoint,
     DailySeriesQuery,
+    ObservedSeriesQuery,
 )
 from weather.services.national_indicator.types import (
     ObservedPoint as NationalObservedPoint,
@@ -157,44 +158,88 @@ def compute_itn_for_day(
 
 
 class TimescaleNationalIndicatorObservedDataSource(NationalIndicatorObservedDataSource):
+    def _bucket_expr(self, query: ObservedSeriesQuery) -> str:
+        if query.granularity == "day":
+            return "date"
+
+        if query.granularity == "month":
+            return "DATE_TRUNC('month', date)::date"
+
+        if query.granularity == "year":
+            if query.slice_type == "month_of_year":
+                return "MAKE_DATE(year, %(month_of_year)s, 1)"
+            if query.slice_type == "day_of_month":
+                return "date"
+            return "MAKE_DATE(year, 1, 1)"
+
+        raise ValueError(f"Granularity non supportée: {query.granularity}")
+
     def fetch_daily_series(
         self,
         query: DailySeriesQuery,
     ) -> list[NationalObservedPoint]:
-        qs = QuotidienneITN.objects.filter(
+        qs = ITNDailyObserved.objects.filter(
             date__gte=query.date_start,
             date__lte=query.date_end,
-            station_code__in=ITN_STATION_CODES_FOR_QUERY,
         )
 
         if query.target_dates is not None:
             qs = qs.filter(date__in=query.target_dates)
 
-        rows = qs.order_by("date", "station_code").values(
-            "date", "station_code", "tntxm"
-        )
-
-        grouped: dict[dt.date, dict[str, float]] = defaultdict(dict)
-        for row in rows:
-            value = row["tntxm"]
-            if value is None:
-                continue
-            grouped[row["date"]][row["station_code"]] = float(value)
-
-        out: list[NationalObservedPoint] = []
-        for day in sorted(grouped):
-            itn = compute_itn_for_day(day, grouped[day])
-            if itn is None:
-                continue
-
-            out.append(
-                NationalObservedPoint(
-                    date=day,
-                    temperature=itn,
-                )
+        return [
+            NationalObservedPoint(
+                date=row.date,
+                temperature=float(row.temperature),
             )
+            for row in qs.order_by("date")
+        ]
 
-        return out
+    def fetch_observed_series(
+        self,
+        query: ObservedSeriesQuery,
+    ) -> list[NationalObservedPoint]:
+        bucket_expr = self._bucket_expr(query)
+
+        where_clauses = [
+            "date >= %(date_start)s",
+            "date <= %(date_end)s",
+        ]
+        params: dict = {
+            "date_start": query.date_start,
+            "date_end": query.date_end,
+        }
+
+        if query.target_dates is not None:
+            where_clauses.append("date = ANY(%(target_dates)s)")
+            params["target_dates"] = list(query.target_dates)
+        elif query.slice_type == "month_of_year":
+            where_clauses.append("month = %(month_of_year)s")
+            params["month_of_year"] = query.month_of_year
+
+        where_sql = " AND ".join(where_clauses)
+
+        sql = f"""
+            SELECT
+                {bucket_expr} AS date,
+                AVG(temperature)::double precision AS temperature
+            FROM public.mv_itn_daily_observed
+            WHERE {where_sql}
+            GROUP BY 1
+            ORDER BY 1
+        """
+
+        with connection.cursor() as cur:
+            cur.execute(sql, params)
+            cols = [c[0] for c in cur.description]
+            rows = [dict(zip(cols, row, strict=False)) for row in cur.fetchall()]
+
+        return [
+            NationalObservedPoint(
+                date=row["date"],
+                temperature=float(row["temperature"]),
+            )
+            for row in rows
+        ]
 
 
 class TimescaleNationalIndicatorBaselineDataSource(NationalIndicatorBaselineDataSource):

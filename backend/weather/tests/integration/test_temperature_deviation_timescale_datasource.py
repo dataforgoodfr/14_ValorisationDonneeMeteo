@@ -7,12 +7,15 @@ import pytest
 from weather.data_sources.timescale import (
     TimescaleTemperatureDeviationDailyDataSource,
 )
-from weather.services.national_indicator.stations import ITN_STATION_CODES_FOR_QUERY
 from weather.services.temperature_deviation.types import (
     DailyDeviationSeriesQuery,
     TemperatureDeviationOverviewQuery,
 )
-from weather.tests.helpers.itn import insert_complete_itn_day, insert_quotidienne
+from weather.tests.helpers.itn import (
+    clear_itn_daily_observed,
+    insert_itn_daily_observed,
+    insert_quotidienne,
+)
 from weather.tests.helpers.stations import insert_station
 from weather.tests.helpers.stations_baseline import insert_station_daily_baseline
 
@@ -118,10 +121,10 @@ def test_fetch_stations_daily_series_multiple_stations():
 
 @pytest.mark.django_db
 def test_fetch_national_observed_series_happy_path():
+    clear_itn_daily_observed()
+
     day = dt.date(2024, 1, 1)
-
-    insert_complete_itn_day(day, 10.0)
-
+    insert_itn_daily_observed(day, 10.0)
     ds = TimescaleTemperatureDeviationDailyDataSource()
 
     query = DailyDeviationSeriesQuery(
@@ -483,19 +486,19 @@ def test_fetch_stations_daily_series_respects_target_dates():
 
 @pytest.mark.django_db
 def test_fetch_national_observed_series_respects_target_dates():
+    clear_itn_daily_observed()
+
     day1 = dt.date(2024, 1, 1)
     day2 = dt.date(2024, 1, 2)
     day3 = dt.date(2024, 1, 3)
 
-    insert_complete_itn_day(day1, 10.0)
-
-    for code in ITN_STATION_CODES_FOR_QUERY:
-        insert_quotidienne(day2, code, 11.0)
-        insert_quotidienne(day3, code, 12.0)
-
-    ds = TimescaleTemperatureDeviationDailyDataSource()
+    insert_itn_daily_observed(day1, 10.0)
+    insert_itn_daily_observed(day2, 20.0)
+    insert_itn_daily_observed(day3, 30.0)
 
     target_dates = (day1, day3)
+
+    ds = TimescaleTemperatureDeviationDailyDataSource()
 
     query = DailyDeviationSeriesQuery(
         date_start=day1,
@@ -508,6 +511,7 @@ def test_fetch_national_observed_series_respects_target_dates():
     result = ds.fetch_national_observed_series(query)
 
     assert [p.date for p in result] == list(target_dates)
+    assert [p.temperature for p in result] == [10.0, 30.0]
 
 
 @pytest.mark.django_db

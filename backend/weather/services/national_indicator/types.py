@@ -37,3 +37,14 @@ class DailySeriesQuery:
     # Dates exactes à récupérer (si slice => on veut réduire la volumétrie DB)
     # Si None: fallback "fenêtre complète".
     target_dates: tuple[dt.date, ...] | None = None
+
+
+@dataclass(frozen=True)
+class ObservedSeriesQuery:
+    date_start: dt.date
+    date_end: dt.date
+    granularity: str
+    slice_type: str = "full"
+    month_of_year: int | None = None
+    day_of_month: int | None = None
+    target_dates: tuple[dt.date, ...] | None = None

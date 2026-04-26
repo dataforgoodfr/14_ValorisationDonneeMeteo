@@ -7,11 +7,11 @@ import pytest
 
 from weather.data_sources.timescale import HybridTemperatureRecordsDataSource
 from weather.services.temperature_records.types import TemperatureRecordsRequest
-from weather.tests.conftest import (
+from weather.tests.helpers.mvs import (
     insert_mv_record,
-    insert_quotidienne,
     set_cutoff,
 )
+from weather.tests.helpers.quotidienne import insert_quotidienne
 from weather.tests.helpers.stations import insert_station
 
 # =========================

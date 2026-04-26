@@ -69,6 +69,22 @@ class QuotidienneITN(models.Model):
         return f"{self.station_code} {self.date}"
 
 
+class ITNDailyObserved(models.Model):
+    date = models.DateField(primary_key=True)
+    year = models.IntegerField()
+    month = models.IntegerField()
+    day_of_month = models.IntegerField()
+    temperature = models.FloatField()
+
+    class Meta:
+        managed = False
+        db_table = "mv_itn_daily_observed"
+        ordering = ["date"]
+
+    def __str__(self) -> str:
+        return f"{self.date}: {self.temperature}"
+
+
 class BaselineStationDailyMean19912020(models.Model):
     pk = models.CompositePrimaryKey("station_code", "month", "day")
 

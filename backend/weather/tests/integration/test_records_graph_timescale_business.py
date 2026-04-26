@@ -6,7 +6,7 @@ import pytest
 
 from weather.data_sources.timescale import TimescaleRecordsGraphDataSource
 from weather.services.records_graph.types import RecordsGraphRequest
-from weather.tests.conftest import insert_mv_record
+from weather.tests.helpers.mvs import insert_mv_record
 
 
 def _req(**kwargs) -> RecordsGraphRequest:

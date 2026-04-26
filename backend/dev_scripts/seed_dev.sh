@@ -70,6 +70,9 @@ echo "== Import Station classe (CSV) =="
 echo "== Apply views =="
 bash "${ROOT_DIR}/dev_scripts/apply_views.sh"
 
+echo "== Create ITN daily observed materialized view =="
+bash "${ROOT_DIR}/dev_scripts/seed_itn_daily_observed.sh"
+
 echo "== Seed station baseline (dev CSV) =="
 bash "${ROOT_DIR}/dev_scripts/seed_station_baseline.sh"
 
@@ -95,6 +98,9 @@ echo "== Sanity checks =="
 "${psql_base[@]}" -c 'SELECT COUNT(*) AS v_station_count FROM public.v_station;'
 "${psql_base[@]}" -c 'SELECT COUNT(*) AS v_quotidienne_itn_count FROM public.v_quotidienne_itn;'
 "${psql_base[@]}" -c 'SELECT MIN(date), MAX(date) FROM public.v_quotidienne_itn;'
+"${psql_base[@]}" -c 'SELECT COUNT(*) AS mv_itn_daily_observed_count FROM public.mv_itn_daily_observed;'
+"${psql_base[@]}" -c 'SELECT MIN(date), MAX(date) FROM public.mv_itn_daily_observed;'
+"${psql_base[@]}" -c 'SELECT * FROM public.mv_itn_daily_observed ORDER BY date LIMIT 5;'
 "${psql_base[@]}" -c 'SELECT COUNT(*) AS baseline_station_daily_mean_1991_2020_count FROM public.baseline_station_daily_mean_1991_2020;'
 "${psql_base[@]}" -c 'SELECT * FROM public.baseline_station_daily_mean_1991_2020 ORDER BY station_code, month, day LIMIT 5;'
 "${psql_base[@]}" -c 'SELECT COUNT(*) AS itn_baseline_count FROM public.mv_itn_baseline_1991_2020;'
