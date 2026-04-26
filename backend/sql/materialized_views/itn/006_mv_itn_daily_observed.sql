@@ -64,7 +64,7 @@ valid_days AS (
         date
     FROM daily_station_values
     GROUP BY date
-    HAVING COUNT(*) = 30
+    HAVING COUNT(*) >= 29
 )
 SELECT
     d.date,

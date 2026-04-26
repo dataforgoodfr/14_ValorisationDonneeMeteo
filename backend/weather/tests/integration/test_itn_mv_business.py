@@ -40,10 +40,10 @@ def test_itn_mv_returns_mean_when_all_stations_present():
 
 
 @pytest.mark.django_db
-def test_itn_mv_returns_no_row_if_missing_station():
+def test_itn_mv_returns_no_row_if_two_stations_missing():
     day = dt.date(2024, 1, 1)
 
-    codes = list(expected_station_codes(day))[:-1]  # 29 stations
+    codes = list(expected_station_codes(day))[:-2]  # 28 stations
 
     for code in codes:
         insert_quotidienne(day, code, tx=10.0, tn=10.0)
@@ -88,3 +88,34 @@ def test_itn_mv_uses_correct_reims_station():
         value = cur.fetchone()[0]
 
     assert value == pytest.approx(10.0)
+
+
+@pytest.mark.django_db
+def test_itn_mv_returns_mean_when_one_station_missing():
+    day = dt.date(2024, 1, 1)
+
+    expected_codes = list(expected_station_codes(day))
+
+    # on enlève 1 station → 29 restantes
+    codes = expected_codes[:-1]
+
+    values = []
+    for i, code in enumerate(codes):
+        temp = float(i)
+        values.append(temp)
+        insert_quotidienne(day, code, tx=temp, tn=temp)
+
+    with connection.cursor() as cur:
+        cur.execute("REFRESH MATERIALIZED VIEW public.mv_itn_daily_observed;")
+        cur.execute(
+            """
+            SELECT temperature
+            FROM mv_itn_daily_observed
+            WHERE date = %s
+        """,
+            [day],
+        )
+        row = cur.fetchone()
+
+    assert row is not None
+    assert row[0] == pytest.approx(sum(values) / len(values))
