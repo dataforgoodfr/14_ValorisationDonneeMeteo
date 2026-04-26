@@ -2,6 +2,16 @@
 import { useBreakpoints, breakpointsTailwind } from "@vueuse/core";
 import type { InfoSection } from "~/types/common";
 
+interface InfoParagraph {
+    title?: string;
+    text: string;
+}
+
+interface InfoSection {
+    label: string;
+    content: string | InfoParagraph[];
+}
+
 interface Props {
     title: string;
     sections: InfoSection[];
