@@ -41,13 +41,11 @@ done
 
 
 echo "== Reset schema public =="
-"${psql_base[@]}" <<'SQL'
-DROP SCHEMA IF EXISTS public CASCADE;
-CREATE SCHEMA public;
-GRANT ALL ON SCHEMA public TO public;
-GRANT ALL ON SCHEMA public TO CURRENT_USER;
-CREATE EXTENSION IF NOT EXISTS timescaledb;
-SQL
+"${psql_base[@]}" -c "DROP SCHEMA IF EXISTS public CASCADE;"
+"${psql_base[@]}" -c "CREATE SCHEMA public;"
+"${psql_base[@]}" -c "GRANT ALL ON SCHEMA public TO public;"
+"${psql_base[@]}" -c "GRANT ALL ON SCHEMA public TO CURRENT_USER;"
+"${psql_base[@]}" -X -c "CREATE EXTENSION IF NOT EXISTS timescaledb;"
 
 echo "== Create tables (schema) =="
 "${psql_base[@]}" -f "$SCHEMA_SQL"

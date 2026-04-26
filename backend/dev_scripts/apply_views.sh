@@ -21,7 +21,14 @@ if [[ ! -d "$VIEWS_DIR" ]]; then
 fi
 
 for f in "$VIEWS_DIR"/*.sql; do
-  echo "Applying $(basename "$f")"
+  filename="$(basename "$f")"
+
+  if [[ "$filename" == "002_v_quotidienne.sql" ]]; then
+    echo "Skipping ${filename} (handled separately)"
+    continue
+  fi
+
+  echo "Applying ${filename}"
   psql -h "$DB_HOST" \
        -p "$DB_PORT" \
        -U "$DB_USER" \
@@ -29,6 +36,9 @@ for f in "$VIEWS_DIR"/*.sql; do
        -v ON_ERROR_STOP=1 \
        -f "$f"
 done
+
+echo "== Create dev v_quotidienne views =="
+bash "${ROOT_DIR}/dev_scripts/seed_v_quotidienne.sh"
 
 echo "Sanity checks:"
 psql -h "$DB_HOST" -p "$DB_PORT" -U "$DB_USER" -d "$DB_NAME" <<'SQL'
