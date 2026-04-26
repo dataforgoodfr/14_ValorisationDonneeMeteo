@@ -1,5 +1,21 @@
 <script setup lang="ts">
-const navLinks = [
+interface InternalNavLink {
+    label: string;
+    to: string;
+}
+
+interface ExternalNavLink {
+    label: string;
+    href: string;
+}
+
+interface SocialLink {
+    icon: string;
+    href: string;
+    label: string;
+}
+
+const navLinks: InternalNavLink[] = [
     { label: "Le Projet", to: "/" },
     { label: "Le Dashboard", to: "/" },
     { label: "Écart de température à la normale", to: "/ecart-normale" },
@@ -8,7 +24,7 @@ const navLinks = [
     { label: "Min & Max de température", to: "/min-max" },
 ];
 
-const infoclimatLinks = [
+const infoclimatLinks: ExternalNavLink[] = [
     { label: "infoclimat.fr", href: "https://www.infoclimat.fr/" },
     { label: "Le site de l'association", href: "https://asso.infoclimat.fr/" },
     {
@@ -18,7 +34,7 @@ const infoclimatLinks = [
     { label: "Faire un don", href: "https://asso.infoclimat.fr/" },
 ];
 
-const infoclimatSocials = [
+const infoclimatSocials: SocialLink[] = [
     {
         icon: "i-lucide-instagram",
         href: "https://www.instagram.com/infoclimat/",
@@ -31,7 +47,7 @@ const infoclimatSocials = [
     },
 ];
 
-const dataForGoodLinks = [
+const dataForGoodLinks: ExternalNavLink[] = [
     { label: "Le site de l'association", href: "https://dataforgood.fr/" },
     {
         label: "Devenir bénévole",
@@ -40,7 +56,7 @@ const dataForGoodLinks = [
     { label: "Faire un don", href: "https://dataforgood.fr/faire-un-don" },
 ];
 
-const dataForGoodSocials = [
+const dataForGoodSocials: SocialLink[] = [
     {
         icon: "i-lucide-youtube",
         href: "https://www.youtube.com/channel/UCA_utdbmVhAOFujulWlaaCQ",
@@ -71,8 +87,9 @@ const dataForGoodSocials = [
                         />
                         <span
                             class="font-title font-medium text-base text-dark-200"
-                            >DataClimat</span
                         >
+                            DataClimat
+                        </span>
                     </div>
                     <ul class="space-y-2.5">
                         <li v-for="link in navLinks" :key="link.label">
@@ -93,9 +110,9 @@ const dataForGoodSocials = [
                             alt="Infoclimat"
                             class="h-7 w-auto"
                         />
-                        <span class="font-medium text-base text-dark-200"
-                            >Infoclimat</span
-                        >
+                        <span class="font-medium text-base text-dark-200">
+                            Infoclimat
+                        </span>
                     </div>
                     <ul class="space-y-2.5">
                         <li v-for="link in infoclimatLinks" :key="link.label">
@@ -131,9 +148,9 @@ const dataForGoodSocials = [
                             alt="DataForGood"
                             class="h-7 w-auto"
                         />
-                        <span class="font-medium text-base text-dark-200"
-                            >DataForGood</span
-                        >
+                        <span class="font-medium text-base text-dark-200">
+                            DataForGood
+                        </span>
                     </div>
                     <ul class="space-y-2.5">
                         <li v-for="link in dataForGoodLinks" :key="link.label">
