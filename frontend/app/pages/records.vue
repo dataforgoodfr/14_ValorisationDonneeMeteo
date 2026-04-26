@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import PagesHero from "~/components/layout/PagesHero.vue";
 import InfoPanel from "~/components/ui/commons/InfoPanel.vue";
+import FieldInfo from "~/components/ui/commons/FieldInfo.vue";
 import RecordsTable from "~/components/table/records/recordsTable.vue";
 import ChartLayout from "~/components/layout/ChartLayout.vue";
 import SearchByTerritoryType from "~/components/records/SearchByTerritoryType.vue";
@@ -23,6 +24,60 @@ const heroData = {
     description:
         "Les records de température correspondent aux valeurs extrêmes — maximales ou minimales — mesurées depuis la création d'une station disposant d'au moins 20 ans de données.",
 };
+
+const infoPanelSections = [
+    {
+        label: "Définition",
+        content:
+            "Une mesure de température est un record si c'est la valeur la plus extrême" +
+            " (chaude ou froide) jamais mesurée, à date, sur la période d'analyse sélectionnée.",
+    },
+    {
+        label: "Méthode de calcul",
+        content: [
+            {
+                title: "Records absolus",
+                text:
+                    "Un records absolu est la (et l'unique) valeur de température la plus extrême jamais" +
+                    " mesurée sur la période d'anlyse sélectionnée",
+            },
+            {
+                title: "Records battus",
+                text:
+                    "Les records battus sont la liste des records qu'une station ou une région a connu" +
+                    " au cours du temps. Chaque record battu fut un record absolu sur la période sélectionné" +
+                    " à sa date du record, mais il existe plusieurs records battus qui ne sont plusieurs des records" +
+                    " absolu: le record absolu d'une station ou d'une région est en fait le dernier record battu.",
+            },
+            {
+                title: "Période d'analyse",
+                text:
+                    "La période d'anlayse permet d'afficher les records battus ou absolus sur une partie de l'année seulement." +
+                    "Si la période d'anlayse est un mois, les records mensuels du mois sélectionné sont affichés," +
+                    " si la période d'anlayse est une saison, les records de saison sont affichés. Si la période est" +
+                    " 'Période complète' les records tous mois confondus sont affichés.",
+            },
+        ],
+    },
+    {
+        label: "Stations éligibles",
+        content:
+            "Le calcul des normales ne peut s’effectuer que si le nombre de données manquantes n’est pas" +
+            " supérieur à celui préconisé par la norme OMM (https://donneespubliques.meteofrance.fr/client/document/normales-methode_299.pdf)" +
+            "\n\nAinsi, pour qu'une station soit éligible au calcul d'un écart à la normale en considérant" +
+            " la période 1991-2020 comme période des normales aux année et apparaisse sur le site dataclimat.fr," +
+            " cette station doit avoir au moins 24 ans de données entre 1991-2020 et avoir une classe de qualité" +
+            " de mesure de température définie par MéteoFrance entre 1 et 4.",
+    },
+    {
+        label: "Sources",
+        content:
+            "- Les données sont issues de mesures open source de Meteo France" +
+            "\n- Informations sur les normales climatiques: https://donneespubliques.meteofrance.fr/client/document/normales-methode_299.pdf)" +
+            " https://meteofrance.com/, https://fr.wikipedia.org/wiki/Normale_climatique)" +
+            "\n- Classe des stations: https://www.data.gouv.fr/datasets/fiches-dinformations-sur-les-stations",
+    },
+];
 </script>
 
 <template>
@@ -35,7 +90,12 @@ const heroData = {
             <div class="flex flex-col gap-4 bg-elevated rounded-lg p-14">
                 <div class="flex items-end gap-4">
                     <div class="flex flex-col gap-1">
-                        <p class="text-sm text-muted">Période</p>
+                        <div class="flex items-center gap-1">
+                            <p class="text-sm text-muted">Période</p>
+                            <FieldInfo
+                                text="Période de référence utilisée pour identifier les records de température."
+                            />
+                        </div>
                         <USelect
                             v-model="store.periodSelection"
                             :items="periodOptions"
@@ -113,29 +173,6 @@ const heroData = {
             </ChartLayout>
         </div>
 
-        <InfoPanel title="Records">
-            <div class="flex flex-col gap-6 text-sm text-dark-300">
-                <section class="flex flex-col gap-2">
-                    <h3 class="font-semibold text-dark-200">Définition</h3>
-                    <p>Contenu à venir.</p>
-                </section>
-                <section class="flex flex-col gap-2">
-                    <h3 class="font-semibold text-dark-200">
-                        Critères d'éligibilité
-                    </h3>
-                    <p>Contenu à venir.</p>
-                </section>
-                <section class="flex flex-col gap-2">
-                    <h3 class="font-semibold text-dark-200">
-                        Records absolus vs records battus
-                    </h3>
-                    <p>Contenu à venir.</p>
-                </section>
-                <section class="flex flex-col gap-2">
-                    <h3 class="font-semibold text-dark-200">Sources</h3>
-                    <p>Contenu à venir.</p>
-                </section>
-            </div>
-        </InfoPanel>
+        <InfoPanel :title="heroData.title" :sections="infoPanelSections" />
     </UContainer>
 </template>
