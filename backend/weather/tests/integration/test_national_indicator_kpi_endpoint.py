@@ -37,7 +37,7 @@ class InMemoryKpiDependency(
     def __init__(self, temps: dict[dt.date, float]):
         self._temps = temps
 
-    def fetch_daily_series(self, query: DailySeriesQuery) -> list[ObservedPoint]:
+    def fetch_observed_series(self, query: DailySeriesQuery) -> list[ObservedPoint]:
         start, end = query.date_start, query.date_end
         return [
             ObservedPoint(date=d, temperature=self._temps.get(d, 10.0))
@@ -324,7 +324,9 @@ def test_kpi_itn_mean_is_null_when_no_observed_data(client: APIClient):
         NationalIndicatorObservedDataSource,
         NationalIndicatorBaselineDataSource,
     ):
-        def fetch_daily_series(self, _query: DailySeriesQuery) -> list[ObservedPoint]:
+        def fetch_observed_series(
+            self, _query: DailySeriesQuery
+        ) -> list[ObservedPoint]:
             return []
 
         def fetch_daily_baseline(self, _day: dt.date) -> BaselinePoint:

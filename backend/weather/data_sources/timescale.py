@@ -12,7 +12,6 @@ from weather.models import (
     ITNBaselineDaily19912020,
     ITNBaselineMonthly19912020,
     ITNBaselineYearly19912020,
-    ITNDailyObserved,
     QuotidienneITN,
     Station,
 )
@@ -21,15 +20,8 @@ from weather.services.national_indicator.protocols import (
     NationalIndicatorBaselineDataSource,
     NationalIndicatorObservedDataSource,
 )
-from weather.services.national_indicator.stations import (
-    REIMS_COURCY,
-    REIMS_PRUNAY,
-    expected_reims_code,
-    expected_station_codes,
-)
 from weather.services.national_indicator.types import (
     BaselinePoint,
-    DailySeriesQuery,
     ObservedSeriesQuery,
 )
 from weather.services.national_indicator.types import (
@@ -80,20 +72,6 @@ def _float_or_none(value) -> float | None:
     return float(value) if value is not None else None
 
 
-def _normalize_reims(
-    day: dt.date, station_code_to_temp_map: dict[str, float]
-) -> dict[str, float]:
-    reims_expected = expected_reims_code(day)
-    reims_other = REIMS_PRUNAY if reims_expected == REIMS_COURCY else REIMS_COURCY
-
-    if reims_other not in station_code_to_temp_map:
-        return station_code_to_temp_map
-
-    m = dict(station_code_to_temp_map)
-    m.pop(reims_other, None)
-    return m
-
-
 def _station_daily_baseline_subquery():
     return BaselineStationDailyMean19912020.objects.filter(
         station_code=OuterRef("station_code"),
@@ -136,27 +114,6 @@ def _mean(values: list[float]) -> float:
     return sum(values) / len(values)
 
 
-def compute_itn_for_day(
-    day: dt.date, station_code_to_temp_map: dict[str, float]
-) -> float | None:
-    expected_stations_for_day = expected_station_codes(day)
-    if len(expected_stations_for_day) != 30:
-        raise ValueError(
-            f"Expected 30 stations, got {len(expected_stations_for_day)} for {day}"
-        )
-    # Normalisation : ignorer l'autre Reims si elle existe
-    station_code_to_temp_map = _normalize_reims(day, station_code_to_temp_map)
-    # Égalité stricte sur les 30 slots
-    computed_stations_codes = set(station_code_to_temp_map.keys())
-
-    if computed_stations_codes != expected_stations_for_day:
-        return None
-
-    return sum(station_code_to_temp_map[c] for c in expected_stations_for_day) / float(
-        len(expected_stations_for_day)
-    )
-
-
 class TimescaleNationalIndicatorObservedDataSource(NationalIndicatorObservedDataSource):
     def _bucket_expr(self, query: ObservedSeriesQuery) -> str:
         if query.granularity == "day":
@@ -171,26 +128,6 @@ class TimescaleNationalIndicatorObservedDataSource(NationalIndicatorObservedData
             return "MAKE_DATE(year, 1, 1)"
 
         raise ValueError(f"Granularity non supportée: {query.granularity}")
-
-    def fetch_daily_series(
-        self,
-        query: DailySeriesQuery,
-    ) -> list[NationalObservedPoint]:
-        qs = ITNDailyObserved.objects.filter(
-            date__gte=query.date_start,
-            date__lte=query.date_end,
-        )
-
-        if query.target_dates is not None:
-            qs = qs.filter(date__in=query.target_dates)
-
-        return [
-            NationalObservedPoint(
-                date=row.date,
-                temperature=float(row.temperature),
-            )
-            for row in qs.order_by("date")
-        ]
 
     def fetch_observed_series(
         self,
@@ -210,7 +147,8 @@ class TimescaleNationalIndicatorObservedDataSource(NationalIndicatorObservedData
         if query.target_dates is not None:
             where_clauses.append("date = ANY(%(target_dates)s)")
             params["target_dates"] = list(query.target_dates)
-        elif query.slice_type == "month_of_year":
+
+        if query.slice_type == "month_of_year":
             where_clauses.append("month = %(month_of_year)s")
             params["month_of_year"] = query.month_of_year
 
@@ -347,10 +285,12 @@ class TimescaleTemperatureDeviationDailyDataSource(
         self, query: DailyDeviationSeriesQuery
     ) -> list[ObservedPoint]:
         observed_points = (
-            TimescaleNationalIndicatorObservedDataSource().fetch_daily_series(
-                DailySeriesQuery(
+            TimescaleNationalIndicatorObservedDataSource().fetch_observed_series(
+                ObservedSeriesQuery(
                     date_start=query.date_start,
                     date_end=query.date_end,
+                    granularity="day",
+                    slice_type="full",
                     target_dates=query.target_dates,
                 )
             )
@@ -401,10 +341,12 @@ class TimescaleTemperatureDeviationDailyDataSource(
         date_end: dt.date,
     ) -> float:
         observed_points = (
-            TimescaleNationalIndicatorObservedDataSource().fetch_daily_series(
-                DailySeriesQuery(
+            TimescaleNationalIndicatorObservedDataSource().fetch_observed_series(
+                ObservedSeriesQuery(
                     date_start=date_start,
                     date_end=date_end,
+                    granularity="day",
+                    slice_type="full",
                     target_dates=None,
                 )
             )

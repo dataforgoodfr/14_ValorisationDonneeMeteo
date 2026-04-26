@@ -4,13 +4,11 @@ from django.db import connection
 
 from weather.services.national_indicator.stations import expected_station_codes
 from weather.tests.helpers.quotidienne import insert_quotidienne
-from weather.tests.helpers.stations import insert_station
 
 
 def insert_complete_itn_day(day: dt.date, value: float):
     for code in expected_station_codes(day):
-        insert_station(code)
-        insert_quotidienne(day, code, tntxm=value)
+        insert_quotidienne(day, code, value)
 
 
 def insert_itn_daily_observed(

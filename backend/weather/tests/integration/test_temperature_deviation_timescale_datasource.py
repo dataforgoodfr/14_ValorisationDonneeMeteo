@@ -3,6 +3,7 @@ from __future__ import annotations
 import datetime as dt
 
 import pytest
+from django.db import connection
 
 from weather.data_sources.timescale import (
     TimescaleTemperatureDeviationDailyDataSource,
@@ -12,12 +13,16 @@ from weather.services.temperature_deviation.types import (
     TemperatureDeviationOverviewQuery,
 )
 from weather.tests.helpers.itn import (
-    clear_itn_daily_observed,
-    insert_itn_daily_observed,
+    insert_complete_itn_day,
     insert_quotidienne,
 )
 from weather.tests.helpers.stations import insert_station
 from weather.tests.helpers.stations_baseline import insert_station_daily_baseline
+
+
+def refresh_itn_daily_observed_mv() -> None:
+    with connection.cursor() as cur:
+        cur.execute("REFRESH MATERIALIZED VIEW public.mv_itn_daily_observed;")
 
 
 @pytest.mark.django_db
@@ -121,10 +126,9 @@ def test_fetch_stations_daily_series_multiple_stations():
 
 @pytest.mark.django_db
 def test_fetch_national_observed_series_happy_path():
-    clear_itn_daily_observed()
-
     day = dt.date(2024, 1, 1)
-    insert_itn_daily_observed(day, 10.0)
+    insert_complete_itn_day(day, 10.0)
+    refresh_itn_daily_observed_mv()
     ds = TimescaleTemperatureDeviationDailyDataSource()
 
     query = DailyDeviationSeriesQuery(
@@ -486,15 +490,15 @@ def test_fetch_stations_daily_series_respects_target_dates():
 
 @pytest.mark.django_db
 def test_fetch_national_observed_series_respects_target_dates():
-    clear_itn_daily_observed()
-
     day1 = dt.date(2024, 1, 1)
     day2 = dt.date(2024, 1, 2)
     day3 = dt.date(2024, 1, 3)
 
-    insert_itn_daily_observed(day1, 10.0)
-    insert_itn_daily_observed(day2, 20.0)
-    insert_itn_daily_observed(day3, 30.0)
+    insert_complete_itn_day(day1, 10.0)
+    insert_complete_itn_day(day2, 20.0)
+    insert_complete_itn_day(day3, 30.0)
+
+    refresh_itn_daily_observed_mv()
 
     target_dates = (day1, day3)
 

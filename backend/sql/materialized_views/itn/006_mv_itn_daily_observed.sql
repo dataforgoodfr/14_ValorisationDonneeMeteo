@@ -36,9 +36,28 @@ daily_station_values AS (
     SELECT
         date,
         station_code,
-        AVG(tntxm)::double precision AS tntxm
-    FROM normalized
-    GROUP BY date, station_code
+        tntxm
+    FROM (
+        SELECT
+            date,
+            station_code,
+            tntxm,
+            ROW_NUMBER() OVER (
+                PARTITION BY date,
+                CASE
+                    WHEN station_code IN ('51183001', '51449002') THEN 'REIMS'
+                    ELSE station_code
+                END
+                ORDER BY
+                    CASE
+                        WHEN date >= DATE '2012-05-08' AND station_code = '51449002' THEN 1
+                        WHEN date < DATE '2012-05-08' AND station_code = '51183001' THEN 1
+                        ELSE 2
+                    END
+            ) AS rn
+        FROM source
+    ) s
+    WHERE rn = 1
 ),
 valid_days AS (
     SELECT

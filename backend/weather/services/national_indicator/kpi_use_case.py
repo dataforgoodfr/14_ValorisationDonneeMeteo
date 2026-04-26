@@ -8,7 +8,7 @@ from weather.services.national_indicator.protocols import (
     NationalIndicatorBaselineDataSource,
     NationalIndicatorObservedDataSource,
 )
-from weather.services.national_indicator.types import DailySeriesQuery
+from weather.services.national_indicator.types import ObservedSeriesQuery
 
 
 @dataclass(frozen=True)
@@ -33,8 +33,14 @@ def _compute_period_stats(
     date_start: dt.date,
     date_end: dt.date,
 ) -> KpiPeriodStats:
-    observed = observed_data_source.fetch_daily_series(
-        DailySeriesQuery(date_start=date_start, date_end=date_end)
+    observed = observed_data_source.fetch_observed_series(
+        ObservedSeriesQuery(
+            date_start=date_start,
+            date_end=date_end,
+            granularity="day",
+            slice_type="full",
+            target_dates=None,
+        )
     )
 
     hot_peak_count = 0

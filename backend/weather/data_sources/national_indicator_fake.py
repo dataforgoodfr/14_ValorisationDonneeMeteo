@@ -26,7 +26,6 @@ from weather.services.national_indicator.service import compute_national_indicat
 from weather.services.national_indicator.slicing import apply_slice
 from weather.services.national_indicator.types import (
     BaselinePoint,
-    DailySeriesQuery,
     ObservedPoint,
     ObservedSeriesQuery,
 )
@@ -78,9 +77,9 @@ class FakeNationalIndicatorDataSource(
     def __init__(self, *, seed: int = 42) -> None:
         self._seed = seed
 
-    def fetch_daily_series(
+    def _daily_points_for_query(
         self,
-        query: DailySeriesQuery,
+        query: ObservedSeriesQuery,
     ) -> list[ObservedPoint]:
         rng = random.Random(self._seed)
         out: list[ObservedPoint] = []
@@ -94,12 +93,7 @@ class FakeNationalIndicatorDataSource(
         for d in days:
             baseline_mean, sigma, _, _ = _climatology_for_date(d)
             temperature = baseline_mean + rng.gauss(0.0, sigma)
-            out.append(
-                ObservedPoint(
-                    date=d,
-                    temperature=temperature,
-                )
-            )
+            out.append(ObservedPoint(date=d, temperature=temperature))
 
         return out
 
@@ -107,13 +101,7 @@ class FakeNationalIndicatorDataSource(
         self,
         query: ObservedSeriesQuery,
     ) -> list[ObservedPoint]:
-        daily = self.fetch_daily_series(
-            DailySeriesQuery(
-                date_start=query.date_start,
-                date_end=query.date_end,
-                target_dates=query.target_dates,
-            )
-        )
+        daily = self._daily_points_for_query(query)
 
         sliced = apply_slice(
             daily,
