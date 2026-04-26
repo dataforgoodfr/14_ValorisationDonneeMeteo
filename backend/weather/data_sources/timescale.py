@@ -166,8 +166,6 @@ class TimescaleNationalIndicatorObservedDataSource(NationalIndicatorObservedData
             return "DATE_TRUNC('month', date)::date"
 
         if query.granularity == "year":
-            if query.slice_type == "month_of_year":
-                return "MAKE_DATE(year, %(month_of_year)s, 1)"
             if query.slice_type == "day_of_month":
                 return "date"
             return "MAKE_DATE(year, 1, 1)"

@@ -204,6 +204,38 @@ def test_fetch_observed_series_year_day_of_month_uses_target_dates():
     ]
 
 
+def test_fetch_observed_series_year_month_of_year_with_target_dates_binds_month_param():
+    clear_itn_daily_observed()
+
+    insert_itn_daily_observed(dt.date(2024, 1, 1), 10.0)
+    insert_itn_daily_observed(dt.date(2024, 1, 2), 20.0)
+    insert_itn_daily_observed(dt.date(2025, 1, 1), 30.0)
+    insert_itn_daily_observed(dt.date(2025, 1, 2), 40.0)
+
+    ds = TimescaleNationalIndicatorObservedDataSource()
+
+    result = ds.fetch_observed_series(
+        ObservedSeriesQuery(
+            date_start=dt.date(2024, 1, 1),
+            date_end=dt.date(2025, 1, 31),
+            granularity="year",
+            slice_type="month_of_year",
+            month_of_year=1,
+            target_dates=(
+                dt.date(2024, 1, 1),
+                dt.date(2024, 1, 2),
+                dt.date(2025, 1, 1),
+                dt.date(2025, 1, 2),
+            ),
+        )
+    )
+
+    assert [(p.date, p.temperature) for p in result] == [
+        (dt.date(2024, 1, 1), pytest.approx(15.0)),
+        (dt.date(2025, 1, 1), pytest.approx(35.0)),
+    ]
+
+
 # ----------------------------
 # Baseline datasource tests
 # ----------------------------
