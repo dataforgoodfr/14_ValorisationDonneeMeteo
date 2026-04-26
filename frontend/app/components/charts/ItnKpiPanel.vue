@@ -12,10 +12,7 @@
                     <span v-else class="text-muted">—</span>
                 </p>
             </template>
-            <template
-                v-if="kpi && kpi.deviation_from_normal != null"
-                #variation
-            >
+            <template v-if="kpi?.deviation_from_normal != null" #variation>
                 <span class="text-sm">
                     {{ kpi.deviation_from_normal >= 0 ? "+" : ""
                     }}{{ kpi.deviation_from_normal.toFixed(1) }} °C
