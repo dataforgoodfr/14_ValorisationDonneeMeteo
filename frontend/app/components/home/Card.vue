@@ -5,7 +5,8 @@ interface Props {
     withBorder?: boolean;
 }
 
-const props = withDefaults(defineProps<Props>(), { withBorder: true });
+const props = defineProps<Props>();
+const isOpen = ref(false);
 </script>
 <template>
     <UCard
@@ -18,12 +19,20 @@ const props = withDefaults(defineProps<Props>(), { withBorder: true });
                 >
                     {{ props.title }}
                 </h1>
-                <UTooltip
-                    :text="props.tooltipText"
-                    class="text-blue-700 dark:text-blue-350"
-                >
-                    <UIcon name="i-lucide-circle-question-mark" />
-                </UTooltip>
+                <UPopover v-model:open="isOpen">
+                    <button
+                        class="text-blue-350 hover:text-blue-300 transition-colors cursor-pointer"
+                        @mouseenter="isOpen = true"
+                        @mouseleave="isOpen = false"
+                    >
+                        <UIcon name="i-lucide-circle-help" />
+                    </button>
+                    <template #content>
+                        <p class="p-3 text-sm max-w-64">
+                            {{ props.tooltipText }}
+                        </p>
+                    </template>
+                </UPopover>
             </div>
 
             <slot name="kpi" />

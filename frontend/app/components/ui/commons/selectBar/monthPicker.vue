@@ -92,38 +92,30 @@ const pt = {
 </script>
 
 <template>
-    <div id="container-monthly-picker" class="flex gap-2">
-        <div class="flex flex-col text-center gap-1">
-            <p class="text-sm text-default">Mois de début</p>
-            <DatePicker
-                v-model="localStartDate"
-                :max-date="localEndDate"
-                view="month"
-                date-format="mm/yy"
-                :pt="pt"
-                unstyled
-                append-to="self"
-                show-icon
-                icon-display="input"
-            />
-        </div>
-        <div class="pt-7 self-center">
-            <UIcon name="i-lucide-arrow-right" />
-        </div>
-        <div class="flex flex-col text-center gap-1">
-            <p class="text-sm text-default">Mois de fin</p>
-            <DatePicker
-                v-model="localEndDate"
-                :min-date="localStartDate"
-                :max-date="maxEndDate"
-                view="month"
-                date-format="mm/yy"
-                :pt="pt"
-                unstyled
-                append-to="self"
-                show-icon
-                icon-display="input"
-            />
-        </div>
+    <div id="container-monthly-picker" class="flex gap-2 items-center">
+        <DatePicker
+            v-model="localStartDate"
+            :max-date="localEndDate"
+            view="month"
+            date-format="mm/yy"
+            :pt="pt"
+            unstyled
+            append-to="self"
+            show-icon
+            icon-display="input"
+        />
+        <UIcon name="i-lucide-arrow-right" />
+        <DatePicker
+            v-model="localEndDate"
+            :min-date="localStartDate"
+            :max-date="maxEndDate"
+            view="month"
+            date-format="mm/yy"
+            :pt="pt"
+            unstyled
+            append-to="self"
+            show-icon
+            icon-display="input"
+        />
     </div>
 </template>
