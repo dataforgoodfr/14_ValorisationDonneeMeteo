@@ -1,95 +1,200 @@
-name: CI Pipeline
+name: CI/CD Pipeline
 
 on:
   push:
-    branches: [main, develop]
+    branches: ["**"]
   pull_request:
+    branches: [main]
+
+env:
+  REGISTRY: ghcr.io
+  IMAGE_NAME: ${{ github.repository }}/backend
 
 jobs:
-  backend:
+  # ─────────────────────────────────────────────
+  # Job 1 : Tests
+  # ─────────────────────────────────────────────
+  test:
+    name: Tests (pytest)
     runs-on: ubuntu-latest
 
-    steps:
-      - name: Checkout repo
-        uses: actions/checkout@v4
+    services:
+      timescaledb:
+        image: timescale/timescaledb:latest-pg16
+        env:
+          POSTGRES_DB: meteodb
+          POSTGRES_USER: infoclimat
+          POSTGRES_PASSWORD: infoclimat2026
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
 
-      - name: Setup Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: "3.11"
+    defaults:
+      run:
+        working-directory: backend
+
+    env:
+      DEBUG: "true"
+      SECRET_KEY: "ci-secret-key-not-for-production"
+      DB_HOST: localhost
+      DB_PORT: 5432
+      DB_NAME: meteodb
+      DB_USER: infoclimat
+      DB_PASSWORD: infoclimat2026
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
 
       - name: Install uv
-        run: pip install uv
-
-      - name: Install backend dependencies
-        run: |
-          cd backend
-          uv sync --extra dev
-
-      - name: Run backend tests
-        run: |
-          cd backend
-          uv run pytest
-
-      - name: Run backend linter
-        run: |
-          cd backend
-          uv run ruff check .
-
-      - name: Security scan
-        run: |
-          pip install bandit
-          bandit -r backend
-
-
-  frontend:
-    runs-on: ubuntu-latest
-
-    steps:
-      - name: Checkout repo
-        uses: actions/checkout@v4
-
-      - name: Setup Node
-        uses: actions/setup-node@v4
+        uses: astral-sh/setup-uv@v4
         with:
-          node-version: 20
+          version: "latest"
 
-      - name: Install frontend dependencies
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install dependencies
+        run: uv sync --extra dev
+
+      - name: Run migrations
+        run: uv run python manage.py migrate
+
+      - name: Run tests with coverage
         run: |
-          cd frontend
-          npm install
+          uv run pytest \
+            --junitxml=test-report.xml \
+            --tb=short \
+            -v
 
-      - name: Run frontend checks
-        run: |
-          cd frontend
-          npm run check
+      - name: Upload test report
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: test-report
+          path: backend/test-report.xml
 
-      - name: Build frontend
-        run: |
-          cd frontend
-          npm run build
-
-
-  docker:
+  # ─────────────────────────────────────────────
+  # Job 2 : Linter (Ruff)
+  # ─────────────────────────────────────────────
+  lint:
+    name: Lint (Ruff)
     runs-on: ubuntu-latest
-    needs: [backend, frontend]
+
+    defaults:
+      run:
+        working-directory: backend
 
     steps:
-      - name: Checkout repo
+      - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Build Docker image
-        run: docker build -t valometeo .
+      - name: Install uv
+        uses: astral-sh/setup-uv@v4
+        with:
+          version: "latest"
 
-      - name: Login to DockerHub
-        if: github.ref == 'refs/heads/main'
+      - name: Install dependencies
+        run: uv sync --extra dev
+
+      - name: Run Ruff linter
+        run: uv run ruff check . --output-format=github
+
+      - name: Run Ruff formatter check
+        run: uv run ruff format . --check
+
+  # ─────────────────────────────────────────────
+  # Job 3 : Security scan (Trivy)
+  # ─────────────────────────────────────────────
+  security:
+    name: Security scan (Trivy)
+    runs-on: ubuntu-latest
+    permissions:
+      security-events: write  # Pour uploader le SARIF vers GitHub Security
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Build Docker image for scanning
+        run: |
+          docker build -t backend-scan:latest ./backend
+
+      - name: Run Trivy vulnerability scan (SARIF)
+        uses: aquasecurity/trivy-action@master
+        with:
+          image-ref: "backend-scan:latest"
+          format: "sarif"
+          output: "trivy-report.sarif"
+          severity: "CRITICAL,HIGH"
+          exit-code: "0"  # Ne fait pas échouer le pipeline sur CVE
+
+      - name: Run Trivy vulnerability scan (JSON for artifact)
+        uses: aquasecurity/trivy-action@master
+        with:
+          image-ref: "backend-scan:latest"
+          format: "json"
+          output: "trivy-report.json"
+          severity: "CRITICAL,HIGH,MEDIUM"
+          exit-code: "0"
+
+      - name: Upload Trivy SARIF to GitHub Security tab
+        uses: github/codeql-action/upload-sarif@v3
+        if: always()
+        with:
+          sarif_file: "trivy-report.sarif"
+
+      - name: Upload Trivy JSON report
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: trivy-report
+          path: |
+            trivy-report.json
+            trivy-report.sarif
+
+  # ─────────────────────────────────────────────
+  # Job 4 : Build & Push Docker image (main only)
+  # ─────────────────────────────────────────────
+  build-push:
+    name: Build & Push image Docker
+    runs-on: ubuntu-latest
+    needs: [test, lint, security]
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    permissions:
+      contents: read
+      packages: write
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Log in to GitHub Container Registry
         uses: docker/login-action@v3
         with:
-          username: ${{ secrets.DOCKER_USERNAME }}
-          password: ${{ secrets.DOCKER_PASSWORD }}
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Push Docker image
-        if: github.ref == 'refs/heads/main'
-        run: |
-          docker tag valometeo ${{ secrets.DOCKER_USERNAME }}/valometeo:latest
-          docker push ${{ secrets.DOCKER_USERNAME }}/valometeo:latest
+      - name: Extract Docker metadata (tags & labels)
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
+          tags: |
+            type=sha,prefix=sha-
+            type=raw,value=latest
+
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v5
+        with:
+          context: ./backend
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}

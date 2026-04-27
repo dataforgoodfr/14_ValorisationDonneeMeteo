@@ -2,6 +2,8 @@
 
 Projet Data For Good - Saison 14
 
+[![CI/CD Pipeline](https://github.com/jadechy/14_ValorisationDonneeMeteo/actions/workflows/ci.yml/badge.svg)](https://github.com/jadechy/14_ValorisationDonneeMeteo/actions/workflows/ci.yml)
+
 ## Structure du projet
 
 ```
@@ -15,6 +17,23 @@ Consultez les README de chaque sous-projet :
 
 - [Backend](backend/README.md)
 - [Frontend](frontend/README.md)
+
+
+## CI/CD
+
+Le pipeline CI/CD s'exécute automatiquement à chaque push. Il comprend :
+
+1. **Tests** — pytest avec TimescaleDB via Docker service
+2. **Lint** — Ruff (linting + format check)
+3. **Security scan** — Trivy (scan CVE de l'image Docker)
+4. **Build & Push** — image Docker publiée sur `ghcr.io` (branche `main` uniquement)
+
+### Rapports disponibles
+
+- Rapport de tests : onglet **Actions → test-report** (artifact)
+- Rapport Trivy JSON : onglet **Actions → trivy-report** (artifact)
+- Rapport Trivy SARIF : onglet **Security → Code scanning**
+- Fichier VEX : [`vex.json`](./vex.json)
 
 ## Contribuer
 

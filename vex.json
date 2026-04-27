@@ -1,0 +1,26 @@
+{
+  "@context": "https://openvex.dev/ns/v0.2.0",
+  "@id": "https://github.com/jadechy/14_ValorisationDonneeMeteo/vex/vex-document-001",
+  "author": "jadechy",
+  "role": "Developer",
+  "timestamp": "2026-04-27T00:00:00Z",
+  "version": 1,
+  "statements": [
+    {
+      "vulnerability": {
+        "@id": "https://nvd.nist.gov/vuln/detail/CVE-XXXX-XXXX",
+        "name": "CVE-XXXX-XXXX",
+        "description": "Exemple : vulnérabilité dans une dépendance système de l'image de base"
+      },
+      "products": [
+        {
+          "@id": "pkg:docker/ghcr.io/jadechy/14_valorisationdonnee-meteo/backend:latest"
+        }
+      ],
+      "status": "not_affected",
+      "justification": "vulnerable_code_not_in_execute_path",
+      "impact_statement": "Ce composant vulnérable n'est pas appelé dans le chemin d'exécution de l'application. Il s'agit d'une dépendance de l'image de base non utilisée par notre code.",
+      "action_statement": "Aucune action requise. La CVE sera automatiquement résolue lors de la mise à jour de l'image de base."
+    }
+  ]
+}
