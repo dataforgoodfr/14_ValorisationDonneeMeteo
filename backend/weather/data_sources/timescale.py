@@ -416,55 +416,55 @@ class TimescaleTemperatureDeviationDailyDataSource(
         order_sql = ordering_map[query.ordering]
 
         where_clauses = ["classe_recente BETWEEN 1 AND 4"]
-        params: list = [query.date_start, query.date_end]
+        params: dict = {"date_start": query.date_start, "date_end": query.date_end}
 
         if query.station_search:
-            where_clauses.append("station_name ILIKE %s")
-            params.append(f"%{query.station_search}%")
+            where_clauses.append("station_name ILIKE %(station_search)s")
+            params["station_search"] = f"%{query.station_search}%"
 
         if query.station_ids:
-            where_clauses.append("station_id = ANY(%s)")
-            params.append(list(query.station_ids))
+            where_clauses.append("station_id = ANY(%(station_ids)s)")
+            params["station_ids"] = list(query.station_ids)
 
         if query.temperature_mean_min is not None:
-            where_clauses.append("temperature_mean >= %s")
-            params.append(query.temperature_mean_min)
+            where_clauses.append("temperature_mean >= %(temperature_mean_min)s")
+            params["temperature_mean_min"] = query.temperature_mean_min
 
         if query.temperature_mean_max is not None:
-            where_clauses.append("temperature_mean <= %s")
-            params.append(query.temperature_mean_max)
+            where_clauses.append("temperature_mean <= %(temperature_mean_max)s")
+            params["temperature_mean_max"] = query.temperature_mean_max
 
         if query.deviation_min is not None:
-            where_clauses.append("deviation >= %s")
-            params.append(query.deviation_min)
+            where_clauses.append("deviation >= %(deviation_min)s")
+            params["deviation_min"] = query.deviation_min
 
         if query.deviation_max is not None:
-            where_clauses.append("deviation <= %s")
-            params.append(query.deviation_max)
+            where_clauses.append("deviation <= %(deviation_max)s")
+            params["deviation_max"] = query.deviation_max
 
         if query.alt_min is not None:
-            where_clauses.append("alt >= %s")
-            params.append(query.alt_min)
+            where_clauses.append("alt >= %(alt_min)s")
+            params["alt_min"] = query.alt_min
 
         if query.alt_max is not None:
-            where_clauses.append("alt <= %s")
-            params.append(query.alt_max)
+            where_clauses.append("alt <= %(alt_max)s")
+            params["alt_max"] = query.alt_max
 
         if query.classe_recente_min is not None:
-            where_clauses.append("classe_recente >= %s")
-            params.append(query.classe_recente_min)
+            where_clauses.append("classe_recente >= %(classe_recente_min)s")
+            params["classe_recente_min"] = query.classe_recente_min
 
         if query.classe_recente_max is not None:
-            where_clauses.append("classe_recente <= %s")
-            params.append(query.classe_recente_max)
+            where_clauses.append("classe_recente <= %(classe_recente_max)s")
+            params["classe_recente_max"] = query.classe_recente_max
 
         if query.date_de_creation_min is not None:
-            where_clauses.append("annee_de_creation >= %s")
-            params.append(query.date_de_creation_min.year)
+            where_clauses.append("annee_de_creation >= %(date_de_creation_min)s")
+            params["date_de_creation_min"] = query.date_de_creation_min.year
 
         if query.date_de_creation_max is not None:
-            where_clauses.append("annee_de_creation <= %s")
-            params.append(query.date_de_creation_max.year)
+            where_clauses.append("annee_de_creation <= %(date_de_creation_max)s")
+            params["date_de_creation_max"] = query.date_de_creation_max.year
 
         if (
             query.date_de_fermeture_min is not None
@@ -472,29 +472,29 @@ class TimescaleTemperatureDeviationDailyDataSource(
         ):
             where_clauses.append(
                 "(annee_de_fermeture IS NOT NULL"
-                " AND annee_de_fermeture >= %s"
-                " AND annee_de_fermeture <= %s)"
+                " AND annee_de_fermeture >= %(date_de_fermeture_min)s"
+                " AND annee_de_fermeture <= %(date_de_fermeture_max)s)"
             )
-            params.append(query.date_de_fermeture_min.year)
-            params.append(query.date_de_fermeture_max.year)
+            params["date_de_fermeture_min"] = query.date_de_fermeture_min.year
+            params["date_de_fermeture_max"] = query.date_de_fermeture_max.year
         elif query.date_de_fermeture_min is not None:
             where_clauses.append(
-                "(annee_de_fermeture IS NULL OR annee_de_fermeture >= %s)"
+                "(annee_de_fermeture IS NULL OR annee_de_fermeture >= %(date_de_fermeture_min)s)"
             )
-            params.append(query.date_de_fermeture_min.year)
+            params["date_de_fermeture_min"] = query.date_de_fermeture_min.year
         elif query.date_de_fermeture_max is not None:
             where_clauses.append(
-                "(annee_de_fermeture IS NOT NULL AND annee_de_fermeture <= %s)"
+                "(annee_de_fermeture IS NOT NULL AND annee_de_fermeture <= %(date_de_fermeture_max)s)"
             )
-            params.append(query.date_de_fermeture_max.year)
+            params["date_de_fermeture_max"] = query.date_de_fermeture_max.year
 
         if query.departments:
-            where_clauses.append("department = ANY(%s)")
-            params.append(list(query.departments))
+            where_clauses.append("department = ANY(%(departments)s)")
+            params["departments"] = list(query.departments)
 
         if query.regions:
-            where_clauses.append("region = ANY(%s)")
-            params.append(list(query.regions))
+            where_clauses.append("region = ANY(%(regions)s)")
+            params["regions"] = list(query.regions)
 
         filtered_where_sql = ""
         if where_clauses:
@@ -511,7 +511,7 @@ class TimescaleTemperatureDeviationDailyDataSource(
                         ON b.station_code = q.station_code
                             AND b.month = EXTRACT(MONTH FROM q.date)::int
                             AND b.day = EXTRACT(DAY FROM q.date)::int
-                WHERE %s <= q.date AND q.date <= %s
+                WHERE %(date_start)s <= q.date AND q.date <= %(date_end)s
                 GROUP BY q.station_code
             ),
             station_enriched AS (
@@ -546,7 +546,8 @@ class TimescaleTemperatureDeviationDailyDataSource(
             """
         )
 
-        page_params = [*params, query.limit, query.offset]
+        params["limit"] = query.limit
+        params["offset"] = query.offset
 
         page_sql = (
             base_cte
@@ -568,7 +569,7 @@ class TimescaleTemperatureDeviationDailyDataSource(
             FROM station_enriched
             {filtered_where_sql}
             ORDER BY {order_sql}
-            LIMIT %s OFFSET %s
+            LIMIT %(limit)s OFFSET %(offset)s
             """
         )
 
@@ -576,7 +577,7 @@ class TimescaleTemperatureDeviationDailyDataSource(
             cur.execute(count_sql, params)
             total_count = cur.fetchone()[0]
 
-            cur.execute(page_sql, page_params)
+            cur.execute(page_sql, params)
             columns = [col[0] for col in cur.description]
             rows = [dict(zip(columns, row, strict=False)) for row in cur.fetchall()]
 
@@ -654,38 +655,38 @@ class TimescaleTemperatureRecordsDataSource:
 
         extra_where_parts = []
         if request.classe_recente_min is not None:
-            extra_where_parts.append("AND s.classe_recente >= %s")
-            params.append(request.classe_recente_min)
+            extra_where_parts.append("AND s.classe_recente >= %(cr_min)s")
+            params["cr_min"] = request.classe_recente_min
         if request.classe_recente_max is not None:
-            extra_where_parts.append("AND s.classe_recente <= %s")
-            params.append(request.classe_recente_max)
+            extra_where_parts.append("AND s.classe_recente <= %(cr_max)s")
+            params["cr_max"] = request.classe_recente_max
         if request.date_de_creation_min is not None:
-            extra_where_parts.append("AND s.annee_de_creation >= %s")
-            params.append(request.date_de_creation_min.year)
+            extra_where_parts.append("AND s.annee_de_creation >= %(dc_min)s")
+            params["dc_min"] = request.date_de_creation_min.year
         if request.date_de_creation_max is not None:
-            extra_where_parts.append("AND s.annee_de_creation <= %s")
-            params.append(request.date_de_creation_max.year)
+            extra_where_parts.append("AND s.annee_de_creation <= %(dc_max)s")
+            params["dc_max"] = request.date_de_creation_max.year
         if (
             request.date_de_fermeture_min is not None
             and request.date_de_fermeture_max is not None
         ):
             extra_where_parts.append(
                 "AND (s.annee_de_fermeture IS NOT NULL"
-                " AND s.annee_de_fermeture >= %s"
-                " AND s.annee_de_fermeture <= %s)"
+                " AND s.annee_de_fermeture >= %(df_min)s"
+                " AND s.annee_de_fermeture <= %(df_max)s)"
             )
-            params.append(request.date_de_fermeture_min.year)
-            params.append(request.date_de_fermeture_max.year)
+            params["df_min"] = request.date_de_fermeture_min.year
+            params["df_max"] = request.date_de_fermeture_max.year
         elif request.date_de_fermeture_min is not None:
             extra_where_parts.append(
-                "AND (s.annee_de_fermeture IS NULL OR s.annee_de_fermeture >= %s)"
+                "AND (s.annee_de_fermeture IS NULL OR s.annee_de_fermeture >= %(df_min)s)"
             )
-            params.append(request.date_de_fermeture_min.year)
+            params["df_min"] = request.date_de_fermeture_min.year
         elif request.date_de_fermeture_max is not None:
             extra_where_parts.append(
-                "AND (s.annee_de_fermeture IS NOT NULL AND s.annee_de_fermeture <= %s)"
+                "AND (s.annee_de_fermeture IS NOT NULL AND s.annee_de_fermeture <= %(df_max)s)"
             )
-            params.append(request.date_de_fermeture_max.year)
+            params["df_max"] = request.date_de_fermeture_max.year
         extra_where_sql = "\n              ".join(extra_where_parts)
 
         base_sql = f"""
@@ -723,6 +724,9 @@ class TimescaleTemperatureRecordsDataSource:
 
         total_pages = (total_count + page_size - 1) // page_size if page_size else 1
 
+        params["page_size"] = page_size
+        params["offset"] = offset
+
         data_sql = (
             base_sql
             + f"""
@@ -744,12 +748,12 @@ class TimescaleTemperatureRecordsDataSource:
               AND s.classe_recente BETWEEN 1 AND 3
               {extra_where_sql}
             ORDER BY {order_sql}
-            LIMIT %s OFFSET %s
+            LIMIT %(page_size)s OFFSET %(offset)s
         """
         )
 
         with connection.cursor() as cur:
-            cur.execute(data_sql, params + [page_size, offset])
+            cur.execute(data_sql, params)
 
             cols = [c.name for c in cur.description]
             rows = [dict(zip(cols, row, strict=False)) for row in cur.fetchall()]
@@ -783,8 +787,8 @@ class TimescaleTemperatureRecordsDataSource:
             ),
         )
 
-    def _period_clause(self, request: TemperatureRecordsRequest) -> tuple[str, list]:
-        return _temperature_records_period_clause(request)
+    def _period_clause(self, request: TemperatureRecordsRequest) -> tuple[str, dict]:
+        return _temperature_records_period_clause_named(request)
 
 
 def _territoire_clause_named(
