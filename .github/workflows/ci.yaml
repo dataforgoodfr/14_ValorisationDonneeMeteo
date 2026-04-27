@@ -8,7 +8,8 @@ on:
 
 env:
   REGISTRY: ghcr.io
-  IMAGE_NAME: ${{ github.repository }}/backend
+  # Tout en minuscules — obligatoire pour Docker
+  IMAGE_NAME: jadechy/14_valorisationdonneeMeteo/backend
 
 jobs:
   # ─────────────────────────────────────────────
@@ -100,7 +101,6 @@ jobs:
         run: uv sync --extra dev
 
       - name: Run Ruff linter
-        # --exclude pour ignorer les notebooks (format non standard)
         run: uv run ruff check . --output-format=github --exclude notebooks/
 
       - name: Run Ruff formatter check
