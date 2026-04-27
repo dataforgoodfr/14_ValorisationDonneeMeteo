@@ -42,16 +42,23 @@ line-length = 88
 
 [tool.ruff.lint]
 select = [
-    "E",      # pycodestyle errors
-    "W",      # pycodestyle warnings
-    "F",      # Pyflakes
-    "I",      # isort
-    "B",      # flake8-bugbear
-    "C4",     # flake8-comprehensions
-    "UP",     # pyupgrade
-    "DJ",     # flake8-django
+    "E",   # pycodestyle errors
+    "W",   # pycodestyle warnings
+    "F",   # Pyflakes
+    "I",   # isort
+    "B",   # flake8-bugbear
+    "C4",  # flake8-comprehensions
+    "UP",  # pyupgrade
+    "DJ",  # flake8-django
 ]
-ignore = ["E501", "DJ001", "C420"]
+ignore = [
+    "E501",   # line too long — géré par le formatter
+    "DJ001",  # null=True sur CharField — intentionnel pour les champs météo optionnels (HHMM)
+]
+
+[tool.ruff.lint.per-file-ignores]
+# C420 : dict.fromkeys() — style non bloquant dans les tests
+"weather/tests/**" = ["C4"]
 
 [tool.ruff.lint.isort]
 known-first-party = ["config", "weather"]
