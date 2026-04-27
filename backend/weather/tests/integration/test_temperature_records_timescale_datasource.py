@@ -188,10 +188,11 @@ def test_fetch_records_returns_correct_types():
     assert isinstance(entry.lon, float)
     assert isinstance(entry.alt, float)
 
+
 @pytest.mark.django_db
 def test_fetch_records_pagination_logic():
     station_code = "99006001"
-    insert_station(station_code, "Station Pagination", department=99)
+    insert_station(station_code, "Station Pagination", departement=99)
 
     insert_quotidienne(dt.date(2000, 1, 1), station_code, tx=10.0, tn=0.0)
     insert_quotidienne(dt.date(2001, 1, 1), station_code, tx=20.0, tn=0.0)
@@ -220,7 +221,7 @@ def test_fetch_records_pagination_logic():
 def test_fetch_records_pagination_limit_and_offset():
     """Teste que la pagination (page/page_size) fonctionne comme limit/offset."""
     station_code = "99008001"
-    insert_station(station_code, "Station Pagination", department=99)
+    insert_station(station_code, "Station Pagination", departement=99)
 
     #  insert 3 records
     insert_quotidienne(dt.date(2000, 1, 1), station_code, tx=10.0, tn=0.0)
@@ -248,8 +249,8 @@ def test_fetch_records_sorting_by_value_desc():
     """Teste le tri par valeur décroissante (-record_value)."""
     s1 = "99009001"
     s2 = "99009002"
-    insert_station(s1, "Station A", department=11)
-    insert_station(s2, "Station B", department=22)
+    insert_station(s1, "Station A", departement=11)
+    insert_station(s2, "Station B", departement=22)
 
     insert_quotidienne(dt.date(2020, 1, 1), s1, tx=15.0, tn=0.0)
     insert_quotidienne(dt.date(2020, 1, 1), s2, tx=35.0, tn=0.0)
@@ -272,8 +273,8 @@ def test_fetch_records_sorting_by_station_name_desc():
     """Teste le tri inversé sur un champ texte (important pour valider ta logique chr(255-ord))."""
     s1 = "99010001"
     s2 = "99010002"
-    insert_station(s1, "Antibes", department=6)
-    insert_station(s2, "Zubiri", department=99)
+    insert_station(s1, "Antibes", departement=6)
+    insert_station(s2, "Zubiri", departement=99)
 
     insert_quotidienne(dt.date(2020, 1, 1), s1, tx=20.0, tn=0.0)
     insert_quotidienne(dt.date(2020, 1, 1), s2, tx=20.0, tn=0.0)
@@ -287,4 +288,3 @@ def test_fetch_records_sorting_by_station_name_desc():
 
     names = [e.station_name for e in result.entries if e.station_id in [s1, s2]]
     assert names == ["Zubiri", "Antibes"]
-

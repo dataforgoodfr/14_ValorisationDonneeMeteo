@@ -718,7 +718,7 @@ def _territoire_clause_named(
     dept_col: str = 'vs."departement"',
     station_col: str = 'o."NUM_POSTE"',
 ) -> tuple[str, dict]:
-    """
+    """MaterializedTemperatureRecordsDataSource
     Retourne (clause SQL, params) pour filtrer par territoire.
     Utilise des placeholders nommés (%(name)s).
     """
@@ -792,7 +792,6 @@ class MaterializedTemperatureRecordsDataSource:
         else:
             period_value = None
 
-
         sort_parts = [s.strip() for s in request.sort.split(",")]
 
         field_mapping = {
@@ -814,7 +813,7 @@ class MaterializedTemperatureRecordsDataSource:
             order_sql = ", ".join(order_clauses)
         else:
             order_sql = "record_value DESC, station_name ASC, record_date ASC"
-            clauses = [
+        clauses = [
             "record_type = %(record_type)s",
             "period_type = %(period_type)s",
             "period_value IS NOT DISTINCT FROM %(period_value)s",
@@ -845,15 +844,24 @@ class MaterializedTemperatureRecordsDataSource:
         where = " AND ".join(clauses)
 
         sql = f"""
-            SELECT 
-                m.station_code, m.station_name, m.department, m.record_value, m.record_date, 
-                vs.lat, vs.lon, vs.alt, vs.classe_recente, vs.annee_de_creation, vs.annee_de_fermeture
+            SELECT
+                m.station_code,
+                m.station_name,
+                m.department,
+                m.record_value,
+                m.record_date,
+                vs.lat,
+                vs.lon,
+                vs.alt,
+                vs.classe,
+                vs.annee_de_creation,
+                vs.annee_de_fermeture
             FROM public.mv_records_battus m
             LEFT JOIN public.v_station vs ON vs.station_code = m.station_code
             WHERE {where}
               AND vs.classe_recente BETWEEN 1 AND 3
             ORDER BY {order_sql}
-
+            """
         with connection.cursor() as cur:
             cur.execute(sql, params)
 
@@ -892,6 +900,7 @@ class HybridTemperatureRecordsDataSource:
 
     Fallback silencieux vers la MV seule si mv_records_battus_meta est absente
     ou vide (env de dev sans script de seed exécuté).
+
     """
 
     def __init__(self) -> None:

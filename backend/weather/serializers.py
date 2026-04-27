@@ -624,6 +624,8 @@ class PaginationSerializer(serializers.Serializer):
 class TemperatureRecordsResponseSerializer(serializers.Serializer):
     pagination = PaginationSerializer()
     results = TemperatureRecordEntrySerializer(many=True)
+
+
 class NationalIndicatorKpiQuerySerializer(serializers.Serializer):
     date_start = serializers.DateField(required=True)
     date_end = serializers.DateField(required=True)

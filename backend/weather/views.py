@@ -45,7 +45,6 @@ from .serializers import (
     TemperatureDeviationResponseSerializer,
     TemperatureMinMaxGraphQuerySerializer,
     TemperatureMinMaxGraphResponseSerializer,
-    TemperatureRecordEntrySerializer,
     TemperatureRecordsQuerySerializer,
     TemperatureRecordsResponseSerializer,
 )
@@ -266,7 +265,6 @@ class TemperatureRecordsAPIView(APIView):
             page=params.get("page", 1),
             page_size=params.get("page_size", 50),
             sort=params.get("sort", "record_value"),
-
         )
 
         try:
@@ -308,7 +306,6 @@ class TemperatureRecordsAPIView(APIView):
                     for e in result.entries
                 ],
             }
-
         )
 
         return Response(out.data, status=status.HTTP_200_OK)

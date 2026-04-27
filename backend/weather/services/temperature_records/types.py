@@ -40,6 +40,7 @@ class TemperatureRecordEntry:
     date_de_creation: dt.date
     date_de_fermeture: dt.date | None
 
+
 @dataclass(frozen=True)
 class Pagination:
     total_count: int
