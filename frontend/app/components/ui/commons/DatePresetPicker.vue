@@ -7,7 +7,7 @@ const dateEnd = defineModel<Date>("endDate");
 
 const dates = useCustomDate();
 
-const presetOptions = [
+const presetOptions: { label: string; value: string }[] = [
     { label: "Hier", value: "yesterday" },
     { label: "7 derniers jours", value: "7d" },
     { label: "30 derniers jours", value: "30d" },
@@ -26,25 +26,34 @@ const offsets: Record<string, number> = {
     "365d": 364,
 };
 
-function applyPreset(value: string) {
-    if (!(value in offsets)) return;
+const applyPreset = (value: string): void => {
+    const offset = offsets[value];
+
+    if (!offset || value === "custom") {
+        return;
+    }
+
     const yesterday = new Date(dates.yesterday.value);
     const start = new Date(yesterday);
-    start.setDate(start.getDate() - offsets[value]);
+
+    start.setDate(start.getDate() - offset);
     dateStart.value = start;
     dateEnd.value = yesterday;
-}
+};
 
-applyPreset(preset.value);
-
-watch(preset, (value) => {
-    if (value !== "custom") applyPreset(value);
+onMounted((): void => {
+    applyPreset(preset.value);
 });
 </script>
 
 <template>
     <div class="flex items-center gap-2">
-        <USelect v-model="preset" :items="presetOptions" class="w-48" />
+        <USelect
+            v-model="preset"
+            :items="presetOptions"
+            class="w-48"
+            @change="applyPreset(preset)"
+        />
         <div
             :class="
                 preset !== 'custom'
