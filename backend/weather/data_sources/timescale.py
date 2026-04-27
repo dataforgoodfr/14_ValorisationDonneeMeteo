@@ -655,7 +655,7 @@ def _territoire_clause_named(
     Utilise des placeholders nommés (%(name)s).
     """
     if not territoire or territoire == "france":
-        return "", {}
+        return f"{dept_col} <= 95", {}
     if territoire == "department":
         return f"{dept_col} = %(territoire_id)s", {"territoire_id": territoire_id}
     if territoire == "station":
