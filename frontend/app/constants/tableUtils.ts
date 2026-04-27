@@ -37,6 +37,11 @@ export const HOT_BADGE_CLASS =
 export const COLD_BADGE_CLASS =
     "bg-slate-200 ring-1 ring-blue-350/25 text-blue-650 dark:text-blue-700";
 
+export const HOT_BORDER_CLASS = "border-red-450/20";
+export const COLD_BORDER_CLASS = "border-blue-350/20";
+
+export const KPI_SECONDARY_TEXT_CLASS = "text-slate-600 dark:text-slate-300";
+
 export function truncatedCell(value: string) {
     return h("span", { class: "block truncate", title: value }, value);
 }
