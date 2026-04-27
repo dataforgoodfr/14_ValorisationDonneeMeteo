@@ -53,15 +53,10 @@ const coldDiff = computed(() => {
 </script>
 
 <template>
-    <div class="flex flex-col gap-2">
-        <div class="flex gap-4 items-start">
-            <div class="flex-1">
-                <Card
-                    title="ITN moyen"
-                    tooltip-text="Moyenne de l'Indicateur Thermique National sur les 365 derniers jours."
-                    :show-title="false"
-                    transparent
-                >
+    <div class="flex items-center flex-col gap-2">
+        <div class="flex gap-40 items-start">
+            <div class="w-fit">
+                <Card title="" tooltip-text="" :show-title="false" transparent>
                     <template #kpi>
                         <p
                             class="font-semibold text-4xl mb-1"
@@ -110,15 +105,15 @@ const coldDiff = computed(() => {
             </div>
             <p
                 v-if="itnMean != null"
-                class="flex-1 text-sm text-slate-500 dark:text-slate-300 pt-8"
+                class="flex-1 text-m text-blue-700 dark:text-primary pb-2"
             >
-                L'indicateur thermique national est de
-                {{ itnMean.toFixed(1) }}°C en moyenne ces 365 derniers jours
+                La température en France métropolitaine fut en moyenne de
+                {{ itnMean.toFixed(1) }}°C ces 365 derniers jours
             </p>
         </div>
 
-        <div class="flex gap-2">
-            <div class="flex-1">
+        <div class="flex gap-6">
+            <div class="w-fit">
                 <Card
                     title="Pics de chaleur"
                     tooltip-text="Nombre de jours anormalement chauds sur les 365 derniers jours, selon les normales 1991-2020."
@@ -152,7 +147,7 @@ const coldDiff = computed(() => {
                 </Card>
             </div>
 
-            <div class="flex-1">
+            <div class="w-fit">
                 <Card
                     title="Pics de froid"
                     tooltip-text="Nombre de jours anormalement froids sur les 365 derniers jours, selon les normales 1991-2020."

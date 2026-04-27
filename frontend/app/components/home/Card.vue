@@ -50,7 +50,7 @@ const isOpen = ref(false);
             <slot name="kpi" />
             <div
                 v-if="$slots['kpi-context-box']"
-                class="kpi-context-box py-1 px-2 rounded-lg leading-none bg-amber-500 dark:bg-amber-700 border-amber-800 dark:border-amber-500 border"
+                class="kpi-context-box w-fit py-1 px-2 rounded-lg leading-none bg-amber-500 dark:bg-amber-700 border-amber-800 dark:border-amber-500 border"
             >
                 <span
                     class="text-xs font-medium text-amber-800 dark:text-amber-500"
