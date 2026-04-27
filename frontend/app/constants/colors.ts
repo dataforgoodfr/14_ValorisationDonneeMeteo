@@ -9,6 +9,7 @@ const DARK_COLORS = {
     transparent: "#202d4300",
     cold: TEMPERATURE_COLORS.cold,
     hot: TEMPERATURE_COLORS.hot,
+    splitLine: "rgba(255, 255, 255, 0.08)",
 };
 const LIGHT_COLORS = {
     background: "#FFFFFF",
@@ -16,6 +17,7 @@ const LIGHT_COLORS = {
     transparent: "#ffffff00",
     cold: TEMPERATURE_COLORS.cold,
     hot: TEMPERATURE_COLORS.hot,
+    splitLine: "rgba(0, 0, 0, 0.12)",
 };
 
 export function useMapColors() {
