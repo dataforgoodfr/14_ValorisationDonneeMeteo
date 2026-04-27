@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import ItnChart from "~/components/charts/ItnChart.vue";
 import ItnKpiPanel from "~/components/charts/ItnKpiPanel.vue";
+import ItnStationsSection from "~/components/itn/ItnStationsSection.vue";
 import PagesHero from "~/components/layout/PagesHero.vue";
 import SelectBar from "~/components/ui/commons/selectBar/selectBar.vue";
 import ChartLayout from "~/components/layout/ChartLayout.vue";
@@ -30,11 +31,9 @@ const heroData = {
                     <div class="flex-1 min-w-0">
                         <ItnChart :adapter="selectBarAdapter" />
                     </div>
-                    <ItnKpiPanel
-                        v-if="selectBarAdapter.chartType?.value !== 'stacked'"
-                    />
                 </div>
             </template>
         </ChartLayout>
+        <ItnStationsSection />
     </UContainer>
 </template>
