@@ -99,8 +99,8 @@ const store = useItnStore();
 const { pickedDateStart, pickedDateEnd } = storeToRefs(store);
 
 const params = computed<NationalIndicatorKpiParams>(() => ({
-    date_start: dateToStringYMD(new Date(pickedDateStart.value)),
-    date_end: dateToStringYMD(new Date(pickedDateEnd.value)),
+    date_start: dateToStringYMD(pickedDateStart.value),
+    date_end: dateToStringYMD(pickedDateEnd.value),
 }));
 
 const { data: kpi } = useNationalIndicatorKpi(params);

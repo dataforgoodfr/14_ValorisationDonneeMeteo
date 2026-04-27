@@ -55,10 +55,6 @@ const kindLabel = computed(() =>
 );
 
 const fmt = (d: Date) => d.toLocaleDateString("fr-FR", { dateStyle: "short" });
-const formattedStart = computed(() =>
-    fmt(new Date(props.adapter.pickedDateStart.value)),
-);
-const formattedEnd = computed(() =>
-    fmt(new Date(props.adapter.pickedDateEnd.value)),
-);
+const formattedStart = computed(() => fmt(props.adapter.pickedDateStart.value));
+const formattedEnd = computed(() => fmt(props.adapter.pickedDateEnd.value));
 </script>
