@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import datetime as dt
 from collections import defaultdict
+from typing import Any
 
 from django.db import connection
 from django.db.models import OuterRef, Subquery
@@ -34,7 +35,7 @@ from weather.services.national_indicator.types import (
     ObservedPoint as NationalObservedPoint,
 )
 from weather.services.records.types import (
-    Pagination as paginationRecordType,
+    Pagination as PaginationRecordType,
 )
 from weather.services.records.types import (
     RecordsQuery,
@@ -66,7 +67,7 @@ from weather.services.temperature_records.types import (
     TemperatureRecordsResult,
 )
 from weather.services.temperature_records.types import (
-    Pagination as paginationRecord,
+    Pagination as PaginationRecord,
 )
 
 
@@ -658,7 +659,7 @@ class TimescaleTemperatureRecordsDataSource:
 
         return TemperatureRecordsResult(
             entries=results,
-            pagination=paginationRecord(
+            pagination=PaginationRecord(
                 total_count=total_count,
                 page=page,
                 page_size=page_size,
@@ -820,7 +821,7 @@ class HybridTemperatureRecordsDataSource:
         if request.sort:
             sort_parts = [s.strip() for s in request.sort.split(",")]
 
-            def _sort_key(entry: TemperatureRecordEntry) -> tuple:
+            def _sort_key(entry: TemperatureRecordEntry) -> tuple[Any, ...]:
                 sort_values = []
                 for sort_part in sort_parts:
                     sort_field = sort_part.lstrip("-")
@@ -865,7 +866,7 @@ class HybridTemperatureRecordsDataSource:
 
         return TemperatureRecordsResult(
             entries=paginated,
-            pagination=paginationRecord(
+            pagination=PaginationRecord(
                 total_count=total_count,
                 page=page,
                 page_size=page_size,
@@ -1090,7 +1091,7 @@ class TimescaleRecordsDataSource:
 
         return RecordsResult(
             entries=paginated,
-            pagination=paginationRecordType(
+            pagination=PaginationRecordType(
                 total_count=total_count,
                 page=query.page,
                 page_size=query.page_size,

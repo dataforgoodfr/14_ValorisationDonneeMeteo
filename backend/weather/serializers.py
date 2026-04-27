@@ -269,15 +269,15 @@ class TemperatureRecordsQuerySerializer(serializers.Serializer):
         required=False,
         default="hot",
     )
-    page = serializers.IntegerField(required=False, default=1)
-    page_size = serializers.IntegerField(required=False, default=50)
+    page = serializers.IntegerField(required=False, default=1, min_value=1)
+    page_size = serializers.IntegerField(required=False, default=50, min_value=1)
     sort = serializers.CharField(
         required=False,
         default="record_value",
         help_text="Champ(s) de tri avec ordre (ex: 'record_value', '-record_value', 'record_value,station_name', '-record_value,station_name')",
     )
 
-    def validate_sort(self, value):
+    def validate_sort(self, value) -> str:
         """Valide le format du paramètre sort."""
         if not value:
             return value
@@ -294,7 +294,7 @@ class TemperatureRecordsQuerySerializer(serializers.Serializer):
 
         return value
 
-    def validate(self, attrs):
+    def validate(self, attrs) -> dict:
         period_type = attrs.get("period_type", "all_time")
         month = attrs.get("month")
         season = attrs.get("season")
