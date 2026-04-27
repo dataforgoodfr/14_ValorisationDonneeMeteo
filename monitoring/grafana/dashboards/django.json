@@ -2,60 +2,151 @@
   "title": "Django - Meteo API",
   "uid": "django-meteo-api",
   "schemaVersion": 41,
-  "version": 1,
+  "version": 2,
   "refresh": "30s",
   "time": { "from": "now-1h", "to": "now" },
   "panels": [
     {
       "id": 1,
-      "title": "Requêtes / seconde",
-      "type": "timeseries",
+      "title": "Total requêtes",
+      "type": "stat",
       "datasource": "Prometheus",
-      "gridPos": { "x": 0, "y": 0, "w": 12, "h": 8 },
+      "gridPos": { "x": 0, "y": 0, "w": 6, "h": 4 },
       "targets": [
         {
           "datasource": "Prometheus",
-          "expr": "sum(rate(django_http_requests_total_by_method_total[1m])) by (method)",
-          "legendFormat": "{{method}}",
+          "expr": "sum(django_http_requests_before_middlewares_total)",
           "refId": "A"
         }
       ],
-      "fieldConfig": { "defaults": { "unit": "reqps" } }
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "color": { "mode": "thresholds" },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [{ "color": "blue", "value": null }]
+          }
+        }
+      },
+      "options": { "reduceOptions": { "calcs": ["lastNotNull"] }, "graphMode": "area", "colorMode": "background" }
     },
     {
       "id": 2,
-      "title": "Latence p50 / p95 / p99",
-      "type": "timeseries",
+      "title": "Taux d'erreur 5xx",
+      "type": "stat",
       "datasource": "Prometheus",
-      "gridPos": { "x": 12, "y": 0, "w": 12, "h": 8 },
+      "gridPos": { "x": 6, "y": 0, "w": 6, "h": 4 },
       "targets": [
         {
           "datasource": "Prometheus",
-          "expr": "histogram_quantile(0.50, sum(rate(django_http_requests_latency_seconds_by_view_method_bucket[1m])) by (le))",
-          "legendFormat": "p50",
+          "expr": "100 * sum(rate(django_http_responses_total_by_status_total{status=~\"5..\"}[5m])) / sum(rate(django_http_requests_before_middlewares_total[5m]))",
           "refId": "A"
-        },
-        {
-          "datasource": "Prometheus",
-          "expr": "histogram_quantile(0.95, sum(rate(django_http_requests_latency_seconds_by_view_method_bucket[1m])) by (le))",
-          "legendFormat": "p95",
-          "refId": "B"
-        },
-        {
-          "datasource": "Prometheus",
-          "expr": "histogram_quantile(0.99, sum(rate(django_http_requests_latency_seconds_by_view_method_bucket[1m])) by (le))",
-          "legendFormat": "p99",
-          "refId": "C"
         }
       ],
-      "fieldConfig": { "defaults": { "unit": "s" } }
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percent",
+          "color": { "mode": "thresholds" },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "green", "value": null },
+              { "color": "orange", "value": 1 },
+              { "color": "red", "value": 5 }
+            ]
+          }
+        }
+      },
+      "options": { "reduceOptions": { "calcs": ["lastNotNull"] }, "graphMode": "none", "colorMode": "background" }
     },
     {
       "id": 3,
+      "title": "Mémoire RSS",
+      "type": "stat",
+      "datasource": "Prometheus",
+      "gridPos": { "x": 12, "y": 0, "w": 6, "h": 4 },
+      "targets": [
+        {
+          "datasource": "Prometheus",
+          "expr": "process_resident_memory_bytes",
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "bytes",
+          "color": { "mode": "thresholds" },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "green", "value": null },
+              { "color": "orange", "value": 200000000 },
+              { "color": "red", "value": 500000000 }
+            ]
+          }
+        }
+      },
+      "options": { "reduceOptions": { "calcs": ["lastNotNull"] }, "graphMode": "area", "colorMode": "background" }
+    },
+    {
+      "id": 4,
+      "title": "CPU",
+      "type": "stat",
+      "datasource": "Prometheus",
+      "gridPos": { "x": 18, "y": 0, "w": 6, "h": 4 },
+      "targets": [
+        {
+          "datasource": "Prometheus",
+          "expr": "rate(process_cpu_seconds_total[1m]) * 100",
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percent",
+          "color": { "mode": "thresholds" },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "green", "value": null },
+              { "color": "orange", "value": 50 },
+              { "color": "red", "value": 80 }
+            ]
+          }
+        }
+      },
+      "options": { "reduceOptions": { "calcs": ["lastNotNull"] }, "graphMode": "area", "colorMode": "background" }
+    },
+    {
+      "id": 5,
+      "title": "Requêtes / seconde",
+      "type": "timeseries",
+      "datasource": "Prometheus",
+      "gridPos": { "x": 0, "y": 4, "w": 12, "h": 8 },
+      "targets": [
+        {
+          "datasource": "Prometheus",
+          "expr": "sum(rate(django_http_requests_before_middlewares_total[1m]))",
+          "legendFormat": "req/s",
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "reqps",
+          "color": { "mode": "palette-classic" },
+          "custom": { "lineWidth": 2, "fillOpacity": 15 }
+        }
+      },
+      "options": { "tooltip": { "mode": "multi" } }
+    },
+    {
+      "id": 6,
       "title": "Réponses par code HTTP",
       "type": "timeseries",
       "datasource": "Prometheus",
-      "gridPos": { "x": 0, "y": 8, "w": 12, "h": 8 },
+      "gridPos": { "x": 12, "y": 4, "w": 12, "h": 8 },
       "targets": [
         {
           "datasource": "Prometheus",
@@ -64,76 +155,162 @@
           "refId": "A"
         }
       ],
-      "fieldConfig": { "defaults": { "unit": "reqps" } }
+      "fieldConfig": {
+        "defaults": {
+          "unit": "reqps",
+          "custom": { "lineWidth": 2, "fillOpacity": 10 }
+        },
+        "overrides": [
+          { "matcher": { "id": "byName", "options": "HTTP 200" }, "properties": [{ "id": "color", "value": { "fixedColor": "green", "mode": "fixed" } }] },
+          { "matcher": { "id": "byName", "options": "HTTP 404" }, "properties": [{ "id": "color", "value": { "fixedColor": "orange", "mode": "fixed" } }] },
+          { "matcher": { "id": "byName", "options": "HTTP 500" }, "properties": [{ "id": "color", "value": { "fixedColor": "red", "mode": "fixed" } }] }
+        ]
+      },
+      "options": { "tooltip": { "mode": "multi" } }
     },
     {
-      "id": 4,
-      "title": "Taux d'erreurs 4xx / 5xx",
+      "id": 7,
+      "title": "Latence globale — p50 / p95 / p99",
       "type": "timeseries",
       "datasource": "Prometheus",
-      "gridPos": { "x": 12, "y": 8, "w": 12, "h": 8 },
+      "gridPos": { "x": 0, "y": 12, "w": 12, "h": 8 },
       "targets": [
         {
           "datasource": "Prometheus",
-          "expr": "sum(rate(django_http_responses_total_by_status_total{status=~\"4..\"}[1m]))",
-          "legendFormat": "4xx",
+          "expr": "histogram_quantile(0.50, sum(rate(django_http_requests_latency_including_middlewares_seconds_bucket[1m])) by (le))",
+          "legendFormat": "p50",
           "refId": "A"
         },
         {
           "datasource": "Prometheus",
-          "expr": "sum(rate(django_http_responses_total_by_status_total{status=~\"5..\"}[1m]))",
-          "legendFormat": "5xx",
+          "expr": "histogram_quantile(0.95, sum(rate(django_http_requests_latency_including_middlewares_seconds_bucket[1m])) by (le))",
+          "legendFormat": "p95",
           "refId": "B"
+        },
+        {
+          "datasource": "Prometheus",
+          "expr": "histogram_quantile(0.99, sum(rate(django_http_requests_latency_including_middlewares_seconds_bucket[1m])) by (le))",
+          "legendFormat": "p99",
+          "refId": "C"
         }
       ],
-      "fieldConfig": { "defaults": { "unit": "reqps" } }
+      "fieldConfig": {
+        "defaults": {
+          "unit": "s",
+          "custom": { "lineWidth": 2, "fillOpacity": 8 }
+        }
+      },
+      "options": { "tooltip": { "mode": "multi" } }
     },
     {
-      "id": 5,
-      "title": "Total requêtes",
-      "type": "stat",
+      "id": 8,
+      "title": "Latence p95 par endpoint",
+      "type": "timeseries",
       "datasource": "Prometheus",
-      "gridPos": { "x": 0, "y": 16, "w": 6, "h": 4 },
+      "gridPos": { "x": 12, "y": 12, "w": 12, "h": 8 },
       "targets": [
         {
           "datasource": "Prometheus",
-          "expr": "sum(django_http_requests_total_by_method_total)",
-          "refId": "A"
-        }
-      ],
-      "fieldConfig": { "defaults": { "unit": "short" } }
-    },
-    {
-      "id": 6,
-      "title": "Connexions DB",
-      "type": "stat",
-      "datasource": "Prometheus",
-      "gridPos": { "x": 6, "y": 16, "w": 6, "h": 4 },
-      "targets": [
-        {
-          "datasource": "Prometheus",
-          "expr": "django_db_connections_total",
-          "refId": "A"
-        }
-      ],
-      "fieldConfig": { "defaults": { "unit": "short" } }
-    },
-    {
-      "id": 7,
-      "title": "Top 10 vues par RPS",
-      "type": "bargauge",
-      "datasource": "Prometheus",
-      "gridPos": { "x": 12, "y": 16, "w": 12, "h": 8 },
-      "options": { "orientation": "horizontal" },
-      "targets": [
-        {
-          "datasource": "Prometheus",
-          "expr": "topk(10, sum(rate(django_http_requests_latency_seconds_by_view_method_count[5m])) by (view))",
+          "expr": "histogram_quantile(0.95, sum(rate(django_http_requests_latency_seconds_by_view_method_bucket{view!=\"prometheus-django-metrics\"}[1m])) by (le, view))",
           "legendFormat": "{{view}}",
           "refId": "A"
         }
       ],
-      "fieldConfig": { "defaults": { "unit": "reqps" } }
+      "fieldConfig": {
+        "defaults": {
+          "unit": "s",
+          "custom": { "lineWidth": 2, "fillOpacity": 8 }
+        }
+      },
+      "options": { "tooltip": { "mode": "multi" } }
+    },
+    {
+      "id": 9,
+      "title": "Exceptions par type",
+      "type": "timeseries",
+      "datasource": "Prometheus",
+      "gridPos": { "x": 0, "y": 20, "w": 6, "h": 8 },
+      "targets": [
+        {
+          "datasource": "Prometheus",
+          "expr": "sum(rate(django_http_exceptions_total_by_type_total[1m])) by (type)",
+          "legendFormat": "{{type}}",
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "color": { "mode": "fixed", "fixedColor": "red" },
+          "custom": { "lineWidth": 2, "fillOpacity": 20 }
+        }
+      }
+    },
+    {
+      "id": 10,
+      "title": "Exceptions par vue",
+      "type": "timeseries",
+      "datasource": "Prometheus",
+      "gridPos": { "x": 6, "y": 20, "w": 6, "h": 8 },
+      "targets": [
+        {
+          "datasource": "Prometheus",
+          "expr": "sum(rate(django_http_exceptions_total_by_view_total[1m])) by (view)",
+          "legendFormat": "{{view}}",
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "color": { "mode": "palette-classic" },
+          "custom": { "lineWidth": 2, "fillOpacity": 15 }
+        }
+      }
+    },
+    {
+      "id": 11,
+      "title": "Mémoire RSS",
+      "type": "timeseries",
+      "datasource": "Prometheus",
+      "gridPos": { "x": 12, "y": 20, "w": 6, "h": 8 },
+      "targets": [
+        {
+          "datasource": "Prometheus",
+          "expr": "process_resident_memory_bytes",
+          "legendFormat": "RSS",
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "bytes",
+          "color": { "mode": "fixed", "fixedColor": "purple" },
+          "custom": { "lineWidth": 2, "fillOpacity": 15 }
+        }
+      }
+    },
+    {
+      "id": 12,
+      "title": "Taille moyenne des réponses",
+      "type": "timeseries",
+      "datasource": "Prometheus",
+      "gridPos": { "x": 18, "y": 20, "w": 6, "h": 8 },
+      "targets": [
+        {
+          "datasource": "Prometheus",
+          "expr": "rate(django_http_responses_body_total_bytes_sum[1m]) / rate(django_http_responses_body_total_bytes_count[1m])",
+          "legendFormat": "avg size",
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "bytes",
+          "color": { "mode": "fixed", "fixedColor": "teal" },
+          "custom": { "lineWidth": 2, "fillOpacity": 15 }
+        }
+      }
     }
   ]
 }
