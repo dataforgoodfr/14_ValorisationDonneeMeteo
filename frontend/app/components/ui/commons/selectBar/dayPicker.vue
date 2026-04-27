@@ -3,19 +3,27 @@ import DatePicker from "primevue/datepicker";
 import { useCustomDate } from "#imports";
 import type { SelectBarAdapter } from "~/components/ui/commons/selectBar/types";
 
+const props = defineProps<{
+    minDate?: Date;
+    maxDate?: Date;
+}>();
+
 const localStartDate = defineModel<Date | undefined>("startDate");
 const localEndDate = defineModel<Date | undefined>("endDate");
 
 const adapter = inject<SelectBarAdapter>("selectBarAdapter");
 const dates = useCustomDate();
 
-const maxEndDate = adapter?.maxDate?.value ?? dates.today.value;
+const maxEndDate = computed(
+    () => props.maxDate ?? adapter?.maxDate?.value ?? dates.today.value,
+);
 
 watch(localStartDate, (newStart) => {
     if (!newStart || !localEndDate.value) return;
     const limit = new Date(newStart);
     limit.setFullYear(limit.getFullYear() + 2);
-    const ceiling = adapter?.maxDate?.value ?? dates.today.value;
+    const ceiling =
+        props.maxDate ?? adapter?.maxDate?.value ?? dates.today.value;
     const cap = limit < ceiling ? limit : ceiling;
     if (localEndDate.value > cap) localEndDate.value = cap;
 });
@@ -119,6 +127,7 @@ const pt = {
     <div id="container-day-picker" class="flex gap-2 items-center">
         <DatePicker
             v-model="localStartDate"
+            :min-date="props.minDate"
             :max-date="localEndDate"
             date-format="dd/mm/yy"
             :pt="pt"

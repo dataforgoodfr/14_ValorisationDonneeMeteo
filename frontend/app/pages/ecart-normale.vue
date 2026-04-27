@@ -8,12 +8,11 @@ import { useDeviationSelectBarAdapter } from "~/adapters/deviationSelectBarAdapt
 import SelectBar from "~/components/ui/commons/selectBar/selectBar.vue";
 import DeviationChart from "~/components/charts/DeviationChart.vue";
 import DeviationTable from "~/components/table/deviation/DeviationTable.vue";
-import DayPicker from "~/components/ui/commons/selectBar/dayPicker.vue";
+import DatePresetPicker from "~/components/ui/commons/DatePresetPicker.vue";
 import type { ChartType } from "~/components/ui/commons/selectBar/types";
 import MapD3 from "~/components/map/MapD3.vue";
 import DeviationKpiPanel from "~/components/charts/DeviationKpiPanel.vue";
 import { useDeviationTableStore } from "~/stores/deviationTableStore";
-import { useCustomDate } from "~/composables/useCustomDate";
 
 const selectBarAdapter = useDeviationSelectBarAdapter();
 const chartType = computed<ChartType>(
@@ -22,7 +21,6 @@ const chartType = computed<ChartType>(
 
 const tableStore = useDeviationTableStore();
 const { dateStart, dateEnd } = storeToRefs(tableStore);
-const dates = useCustomDate();
 
 const toISODate = (date: Date) => date.toISOString().substring(0, 10);
 const mapDateStart = computed(() => toISODate(dateStart.value));
@@ -100,11 +98,9 @@ const infoPanelSections: InfoSection[] = [
         />
 
         <div class="flex flex-col gap-4 dark:bg-elevated rounded-lg p-14">
-            <DayPicker
+            <DatePresetPicker
                 v-model:start-date="dateStart"
                 v-model:end-date="dateEnd"
-                :min-date="dates.absoluteMinDataDate.value"
-                :max-date="dates.yesterday.value"
             />
 
             <hr class="border-accented" />
