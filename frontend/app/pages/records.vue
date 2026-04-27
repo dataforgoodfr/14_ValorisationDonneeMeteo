@@ -40,7 +40,7 @@ const heroData = {
                             :items="periodOptions"
                         />
                     </div>
-                    <UButtonGroup>
+                    <UFieldGroup>
                         <UButton
                             :ui="{
                                 base:
@@ -65,7 +65,7 @@ const heroData = {
                             label="Froid"
                             @click="store.typeRecords = 'cold'"
                         />
-                    </UButtonGroup>
+                    </UFieldGroup>
                 </div>
 
                 <hr class="border-accented" />
