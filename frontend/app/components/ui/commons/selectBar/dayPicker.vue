@@ -22,9 +22,7 @@ watch(localStartDate, (newStart) => {
     if (!newStart || !localEndDate.value) return;
     const limit = new Date(newStart);
     limit.setFullYear(limit.getFullYear() + 2);
-    const ceiling =
-        props.maxDate ?? adapter?.maxDate?.value ?? dates.today.value;
-    const cap = limit < ceiling ? limit : ceiling;
+    const cap = limit < maxEndDate.value ? limit : maxEndDate.value;
     if (localEndDate.value > cap) localEndDate.value = cap;
 });
 
