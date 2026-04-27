@@ -2,6 +2,11 @@ name: CI
 
 on:
   push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
 
 jobs:
   basic-pipeline:
@@ -81,6 +86,24 @@ jobs:
           name: security-report
           path: security-report.txt
 
+      - name: Trivy scan (CycloneDX / VEX)
+        uses: aquasecurity/trivy-action@v0.14.0
+        with:
+          scan-type: 'fs'
+          ignore-unfixed: true
+          format: 'cyclonedx'
+          output: 'trivy-vex.json'
+          severity: 'HIGH,CRITICAL'
+          exit-code: '0'
+          vex: '.vex/vex.json'
+
+      - name: Upload VEX report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: trivy-vex
+          path: trivy-vex.json
+
       - name: Check Trivy report
         if: always()
         run: |
@@ -94,7 +117,6 @@ jobs:
   docker-build-push:
     runs-on: ubuntu-latest
     needs: basic-pipeline
-    # if: github.ref == 'refs/heads/main'
 
     permissions:
       contents: read
@@ -137,7 +159,7 @@ jobs:
         uses: docker/build-push-action@v6
         with:
           context: ${{ matrix.context }}
-          push: true
+          push: github.ref == 'refs/heads/main'
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
           cache-from: type=gha
