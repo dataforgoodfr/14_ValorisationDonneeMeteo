@@ -8,7 +8,6 @@ RUN npm ci --frozen-lockfile
 COPY . .
 RUN npm run build
 
-
 FROM dhi.io/node:24 AS final
 
 WORKDIR /app

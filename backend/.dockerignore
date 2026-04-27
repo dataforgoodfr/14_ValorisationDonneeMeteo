@@ -1,0 +1,9 @@
+.venv/
+__pycache__/
+*.pyc
+.pytest_cache/
+.ruff_cache/
+.env
+CONTRIBUTING.md
+CHANGELOG.md
+.git/

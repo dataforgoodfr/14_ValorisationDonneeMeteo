@@ -2,10 +2,8 @@ services:
   timescaledb:
     image: timescale/timescaledb:2.25.0-pg17
     container_name: timescaledb
-    environment:
-      POSTGRES_USER: infoclimat
-      POSTGRES_PASSWORD: infoclimat2026
-      POSTGRES_DB: meteodb
+    env_file:
+      - ./.env
     volumes:
       - timescaledb-data:/var/lib/postgresql/data
       - ./timescaledb-env/meteodb_dump.sql:/docker-entrypoint-initdb.d/dump.sql:ro

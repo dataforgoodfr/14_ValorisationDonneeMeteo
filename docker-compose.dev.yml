@@ -8,7 +8,7 @@ services:
       POSTGRES_DB: meteodb
     volumes:
       - timescaledb-data:/var/lib/postgresql/data
-      - ./timescaledb-env/meteodb_dump.sql:/docker-entrypoint-initdb.d/dump.sql:ro
+      - ./db_data/meteodb_dump.sql:/docker-entrypoint-initdb.d/dump.sql:ro
     networks:
       - bd_net
     healthcheck:
