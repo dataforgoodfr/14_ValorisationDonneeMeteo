@@ -3,17 +3,29 @@ interface Props {
     title: string;
     tooltipText: string;
     withBorder?: boolean;
+    showTitle?: boolean;
+    transparent?: boolean;
 }
 
-const props = defineProps<Props>();
+const props = withDefaults(defineProps<Props>(), {
+    showTitle: true,
+    transparent: false,
+});
 const isOpen = ref(false);
 </script>
 <template>
     <UCard
-        :class="['flex flex-col', props.withBorder && 'border border-blue-350']"
+        :class="[
+            'flex flex-col',
+            props.withBorder && 'border border-blue-350',
+            props.transparent && 'bg-transparent shadow-none ring-0',
+        ]"
     >
         <template #default>
-            <div class="flex items-center justify-between pb-2">
+            <div
+                v-if="props.showTitle"
+                class="flex items-center justify-between pb-2"
+            >
                 <h1
                     class="text-sm font-semibold text-blue-700 dark:text-blue-350"
                 >
