@@ -87,7 +87,7 @@ const infoPanelSections = [
                         <div class="flex items-center gap-1">
                             <p class="text-sm text-muted">Période</p>
                             <FieldInfo
-                                text="Période de référence utilisée pour identifier les records de température."
+                                text="Sélectionnez une période pour afficher les records mensuels ou saisonnier ou sur toute l'année"
                             />
                         </div>
                         <USelect

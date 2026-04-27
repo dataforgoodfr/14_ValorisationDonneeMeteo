@@ -49,7 +49,7 @@ const granularityValues = computed(() => [
                     Paramètres d'affichage
                 </span>
                 <FieldInfo
-                    text="Résolution temporelle et période de données affichées sur le graphe."
+                    text="Sélectionnez la résolution temporelle et l'intervalle de temps affichés sur le graphe."
                 />
             </div>
             <div class="flex flex-wrap gap-4 items-center">
@@ -122,7 +122,7 @@ const granularityValues = computed(() => [
                             Paramètre d'analyse
                         </span>
                         <FieldInfo
-                            text="Filtre les données sur une saison, un mois ou un jour spécifique de l'année."
+                            text="Sélectionnez une période pour afficher les records mensuels ou saisonnier ou sur toute l'année"
                         />
                     </div>
                     <div class="flex gap-6 items-center">
@@ -160,7 +160,7 @@ const granularityValues = computed(() => [
                                     <template #label>
                                         {{
                                             adapter.sliceTypeSwitchLabel ??
-                                            "Moyenne par"
+                                            "Moyenner par"
                                         }}
                                     </template>
                                 </USwitch>

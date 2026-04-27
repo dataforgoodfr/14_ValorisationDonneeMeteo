@@ -18,7 +18,7 @@ interface Props {
 
 const props = defineProps<Props>();
 
-const isOpen = ref(false);
+const { isOpen } = useInfoPanel();
 const breakpoints = useBreakpoints(breakpointsTailwind);
 const isMobile = breakpoints.smaller("md");
 
@@ -40,7 +40,7 @@ function toggle(i: number) {
         :aria-label="`Informations sur ${props.title}`"
         @click="isOpen = true"
     >
-        <UIcon name="i-lucide-info" class="size-5" />
+        <UIcon name="i-lucide-circle-help" class="size-5" />
     </button>
 
     <Teleport to="body">
