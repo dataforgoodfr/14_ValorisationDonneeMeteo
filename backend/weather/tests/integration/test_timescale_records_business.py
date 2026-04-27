@@ -15,7 +15,8 @@ import pytest
 
 from weather.data_sources.timescale import TimescaleRecordsDataSource
 from weather.services.records.types import RecordsQuery
-from weather.tests.conftest import insert_mv_record, insert_station, set_cutoff
+from weather.tests.conftest import insert_mv_record, set_cutoff
+from weather.tests.helpers.stations import insert_station
 
 # ---------------------------------------------------------------------------
 # Helpers
@@ -61,7 +62,7 @@ def test_alltime_hot_records_progression():
              dates [1990-07-20, 2003-08-05, 2019-06-28], valeurs [35.0, 42.5, 45.1]
     """
     code = "99001001"
-    insert_station(code, "Station Canicule", department=13)
+    insert_station(code, "Station Canicule", departement=13)
     set_cutoff(PAST_CUTOFF)
 
     insert_mv_record(
@@ -129,7 +130,7 @@ def test_monthly_hot_records_only_target_month():
     THEN   On obtient 2 records pour juillet, la mesure d'août est absente
     """
     code = "99002001"
-    insert_station(code, "Station Juillet", department=69)
+    insert_station(code, "Station Juillet", departement=69)
     set_cutoff(PAST_CUTOFF)
 
     insert_mv_record(
@@ -192,8 +193,8 @@ def test_alltime_cold_records_two_stations():
            Les hot_records sont vides (type_records=cold)
     """
     code_a, code_b = "99003001", "99003002"
-    insert_station(code_a, "Station Grand Froid A", department=67)
-    insert_station(code_b, "Station Grand Froid B", department=57)
+    insert_station(code_a, "Station Grand Froid A", departement=67)
+    insert_station(code_b, "Station Grand Froid B", departement=57)
     set_cutoff(PAST_CUTOFF)
 
     insert_mv_record(
@@ -251,7 +252,7 @@ def test_absolute_kind_returns_only_last_record_per_station():
     THEN   Un seul record hot est retourné : (44.0, 2019-06-28)
     """
     code = "99004001"
-    insert_station(code, "Station Absolu", department=75)
+    insert_station(code, "Station Absolu", departement=75)
     set_cutoff(PAST_CUTOFF)
 
     insert_mv_record(
@@ -311,8 +312,8 @@ def test_department_filter_excludes_other_departments():
     THEN   Seule la station 99005001 (dept 13) apparaît dans les résultats
     """
     code_13, code_69 = "99005001", "99005002"
-    insert_station(code_13, "Station Marseille", department=13)
-    insert_station(code_69, "Station Lyon", department=69)
+    insert_station(code_13, "Station Marseille", departement=13)
+    insert_station(code_69, "Station Lyon", departement=69)
     set_cutoff(PAST_CUTOFF)
 
     insert_mv_record(

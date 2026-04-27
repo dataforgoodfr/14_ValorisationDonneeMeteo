@@ -1,10 +1,10 @@
-import { describe, it, expect, beforeEach, vi } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 import { ref, shallowRef } from "vue";
 import type {
     GranularityType,
     SelectBarAdapter,
 } from "~/components/ui/commons/selectBar/types";
-import type { DeviationResponse } from "~/types/api";
+import type { TemperatureDeviationGraphResponse } from "~/types/api"; // Mock the store
 
 // Mock the store
 const createMockDeviationStore = () => ({
@@ -36,7 +36,7 @@ let mockStore: ReturnType<typeof createMockDeviationStore>;
 
 // Mock the adapter function
 const useDeviationSelectBarAdapter =
-    (): SelectBarAdapter<DeviationResponse> => {
+    (): SelectBarAdapter<TemperatureDeviationGraphResponse> => {
         return {
             granularity: mockStore.granularity,
             pickedDateStart: mockStore.pickedDateStart,
@@ -52,6 +52,7 @@ const useDeviationSelectBarAdapter =
                 hasSliceType: false,
                 hasChartTypeSelector: false,
                 hasExport: true,
+                hasRecordsPeriodSlice: false,
             },
             exportConfig: mockStore.exportConfig,
         };
@@ -95,6 +96,7 @@ describe("useDeviationSelectBarAdapter", () => {
             hasSliceType: false,
             hasChartTypeSelector: false,
             hasExport: true,
+            hasRecordsPeriodSlice: false,
         });
     });
 

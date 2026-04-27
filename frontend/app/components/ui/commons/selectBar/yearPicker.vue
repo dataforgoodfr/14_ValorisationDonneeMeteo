@@ -3,8 +3,13 @@ import DatePicker from "primevue/datepicker";
 import { useCustomDate } from "#imports";
 import type { SelectBarAdapter } from "~/components/ui/commons/selectBar/types";
 
+const localStartDate = defineModel<Date | undefined>("startDate");
+const localEndDate = defineModel<Date | undefined>("endDate");
+
 const adapter = inject<SelectBarAdapter>("selectBarAdapter")!;
 const dates = useCustomDate();
+
+const maxDate = computed(() => adapter.maxDate?.value ?? dates.yesterday.value);
 
 const pt = {
     root: { class: "relative w-36" },
@@ -55,39 +60,31 @@ const pt = {
 </script>
 
 <template>
-    <div id="container-monthly-picker" class="flex gap-2">
-        <div class="flex flex-col text-center gap-1">
-            <p class="text-sm text-default">Année de début</p>
-            <DatePicker
-                v-model="adapter.pickedDateStart.value"
-                :min-date="dates.absoluteMinDataDate.value"
-                :max-date="adapter.pickedDateEnd.value"
-                view="year"
-                date-format="yy"
-                :pt="pt"
-                unstyled
-                append-to="self"
-                show-icon
-                icon-display="input"
-            />
-        </div>
-        <div class="pt-7 self-center">
-            <UIcon name="i-lucide-arrow-right" />
-        </div>
-        <div class="flex flex-col text-center gap-1">
-            <p class="text-sm text-default">Année de fin</p>
-            <DatePicker
-                v-model="adapter.pickedDateEnd.value"
-                :min-date="adapter.pickedDateStart.value"
-                :max-date="dates.twoDaysAgo.value"
-                view="year"
-                date-format="yy"
-                :pt="pt"
-                unstyled
-                append-to="self"
-                show-icon
-                icon-display="input"
-            />
-        </div>
+    <div id="container-year-picker" class="flex gap-2 items-center">
+        <DatePicker
+            v-model="localStartDate"
+            :min-date="dates.absoluteMinDataDate.value"
+            :max-date="localEndDate"
+            view="year"
+            date-format="yy"
+            :pt="pt"
+            unstyled
+            append-to="self"
+            show-icon
+            icon-display="input"
+        />
+        <UIcon name="i-lucide-arrow-right" />
+        <DatePicker
+            v-model="localEndDate"
+            :min-date="localStartDate"
+            :max-date="maxDate"
+            view="year"
+            date-format="yy"
+            :pt="pt"
+            unstyled
+            append-to="self"
+            show-icon
+            icon-display="input"
+        />
     </div>
 </template>

@@ -1,5 +1,5 @@
 import { describe, test, expect } from "vitest";
-import { normalizeString } from "./string";
+import { escapeCsvValue, normalizeString } from "./string";
 
 describe("string", () => {
     test("is normalized", () => {
@@ -21,5 +21,23 @@ describe("string", () => {
     test("is NOT normalized", () => {
         const stringToNormalize = normalizeString("Martinique");
         expect(stringToNormalize).toBe("Martinique");
+    });
+});
+
+describe("escapeCsvValue", () => {
+    test("valeur simple — pas de modification", () => {
+        expect(escapeCsvValue("Paris")).toBe("Paris");
+    });
+    test("valeur avec virgule — encapsulée entre guillemets", () => {
+        expect(escapeCsvValue("Paris, Lyon")).toBe('"Paris, Lyon"');
+    });
+    test("valeur avec guillemet — guillemet doublé et encapsulé", () => {
+        expect(escapeCsvValue('say "hello"')).toBe('"say ""hello"""');
+    });
+    test("nombre — converti en string", () => {
+        expect(escapeCsvValue(42)).toBe("42");
+    });
+    test("undefined — chaîne vide", () => {
+        expect(escapeCsvValue(undefined)).toBe("");
     });
 });

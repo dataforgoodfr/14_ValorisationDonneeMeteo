@@ -26,6 +26,8 @@ from weather.services.temperature_deviation.types import (
 )
 from weather.utils.date_range import iter_days_intersecting
 
+_CREATION_YEAR_POOL = (1950, 1960, 1970, 1975, 1980, 1985, 1990, 1995, 2000, 2005, 2010)
+
 
 def _climatology_for_date(d: dt.date) -> tuple[float, float]:
     doy = d.timetuple().tm_yday
@@ -145,14 +147,20 @@ class FakeTemperatureDeviationDailyDataSource(TemperatureDeviationDailyDataSourc
         self, query: DailyDeviationSeriesQuery
     ) -> list[ObservedPoint]:
         rng = random.Random(self._seed)
-        days = tuple(iter_days_intersecting(query.date_start, query.date_end))
+        if query.target_dates is not None:
+            days = tuple(sorted(query.target_dates))
+        else:
+            days = tuple(iter_days_intersecting(query.date_start, query.date_end))
 
         return [_generate_national_observed_point(day=d, rng=rng) for d in days]
 
     def fetch_stations_daily_series(
         self, query: DailyDeviationSeriesQuery
     ) -> list[StationDailySeries]:
-        days = tuple(iter_days_intersecting(query.date_start, query.date_end))
+        if query.target_dates is not None:
+            days = tuple(sorted(query.target_dates))
+        else:
+            days = tuple(iter_days_intersecting(query.date_start, query.date_end))
         out: list[StationDailySeries] = []
 
         for station_id in query.station_ids:
@@ -212,6 +220,8 @@ class FakeTemperatureDeviationOverviewDataSource(
             baseline_mean = temperature_mean - rng.uniform(-3, 3)
             deviation = temperature_mean - baseline_mean
 
+            creation_year = _CREATION_YEAR_POOL[i % len(_CREATION_YEAR_POOL)]
+
             out.append(
                 TemperatureDeviationOverviewStation(
                     station_id=station_id,
@@ -224,6 +234,9 @@ class FakeTemperatureDeviationOverviewDataSource(
                     temperature_mean=temperature_mean,
                     baseline_mean=baseline_mean,
                     deviation=deviation,
+                    classe_recente=1,
+                    date_de_creation=dt.date(creation_year, 1, 1),
+                    date_de_fermeture=None,
                 )
             )
 

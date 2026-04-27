@@ -166,19 +166,6 @@ def test_temperature_deviation_overview_query_serializer_rejects_negative_offset
     assert "offset" in s.errors
 
 
-def test_temperature_deviation_overview_query_serializer_rejects_limit_too_large():
-    s = TemperatureDeviationOverviewQuerySerializer(
-        data={
-            "date_start": "2025-03-01",
-            "date_end": "2025-03-31",
-            "limit": 1000,
-        }
-    )
-
-    assert not s.is_valid()
-    assert "limit" in s.errors
-
-
 def test_temperature_deviation_overview_query_serializer_parses_station_ids():
     s = TemperatureDeviationOverviewQuerySerializer(
         data={

@@ -16,6 +16,7 @@ class DailyDeviationSeriesQuery:
     date_end: dt.date
     station_ids: tuple[str, ...]
     include_national: bool = True
+    target_dates: tuple[dt.date, ...] | None = None
 
 
 @dataclass(frozen=True)
@@ -110,6 +111,9 @@ class TemperatureDeviationOverviewStation:
     alt: float | None
     department: str | None
     region: str | None
+    classe_recente: int
+    date_de_creation: dt.date
+    date_de_fermeture: dt.date | None
 
 
 @dataclass(frozen=True)

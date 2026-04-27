@@ -46,7 +46,7 @@ useIntersectionObserver(sentinel, ([entry]) => {
 });
 </script>
 <template>
-    <div class="flex flex-col gap-2 w-64 p-4 h-full max-h-158">
+    <div class="flex flex-col gap-2 w-full md:w-64 p-4 md:h-full max-h-158">
         <UInput
             v-model="searchQuery"
             trailing-icon="i-lucide-search"

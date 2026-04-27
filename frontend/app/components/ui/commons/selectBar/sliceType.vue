@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import MonthOfYearPicker from "./monthOfYearPicker.vue";
 import type { SelectBarAdapter } from "~/components/ui/commons/selectBar/types";
 
 const adapter = inject<SelectBarAdapter>("selectBarAdapter")!;
@@ -20,7 +21,7 @@ const displayedSlicedTypeValues = computed(() => {
     }
     return allSliceTypeValues.filter((value) => value.value === "full");
 });
-// Date picker styling
+// Date picker styling (day/day+month pickers only)
 const pt = {
     root: { class: "relative w-36" },
     pcInputText: {
@@ -73,23 +74,7 @@ const pt = {
                 : "",
         ],
     }),
-    monthView: { class: "grid grid-cols-3 gap-1 mt-1" },
     yearView: { class: "grid grid-cols-3 gap-1 mt-1" },
-    month: ({
-        context,
-    }: {
-        context: { selected: boolean; disabled: boolean };
-    }) => ({
-        class: [
-            "rounded-md text-center text-sm px-2 py-1.5 cursor-pointer transition-colors select-none",
-            context.selected
-                ? "bg-primary text-inverted font-semibold"
-                : "text-highlighted hover:bg-elevated",
-            context.disabled
-                ? "opacity-50 cursor-not-allowed pointer-events-none"
-                : "",
-        ],
-    }),
     year: ({
         context,
     }: {
@@ -106,7 +91,6 @@ const pt = {
         ],
     }),
 };
-// Date picker styling
 const ptDayMonthOfYear = {
     ...pt,
     selectYear: { class: "hidden" },
@@ -177,17 +161,7 @@ const showDayMonthOfYearPicker = computed(() => {
             class="flex flex-col text-center gap-1"
         >
             <p class="text-sm text-default">Mois</p>
-            <DatePicker
-                v-model="adapter.sliceDatepickerDate!.value"
-                view="month"
-                date-format="MM"
-                :pt="pt"
-                unstyled
-                append-to="self"
-                show-icon
-                icon-display="input"
-                :show-other-months="false"
-            />
+            <MonthOfYearPicker v-model="adapter.sliceDatepickerDate!.value" />
         </div>
         <div
             v-if="showDayMonthOfYearPicker"

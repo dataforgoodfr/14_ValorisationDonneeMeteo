@@ -41,6 +41,9 @@ class DummyDataSource:
                     temperature_mean=10.1234,
                     baseline_mean=8.9876,
                     deviation=1.1358,
+                    classe_recente=1,
+                    date_de_creation=dt.date(1980, 1, 1),
+                    date_de_fermeture=None,
                 ),
                 TemperatureDeviationOverviewStation(
                     station_id="07157",
@@ -53,6 +56,9 @@ class DummyDataSource:
                     temperature_mean=20.5678,
                     baseline_mean=19.1234,
                     deviation=1.4444,
+                    classe_recente=1,
+                    date_de_creation=dt.date(1990, 1, 1),
+                    date_de_fermeture=None,
                 ),
             ],
         )

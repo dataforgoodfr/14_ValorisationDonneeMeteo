@@ -9,10 +9,12 @@ export default defineNuxtConfig({
     modules: [
         "@nuxt/eslint",
         "@nuxt/test-utils",
+        "@nuxt/test-utils/module",
         "@nuxt/ui",
         "@nuxt/image",
         "@nuxt/fonts",
         "@nuxt/icon",
+        "@nuxtjs/color-mode",
         "nuxt-echarts",
         "@pinia/nuxt",
         "@primevue/nuxt-module",
@@ -27,15 +29,27 @@ export default defineNuxtConfig({
         },
     },
     css: ["~/assets/css/main.css"],
+    colorMode: {
+        preference: "light", // default value of $colorMode.preference
+        fallback: "light", // fallback value if not system preference found
+        globalName: "__NUXT_COLOR_MODE__",
+        classPrefix: "",
+        classSuffix: "",
+        storage: "sessionStorage", // or 'sessionStorage' or 'cookie'
+        storageKey: "nuxt-color-mode",
+    },
     ui: {
-        colorMode: false,
+        colorMode: true,
     },
     fonts: {
         provider: "google",
     },
+    typescript: {
+        typeCheck: false, // turn to true when calm and ready
+    },
     app: {
         head: {
-            title: "InfoClimat - Dashboard",
+            title: "DataClimat - Dashboard",
             htmlAttrs: {
                 lang: "fr",
             },
@@ -50,8 +64,15 @@ export default defineNuxtConfig({
     },
     echarts: {
         renderer: ["svg", "canvas"],
-        charts: ["BarChart", "LineChart"],
-        components: ["DatasetComponent", "GridComponent", "TooltipComponent"],
+        charts: ["BarChart", "LineChart", "ScatterChart"],
+        components: [
+            "DatasetComponent",
+            "GridComponent",
+            "TooltipComponent",
+            "TitleComponent",
+            "LegendComponent",
+            "DataZoomComponent",
+        ],
         features: ["LabelLayout", "UniversalTransition"],
     },
     primevue: {

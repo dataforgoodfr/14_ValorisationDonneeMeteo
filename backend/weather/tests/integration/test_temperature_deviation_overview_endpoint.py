@@ -221,19 +221,6 @@ def test_overview_endpoint_returns_400_on_negative_offset(client: APIClient):
     assert resp.status_code == 400
 
 
-def test_overview_endpoint_returns_400_on_limit_too_large(client: APIClient):
-    resp = client.get(
-        _url(),
-        {
-            "date_start": "2025-03-01",
-            "date_end": "2025-03-31",
-            "limit": 1000,
-        },
-    )
-
-    assert resp.status_code == 400
-
-
 def test_overview_endpoint_filters_by_station_ids(client: APIClient):
     resp = client.get(
         _url(),

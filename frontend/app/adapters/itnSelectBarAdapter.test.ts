@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach, vi } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 import { ref, shallowRef } from "vue";
 import type {
     GranularityType,
@@ -57,6 +57,7 @@ const useItnSelectBarAdapter =
                 hasSliceType: true,
                 hasChartTypeSelector: false,
                 hasExport: true,
+                hasRecordsPeriodSlice: false,
             },
             exportConfig: mockStore.exportConfig,
         };
@@ -99,6 +100,7 @@ describe("useItnSelectBarAdapter", () => {
             hasSliceType: true,
             hasChartTypeSelector: false,
             hasExport: true,
+            hasRecordsPeriodSlice: false,
         });
     });
 

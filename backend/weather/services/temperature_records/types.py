@@ -33,7 +33,12 @@ class TemperatureRecordEntry:
     department: str
     record_value: float
     record_date: dt.date
-
+    lat: float
+    lon: float
+    alt: float
+    classe_recente: int
+    date_de_creation: dt.date
+    date_de_fermeture: dt.date | None
 
 @dataclass(frozen=True)
 class Pagination:

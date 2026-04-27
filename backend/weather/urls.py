@@ -7,9 +7,12 @@ from rest_framework.routers import DefaultRouter
 
 from .views import (
     NationalIndicatorAPIView,
+    NationalIndicatorKpiAPIView,
+    RecordsGraphAPIView,
     StationViewSet,
     TemperatureDeviationGraphAPIView,
     TemperatureDeviationOverviewAPIView,
+    TemperatureMinMaxGraphAPIView,
     TemperatureRecordsAPIView,
 )
 
@@ -24,9 +27,19 @@ urlpatterns = [
         name="temperature-national-indicator",
     ),
     path(
+        "temperature/national-indicator/kpi",
+        NationalIndicatorKpiAPIView.as_view(),
+        name="temperature-national-indicator-kpi",
+    ),
+    path(
         "temperature/records",
         TemperatureRecordsAPIView.as_view(),
         name="temperature-records",
+    ),
+    path(
+        "temperature/extremes/graph",
+        TemperatureMinMaxGraphAPIView.as_view(),
+        name="temperature-extremes-graph",
     ),
     path(
         "temperature/deviation/graph",
@@ -37,5 +50,10 @@ urlpatterns = [
         "temperature/deviation",
         TemperatureDeviationOverviewAPIView.as_view(),
         name="temperature-deviation-overview",
+    ),
+    path(
+        "temperature/records/graph",
+        RecordsGraphAPIView.as_view(),
+        name="temperature-records-graph",
     ),
 ]

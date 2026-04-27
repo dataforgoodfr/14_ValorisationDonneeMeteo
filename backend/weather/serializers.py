@@ -30,11 +30,8 @@ class StationSerializer(serializers.ModelSerializer):
 
 
 class StationDetailSerializer(StationSerializer):
-    created_at = serializers.DateTimeField(read_only=True)
-    updated_at = serializers.DateTimeField(read_only=True)
-
     class Meta(StationSerializer.Meta):
-        fields = [*StationSerializer.Meta.fields, "created_at", "updated_at"]
+        pass
 
 
 class ErrorSerializer(serializers.Serializer):
@@ -200,15 +197,140 @@ class TemperatureDeviationGraphQuerySerializer(serializers.Serializer):
     granularity = serializers.ChoiceField(
         choices=["year", "month", "day"], required=True
     )
+
+    slice_type = serializers.ChoiceField(
+        choices=["full", "month_of_year", "day_of_month"],
+        required=False,
+        default="full",
+    )
+
+    month_of_year = serializers.IntegerField(required=False, min_value=1, max_value=12)
+    day_of_month = serializers.IntegerField(required=False, min_value=1, max_value=31)
+
     station_ids = CommaSeparatedStringListField(required=False)
     include_national = serializers.BooleanField(required=False, default=True)
 
+    def _validate_day_granularity_slice_constraints(
+        self,
+        *,
+        slice_type: str,
+        month_of_year: int | None,
+        day_of_month: int | None,
+    ) -> None:
+        if slice_type != "full":
+            raise serializers.ValidationError(
+                {"slice_type": "Interdit si granularity=day (doit être full)."}
+            )
+        if month_of_year is not None:
+            raise serializers.ValidationError(
+                {"month_of_year": "Interdit si granularity=day."}
+            )
+        if day_of_month is not None:
+            raise serializers.ValidationError(
+                {"day_of_month": "Interdit si granularity=day."}
+            )
+
+    def _validate_full_slice_constraints(
+        self,
+        *,
+        month_of_year: int | None,
+        day_of_month: int | None,
+    ) -> None:
+        if month_of_year is not None:
+            raise serializers.ValidationError(
+                {"month_of_year": "Interdit si slice_type=full."}
+            )
+        if day_of_month is not None:
+            raise serializers.ValidationError(
+                {"day_of_month": "Interdit si slice_type=full."}
+            )
+
+    def _validate_month_of_year_slice_constraints(
+        self,
+        *,
+        granularity: str,
+        month_of_year: int | None,
+        day_of_month: int | None,
+    ) -> None:
+        if granularity != "year":
+            raise serializers.ValidationError(
+                {"slice_type": "month_of_year n'est valide que si granularity=year."}
+            )
+        if month_of_year is None:
+            raise serializers.ValidationError(
+                {"month_of_year": "Requis si slice_type=month_of_year."}
+            )
+        if day_of_month is not None:
+            raise serializers.ValidationError(
+                {"day_of_month": "Interdit si slice_type=month_of_year."}
+            )
+
+    def _validate_day_of_month_slice_constraints(
+        self,
+        *,
+        granularity: str,
+        month_of_year: int | None,
+        day_of_month: int | None,
+    ) -> None:
+        if day_of_month is None:
+            raise serializers.ValidationError(
+                {"day_of_month": "Requis si slice_type=day_of_month."}
+            )
+
+        if granularity == "year":
+            if month_of_year is None:
+                raise serializers.ValidationError(
+                    {
+                        "month_of_year": "Requis si granularity=year et slice_type=day_of_month."
+                    }
+                )
+        else:
+            # granularity=month
+            if month_of_year is not None:
+                raise serializers.ValidationError(
+                    {"month_of_year": "Interdit si granularity=month."}
+                )
+
     def validate(self, attrs):
-        ds = attrs["date_start"]
-        de = attrs["date_end"]
-        if ds > de:
+        date_start = attrs["date_start"]
+        date_end = attrs["date_end"]
+        if date_start > date_end:
             raise serializers.ValidationError(
                 {"date_end": "date_end doit être >= date_start."}
+            )
+
+        granularity = attrs["granularity"]
+        slice_type = attrs.get("slice_type", "full")
+        month_of_year = attrs.get("month_of_year")
+        day_of_month = attrs.get("day_of_month")
+
+        # granularity=day => slice_type doit être full + pas de month/day selectors
+        if granularity == "day":
+            self._validate_day_granularity_slice_constraints(
+                slice_type=slice_type,
+                month_of_year=month_of_year,
+                day_of_month=day_of_month,
+            )
+
+        elif slice_type == "full":
+            self._validate_full_slice_constraints(
+                month_of_year=month_of_year,
+                day_of_month=day_of_month,
+            )
+
+        elif slice_type == "month_of_year":
+            self._validate_month_of_year_slice_constraints(
+                granularity=granularity,
+                month_of_year=month_of_year,
+                day_of_month=day_of_month,
+            )
+
+        else:
+            # slice_type == "day_of_month"
+            self._validate_day_of_month_slice_constraints(
+                granularity=granularity,
+                month_of_year=month_of_year,
+                day_of_month=day_of_month,
             )
 
         station_ids = attrs.get("station_ids", ())
@@ -245,6 +367,11 @@ class TemperatureDeviationMetadataSerializer(serializers.Serializer):
     date_end = serializers.DateField()
     baseline = serializers.CharField()
     granularity = serializers.ChoiceField(choices=["year", "month", "day"])
+    slice_type = serializers.ChoiceField(
+        choices=["full", "month_of_year", "day_of_month"]
+    )
+    month_of_year = serializers.IntegerField(required=False, min_value=1, max_value=12)
+    day_of_month = serializers.IntegerField(required=False, min_value=1, max_value=31)
 
 
 class TemperatureDeviationResponseSerializer(serializers.Serializer):
@@ -276,6 +403,14 @@ class TemperatureRecordsQuerySerializer(serializers.Serializer):
         default="record_value",
         help_text="Champ(s) de tri avec ordre (ex: 'record_value', '-record_value', 'record_value,station_name', '-record_value,station_name')",
     )
+    date_start = serializers.DateField(required=False)
+    date_end = serializers.DateField(required=False)
+    territoire = serializers.ChoiceField(
+        choices=["france", "region", "department", "station"],
+        required=False,
+        default="france",
+    )
+    territoire_id = serializers.CharField(required=False)
 
     def validate_sort(self, value) -> str:
         """Valide le format du paramètre sort."""
@@ -298,6 +433,10 @@ class TemperatureRecordsQuerySerializer(serializers.Serializer):
         period_type = attrs.get("period_type", "all_time")
         month = attrs.get("month")
         season = attrs.get("season")
+        date_start = attrs.get("date_start")
+        date_end = attrs.get("date_end")
+        territoire = attrs.get("territoire", "france")
+        territoire_id = attrs.get("territoire_id")
 
         if period_type == "month" and month is None:
             raise serializers.ValidationError({"month": "Requis si period_type=month."})
@@ -305,6 +444,16 @@ class TemperatureRecordsQuerySerializer(serializers.Serializer):
         if period_type == "season" and season is None:
             raise serializers.ValidationError(
                 {"season": "Requis si period_type=season."}
+            )
+
+        if (date_start is None) != (date_end is None):
+            raise serializers.ValidationError(
+                {"date_start": "date_start et date_end doivent être fournis ensemble."}
+            )
+
+        if territoire != "france" and not territoire_id:
+            raise serializers.ValidationError(
+                {"territoire_id": f"Requis si territoire={territoire}."}
             )
 
         return attrs
@@ -316,6 +465,12 @@ class TemperatureRecordEntrySerializer(serializers.Serializer):
     department = serializers.CharField()
     record_value = serializers.FloatField()
     record_date = serializers.DateField()
+    lat = serializers.FloatField()
+    lon = serializers.FloatField()
+    alt = serializers.FloatField()
+    classe_recente = serializers.IntegerField()
+    date_de_creation = serializers.DateField()
+    date_de_fermeture = serializers.DateField(allow_null=True)
 
 
 class TemperatureDeviationOverviewQuerySerializer(serializers.Serializer):
@@ -357,7 +512,6 @@ class TemperatureDeviationOverviewQuerySerializer(serializers.Serializer):
     limit = serializers.IntegerField(
         required=False,
         min_value=1,
-        max_value=500,
         default=50,
     )
     offset = serializers.IntegerField(required=False, min_value=0, default=0)
@@ -440,6 +594,9 @@ class TemperatureDeviationOverviewStationSerializer(serializers.Serializer):
     department = serializers.CharField(allow_null=True)
     alt = serializers.FloatField(allow_null=True)
     region = serializers.CharField(allow_null=True)
+    classe_recente = serializers.IntegerField()
+    date_de_creation = serializers.DateField()
+    date_de_fermeture = serializers.DateField(allow_null=True)
 
 
 class TemperatureDeviationOverviewMetadataSerializer(serializers.Serializer):
@@ -467,3 +624,151 @@ class PaginationSerializer(serializers.Serializer):
 class TemperatureRecordsResponseSerializer(serializers.Serializer):
     pagination = PaginationSerializer()
     results = TemperatureRecordEntrySerializer(many=True)
+class NationalIndicatorKpiQuerySerializer(serializers.Serializer):
+    date_start = serializers.DateField(required=True)
+    date_end = serializers.DateField(required=True)
+
+    def validate(self, attrs):
+        if attrs["date_start"] > attrs["date_end"]:
+            raise serializers.ValidationError(
+                {"date_end": "date_end doit être >= date_start."}
+            )
+        return attrs
+
+
+class KpiPeriodStatsSerializer(serializers.Serializer):
+    hot_peak_count = serializers.IntegerField()
+    cold_peak_count = serializers.IntegerField()
+    days_above_baseline = serializers.IntegerField()
+    days_below_baseline = serializers.IntegerField()
+    itn_mean = serializers.FloatField(allow_null=True)
+    deviation_from_normal = serializers.FloatField(allow_null=True)
+
+
+class NationalIndicatorKpiResponseSerializer(serializers.Serializer):
+    hot_peak_count = serializers.IntegerField()
+    cold_peak_count = serializers.IntegerField()
+    days_above_baseline = serializers.IntegerField()
+    days_below_baseline = serializers.IntegerField()
+    itn_mean = serializers.FloatField(allow_null=True)
+    deviation_from_normal = serializers.FloatField(allow_null=True)
+    previous = KpiPeriodStatsSerializer()
+
+
+class RecordsGraphQuerySerializer(serializers.Serializer):
+    date_start = serializers.DateField()
+    date_end = serializers.DateField()
+    granularity = serializers.ChoiceField(choices=["day", "month", "year"])
+    period_type = serializers.ChoiceField(
+        choices=["all_time", "month", "season"],
+        required=False,
+        default="all_time",
+    )
+    type_records = serializers.ChoiceField(
+        choices=["hot", "cold", "all"],
+        required=False,
+        default="all",
+    )
+    month = serializers.IntegerField(required=False, min_value=1, max_value=12)
+    season = serializers.ChoiceField(
+        choices=["spring", "summer", "autumn", "winter"],
+        required=False,
+    )
+    territoire = serializers.ChoiceField(
+        choices=["france", "region", "department", "station"],
+        required=False,
+        default="france",
+    )
+    territoire_id = serializers.CharField(required=False)
+
+    def validate(self, attrs):
+        period_type = attrs.get("period_type", "all_time")
+        territoire = attrs.get("territoire", "france")
+
+        if period_type == "month" and attrs.get("month") is None:
+            raise serializers.ValidationError({"month": "Requis si period_type=month."})
+
+        if period_type == "season" and attrs.get("season") is None:
+            raise serializers.ValidationError(
+                {"season": "Requis si period_type=season."}
+            )
+
+        if territoire != "france" and not attrs.get("territoire_id"):
+            raise serializers.ValidationError(
+                {"territoire_id": f"Requis si territoire={territoire}."}
+            )
+
+        return attrs
+
+
+class RecordsGraphBucketSerializer(serializers.Serializer):
+    bucket = serializers.CharField()
+    nb_records_battus = serializers.IntegerField()
+
+
+class RecordsGraphRecordSerializer(serializers.Serializer):
+    date = serializers.DateField()
+    station_id = serializers.CharField()
+    station_name = serializers.CharField()
+    type_records = serializers.ChoiceField(choices=["hot", "cold"])
+    valeur = serializers.FloatField()
+
+
+class RecordsGraphResponseSerializer(serializers.Serializer):
+    buckets = RecordsGraphBucketSerializer(many=True)
+    records = RecordsGraphRecordSerializer(many=True)
+
+
+class TemperatureMinMaxGraphQuerySerializer(serializers.Serializer):
+    date_start = serializers.DateField(required=True)
+    date_end = serializers.DateField(required=True)
+
+    granularity = serializers.ChoiceField(
+        choices=["day", "month", "year"], required=True
+    )
+
+    station_ids = CommaSeparatedStringListField(required=False)
+    departments = CommaSeparatedStringListField(required=False)
+    regions = CommaSeparatedStringListField(required=False)
+
+    def validate(self, attrs):
+        ds = attrs["date_start"]
+        de = attrs["date_end"]
+        if ds > de:
+            raise serializers.ValidationError(
+                {"date_end": "date_end doit être >= date_start."}
+            )
+
+        attrs["station_ids"] = attrs.get("station_ids", ())
+        attrs["departments"] = attrs.get("departments", ())
+        attrs["regions"] = attrs.get("regions", ())
+
+        return attrs
+
+
+class TemperatureMinMaxGraphPointSerializer(serializers.Serializer):
+    date = serializers.DateField()
+    tmin_mean = serializers.FloatField()
+    tmax_mean = serializers.FloatField()
+
+
+class TemperatureMinMaxGraphNationalSerializer(serializers.Serializer):
+    data = TemperatureMinMaxGraphPointSerializer(many=True)
+
+
+class TemperatureMinMaxGraphStationSerializer(serializers.Serializer):
+    station_id = serializers.CharField()
+    station_name = serializers.CharField()
+    data = TemperatureMinMaxGraphPointSerializer(many=True)
+
+
+class TemperatureMinMaxGraphMetadataSerializer(serializers.Serializer):
+    date_start = serializers.DateField()
+    date_end = serializers.DateField()
+    granularity = serializers.ChoiceField(choices=["day", "month", "year"])
+
+
+class TemperatureMinMaxGraphResponseSerializer(serializers.Serializer):
+    metadata = TemperatureMinMaxGraphMetadataSerializer()
+    national = TemperatureMinMaxGraphNationalSerializer(required=False)
+    stations = TemperatureMinMaxGraphStationSerializer(many=True)

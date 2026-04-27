@@ -39,6 +39,9 @@ def test_get_records_all_time_hot_happy_path(client: APIClient):
     assert "department" in first
     assert "record_value" in first
     assert "record_date" in first
+    assert "lat" in first
+    assert "lon" in first
+    assert "alt" in first
 
 
 @pytest.mark.usefixtures("fake_temperature_records_dep")

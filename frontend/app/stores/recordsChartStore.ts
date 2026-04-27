@@ -1,9 +1,20 @@
-import { refDebounced } from "@vueuse/core";
-import { useTemperatureRecords } from "~/composables/useTemperature";
 import { dateToStringYMD } from "~/utils/date";
-import type { Station } from "~/types/api";
+import type {
+    PeriodType,
+    Season,
+    Station,
+    TemperatureRecordsGraphParams,
+    TemperatureRecordsGraphRecord,
+    TemperatureRecordsGraphResponse,
+    TypeRecords,
+} from "~/types/api";
+import { useCustomDate } from "#imports";
+import type {
+    GranularityType,
+    ChartType,
+} from "~/components/ui/commons/selectBar/types";
 
-const debounceDuration = 300;
+const dates = useCustomDate();
 
 export enum TerritoryFilterType {
     STATION = "STATION",
@@ -18,16 +29,22 @@ type SelectedItem = {
     type: TerritoryFilterType;
 };
 
-export const useRecordsChartStore = defineStore("recordsChartStore", () => {
-    // Date range — default to the past year
-    const defaultStartDate = new Date();
-    defaultStartDate.setFullYear(defaultStartDate.getFullYear() - 1);
-    const startDate = ref<Date>(defaultStartDate);
-    const endDate = ref<Date>(new Date());
-    const departmentsFilter = ref<string[]>([]);
-    const stationCodeFilter = ref<string[]>([]);
-    const regionsFilter = ref<string[]>([]);
-    const territoriesFilter = ref<string[]>(["FR"]);
+export const useRecordsChartStore = defineStore("recordChartStore", () => {
+    const recordsChartRef = shallowRef();
+
+    const pickedDateStart = ref(dates.absoluteMinDataDate.value);
+    const pickedDateEnd = ref(dates.today.value);
+    const maxDate = ref(dates.today.value);
+
+    const granularity: Ref<GranularityType> = ref<GranularityType>("year");
+    const chartType: Ref<ChartType> = ref<ChartType>("pyramid");
+
+    const typeRecords: Ref<TypeRecords> = ref("all");
+    const sliceTypeSwitchEnabled = ref(false);
+    const periodType: Ref<PeriodType> = ref("all_time");
+    const month = ref<number | undefined>(undefined);
+    const season = ref<Season | undefined>(undefined);
+
     const selectedElements = ref<SelectedItem[]>([
         {
             id: "FR",
@@ -36,125 +53,222 @@ export const useRecordsChartStore = defineStore("recordsChartStore", () => {
         },
     ]);
 
-    // Pagination
-    const page = ref(1);
-    const pageSize = ref(3);
-
-    // Debounced values used to drive API calls
-    const debouncedStartDate = refDebounced(startDate, debounceDuration);
-    const debouncedEndDate = refDebounced(endDate, debounceDuration);
-    const debouncedDepartmentsFilter = refDebounced(
-        departmentsFilter,
-        debounceDuration,
-    );
-    const debouncedStationCodeFilter = refDebounced(
-        stationCodeFilter,
-        debounceDuration,
+    const stationCodeFilter = computed(() =>
+        selectedElements.value
+            .filter((el) => el.type === TerritoryFilterType.STATION)
+            .map((el) => el.id),
     );
 
-    const params = computed(() => ({
-        date_start: dateToStringYMD(debouncedStartDate.value),
-        date_end: dateToStringYMD(debouncedEndDate.value),
-        limit: pageSize.value,
-        offset: (page.value - 1) * pageSize.value,
-        departement_filter: debouncedDepartmentsFilter.value.join(","),
-        station_name_filter: debouncedStationCodeFilter.value.join(","),
+    const departmentsFilter = computed(() =>
+        selectedElements.value
+            .filter((el) => el.type === TerritoryFilterType.DEPARTMENT)
+            .map((el) => el.id),
+    );
+
+    const regionsFilter = computed(() =>
+        selectedElements.value
+            .filter((el) => el.type === TerritoryFilterType.REGION)
+            .map((el) => el.id),
+    );
+
+    const territoriesFilter = computed(() =>
+        selectedElements.value
+            .filter((el) => el.type === TerritoryFilterType.TERRITORY)
+            .map((el) => el.id),
+    );
+
+    const territoire = computed(() => {
+        const els = selectedElements.value;
+        if (els.length !== 1) return "france";
+        const only = els[0]!;
+        if (only.type === TerritoryFilterType.TERRITORY) return "france";
+        if (only.type === TerritoryFilterType.STATION) return "station";
+        if (only.type === TerritoryFilterType.DEPARTMENT) return "department";
+        return "region";
+    });
+
+    const territoireId = computed<string | undefined>(() => {
+        const els = selectedElements.value;
+        if (els.length !== 1) return undefined;
+        const only = els[0]!;
+        if (only.type === TerritoryFilterType.TERRITORY) return undefined;
+        return only.id;
+    });
+
+    const params = computed<TemperatureRecordsGraphParams>(() => ({
+        date_start: dateToStringYMD(pickedDateStart.value),
+        date_end: dateToStringYMD(pickedDateEnd.value),
+        granularity: granularity.value,
+        type_records: typeRecords.value,
+        period_type: periodType.value,
+        month: periodType.value === "month" ? month.value : undefined,
+        season: periodType.value === "season" ? season.value : undefined,
+        territoire: territoire.value,
+        territoire_id: territoireId.value,
     }));
 
-    function setDepartmentFilter(department: { code: string; name: string }) {
-        if (departmentsFilter.value.includes(department.code)) {
-            return;
+    const {
+        data: recordsData,
+        pending,
+        error,
+    } = useTemperatureRecordsGraph(params);
+
+    const recordKind = ref<"absolute" | "historical">("absolute");
+
+    const processedRecordsData = computed<
+        TemperatureRecordsGraphResponse | undefined
+    >(() => {
+        if (!recordsData.value) return undefined;
+        if (recordKind.value === "historical") return recordsData.value;
+
+        const latestByKey = new Map<string, TemperatureRecordsGraphRecord>();
+        for (const record of recordsData.value.records) {
+            const key = `${record.station_id}__${record.type_records}`;
+            const existing = latestByKey.get(key);
+            if (!existing || record.date > existing.date) {
+                latestByKey.set(key, record);
+            }
         }
-        departmentsFilter.value.push(department.code);
-        selectedElements.value.push({
-            id: department.code,
-            value: `${department.name} (${department.code})`,
-            type: TerritoryFilterType.DEPARTMENT,
-        });
+        return {
+            buckets: recordsData.value.buckets,
+            records: Array.from(latestByKey.values()),
+        };
+    });
+
+    const setGranularity = (value: GranularityType) => {
+        granularity.value = value;
+        pickedDateEnd.value = dates.today.value;
+        maxDate.value = dates.today.value;
+        if (value === "day") {
+            sliceTypeSwitchEnabled.value = false;
+            pickedDateStart.value = dates.lastYear.value;
+        }
+        if (value === "month") {
+            pickedDateStart.value = dates.last10Year.value;
+        }
+        if (value === "year") {
+            pickedDateStart.value = dates.absoluteMinDataDate.value;
+        }
+    };
+
+    const setChartType = (value: ChartType) => {
+        chartType.value = value;
+    };
+
+    watch(periodType, (value) => {
+        if (value === "season") {
+            season.value = "spring";
+            month.value = undefined;
+        } else if (value === "month") {
+            month.value = 1;
+            season.value = undefined;
+        } else {
+            season.value = undefined;
+            month.value = undefined;
+        }
+    });
+
+    const turnOffSliceType = (value: boolean) => {
+        if (!value) {
+            periodType.value = "all_time";
+            month.value = undefined;
+            season.value = undefined;
+        }
+    };
+
+    function setDepartmentFilter(department: { code: string; name: string }) {
+        selectedElements.value = [
+            {
+                id: department.code,
+                value: `${department.name} (${department.code})`,
+                type: TerritoryFilterType.DEPARTMENT,
+            },
+        ];
     }
 
     function setStationFilter(station: Station) {
-        if (stationCodeFilter.value.includes(station.code)) {
+        if (
+            selectedElements.value.some(
+                (el) =>
+                    el.type === TerritoryFilterType.STATION &&
+                    el.id === station.code,
+            )
+        )
             return;
-        }
-        stationCodeFilter.value.push(station.code);
-        selectedElements.value.push({
-            id: station.code,
-            value: `${station.nom} (${station.departement})`,
-            type: TerritoryFilterType.STATION,
-        });
+        selectedElements.value = [
+            ...selectedElements.value,
+            {
+                id: station.code,
+                value: `${station.nom} (${station.departement})`,
+                type: TerritoryFilterType.STATION,
+            },
+        ];
     }
 
     function setRegionFilter(region: { code: string; name: string }) {
-        if (regionsFilter.value.includes(region.code)) {
-            return;
-        }
-        regionsFilter.value.push(region.code);
-        selectedElements.value.push({
-            id: region.code,
-            value: region.name,
-            type: TerritoryFilterType.REGION,
-        });
+        selectedElements.value = [
+            {
+                id: region.code,
+                value: region.name,
+                type: TerritoryFilterType.REGION,
+            },
+        ];
     }
 
     function setTerritoryFilter(territory: { code: string; name: string }) {
-        if (territoriesFilter.value.includes(territory.code)) {
-            return;
-        }
-        territoriesFilter.value.push(territory.code);
-        selectedElements.value.push({
-            id: territory.code,
-            value: territory.name,
-            type: TerritoryFilterType.TERRITORY,
-        });
+        selectedElements.value = [
+            {
+                id: territory.code,
+                value: territory.name,
+                type: TerritoryFilterType.TERRITORY,
+            },
+        ];
     }
 
     function removeItemFromFilter(type: TerritoryFilterType, code: string) {
         selectedElements.value = selectedElements.value.filter(
             (element) => !(element.type === type && element.id === code),
         );
-        switch (type) {
-            case TerritoryFilterType.DEPARTMENT:
-                departmentsFilter.value = departmentsFilter.value.filter(
-                    (dept) => dept !== code,
-                );
-                break;
-            case TerritoryFilterType.STATION:
-                stationCodeFilter.value = stationCodeFilter.value.filter(
-                    (station) => station !== code,
-                );
-                break;
-            case TerritoryFilterType.REGION:
-                regionsFilter.value = regionsFilter.value.filter(
-                    (region) => region !== code,
-                );
-                break;
-            case TerritoryFilterType.TERRITORY:
-                territoriesFilter.value = territoriesFilter.value.filter(
-                    (territory) => territory !== code,
-                );
-                break;
+        if (selectedElements.value.length === 0) {
+            selectedElements.value = [
+                {
+                    id: "FR",
+                    value: "France Métropolitaine",
+                    type: TerritoryFilterType.TERRITORY,
+                },
+            ];
         }
     }
-    const { data: recordsData, pending, error } = useTemperatureRecords(params);
 
     return {
-        startDate,
-        endDate,
+        recordsChartRef,
+        pickedDateStart,
+        pickedDateEnd,
+        maxDate,
+        granularity,
+        chartType,
+        typeRecords,
+        sliceTypeSwitchEnabled,
+        periodType,
+        month,
+        season,
+        selectedElements,
+        stationCodeFilter,
+        departmentsFilter,
+        regionsFilter,
+        territoriesFilter,
+        setGranularity,
+        setChartType,
+        turnOffSliceType,
         setDepartmentFilter,
         setStationFilter,
         setRegionFilter,
         setTerritoryFilter,
         removeItemFromFilter,
-        page,
-        pageSize,
         recordsData,
-        stationCodeFilter,
-        departmentsFilter,
-        regionsFilter,
-        territoriesFilter,
+        processedRecordsData,
+        recordKind,
         pending,
         error,
-        selectedElements,
     };
 });

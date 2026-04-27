@@ -46,14 +46,14 @@ jobs:
       - name: Change backend and frontend name image in the compose file
         run: |
           ssh -o StrictHostKeyChecking=no ${{ secrets.CI_USER }}@${{ secrets.CI_TAILSCALE_HOST }} << 'EOF'
-          sudo sed -i "s|image: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-backend.*|image: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-backend:${{ github.event.inputs.tag }}|" /opt/d4g/docker-compose.yml
-          sudo sed -i "s|image: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-frontend.*|image: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-frontend:${{ github.event.inputs.tag }}|" /opt/d4g/docker-compose.yml
+          sudo sed -i "s|image: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-backend.*|image: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-backend:${{ github.event.inputs.tag }}|" /opt/dataclimat/docker-compose.yml
+          sudo sed -i "s|image: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-frontend.*|image: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-frontend:${{ github.event.inputs.tag }}|" /opt/dataclimat/docker-compose.yml
           EOF
 
       - name: Clean up & Deploy
         run: |
           ssh -o StrictHostKeyChecking=no ${{ secrets.CI_USER }}@${{ secrets.CI_TAILSCALE_HOST }} << 'EOF'
-            sudo docker compose -f /opt/d4g/docker-compose.yml pull
-            sudo docker compose -f /opt/d4g/docker-compose.yml up -d --remove-orphans
+            sudo docker compose -f /opt/dataclimat/docker-compose.yml pull
+            sudo docker compose -f /opt/dataclimat/docker-compose.yml up -d --remove-orphans
             sudo docker image prune -f
           EOF

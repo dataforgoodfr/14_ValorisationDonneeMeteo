@@ -7,33 +7,6 @@ from django.db import connection
 BASE_DIR = pathlib.Path(__file__).resolve().parents[2]  # ajuste selon ton arbo
 
 
-def insert_station(code: str, name: str = "Station test", department: int = 1) -> None:
-    now = dt.datetime.now()
-    with connection.cursor() as cur:
-        cur.execute(
-            """
-            INSERT INTO public."Station"
-                ("createdAt", "updatedAt", "id", "nom",
-                 "departement", "frequence",
-                 "posteOuvert", "typePoste",
-                 "lon", "lat", "alt", "postePublic")
-            VALUES
-                (%(created)s, %(updated)s, %(id)s, %(name)s,
-                 %(dept)s, 'horaire',
-                 '1', 1,
-                 0.0, 0.0, 0.0, '1')
-            ON CONFLICT ("id", "frequence") DO UPDATE SET "nom" = EXCLUDED."nom"
-            """,
-            {
-                "created": now,
-                "updated": now,
-                "id": code,
-                "name": name,
-                "dept": department,
-            },
-        )
-
-
 def insert_quotidienne(
     day: dt.date,
     code: str,
@@ -119,6 +92,9 @@ def setup_db_schema_and_views(django_db_setup, django_db_blocker):
         BASE_DIR / "sql" / "tables" / "001_table_ref_department_region.sql"
     ).read_text()
     v_station_sql = (BASE_DIR / "sql" / "views" / "001_v_station.sql").read_text()
+    mv_quot_sql = (
+        BASE_DIR / "sql" / "materialized_views" / "001_mv_quotidienne_realtime.sql"
+    ).read_text()
     v_quot_sql = (BASE_DIR / "sql" / "views" / "002_v_quotidienne.sql").read_text()
     baseline_station_table_sql = (
         BASE_DIR / "sql" / "test_tables" / "baseline_station_daily_mean_9120.sql"
@@ -129,6 +105,7 @@ def setup_db_schema_and_views(django_db_setup, django_db_blocker):
 
     with django_db_blocker.unblock():
         with connection.cursor() as cur:
+            cur.execute("CREATE EXTENSION IF NOT EXISTS timescaledb;")
             cur.execute("DROP TABLE IF EXISTS public.mv_records_battus_meta;")
             # mv_records_battus est une vraie vue matérialisée en prod/dev, mais ici
             # le conftest la recrée comme TABLE ordinaire pour pouvoir y insérer des
@@ -159,6 +136,7 @@ def setup_db_schema_and_views(django_db_setup, django_db_blocker):
             cur.execute(schema_sql)
             cur.execute(ref_department_region_sql)
             cur.execute(v_station_sql)
+            cur.execute(mv_quot_sql)
             cur.execute(v_quot_sql)
             cur.execute(baseline_station_table_sql)
             cur.execute(itn_baseline_tables_sql)
