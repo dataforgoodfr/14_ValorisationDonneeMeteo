@@ -22,6 +22,8 @@ const chartType = computed<ChartType>(
 const tableStore = useDeviationTableStore();
 const { dateStart, dateEnd } = storeToRefs(tableStore);
 
+const isPeriodInfoOpen = ref(false);
+
 const toISODate = (date: Date) => date.toISOString().substring(0, 10);
 const mapDateStart = computed(() => toISODate(dateStart.value));
 const mapDateEnd = computed(() => toISODate(dateEnd.value));
@@ -98,10 +100,33 @@ const infoPanelSections: InfoSection[] = [
         />
 
         <div class="flex flex-col gap-4 dark:bg-elevated rounded-lg p-14">
-            <DatePresetPicker
-                v-model:start-date="dateStart"
-                v-model:end-date="dateEnd"
-            />
+            <div class="flex flex-col gap-2">
+                <div class="flex items-center gap-1">
+                    <span class="text-sm font-medium"
+                        >Période de moyennage des données</span
+                    >
+                    <UPopover v-model:open="isPeriodInfoOpen">
+                        <button
+                            class="text-blue-350 hover:text-blue-300 transition-colors cursor-pointer"
+                            @mouseenter="isPeriodInfoOpen = true"
+                            @mouseleave="isPeriodInfoOpen = false"
+                        >
+                            <UIcon name="i-lucide-circle-help" />
+                        </button>
+                        <template #content>
+                            <p class="p-3 text-sm max-w-64">
+                                Sélectionnez la période au cours de laquelle les
+                                données de la carte et du tableau seront
+                                moyennées
+                            </p>
+                        </template>
+                    </UPopover>
+                </div>
+                <DatePresetPicker
+                    v-model:start-date="dateStart"
+                    v-model:end-date="dateEnd"
+                />
+            </div>
 
             <hr class="border-accented" />
 
