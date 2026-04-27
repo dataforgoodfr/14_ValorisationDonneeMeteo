@@ -107,7 +107,9 @@ const option = computed<ECOption>(() => {
         min: 0,
         max: globalMax,
         minInterval: 1,
-        splitLine: { lineStyle: { type: "dashed" } },
+        splitLine: {
+            lineStyle: { type: "dashed", color: mapColors.value.splitLine },
+        },
     };
 
     const option: ECOption = {
@@ -155,7 +157,7 @@ const option = computed<ECOption>(() => {
                     margin: labelMargin,
                     width: labelMargin * 2,
                     align: "center",
-                    fontSize: FONT_CHARTS.fontSize,
+                    fontSize: FONT_CHARTS.axis,
                     fontWeight: "bold",
                 },
                 axisTick: { show: false },
@@ -173,14 +175,14 @@ const option = computed<ECOption>(() => {
                 text: pd.name,
                 right: "right",
                 top: `${i * slotSize + 2}%`,
-                textStyle: { fontSize: FONT_CHARTS.fontSize },
+                textStyle: { fontSize: FONT_CHARTS.title },
             })),
             {
                 text: "Nombre de records",
                 bottom: 25,
                 left: "50%",
                 textAlign: "center",
-                textStyle: { fontSize: FONT_CHARTS.fontSize, color: "#fff" },
+                textStyle: { fontSize: FONT_CHARTS.title, color: "#fff" },
             },
         ],
         legend: {

@@ -1,5 +1,5 @@
 <template>
-    <div class="flex flex-col gap-3 md:w-52 md:shrink-0 py-2">
+    <div class="flex flex-col gap-3 w-52 shrink-0 py-2">
         <Card
             title="ITN moyen"
             tooltip-text="Moyenne de l'Indicateur Thermique National sur la période sélectionnée."
