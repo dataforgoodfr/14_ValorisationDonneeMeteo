@@ -26,10 +26,10 @@ const offsets: Record<string, number> = {
     "365d": 364,
 };
 
-const applyPreset = (value: string): void => {
-    const offset = offsets[value];
+const applyPreset = (): void => {
+    const offset = offsets[preset.value];
 
-    if (!offset || value === "custom") {
+    if (offset === undefined || preset.value === "custom") {
         return;
     }
 
@@ -42,7 +42,7 @@ const applyPreset = (value: string): void => {
 };
 
 onMounted((): void => {
-    applyPreset(preset.value);
+    applyPreset();
 });
 </script>
 
@@ -52,7 +52,7 @@ onMounted((): void => {
             v-model="preset"
             :items="presetOptions"
             class="w-48"
-            @change="applyPreset(preset)"
+            @change="applyPreset"
         />
         <div
             :class="
