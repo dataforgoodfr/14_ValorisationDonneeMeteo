@@ -1,6 +1,8 @@
 @import "tailwindcss";
 @import "@nuxt/ui";
 
+@custom-variant dark (&:where(.dark, .dark *));
+
 @theme {
     --font-sans: "DM Sans", "system-ui", "sans-serif";
     --default-font-family:

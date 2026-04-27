@@ -2,6 +2,9 @@
 import type { NavigationMenuItem } from "@nuxt/ui";
 
 const colorMode = useColorMode();
+const toggleMode = (val: boolean) => {
+    colorMode.preference = val ? "dark" : "light";
+};
 
 const route = useRoute();
 
@@ -77,7 +80,6 @@ const items = computed<NavigationMenuItem[]>(() => [
                 />
             </UTooltip>
             <USwitch
-                :model-value="colorMode.value === 'dark'"
                 unchecked-icon="i-lucide-sun"
                 checked-icon="i-lucide-moon"
                 aria-label="Basculer le thème"
@@ -85,9 +87,7 @@ const items = computed<NavigationMenuItem[]>(() => [
                     base: 'dark:bg-transparent dark:ring-1 dark:ring-white/20',
                     thumb: 'dark:bg-black',
                 }"
-                @update:model-value="
-                    (val) => (colorMode.preference = val ? 'dark' : 'light')
-                "
+                @update:model-value="toggleMode"
             />
         </template>
 
