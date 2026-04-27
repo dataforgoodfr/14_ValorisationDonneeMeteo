@@ -853,7 +853,7 @@ class MaterializedTemperatureRecordsDataSource:
                 vs.lat,
                 vs.lon,
                 vs.alt,
-                vs.classe,
+                vs.classe_recente,
                 vs.annee_de_creation,
                 vs.annee_de_fermeture
             FROM public.mv_records_battus m
