@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import PagesHero from "~/components/layout/PagesHero.vue";
 import InfoPanel from "~/components/ui/commons/InfoPanel.vue";
+import type { InfoSection } from "~/types/common";
 import FieldInfo from "~/components/ui/commons/FieldInfo.vue";
 import RecordsTable from "~/components/table/records/recordsTable.vue";
 import ChartLayout from "~/components/layout/ChartLayout.vue";
@@ -25,7 +26,7 @@ const heroData = {
         "Les records de température correspondent aux valeurs extrêmes — maximales ou minimales — mesurées depuis la création d'une station disposant d'au moins 20 ans de données.",
 };
 
-const infoPanelSections = [
+const infoPanelSections: InfoSection[] = [
     {
         label: "Définition",
         content:

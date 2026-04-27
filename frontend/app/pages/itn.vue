@@ -5,6 +5,7 @@ import PagesHero from "~/components/layout/PagesHero.vue";
 import SelectBar from "~/components/ui/commons/selectBar/selectBar.vue";
 import ChartLayout from "~/components/layout/ChartLayout.vue";
 import InfoPanel from "~/components/ui/commons/InfoPanel.vue";
+import type { InfoSection } from "~/types/common";
 import { useItnSelectBarAdapter } from "~/adapters/itnSelectBarAdapter";
 
 const selectBarAdapter = useItnSelectBarAdapter();
@@ -15,7 +16,7 @@ const heroData = {
         "L'Indicateur Thermique National (ITN) est la température moyenne mesurée à l'échelle du pays (moyenne des températures minimales et maximales sur 30 stations météorologiques réparties de manière équilibrée en France).",
 };
 
-const infoPanelSections = [
+const infoPanelSections: InfoSection[] = [
     {
         label: "Définition",
         content:

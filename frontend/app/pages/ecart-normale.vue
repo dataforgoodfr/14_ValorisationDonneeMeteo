@@ -2,6 +2,7 @@
 import PagesHero from "~/components/layout/PagesHero.vue";
 import ChartLayout from "~/components/layout/ChartLayout.vue";
 import InfoPanel from "~/components/ui/commons/InfoPanel.vue";
+import type { InfoSection } from "~/types/common";
 import SearchStation from "~/components/ecartNormale/searchStation.vue";
 import { useDeviationSelectBarAdapter } from "~/adapters/deviationSelectBarAdapter";
 import SelectBar from "~/components/ui/commons/selectBar/selectBar.vue";
@@ -33,7 +34,7 @@ const heroData = {
         "L'écart de température à la normale est définit comme la différence de la température moyenne sur une période donnée et la température moyenne de référence calculée sur la période 1991–2020 pour une durée équivalente",
 };
 
-const infoPanelSections = [
+const infoPanelSections: InfoSection[] = [
     {
         label: "Définition",
         content:

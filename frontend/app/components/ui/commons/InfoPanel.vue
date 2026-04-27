@@ -1,15 +1,6 @@
 <script setup lang="ts">
 import { useBreakpoints, breakpointsTailwind } from "@vueuse/core";
-
-interface InfoParagraph {
-    title?: string;
-    text: string;
-}
-
-interface InfoSection {
-    label: string;
-    content: string | InfoParagraph[];
-}
+import type { InfoSection } from "~/types/common";
 
 interface Props {
     title: string;
