@@ -25,8 +25,8 @@ from weather.tests.helpers.stations import insert_station
 # ---------------------------------------------------------------------------
 
 PAST_CUTOFF = dt.date(2024, 12, 31)
-S1 = "98200001"
-S2 = "98200002"
+STATION_ID_1 = "98200001"
+STATION_ID_2 = "98200002"
 
 BASE_REQUEST = TemperatureRecordsRequest(period_type="all_time", type_records="hot")
 
@@ -75,52 +75,52 @@ def _station_ids(results) -> set[str]:
 @pytest.mark.django_db
 def test_fetch_records_filters_by_classe_recente_min():
     """
-    GIVEN  S1 classe 1, S2 classe 3
+    GIVEN  STATION_ID_1 classe 1, STATION_ID_2 classe 3
     WHEN   classe_recente_min=2
-    THEN   Seule S2 (classe 3) est retournée
+    THEN   Seule STATION_ID_2 (classe 3) est retournée
     """
-    _insert_station_with_mv(S1, "Station Classe 1", classe=1)
-    _insert_station_with_mv(S2, "Station Classe 3", classe=3)
+    _insert_station_with_mv(STATION_ID_1, "Station Classe 1", classe=1)
+    _insert_station_with_mv(STATION_ID_2, "Station Classe 3", classe=3)
 
     ds = MaterializedTemperatureRecordsDataSource()
     results = ds.fetch_records(make_request(classe_recente_min=2))
 
-    assert S2 in _station_ids(results)
-    assert S1 not in _station_ids(results)
+    assert STATION_ID_2 in _station_ids(results)
+    assert STATION_ID_1 not in _station_ids(results)
 
 
 @pytest.mark.django_db
 def test_fetch_records_filters_by_classe_recente_max():
     """
-    GIVEN  S1 classe 1, S2 classe 3
+    GIVEN  STATION_ID_1 classe 1, STATION_ID_2 classe 3
     WHEN   classe_recente_max=2
-    THEN   Seule S1 (classe 1) est retournée
+    THEN   Seule STATION_ID_1 (classe 1) est retournée
     """
-    _insert_station_with_mv(S1, "Station Classe 1", classe=1)
-    _insert_station_with_mv(S2, "Station Classe 3", classe=3)
+    _insert_station_with_mv(STATION_ID_1, "Station Classe 1", classe=1)
+    _insert_station_with_mv(STATION_ID_2, "Station Classe 3", classe=3)
 
     ds = MaterializedTemperatureRecordsDataSource()
     results = ds.fetch_records(make_request(classe_recente_max=2))
 
-    assert S1 in _station_ids(results)
-    assert S2 not in _station_ids(results)
+    assert STATION_ID_1 in _station_ids(results)
+    assert STATION_ID_2 not in _station_ids(results)
 
 
 @pytest.mark.django_db
 def test_fetch_records_filters_by_classe_recente_range():
     """
-    GIVEN  S1 classe 1, S2 classe 3
+    GIVEN  STATION_ID_1 classe 1, STATION_ID_2 classe 3
     WHEN   classe_recente_min=2, classe_recente_max=3
-    THEN   Seule S2 est retournée
+    THEN   Seule STATION_ID_2 est retournée
     """
-    _insert_station_with_mv(S1, "Station Classe 1", classe=1)
-    _insert_station_with_mv(S2, "Station Classe 3", classe=3)
+    _insert_station_with_mv(STATION_ID_1, "Station Classe 1", classe=1)
+    _insert_station_with_mv(STATION_ID_2, "Station Classe 3", classe=3)
 
     ds = MaterializedTemperatureRecordsDataSource()
     results = ds.fetch_records(make_request(classe_recente_min=2, classe_recente_max=3))
 
-    assert S2 in _station_ids(results)
-    assert S1 not in _station_ids(results)
+    assert STATION_ID_2 in _station_ids(results)
+    assert STATION_ID_1 not in _station_ids(results)
 
 
 # ---------------------------------------------------------------------------
@@ -131,40 +131,52 @@ def test_fetch_records_filters_by_classe_recente_range():
 @pytest.mark.django_db
 def test_fetch_records_filters_by_date_de_creation_max():
     """
-    GIVEN  S1 créée en 1920, S2 créée en 1980
+    GIVEN  STATION_ID_1 créée en 1920, STATION_ID_2 créée en 1980
     WHEN   date_de_creation_max=1950-01-01
-    THEN   Seule S1 (1920) est retournée
+    THEN   Seule STATION_ID_1 (1920) est retournée
     """
-    _insert_station_with_mv(S1, "Station Ancienne", classe=1, annee_de_creation=1920)
-    _insert_station_with_mv(S2, "Station Récente", classe=1, annee_de_creation=1980)
+    _insert_station_with_mv(
+        STATION_ID_1, "Station Ancienne", classe=1, annee_de_creation=1920
+    )
+    _insert_station_with_mv(
+        STATION_ID_2, "Station Récente", classe=1, annee_de_creation=1980
+    )
 
     ds = MaterializedTemperatureRecordsDataSource()
     results = ds.fetch_records(make_request(date_de_creation_max=dt.date(1950, 1, 1)))
 
-    assert S1 in _station_ids(results)
-    assert S2 not in _station_ids(results)
+    assert STATION_ID_1 in _station_ids(results)
+    assert STATION_ID_2 not in _station_ids(results)
 
-    creation_dates = {e.date_de_creation for e in results if e.station_id.strip() == S1}
+    creation_dates = {
+        e.date_de_creation for e in results if e.station_id.strip() == STATION_ID_1
+    }
     assert creation_dates == {dt.date(1920, 1, 1)}
 
 
 @pytest.mark.django_db
 def test_fetch_records_filters_by_date_de_creation_min():
     """
-    GIVEN  S1 créée en 1920, S2 créée en 1980
+    GIVEN  STATION_ID_1 créée en 1920, STATION_ID_2 créée en 1980
     WHEN   date_de_creation_min=1950-01-01
-    THEN   Seule S2 (1980) est retournée
+    THEN   Seule STATION_ID_2 (1980) est retournée
     """
-    _insert_station_with_mv(S1, "Station Ancienne", classe=1, annee_de_creation=1920)
-    _insert_station_with_mv(S2, "Station Récente", classe=1, annee_de_creation=1980)
+    _insert_station_with_mv(
+        STATION_ID_1, "Station Ancienne", classe=1, annee_de_creation=1920
+    )
+    _insert_station_with_mv(
+        STATION_ID_2, "Station Récente", classe=1, annee_de_creation=1980
+    )
 
     ds = MaterializedTemperatureRecordsDataSource()
     results = ds.fetch_records(make_request(date_de_creation_min=dt.date(1950, 1, 1)))
 
-    assert S2 in _station_ids(results)
-    assert S1 not in _station_ids(results)
+    assert STATION_ID_2 in _station_ids(results)
+    assert STATION_ID_1 not in _station_ids(results)
 
-    creation_dates = {e.date_de_creation for e in results if e.station_id.strip() == S2}
+    creation_dates = {
+        e.date_de_creation for e in results if e.station_id.strip() == STATION_ID_2
+    }
     assert creation_dates == {dt.date(1980, 1, 1)}
 
 
@@ -176,22 +188,22 @@ def test_fetch_records_filters_by_date_de_creation_min():
 @pytest.mark.django_db
 def test_fetch_records_fermeture_max_excludes_open_stations():
     """
-    GIVEN  S1 fermée en 2000, S2 toujours ouverte (annee_de_fermeture NULL)
+    GIVEN  STATION_ID_1 fermée en 2000, STATION_ID_2 toujours ouverte (annee_de_fermeture NULL)
     WHEN   date_de_fermeture_max=2010-01-01
-    THEN   Seule S1 (fermée en 2000 ≤ 2010) est retournée ; S2 (NULL) est exclue
+    THEN   Seule STATION_ID_1 (fermée en 2000 ≤ 2010) est retournée ; STATION_ID_2 (NULL) est exclue
     """
-    _insert_station_with_mv(S1, "Station Fermée", classe=1)
-    _insert_station_with_mv(S2, "Station Ouverte", classe=1)
-    _set_annee_fermeture(S1, 2000)
+    _insert_station_with_mv(STATION_ID_1, "Station Fermée", classe=1)
+    _insert_station_with_mv(STATION_ID_2, "Station Ouverte", classe=1)
+    _set_annee_fermeture(STATION_ID_1, 2000)
 
     ds = MaterializedTemperatureRecordsDataSource()
     results = ds.fetch_records(make_request(date_de_fermeture_max=dt.date(2010, 1, 1)))
 
-    assert S1 in _station_ids(results)
-    assert S2 not in _station_ids(results)
+    assert STATION_ID_1 in _station_ids(results)
+    assert STATION_ID_2 not in _station_ids(results)
 
     fermeture_dates = {
-        e.date_de_fermeture for e in results if e.station_id.strip() == S1
+        e.date_de_fermeture for e in results if e.station_id.strip() == STATION_ID_1
     }
     assert fermeture_dates == {dt.date(2000, 12, 31)}
 
@@ -199,22 +211,22 @@ def test_fetch_records_fermeture_max_excludes_open_stations():
 @pytest.mark.django_db
 def test_fetch_records_fermeture_min_alone_includes_open_stations():
     """
-    GIVEN  S1 fermée en 1990, S2 toujours ouverte (annee_de_fermeture NULL)
+    GIVEN  STATION_ID_1 fermée en 1990, STATION_ID_2 toujours ouverte (annee_de_fermeture NULL)
     WHEN   date_de_fermeture_min=2000-01-01 seul
-    THEN   S2 (NULL = ouverte) est incluse ; S1 (fermée en 1990 < 2000) est exclue
+    THEN   STATION_ID_2 (NULL = ouverte) est incluse ; STATION_ID_1 (fermée en 1990 < 2000) est exclue
     """
-    _insert_station_with_mv(S1, "Station Fermée Ancienne", classe=1)
-    _insert_station_with_mv(S2, "Station Ouverte", classe=1)
-    _set_annee_fermeture(S1, 1990)
+    _insert_station_with_mv(STATION_ID_1, "Station Fermée Ancienne", classe=1)
+    _insert_station_with_mv(STATION_ID_2, "Station Ouverte", classe=1)
+    _set_annee_fermeture(STATION_ID_1, 1990)
 
     ds = MaterializedTemperatureRecordsDataSource()
     results = ds.fetch_records(make_request(date_de_fermeture_min=dt.date(2000, 1, 1)))
 
-    assert S2 in _station_ids(results)
-    assert S1 not in _station_ids(results)
+    assert STATION_ID_2 in _station_ids(results)
+    assert STATION_ID_1 not in _station_ids(results)
 
     fermeture_dates = {
-        e.date_de_fermeture for e in results if e.station_id.strip() == S2
+        e.date_de_fermeture for e in results if e.station_id.strip() == STATION_ID_2
     }
     assert fermeture_dates == {None}
 
@@ -222,13 +234,13 @@ def test_fetch_records_fermeture_min_alone_includes_open_stations():
 @pytest.mark.django_db
 def test_fetch_records_fermeture_min_and_max_excludes_open_stations():
     """
-    GIVEN  S1 fermée en 2005, S2 toujours ouverte (annee_de_fermeture NULL)
+    GIVEN  STATION_ID_1 fermée en 2005, STATION_ID_2 toujours ouverte (annee_de_fermeture NULL)
     WHEN   date_de_fermeture_min=2000-01-01 ET date_de_fermeture_max=2010-01-01
-    THEN   Seule S1 (fermée dans l'intervalle) est retournée ; S2 (NULL) est exclue
+    THEN   Seule STATION_ID_1 (fermée dans l'intervalle) est retournée ; STATION_ID_2 (NULL) est exclue
     """
-    _insert_station_with_mv(S1, "Station Fermée Intervalle", classe=1)
-    _insert_station_with_mv(S2, "Station Ouverte", classe=1)
-    _set_annee_fermeture(S1, 2005)
+    _insert_station_with_mv(STATION_ID_1, "Station Fermée Intervalle", classe=1)
+    _insert_station_with_mv(STATION_ID_2, "Station Ouverte", classe=1)
+    _set_annee_fermeture(STATION_ID_1, 2005)
 
     ds = MaterializedTemperatureRecordsDataSource()
     results = ds.fetch_records(
@@ -238,5 +250,5 @@ def test_fetch_records_fermeture_min_and_max_excludes_open_stations():
         )
     )
 
-    assert S1 in _station_ids(results)
-    assert S2 not in _station_ids(results)
+    assert STATION_ID_1 in _station_ids(results)
+    assert STATION_ID_2 not in _station_ids(results)
