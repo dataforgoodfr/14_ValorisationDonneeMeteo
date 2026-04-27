@@ -7,7 +7,7 @@
             <template #kpi>
                 <p class="font-semibold text-4xl mb-1 text-red-400">
                     <span v-if="kpi != null"
-                        >{{ kpi.itn_mean?.toFixed(1) }}{{ " °C" }}</span
+                        >{{ kpi.itn_mean?.toFixed(1) }} °C</span
                     >
                     <span v-else class="text-muted">—</span>
                 </p>
@@ -15,7 +15,7 @@
             <template v-if="kpi?.deviation_from_normal != null" #variation>
                 <span class="text-sm">
                     {{ kpi.deviation_from_normal >= 0 ? "+" : ""
-                    }}{{ kpi.deviation_from_normal.toFixed(1) }}{{ " °C" }}
+                    }}{{ kpi.deviation_from_normal.toFixed(1) }} °C
                 </span>
                 <UIcon
                     v-if="kpi.deviation_from_normal < 0"
