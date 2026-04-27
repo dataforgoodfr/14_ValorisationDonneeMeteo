@@ -62,19 +62,13 @@ const infoPanelSections = [
     {
         label: "Stations éligibles",
         content:
-            "Le calcul des normales ne peut s’effectuer que si le nombre de données manquantes n’est pas" +
-            " supérieur à celui préconisé par la norme OMM (https://donneespubliques.meteofrance.fr/client/document/normales-methode_299.pdf)" +
-            "\n\nAinsi, pour qu'une station soit éligible au calcul d'un écart à la normale en considérant" +
-            " la période 1991-2020 comme période des normales aux année et apparaisse sur le site dataclimat.fr," +
-            " cette station doit avoir au moins 24 ans de données entre 1991-2020 et avoir une classe de qualité" +
-            " de mesure de température définie par MéteoFrance entre 1 et 4.",
+            "Pour être pertinent un record ne peut être déclaré comme tel que si la station a au moins 20 dans de données et si" +
+            " sa classe de qualité de mesure de température définie par MéteoFrance est comprise entre 1 et 3.",
     },
     {
         label: "Sources",
         content:
             "- Les données sont issues de mesures open source de Meteo France" +
-            "\n- Informations sur les normales climatiques: https://donneespubliques.meteofrance.fr/client/document/normales-methode_299.pdf)" +
-            " https://meteofrance.com/, https://fr.wikipedia.org/wiki/Normale_climatique)" +
             "\n- Classe des stations: https://www.data.gouv.fr/datasets/fiches-dinformations-sur-les-stations",
     },
 ];
