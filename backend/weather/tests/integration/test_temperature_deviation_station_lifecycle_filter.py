@@ -69,8 +69,8 @@ def _setup_two_stations(
     ):
         with connection.cursor() as cur:
             cur.execute(
-                'UPDATE public."station_creation_date" SET "annee_de_fermeture" = %s WHERE station_code = %s',
-                [annee, code],
+                'UPDATE public."station_creation_date" SET "annee_de_fermeture" = %(annee)s WHERE station_code = %(code)s',
+                {"annee": annee, "code": code},
             )
 
 
@@ -235,8 +235,8 @@ def test_fetch_station_overview_fermeture_max_excludes_open_stations():
 
     with connection.cursor() as cur:
         cur.execute(
-            'UPDATE public."station_creation_date" SET "annee_de_fermeture" = 2000 WHERE station_code = %s',
-            [STATION_ID_1],
+            'UPDATE public."station_creation_date" SET "annee_de_fermeture" = %(annee)s WHERE station_code = %(code)s',
+            {"annee": 2000, "code": STATION_ID_1},
         )
 
     result = TimescaleTemperatureDeviationDailyDataSource().fetch_station_overview(
@@ -273,8 +273,8 @@ def test_fetch_station_overview_fermeture_min_alone_includes_open_stations():
 
     with connection.cursor() as cur:
         cur.execute(
-            'UPDATE public."station_creation_date" SET "annee_de_fermeture" = 1990 WHERE station_code = %s',
-            [STATION_ID_1],
+            'UPDATE public."station_creation_date" SET "annee_de_fermeture" = %(annee)s WHERE station_code = %(code)s',
+            {"annee": 1990, "code": STATION_ID_1},
         )
 
     result = TimescaleTemperatureDeviationDailyDataSource().fetch_station_overview(
@@ -311,8 +311,8 @@ def test_fetch_station_overview_fermeture_min_and_max_excludes_open_stations():
 
     with connection.cursor() as cur:
         cur.execute(
-            'UPDATE public."station_creation_date" SET "annee_de_fermeture" = 2005 WHERE station_code = %s',
-            [STATION_ID_1],
+            'UPDATE public."station_creation_date" SET "annee_de_fermeture" = %(annee)s WHERE station_code = %(code)s',
+            {"annee": 2005, "code": STATION_ID_1},
         )
 
     result = TimescaleTemperatureDeviationDailyDataSource().fetch_station_overview(

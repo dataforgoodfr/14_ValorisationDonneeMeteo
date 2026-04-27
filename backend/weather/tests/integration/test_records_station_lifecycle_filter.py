@@ -57,9 +57,9 @@ def _insert_station_with_mv(
 def _set_annee_fermeture(code: str, annee: int | None) -> None:
     with connection.cursor() as cur:
         cur.execute(
-            'UPDATE public."station_creation_date" SET "annee_de_fermeture" = %s'
-            " WHERE station_code = %s",
-            [annee, code],
+            'UPDATE public."station_creation_date" SET "annee_de_fermeture" = %(annee)s'
+            " WHERE station_code = %(code)s",
+            {"annee": annee, "code": code},
         )
 
 
