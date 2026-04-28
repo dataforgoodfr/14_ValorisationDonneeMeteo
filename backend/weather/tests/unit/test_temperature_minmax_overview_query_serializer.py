@@ -200,3 +200,53 @@ def test_all_optional_filters_accepted():
     assert d["alt_max"] == 500.0
     assert d["limit"] == 25
     assert d["offset"] == 50
+
+
+def test_parses_classe_recente():
+    s = _valid(classe_recente_min=1, classe_recente_max=3)
+    assert s.is_valid(), s.errors
+    assert s.validated_data["classe_recente_min"] == 1
+    assert s.validated_data["classe_recente_max"] == 3
+
+
+def test_rejects_classe_recente_inverted_bounds():
+    s = _valid(classe_recente_min=3, classe_recente_max=1)
+    assert not s.is_valid()
+    assert "classe_recente_max" in s.errors
+
+
+def test_parses_date_de_creation():
+    s = _valid(date_de_creation_min="1900-01-01", date_de_creation_max="1960-12-31")
+    assert s.is_valid(), s.errors
+    assert s.validated_data["date_de_creation_min"] == dt.date(1900, 1, 1)
+    assert s.validated_data["date_de_creation_max"] == dt.date(1960, 12, 31)
+
+
+def test_rejects_date_de_creation_inverted_bounds():
+    s = _valid(date_de_creation_min="1960-01-01", date_de_creation_max="1900-01-01")
+    assert not s.is_valid()
+    assert "date_de_creation_max" in s.errors
+
+
+def test_parses_date_de_fermeture():
+    s = _valid(date_de_fermeture_min="2000-01-01", date_de_fermeture_max="2020-12-31")
+    assert s.is_valid(), s.errors
+    assert s.validated_data["date_de_fermeture_min"] == dt.date(2000, 1, 1)
+    assert s.validated_data["date_de_fermeture_max"] == dt.date(2020, 12, 31)
+
+
+def test_rejects_date_de_fermeture_inverted_bounds():
+    s = _valid(date_de_fermeture_min="2020-01-01", date_de_fermeture_max="2000-01-01")
+    assert not s.is_valid()
+    assert "date_de_fermeture_max" in s.errors
+
+
+def test_defaults_lifecycle_fields_to_none():
+    s = _valid()
+    assert s.is_valid(), s.errors
+    assert s.validated_data["classe_recente_min"] is None
+    assert s.validated_data["classe_recente_max"] is None
+    assert s.validated_data["date_de_creation_min"] is None
+    assert s.validated_data["date_de_creation_max"] is None
+    assert s.validated_data["date_de_fermeture_min"] is None
+    assert s.validated_data["date_de_fermeture_max"] is None
