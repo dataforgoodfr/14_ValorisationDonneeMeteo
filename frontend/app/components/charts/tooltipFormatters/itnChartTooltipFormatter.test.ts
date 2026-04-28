@@ -1,15 +1,27 @@
-import { describe, it, expect } from "vitest";
+import { describe, expect, it } from "vitest";
 import { itnChartTooltipFormatter } from "./itnChartTooltipFormatter";
-import type { TooltipComponentFormatterCallbackParams } from "echarts";
+import type {
+    DefaultLabelFormatterCallbackParams,
+    TooltipComponentFormatterCallbackParams,
+} from "echarts";
 
 const makeParam = (
     seriesName: string,
     value: Record<string, number | string>,
     marker = `<span style="color:black;">●</span>`,
-) =>
-    ({ seriesName, value, marker }) as unknown as NonNullable<
-        Extract<TooltipComponentFormatterCallbackParams, unknown[]>[number]
-    >;
+): DefaultLabelFormatterCallbackParams => ({
+    componentType: "series",
+    componentSubType: "line",
+    componentIndex: 0,
+    axisIndex: 0,
+    seriesName,
+    name: "",
+    dataIndex: 0,
+    data: value,
+    value,
+    marker,
+    $vars: ["seriesName", "name", "value"],
+});
 
 const baseValue = {
     date: "2024-06-17",
@@ -37,10 +49,7 @@ describe("itnChartTooltipFormatter", () => {
     // --- Guard cases ---
 
     it("returns empty string when params is not an array", () => {
-        const result = itnChartTooltipFormatter(
-            "not an array" as unknown as TooltipComponentFormatterCallbackParams,
-            "day",
-        );
+        const result = itnChartTooltipFormatter(makeParam("", {}), "day");
         expect(result).toBe("");
     });
 

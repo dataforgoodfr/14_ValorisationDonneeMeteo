@@ -1,11 +1,20 @@
 <script setup lang="ts">
-import type { TableColumn } from "@nuxt/ui";
 import { h } from "vue";
 import { UBadge } from "#components";
 import { storeToRefs } from "pinia";
 import { useRecordsTableStore } from "~/stores/recordsTableStore";
 import RecordsFilterBar from "~/components/table/records/RecordsFilterBar.vue";
 import { buildRecordsCsv } from "~/utils/recordsCsv";
+import {
+    CENTERED_COL,
+    EXPORT_BTN_UI,
+    REGION_META,
+    STATION_META,
+    TEMPERATURE_BADGE_SIZE,
+    makeSortableColFactory,
+    temperatureBadgeClass,
+    truncatedCell,
+} from "~/constants/tableUtils";
 
 const store = useRecordsTableStore();
 const {
@@ -45,6 +54,13 @@ const temperatureBadgeColor = computed(() =>
     displayedTypeRecords.value === "hot" ? "error" : "info",
 );
 
+const ordering = ref("");
+function setOrdering(key: string) {
+    if (ordering.value === key) ordering.value = `-${key}`;
+    else if (ordering.value === `-${key}`) ordering.value = "";
+    else ordering.value = key;
+}
+
 interface TableRow {
     name: string;
     departement: string;
@@ -52,7 +68,7 @@ interface TableRow {
     recordDate: string;
 }
 
-const tableData = computed<TableRow[]>(() =>
+const rawTableData = computed<TableRow[]>(() =>
     pagedStations.value.map((s) => ({
         name: s.station_name,
         departement: s.department,
@@ -61,48 +77,71 @@ const tableData = computed<TableRow[]>(() =>
     })),
 );
 
-const columns = computed<TableColumn<TableRow>[]>(() => [
-    { accessorKey: "name", header: "Station" },
-    { accessorKey: "departement", header: "Département" },
-    {
-        accessorKey: "record",
-        header: "Record",
-        cell: ({ row }) =>
+const tableData = computed<TableRow[]>(() => {
+    if (!ordering.value) return rawTableData.value;
+    const desc = ordering.value.startsWith("-");
+    const key = (
+        desc ? ordering.value.slice(1) : ordering.value
+    ) as keyof TableRow;
+    const dir = desc ? -1 : 1;
+    return [...rawTableData.value].sort((a, b) => {
+        if (a[key] < b[key]) return -dir;
+        if (a[key] > b[key]) return dir;
+        return 0;
+    });
+});
+
+const sortableCol = makeSortableColFactory<TableRow>(ordering, setOrdering);
+
+const columns = [
+    sortableCol("name", "Station", {
+        meta: STATION_META,
+        cellCustom: ({ row }) => truncatedCell(row.getValue("name")),
+    }),
+    sortableCol("departement", "Département", {
+        meta: REGION_META,
+        cellCustom: ({ row }) => truncatedCell(row.getValue("departement")),
+    }),
+    sortableCol("record", "Record", {
+        meta: CENTERED_COL,
+        cellCustom: ({ row }) =>
             h(
                 UBadge,
                 {
-                    class: "capitalize",
+                    class: [
+                        "capitalize",
+                        temperatureBadgeClass(
+                            temperatureBadgeColor.value === "error",
+                        ),
+                    ],
                     variant: "subtle",
-                    color: temperatureBadgeColor.value,
+                    size: TEMPERATURE_BADGE_SIZE,
                 },
-                () => row.getValue("record"),
+                () => `${row.getValue<number>("record").toFixed(1)} °C`,
             ),
-    },
-    { accessorKey: "recordDate", header: "Date du record" },
-]);
+    }),
+    sortableCol("recordDate", "Date du record", { meta: CENTERED_COL }),
+];
 </script>
 
 <template>
     <div class="flex flex-col gap-4">
-        <!-- Filter bar -->
         <div class="flex items-center gap-4">
             <RecordsFilterBar />
             <UButton
                 label="Exporter CSV"
                 icon="i-lucide-download"
-                color="neutral"
                 class="ml-auto"
+                :ui="EXPORT_BTN_UI"
                 :disabled="pending"
                 @click="downloadCsv"
             />
         </div>
 
-        <!-- Error message -->
         <div v-if="error" class="px-4 py-3 bg-error/10 text-error rounded">
             Error loading stations: {{ error.message }}
         </div>
 
-        <!-- Table -->
         <UTable
             :data="tableData"
             :columns="columns"
@@ -110,7 +149,6 @@ const columns = computed<TableColumn<TableRow>[]>(() => [
             class="flex-1"
         />
 
-        <!-- Pagination -->
         <div class="flex justify-center border-t border-accented pt-4">
             <UPagination
                 v-model:page="page"

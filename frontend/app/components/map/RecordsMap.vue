@@ -1,12 +1,12 @@
 <template>
-    <div class="flex flex-col gap-2 w-[500px] flex-shrink-0">
-        <div class="flex flex-col gap-0.5">
-            <div class="flex items-baseline gap-2">
-                <span class="text-sm text-muted">
-                    Record
-                    {{ store.typeRecords === "hot" ? "chaud" : "froid" }}
-                    le plus extrême
-                </span>
+    <div class="flex flex-col gap-2 w-[700px] flex-shrink-0">
+        <Card
+            class="w-fit mx-auto"
+            :with-border="false"
+            :title="`Record ${store.typeRecords === 'hot' ? 'chaud' : 'froid'} le plus extrême`"
+            tooltip-text="Station avec le record absolu sur la période sélectionnée"
+        >
+            <template #kpi>
                 <span
                     v-if="extremeStation"
                     class="text-lg font-semibold"
@@ -20,15 +20,16 @@
                     }}{{ extremeStation.record_value.toFixed(1) }} °C
                 </span>
                 <span v-else class="text-lg font-semibold text-muted">—</span>
-            </div>
-            <div v-if="extremeStation" class="text-xs text-muted">
-                {{ extremeStation.station_name }} ·
-                {{ extremeStation.department }} ·
-                {{ formatDate(extremeStation.record_date) }}
-            </div>
-            <div v-else class="text-xs text-muted">—</div>
-        </div>
-
+            </template>
+            <template #kpi-context-text>
+                <template v-if="extremeStation">
+                    {{ extremeStation.station_name }} ·
+                    {{ extremeStation.department }} ·
+                    {{ formatDate(extremeStation.record_date) }}
+                </template>
+                <template v-else>—</template>
+            </template>
+        </Card>
         <StationMap
             :stations="mappableStations"
             :color-config="RECORDS_MAP_COLORS"
@@ -44,7 +45,7 @@ import type { MappableStation } from "~/types/api";
 import { RECORDS_MAP_COLORS } from "~/constants/colors";
 import { formatRecordsMapTooltip } from "~/components/map/tooltipFormatters/recordsMapTooltipFormatter";
 import StationMap from "~/components/map/StationMap.vue";
-
+import Card from "~/components/home/Card.vue";
 const store = useRecordsTableStore();
 
 const extremeStation = computed(() => {

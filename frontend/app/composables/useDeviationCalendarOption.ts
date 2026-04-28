@@ -1,13 +1,15 @@
 import { deviationCalendarTooltipFormatter } from "~/components/charts/tooltipFormatters/deviationCalendarTooltipFormatter";
-import { COLORS } from "~/constants/colors";
-import type { EChartsOption, SeriesOption } from "echarts";
 import type {
-    TopLevelFormatterParams,
-    XAXisOption,
-    YAXisOption,
+    EChartsOption,
+    SeriesOption,
+    TooltipComponentFormatterCallbackParams,
+} from "echarts";
+import type {
+    ContinousVisualMapOption,
     GridOption,
     TitleOption,
-    ContinousVisualMapOption,
+    XAXisOption,
+    YAXisOption,
 } from "echarts/types/dist/shared";
 import type {
     TemperatureDeviationGraphDataPoint,
@@ -17,6 +19,8 @@ import type {
 import type { GranularityType } from "~/components/ui/commons/selectBar/types";
 import type { DeviationStationIdAndName } from "~/types/common";
 import { MONTH_SHORT } from "~/constants/months";
+import { FONT_CHARTS } from "~/constants/fonts";
+import { useMapColors } from "~/constants/colors";
 
 // transforme "Jan-2024" en nombre comparable
 function toMonthNumber(monthLabel: string): number {
@@ -163,6 +167,7 @@ export function useDeviationCalendarOption(
     stationsIdAndNames: DeviationStationIdAndName[],
 ): EChartsOption {
     const deviationStore = useDeviationStore();
+    const mapColors = useMapColors();
 
     const stationsAndNational: TemperatureDeviationGraphStationSerie[] =
         deviationStore.stationsAndNationalFormatted(data);
@@ -230,7 +235,7 @@ export function useDeviationCalendarOption(
             axisLine: { lineStyle: { color: "#3a5080" } },
             axisLabel: {
                 color: "#000000",
-                fontSize: 11,
+                fontSize: FONT_CHARTS.axis,
                 interval: labelInterval,
                 rotate: labelRotate,
             },
@@ -238,8 +243,8 @@ export function useDeviationCalendarOption(
             nameLocation: "middle",
             nameGap: granularity === "year" ? 25 : 38,
             nameTextStyle: {
-                color: COLORS.foreground,
-                fontSize: 12,
+                color: mapColors.value.foreground,
+                fontSize: FONT_CHARTS.axisName,
                 fontWeight: "bold",
             },
         });
@@ -251,13 +256,16 @@ export function useDeviationCalendarOption(
             splitArea: { show: true },
             axisTick: { show: false },
             axisLine: { lineStyle: { color: "#3a5080" } },
-            axisLabel: { color: COLORS.foreground, fontSize: 11 },
+            axisLabel: {
+                color: mapColors.value.foreground,
+                fontSize: FONT_CHARTS.axis,
+            },
             name: yAxisName,
             nameLocation: "middle",
             nameGap: 35,
             nameTextStyle: {
-                color: COLORS.foreground,
-                fontSize: 12,
+                color: mapColors.value.foreground,
+                fontSize: FONT_CHARTS.axisName,
                 fontWeight: "bold",
             },
         });
@@ -267,9 +275,9 @@ export function useDeviationCalendarOption(
             top: `${top - 4}%`,
             right: "12%",
             textStyle: {
-                fontSize: 12,
+                fontSize: FONT_CHARTS.title,
                 fontWeight: "bold",
-                color: COLORS.foreground,
+                color: mapColors.value.foreground,
             },
         });
 
@@ -298,9 +306,9 @@ export function useDeviationCalendarOption(
         right: "0%",
         bottom: "center",
         inRange: {
-            color: [COLORS.cold, "#FFF", COLORS.hot],
+            color: [mapColors.value.cold, "#FFF", mapColors.value.hot],
         },
-        textStyle: { color: COLORS.foreground },
+        textStyle: { color: mapColors.value.foreground },
         handleStyle: { borderColor: "#3a5080" },
         seriesIndex: series.map((_, i) => i),
         text: ["+ chaud", "+ froid"],
@@ -318,7 +326,7 @@ export function useDeviationCalendarOption(
     return {
         title: titles,
         tooltip: {
-            formatter: (params: TopLevelFormatterParams) =>
+            formatter: (params: TooltipComponentFormatterCallbackParams) =>
                 deviationCalendarTooltipFormatter(params, granularity, {
                     xAxis: xCategories,
                     yAxis: yCategories,

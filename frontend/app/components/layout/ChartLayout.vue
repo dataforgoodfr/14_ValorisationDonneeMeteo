@@ -12,22 +12,23 @@ const sidebarOpen = ref(false);
 
 <template>
     <div
-        class="flex w-full flex-col divide-y divide-gray-200 border border-gray-200 rounded-lg overflow-hidden"
+        class="flex w-full flex-col divide-y divide-gray-200 dark:divide-default border border-gray-200 dark:border-default rounded-lg overflow-hidden dark:bg-elevated"
     >
         <slot name="select-bar" />
 
         <div
             class="flex flex-col md:flex-row"
             :class="{
-                'md:h-158 md:divide-x md:divide-gray-200': props.hasSidebar,
+                'md:h-158 md:divide-x md:divide-gray-200 dark:md:divide-default':
+                    props.hasSidebar,
             }"
         >
             <aside
                 v-if="props.hasSidebar && $slots.sidebar"
-                class="shrink-0 border-b border-gray-200 md:border-b-0"
+                class="shrink-0 border-b border-gray-200 dark:border-default md:border-b-0"
             >
                 <button
-                    class="flex md:hidden w-full items-center justify-between px-4 py-2 text-sm font-medium text-gray-700 bg-gray-50"
+                    class="flex md:hidden w-full items-center justify-between px-4 py-2 text-sm font-medium text-gray-700 dark:text-default bg-gray-50 dark:bg-elevated"
                     @click="sidebarOpen = !sidebarOpen"
                 >
                     <span>Sélection de stations</span>
@@ -51,7 +52,7 @@ const sidebarOpen = ref(false);
                 </Transition>
             </aside>
 
-            <div class="flex-1 min-w-0 px-3 py-2">
+            <div class="flex-1 min-w-0 p-4">
                 <slot name="chart" />
             </div>
         </div>

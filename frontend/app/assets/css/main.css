@@ -1,6 +1,8 @@
 @import "tailwindcss";
 @import "@nuxt/ui";
 
+@custom-variant dark (&:where(.dark, .dark *));
+
 @theme {
     --font-sans: "DM Sans", "system-ui", "sans-serif";
     --default-font-family:
@@ -11,12 +13,21 @@
 }
 
 :root {
-    --ui-container: 90%;
+    --ui-container: 95%;
 }
 
 /* This p styling below is meant to get the font "DM Sans" detected by NuxtFonts module */
 p {
     font-family: "DM Sans";
+}
+
+button,
+a,
+[role="button"],
+[role="menuitem"],
+[role="option"],
+select {
+    cursor: pointer;
 }
 @theme static {
     --color-red-900: #7a1520;
@@ -25,6 +36,7 @@ p {
     --color-red-450: #ff6467;
     --color-red-400: #ff6b5b;
     --color-red-300: #ff9a8b;
+    --color-red-200: #ffd4cf;
     --color-red-100: #fff0ee;
 
     --color-blue-900: #0d2a4a;
@@ -50,12 +62,13 @@ p {
     --color-amber-200: #fde28a;
 
     --color-slate-500: #4f6480;
+    --color-slate-450: #6690a7;
     --color-slate-400: #8eaabf;
     --color-slate-300: #90a1b9;
     --color-slate-200: #c8dbe8;
 
-    --color-dark-950: #1a1f2e;
-    --color-dark-900: #232a3b;
+    --color-dark-950: #12161f;
+    --color-dark-900: #1a2130;
     --color-dark-850: #202d43;
     --color-dark-800: #2e3750;
     --color-dark-700: #3d4a65;
@@ -71,6 +84,7 @@ p {
 
 :root .dark {
     --color-red-900: var(--color-red-900);
+    --color-red-200: var(--color-red-200);
     --color-red-700: var(--color-red-700);
     --color-red-500: var(--color-red-500);
     --color-red-450: var(--color-red-450);
@@ -96,6 +110,7 @@ p {
     --color-amber-400: var(--color-amber-400);
     --color-amber-200: var(--color-amber-200);
     --color-slate-500: var(--color-slate-500);
+    --color-slate-450: var(--color-slate-450);
     --color-slate-400: var(--color-slate-400);
     --color-slate-300: var(--color-slate-300);
     --color-slate-200: var(--color-slate-200);
@@ -111,4 +126,7 @@ p {
     --ui-primary: var(--ui-primary);
     --ui-secondary: var(--ui-secondary);
     --ui-error: var(--ui-error);
+    --ui-bg: var(--color-dark-900);
+    --ui-bg-elevated: var(--color-dark-850);
+    --ui-bg-muted: var(--color-dark-850);
 }

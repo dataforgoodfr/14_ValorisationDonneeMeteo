@@ -1,7 +1,17 @@
 <script setup lang="ts">
-import type { TableColumn } from "@nuxt/ui";
 import { h } from "vue";
 import { UBadge, UButton } from "#components";
+import {
+    CENTERED_TD,
+    EXPORT_BTN_UI,
+    REGION_META,
+    STATION_META,
+    TABLE_HEADER_BTN_MULTILINE_CLASS,
+    TEMPERATURE_BADGE_SIZE,
+    makeSortableColFactory,
+    temperatureBadgeClass,
+    truncatedCell,
+} from "~/constants/tableUtils";
 import { storeToRefs } from "pinia";
 import { useDeviationTableStore } from "~/stores/deviationTableStore";
 import DeviationFilterBar from "~/components/table/deviation/DeviationFilterBar.vue";
@@ -9,6 +19,7 @@ import DayPicker from "~/components/ui/commons/selectBar/dayPicker.vue";
 import { useCustomDate } from "~/composables/useCustomDate";
 import type { TemperatureDeviationResponse } from "~/types/api";
 import { buildDeviationCsv } from "~/utils/deviationCsv";
+
 const props = withDefaults(defineProps<{ showFilters?: boolean }>(), {
     showFilters: true,
 });
@@ -72,59 +83,86 @@ const tableData = computed<TableRow[]>(() =>
 const deviationBadgeColor = (deviation: number) =>
     deviation >= 0 ? "error" : "info";
 
-function sortableCol(
-    key: string,
-    label: string,
-    options: { sortKey?: string; meta?: object } = {},
-) {
-    const sortKey = options.sortKey ?? key;
-    return {
-        accessorKey: key,
-        header: () =>
-            h(UButton, {
-                variant: "ghost",
-                label,
-                title: label,
-                trailingIcon: ordering.value.includes(sortKey)
-                    ? ordering.value.startsWith("-")
-                        ? "i-lucide-arrow-down"
-                        : "i-lucide-arrow-up"
-                    : "i-lucide-arrow-up-down",
-                color: "neutral",
-                class: "-mx-2.5 font-semibold text-highlighted w-full justify-center",
-                onClick: () => setOrdering(sortKey),
-            }),
-        ...(options.meta ? { meta: options.meta } : {}),
-    };
-}
+const sortableCol = makeSortableColFactory<TableRow>(ordering, setOrdering);
 
-const centered = { meta: { class: { td: "text-center" } } };
-
-const columns: TableColumn<TableRow>[] = [
-    sortableCol("station_name", "Station"),
-    sortableCol("department", "Département", centered),
-    sortableCol("region", "Région", centered),
-    {
-        ...sortableCol("deviation", "Écart à la normale (°C)", centered),
-        cell: ({ row }) =>
+const columns = [
+    sortableCol("station_name", "Station", {
+        meta: STATION_META,
+        cellCustom: ({ row }) => truncatedCell(row.getValue("station_name")),
+    }),
+    sortableCol("department", "Département", { meta: CENTERED_TD }),
+    sortableCol("region", "Région", {
+        meta: REGION_META,
+        cellCustom: ({ row }) => truncatedCell(row.getValue("region")),
+    }),
+    sortableCol("deviation", "Écart à la normale", {
+        meta: CENTERED_TD,
+        headerCustom: () =>
+            h(
+                UButton,
+                {
+                    variant: "ghost",
+                    trailingIcon: ordering.value.includes("deviation")
+                        ? ordering.value.startsWith("-")
+                            ? "i-lucide-arrow-down"
+                            : "i-lucide-arrow-up"
+                        : "i-lucide-arrow-up-down",
+                    color: "neutral",
+                    class: TABLE_HEADER_BTN_MULTILINE_CLASS,
+                    onClick: () => setOrdering("deviation"),
+                },
+                () =>
+                    h(
+                        "span",
+                        { class: "whitespace-pre-line" },
+                        "Écart à la\nnormale",
+                    ),
+            ),
+        cellCustom: ({ row }) =>
             h(
                 UBadge,
                 {
-                    class: "capitalize",
+                    class: [
+                        "capitalize",
+                        temperatureBadgeClass(
+                            deviationBadgeColor(row.getValue("deviation")) ===
+                                "error",
+                        ),
+                    ],
                     variant: "subtle",
-                    color: deviationBadgeColor(row.getValue("deviation")),
+                    size: TEMPERATURE_BADGE_SIZE,
                 },
-                () => `${row.getValue<number>("deviation").toFixed(1)} °C`,
+                () =>
+                    `${row.getValue<number>("deviation") > 0 ? "+" : ""}${row.getValue<number>("deviation").toFixed(1)} °C`,
             ),
-    },
-    {
-        ...sortableCol("temperatureMean", "Température Moyenne (°C)", {
-            sortKey: "temperature_mean",
-            ...centered,
-        }),
-        cell: ({ row }) =>
-            `${row.getValue<number>("temperatureMean").toFixed(1)}`,
-    },
+    }),
+    sortableCol("temperatureMean", "Température Moyenne", {
+        sortKey: "temperature_mean",
+        meta: CENTERED_TD,
+        headerCustom: () =>
+            h(
+                UButton,
+                {
+                    variant: "ghost",
+                    trailingIcon: ordering.value.includes("temperature_mean")
+                        ? ordering.value.startsWith("-")
+                            ? "i-lucide-arrow-down"
+                            : "i-lucide-arrow-up"
+                        : "i-lucide-arrow-up-down",
+                    color: "neutral",
+                    class: TABLE_HEADER_BTN_MULTILINE_CLASS,
+                    onClick: () => setOrdering("temperature_mean"),
+                },
+                () =>
+                    h(
+                        "span",
+                        { class: "whitespace-pre-line" },
+                        "Température\nMoyenne",
+                    ),
+            ),
+        cellCustom: ({ row }) =>
+            `${row.getValue<number>("temperatureMean").toFixed(1)} °C`,
+    }),
 ];
 </script>
 
@@ -141,7 +179,7 @@ const columns: TableColumn<TableRow>[] = [
             <UButton
                 label="Exporter CSV"
                 icon="i-lucide-download"
-                color="neutral"
+                :ui="EXPORT_BTN_UI"
                 :disabled="pending"
                 @click="downloadCsv"
             />

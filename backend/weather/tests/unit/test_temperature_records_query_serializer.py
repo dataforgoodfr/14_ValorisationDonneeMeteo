@@ -70,3 +70,56 @@ def test_records_query_serializer_rejects_unknown_season():
     )
     assert not s.is_valid()
     assert "season" in s.errors
+
+
+def test_records_query_serializer_sort_single_field():
+    s = TemperatureRecordsQuerySerializer(data={"sort": "station_name"})
+    assert s.is_valid(), s.errors
+    assert s.validated_data["sort"] == "station_name"
+
+
+def test_records_query_serializer_sort_multiple_fields():
+    # Test avec plusieurs champs et un tri descendant (-)
+    s = TemperatureRecordsQuerySerializer(data={"sort": "station_name,-record_value"})
+    assert s.is_valid(), s.errors
+    assert s.validated_data["sort"] == "station_name,-record_value"
+
+
+def test_records_query_serializer_rejects_invalid_sort_field():
+    # Test avec un champ qui n'existe pas (ex: 'population')
+    s = TemperatureRecordsQuerySerializer(data={"sort": "population"})
+    assert not s.is_valid()
+    assert "sort" in s.errors
+    # Vérifie que le message d'erreur mentionne le champ invalide
+    assert "Champ de tri 'population' invalide" in str(s.errors["sort"][0])
+
+
+# --- Tests pour la Pagination ---
+
+
+def test_records_query_serializer_pagination_valid():
+    s = TemperatureRecordsQuerySerializer(data={"page": 2, "page_size": 50})
+    assert s.is_valid(), s.errors
+    assert s.validated_data["page"] == 2
+    assert s.validated_data["page_size"] == 50
+
+
+def test_records_query_serializer_pagination_defaults():
+    s = TemperatureRecordsQuerySerializer(data={})
+    assert s.is_valid()
+    # Vérifie si ton serializer a des valeurs par défaut (ex: page 1)
+    # Adapte les valeurs ci-dessous selon ton code
+    assert s.validated_data.get("page", 1) == 1
+
+
+def test_records_query_serializer_rejects_negative_page():
+    s = TemperatureRecordsQuerySerializer(data={"page": -1})
+    assert not s.is_valid()
+    assert "page" in s.errors
+
+
+def test_records_query_serializer_rejects_invalid_page_size():
+    # Test si le page_size est trop grand ou n'est pas un nombre
+    s = TemperatureRecordsQuerySerializer(data={"page_size": "beaucoup"})
+    assert not s.is_valid()
+    assert "page_size" in s.errors

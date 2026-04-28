@@ -396,6 +396,13 @@ class TemperatureRecordsQuerySerializer(serializers.Serializer):
         required=False,
         default="hot",
     )
+    page = serializers.IntegerField(required=False, default=1, min_value=1)
+    page_size = serializers.IntegerField(required=False, default=50, min_value=1)
+    sort = serializers.CharField(
+        required=False,
+        default="record_value",
+        help_text="Champ(s) de tri avec ordre (ex: 'record_value', '-record_value', 'record_value,station_name', '-record_value,station_name')",
+    )
     date_start = serializers.DateField(required=False)
     date_end = serializers.DateField(required=False)
     territoire = serializers.ChoiceField(
@@ -405,7 +412,24 @@ class TemperatureRecordsQuerySerializer(serializers.Serializer):
     )
     territoire_id = serializers.CharField(required=False)
 
-    def validate(self, attrs):
+    def validate_sort(self, value) -> str:
+        """Valide le format du paramètre sort."""
+        if not value:
+            return value
+
+        sort_parts = [s.strip() for s in value.split(",")]
+        valid_fields = ["record_value", "station_name", "record_date", "department"]
+
+        for sort_part in sort_parts:
+            field = sort_part.lstrip("-")
+            if field not in valid_fields:
+                raise serializers.ValidationError(
+                    f"Champ de tri '{field}' invalide. Valeurs possibles: {', '.join(valid_fields)}"
+                )
+
+        return value
+
+    def validate(self, attrs) -> dict:
         period_type = attrs.get("period_type", "all_time")
         month = attrs.get("month")
         season = attrs.get("season")
@@ -588,6 +612,18 @@ class TemperatureDeviationOverviewResponseSerializer(serializers.Serializer):
     national = TemperatureDeviationOverviewNationalSerializer()
     pagination = PaginationMetadataSerializer()
     stations = TemperatureDeviationOverviewStationSerializer(many=True)
+
+
+class PaginationSerializer(serializers.Serializer):
+    total_count = serializers.IntegerField()
+    page = serializers.IntegerField()
+    page_size = serializers.IntegerField()
+    total_pages = serializers.IntegerField()
+
+
+class TemperatureRecordsResponseSerializer(serializers.Serializer):
+    pagination = PaginationSerializer()
+    results = TemperatureRecordEntrySerializer(many=True)
 
 
 class NationalIndicatorKpiQuerySerializer(serializers.Serializer):

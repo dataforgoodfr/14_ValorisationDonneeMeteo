@@ -29,6 +29,15 @@ export default defineNuxtConfig({
         },
     },
     css: ["~/assets/css/main.css"],
+    colorMode: {
+        preference: "light", // default value of $colorMode.preference
+        fallback: "light", // fallback value if not system preference found
+        globalName: "__NUXT_COLOR_MODE__",
+        classPrefix: "",
+        classSuffix: "",
+        storage: "sessionStorage", // or 'sessionStorage' or 'cookie'
+        storageKey: "nuxt-color-mode",
+    },
     ui: {
         colorMode: true,
     },

@@ -6,16 +6,16 @@
         >
             <template #kpi>
                 <p class="font-semibold text-4xl mb-1 text-red-400">
-                    <span v-if="kpi != null">{{
-                        kpi.itn_mean?.toFixed(1)
-                    }}</span>
+                    <span v-if="kpi != null"
+                        >{{ kpi.itn_mean?.toFixed(1) }} °C</span
+                    >
                     <span v-else class="text-muted">—</span>
                 </p>
             </template>
-            <template v-if="kpi.deviation_from_normal != null" #variation>
+            <template v-if="kpi?.deviation_from_normal != null" #variation>
                 <span class="text-sm">
                     {{ kpi.deviation_from_normal >= 0 ? "+" : ""
-                    }}{{ kpi.deviation_from_normal.toFixed(1) }}
+                    }}{{ kpi.deviation_from_normal.toFixed(1) }} °C
                 </span>
                 <UIcon
                     v-if="kpi.deviation_from_normal < 0"
@@ -99,8 +99,8 @@ const store = useItnStore();
 const { pickedDateStart, pickedDateEnd } = storeToRefs(store);
 
 const params = computed<NationalIndicatorKpiParams>(() => ({
-    date_start: dateToStringYMD(new Date(pickedDateStart.value)),
-    date_end: dateToStringYMD(new Date(pickedDateEnd.value)),
+    date_start: dateToStringYMD(pickedDateStart.value),
+    date_end: dateToStringYMD(pickedDateEnd.value),
 }));
 
 const { data: kpi } = useNationalIndicatorKpi(params);

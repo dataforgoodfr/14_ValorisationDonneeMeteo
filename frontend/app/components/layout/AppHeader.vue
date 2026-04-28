@@ -1,6 +1,11 @@
 <script setup lang="ts">
 import type { NavigationMenuItem } from "@nuxt/ui";
 
+const colorMode = useColorMode();
+const toggleMode = (val: boolean) => {
+    colorMode.preference = val ? "dark" : "light";
+};
+
 const route = useRoute();
 
 const items = computed<NavigationMenuItem[]>(() => [
@@ -33,18 +38,6 @@ const items = computed<NavigationMenuItem[]>(() => [
             },
         ],
     },
-    {
-        disabled: true,
-        label: "Pluviométrie",
-        children: [
-            {
-                //To be filled
-            },
-            {
-                //To be filled
-            },
-        ],
-    },
 ]);
 </script>
 
@@ -65,8 +58,11 @@ const items = computed<NavigationMenuItem[]>(() => [
                 content-orientation="vertical"
                 :items="items"
                 :ui="{
-                    content: 'min-w-fit',
+                    content: 'w-max',
                     link: 'border rounded-md',
+                    linkLabel: 'overflow-visible',
+                    viewport: 'overflow-visible w-max',
+                    viewportWrapper: 'overflow-visible w-max',
                     list: 'gap-2',
                 }"
             />
@@ -77,13 +73,22 @@ const items = computed<NavigationMenuItem[]>(() => [
                 <UButton
                     color="neutral"
                     variant="outline"
-                    icon="i-lucide-cloud-sun-rain"
-                    label="Tout Infoclimat"
+                    label="Site Infoclimat.fr"
                     to="https://www.infoclimat.fr/"
                     target="_blank"
                     aria-label="infoclimat"
                 />
             </UTooltip>
+            <USwitch
+                unchecked-icon="i-lucide-sun"
+                checked-icon="i-lucide-moon"
+                aria-label="Basculer le thème"
+                :ui="{
+                    base: 'dark:bg-transparent dark:ring-1 dark:ring-white/20',
+                    thumb: 'dark:bg-black',
+                }"
+                @update:model-value="toggleMode"
+            />
         </template>
 
         <template #body>

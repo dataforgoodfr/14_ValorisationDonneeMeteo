@@ -22,12 +22,12 @@ const chartTypes = adapter.chartTypeOptions;
             <UButton
                 :icon="item.icon"
                 size="md"
-                color="neutral"
-                :active="adapter.chartType.value === item.value"
-                active-class="bg-primary text-inverted"
-                :variant="
-                    adapter.chartType.value === item.value ? 'solid' : 'outline'
-                "
+                :ui="{
+                    base:
+                        adapter.chartType.value === item.value
+                            ? 'bg-blue-350 ring-1 ring-blue-350 text-white'
+                            : 'bg-transparent ring-1 ring-blue-350 text-black dark:text-white',
+                }"
                 @click="adapter.setChartType(item.value as ChartType)"
             />
         </template>

@@ -7,7 +7,9 @@ import type {
     NationalIndicatorResponse,
 } from "~/types/api";
 import { CHART_ATTRIBUTION_GRAPHIC } from "~/constants/chartAttribution";
-import { ITN_SERIES, ITN_COLORS } from "~/constants/itn";
+import { ITN_SERIES, useItnColors } from "~/constants/itn";
+import { useMapColors } from "~/constants/colors";
+import { FONT_CHARTS } from "~/constants/fonts";
 import { itnChartTooltipFormatter } from "./tooltipFormatters/itnChartTooltipFormatter";
 import {
     itnStackedTooltipFormatter,
@@ -56,8 +58,8 @@ const initOptions = computed(() => ({
 }));
 provide(INIT_OPTIONS_KEY, initOptions);
 
-const colorEcartType = ITN_COLORS.ECART_TYPE;
-const colorExtremes = ITN_COLORS.EXTREMES;
+const itnColors = useItnColors();
+const mapColors = useMapColors();
 
 function buildStackedOption(
     timeSeries: NationalIndicatorDataPoint[],
@@ -122,9 +124,9 @@ function buildStackedOption(
             stack: "extreme",
             stackStrategy: "all",
             symbol: "none",
-            color: colorExtremes,
+            color: itnColors.value.extremes,
             lineStyle: { opacity: 0 },
-            areaStyle: { color: colorExtremes },
+            areaStyle: { color: itnColors.value.extremes },
         },
         {
             type: "line",
@@ -143,16 +145,16 @@ function buildStackedOption(
             stack: "std",
             stackStrategy: "all",
             symbol: "none",
-            color: colorEcartType,
+            color: itnColors.value.ecartType,
             lineStyle: { opacity: 0 },
-            areaStyle: { color: colorEcartType },
+            areaStyle: { color: itnColors.value.ecartType },
         },
         {
             name: ITN_SERIES.temperature,
             type: "line",
             encode: { x: "position", y: "baseline_mean" },
             symbol: "none",
-            lineStyle: { width: 2, color: "#333" },
+            lineStyle: { width: 2, color: itnColors.value.baselineLine },
             z: 5,
         },
     ];
@@ -187,6 +189,7 @@ function buildStackedOption(
             type: "category",
             data: allPositions,
             axisLabel: {
+                fontSize: FONT_CHARTS.axis,
                 interval:
                     granularity === "day"
                         ? (_index: number, value: string) =>
@@ -202,6 +205,11 @@ function buildStackedOption(
             nameRotate: 90,
             nameLocation: "middle",
             nameGap: 40,
+            nameTextStyle: { fontSize: FONT_CHARTS.axisName },
+            axisLabel: { fontSize: FONT_CHARTS.axis },
+            splitLine: {
+                lineStyle: { type: "dashed", color: mapColors.value.splitLine },
+            },
         },
         series: [...baselineSeries, ...yearSeries],
         legend: {
@@ -212,8 +220,13 @@ function buildStackedOption(
                 ...years.map(String),
             ],
             bottom: 85,
+            textStyle: { fontSize: FONT_CHARTS.legend },
         },
-        title: { text: "Indicateur thermique national", left: "center" },
+        title: {
+            text: "Indicateur thermique national",
+            left: "center",
+            textStyle: { fontSize: FONT_CHARTS.title },
+        },
         tooltip: {
             trigger: "axis",
             formatter: (params) =>
@@ -288,13 +301,12 @@ const option = computed<ECOption>(() => {
         },
         xAxis: {
             type: "time",
-            ...(props.adapter.granularity.value === "day"
-                ? {
-                      axisLabel: {
-                          formatter: formatContinuousAxisLabel,
-                      },
-                  }
-                : {}),
+            axisLabel: {
+                fontSize: FONT_CHARTS.axis,
+                ...(props.adapter.granularity.value === "day"
+                    ? { formatter: formatContinuousAxisLabel }
+                    : {}),
+            },
         },
         yAxis: {
             type: "value",
@@ -302,6 +314,11 @@ const option = computed<ECOption>(() => {
             nameRotate: 90,
             nameLocation: "middle",
             nameGap: 40,
+            nameTextStyle: { fontSize: FONT_CHARTS.axisName },
+            axisLabel: { fontSize: FONT_CHARTS.axis },
+            splitLine: {
+                lineStyle: { type: "dashed", color: mapColors.value.splitLine },
+            },
         },
         series: [
             // extreme - Invisible base — pushes the band up to start at lower bound
@@ -323,9 +340,9 @@ const option = computed<ECOption>(() => {
                 stack: "extreme",
                 stackStrategy: "all",
                 symbol: "none",
-                color: colorExtremes,
+                color: itnColors.value.extremes,
                 lineStyle: { opacity: 0 },
-                areaStyle: { color: colorExtremes },
+                areaStyle: { color: itnColors.value.extremes },
             },
             // ecart-type - Invisible base — pushes the band up to start at lower bound
             {
@@ -346,9 +363,9 @@ const option = computed<ECOption>(() => {
                 stack: "std",
                 stackStrategy: "all",
                 symbol: "none",
-                color: colorEcartType,
+                color: itnColors.value.ecartType,
                 lineStyle: { opacity: 0 },
-                areaStyle: { color: colorEcartType },
+                areaStyle: { color: itnColors.value.ecartType },
             },
             // Moyenne - baseline_mean
             {
@@ -363,7 +380,7 @@ const option = computed<ECOption>(() => {
                 type: "line",
                 stack: "temperature",
                 encode: { x: "date", y: "temperature" },
-                color: "#999",
+                color: itnColors.value.temperatureLine,
                 lineStyle: { width: 0.5 },
                 symbol: "none",
             },
@@ -387,9 +404,9 @@ const option = computed<ECOption>(() => {
                 stack: "hot_cold",
                 stackStrategy: "all",
                 symbol: "none",
-                color: "#f00",
+                color: itnColors.value.hotBand,
                 lineStyle: { opacity: 0 },
-                areaStyle: { color: "rgba(255, 0, 0, 0.6)" },
+                areaStyle: { color: itnColors.value.hotBand },
                 tooltip: { show: false },
             },
             // cold_blue_band
@@ -400,15 +417,16 @@ const option = computed<ECOption>(() => {
                 stack: "hot_cold",
                 stackStrategy: "all",
                 symbol: "none",
-                color: "#00f",
+                color: itnColors.value.coldBand,
                 lineStyle: { opacity: 0 },
-                areaStyle: { color: "rgba(0, 0, 255, 0.6)" },
+                areaStyle: { color: itnColors.value.coldBand },
                 tooltip: { show: false },
             },
         ],
         title: {
             text: "Indicateur thermique national",
             left: "center",
+            textStyle: { fontSize: FONT_CHARTS.title },
         },
         legend: {
             data: [
@@ -418,6 +436,7 @@ const option = computed<ECOption>(() => {
                 ITN_SERIES.extremes,
             ],
             bottom: 85,
+            textStyle: { fontSize: FONT_CHARTS.legend },
         },
         tooltip: {
             trigger: "axis",
@@ -427,16 +446,6 @@ const option = computed<ECOption>(() => {
                     props.adapter.granularity.value,
                 ),
         },
-        dataZoom: [
-            {
-                type: "slider",
-                minSpan: 20,
-            },
-            {
-                type: "inside",
-                minSpan: 20,
-            },
-        ],
         emphasis: {
             focus: "none",
             disabled: true, // disables all emphasis state changes on hover

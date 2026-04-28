@@ -1,35 +1,33 @@
 <template>
-    <div>
-        <div class="relative">
+    <div class="relative">
+        <div
+            ref="mapContainer"
+            class="w-full rounded-lg overflow-hidden"
+            style="height: 700px"
+        />
+        <div
+            class="absolute bottom-4 left-1/2 -translate-x-1/2 flex flex-col items-center gap-1 pointer-events-none"
+        >
+            <span class="text-xs" :style="{ color: mapColors.foreground }">{{
+                legendLabel
+            }}</span>
             <div
-                ref="mapContainer"
-                class="w-full rounded-lg overflow-hidden"
-                style="height: 480px"
+                class="rounded-full"
+                :style="{
+                    width: '160px',
+                    height: '12px',
+                    background: `linear-gradient(to right, ${legendGradient})`,
+                }"
             />
             <div
-                class="absolute bottom-0 left-1/2 -translate-x-1/2 flex flex-col items-center gap-1 pointer-events-none"
+                class="flex justify-between w-full text-xs"
+                :style="{ color: mapColors.foreground }"
             >
-                <span class="text-xs" :style="{ color: COLORS.foreground }">{{
-                    legendLabel
-                }}</span>
-                <div
-                    class="rounded-full"
-                    :style="{
-                        width: '160px',
-                        height: '12px',
-                        background: `linear-gradient(to right, ${legendGradient})`,
-                    }"
-                />
-                <div
-                    class="flex justify-between w-full text-xs"
-                    :style="{ color: COLORS.foreground }"
+                <span>{{ colorConfig.min }}°C</span>
+                <span
+                    >{{ colorConfig.max > 0 ? "+" : ""
+                    }}{{ colorConfig.max }}°C</span
                 >
-                    <span>{{ colorConfig.min }}°C</span>
-                    <span
-                        >{{ colorConfig.max > 0 ? "+" : ""
-                        }}{{ colorConfig.max }}°C</span
-                    >
-                </div>
             </div>
         </div>
         <MapAttribution class="mt-2" />
@@ -41,13 +39,15 @@ import maplibregl from "maplibre-gl";
 import "maplibre-gl/dist/maplibre-gl.css";
 import * as topojson from "topojson-client";
 import type { FeatureCollection, Geometry, Point } from "geojson";
-import type { Topology, GeometryCollection } from "topojson-specification";
+import type { GeometryCollection, Topology } from "topojson-specification";
 import type {
-    MappableStation,
     MapColorConfig,
+    MappableStation,
     MapTooltipFormatter,
 } from "~/types/api";
-import { COLORS } from "~/constants/colors";
+import { useMapColors } from "~/constants/colors";
+
+const mapColors = useMapColors();
 
 interface DepartmentProperties {
     code: string;
@@ -80,7 +80,7 @@ const BLANK_STYLE: maplibregl.StyleSpecification = {
         {
             id: "background",
             type: "background",
-            paint: { "background-color": COLORS.background },
+            paint: { "background-color": mapColors.value.transparent },
         },
     ],
 };
@@ -267,14 +267,17 @@ onMounted(async () => {
             id: "france-dep-fill",
             type: "fill",
             source: "france-dep",
-            paint: { "fill-color": COLORS.background, "fill-opacity": 1 },
+            paint: {
+                "fill-color": mapColors.value.transparent,
+                "fill-opacity": 1,
+            },
         });
         map!.addLayer({
             id: "france-dep-border",
             type: "line",
             source: "france-dep",
             paint: {
-                "line-color": COLORS.foreground,
+                "line-color": mapColors.value.foreground,
                 "line-width": 0.3,
             },
         });
@@ -287,7 +290,10 @@ onMounted(async () => {
             id: "france-reg-border",
             type: "line",
             source: "france-reg",
-            paint: { "line-color": COLORS.foreground, "line-width": 1 },
+            paint: {
+                "line-color": mapColors.value.foreground,
+                "line-width": 1,
+            },
         });
 
         initLayers();
@@ -307,4 +313,12 @@ watch(
         if (mapReady.value) setStationsData(stations);
     },
 );
+
+watch(mapColors, (colors) => {
+    if (!map || !mapReady.value) return;
+    map.setPaintProperty("background", "background-color", colors.transparent);
+    map.setPaintProperty("france-dep-fill", "fill-color", colors.transparent);
+    map.setPaintProperty("france-dep-border", "line-color", colors.foreground);
+    map.setPaintProperty("france-reg-border", "line-color", colors.foreground);
+});
 </script>

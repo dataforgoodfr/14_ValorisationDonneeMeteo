@@ -12,7 +12,9 @@ import {
     niceMax,
 } from "~/utils/recordsChartUtils";
 import { recordsPyramidTooltipFormatter } from "~/components/charts/tooltipFormatters/recordsPyramidTooltipFormatter";
-import { COLORS } from "~/constants/colors";
+import { useMapColors } from "~/constants/colors";
+
+import { FONT_CHARTS, GRAPH_RECORDS_POSITION } from "~/constants/fonts";
 type CategoryYAxisOption = Extract<YAXisOption, { type?: "category" }>;
 type ValueXAxisOption = Extract<XAXisOption, { type?: "value" }>;
 
@@ -23,6 +25,7 @@ interface Props {
 }
 
 const props = defineProps<Props>();
+const mapColors = useMapColors();
 
 const containerRef = ref<HTMLElement | null>(null);
 const INITIAL_CONTAINER_WIDTH = 900;
@@ -34,7 +37,7 @@ useResizeObserver(containerRef, (entries) => {
 
 const renderer = ref<"svg" | "canvas">("canvas");
 const initOptions = computed(() => ({
-    height: 520,
+    height: GRAPH_RECORDS_POSITION.height,
     locale: "FR",
     renderer: renderer.value,
 }));
@@ -104,7 +107,9 @@ const option = computed<ECOption>(() => {
         min: 0,
         max: globalMax,
         minInterval: 1,
-        splitLine: { lineStyle: { type: "dashed" } },
+        splitLine: {
+            lineStyle: { type: "dashed", color: mapColors.value.splitLine },
+        },
     };
 
     const option: ECOption = {
@@ -152,7 +157,7 @@ const option = computed<ECOption>(() => {
                     margin: labelMargin,
                     width: labelMargin * 2,
                     align: "center",
-                    fontSize: 12,
+                    fontSize: FONT_CHARTS.axis,
                     fontWeight: "bold",
                 },
                 axisTick: { show: false },
@@ -170,14 +175,14 @@ const option = computed<ECOption>(() => {
                 text: pd.name,
                 right: "right",
                 top: `${i * slotSize + 2}%`,
-                textStyle: { fontSize: 12 },
+                textStyle: { fontSize: FONT_CHARTS.title },
             })),
             {
                 text: "Nombre de records",
                 bottom: 25,
                 left: "50%",
                 textAlign: "center",
-                textStyle: { fontSize: 12, color: "#000000" },
+                textStyle: { fontSize: FONT_CHARTS.title, color: "#fff" },
             },
         ],
         legend: {
@@ -189,7 +194,7 @@ const option = computed<ECOption>(() => {
                 name: "Records de froid",
                 datasetIndex: i,
                 encode: { x: "cold", y: "period" },
-                color: COLORS.cold,
+                color: mapColors.value.cold,
                 xAxisIndex: 2 * i,
                 yAxisIndex: 2 * i,
             }),
@@ -197,7 +202,7 @@ const option = computed<ECOption>(() => {
                 name: "Records de chaleur",
                 datasetIndex: i,
                 encode: { x: "hot", y: "period" },
-                color: COLORS.hot,
+                color: mapColors.value.hot,
                 xAxisIndex: 2 * i + 1,
                 yAxisIndex: 2 * i + 1,
             }),

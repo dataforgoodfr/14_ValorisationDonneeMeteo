@@ -3,12 +3,12 @@ import type {
     TooltipComponentFormatterCallbackParams,
 } from "echarts";
 import type { GranularityType } from "~/components/ui/commons/selectBar/types";
-import { COLORS } from "~/constants/colors";
+import { TEMPERATURE_COLORS } from "~/constants/colors";
 
 function formatBarTooltip(param: DefaultLabelFormatterCallbackParams): string {
     const data = param.value as Record<string, number | string>;
-    const hotMarker = `<span style="display:inline-block;margin-right:4px;border-radius:10px;width:10px;height:10px;background-color:${COLORS.hot};"></span>`;
-    const coldMarker = `<span style="display:inline-block;margin-right:4px;border-radius:10px;width:10px;height:10px;background-color:${COLORS.cold};"></span>`;
+    const hotMarker = `<span style="display:inline-block;margin-right:4px;border-radius:10px;width:10px;height:10px;background-color:${TEMPERATURE_COLORS.cold};"></span>`;
+    const coldMarker = `<span style="display:inline-block;margin-right:4px;border-radius:10px;width:10px;height:10px;background-color:${TEMPERATURE_COLORS.hot};"></span>`;
     return [
         `<b>${data.period}</b>`,
         `${hotMarker} Records de chaleur : ${data.hot}`,
