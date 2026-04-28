@@ -1,3 +1,5 @@
+import datetime as dt
+
 from weather.serializers import TemperatureRecordsQuerySerializer
 
 
@@ -123,3 +125,81 @@ def test_records_query_serializer_rejects_invalid_page_size():
     s = TemperatureRecordsQuerySerializer(data={"page_size": "beaucoup"})
     assert not s.is_valid()
     assert "page_size" in s.errors
+
+
+# ---------------------------------------------------------------------------
+# Filtres classe_recente / date_de_creation / date_de_fermeture
+# ---------------------------------------------------------------------------
+
+
+def test_records_query_serializer_accepts_classe_recente_min_max():
+    s = TemperatureRecordsQuerySerializer(
+        data={"classe_recente_min": 1, "classe_recente_max": 3}
+    )
+    assert s.is_valid(), s.errors
+    assert s.validated_data["classe_recente_min"] == 1
+    assert s.validated_data["classe_recente_max"] == 3
+
+
+def test_records_query_serializer_rejects_classe_recente_min_gt_max():
+    s = TemperatureRecordsQuerySerializer(
+        data={"classe_recente_min": 4, "classe_recente_max": 2}
+    )
+    assert not s.is_valid()
+    assert "classe_recente_max" in s.errors
+
+
+def test_records_query_serializer_rejects_classe_recente_out_of_bounds():
+    s = TemperatureRecordsQuerySerializer(data={"classe_recente_min": 0})
+    assert not s.is_valid()
+    assert "classe_recente_min" in s.errors
+
+    s2 = TemperatureRecordsQuerySerializer(data={"classe_recente_max": 6})
+    assert not s2.is_valid()
+    assert "classe_recente_max" in s2.errors
+
+
+def test_records_query_serializer_accepts_date_de_creation_range():
+    s = TemperatureRecordsQuerySerializer(
+        data={
+            "date_de_creation_min": "1920-01-01",
+            "date_de_creation_max": "1980-01-01",
+        }
+    )
+    assert s.is_valid(), s.errors
+    assert s.validated_data["date_de_creation_min"] == dt.date(1920, 1, 1)
+    assert s.validated_data["date_de_creation_max"] == dt.date(1980, 1, 1)
+
+
+def test_records_query_serializer_rejects_date_de_creation_min_gt_max():
+    s = TemperatureRecordsQuerySerializer(
+        data={
+            "date_de_creation_min": "1990-01-01",
+            "date_de_creation_max": "1950-01-01",
+        }
+    )
+    assert not s.is_valid()
+    assert "date_de_creation_max" in s.errors
+
+
+def test_records_query_serializer_rejects_date_de_fermeture_min_gt_max():
+    s = TemperatureRecordsQuerySerializer(
+        data={
+            "date_de_fermeture_min": "2010-01-01",
+            "date_de_fermeture_max": "2005-01-01",
+        }
+    )
+    assert not s.is_valid()
+    assert "date_de_fermeture_max" in s.errors
+
+
+def test_records_query_serializer_normalizes_absent_filters_to_none():
+    """Champs absents → normalisés à None par validate()."""
+    s = TemperatureRecordsQuerySerializer(data={})
+    assert s.is_valid(), s.errors
+    assert s.validated_data["classe_recente_min"] is None
+    assert s.validated_data["classe_recente_max"] is None
+    assert s.validated_data["date_de_creation_min"] is None
+    assert s.validated_data["date_de_creation_max"] is None
+    assert s.validated_data["date_de_fermeture_min"] is None
+    assert s.validated_data["date_de_fermeture_max"] is None

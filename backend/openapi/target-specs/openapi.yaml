@@ -176,6 +176,61 @@ paths:
             type: number
           required: false
 
+        - name: classe_recente_min
+          in: query
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 5
+          description: Classe de qualité minimale incluse (1=meilleure).
+
+        - name: classe_recente_max
+          in: query
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 5
+          description: Classe de qualité maximale incluse (5=moins fiable).
+
+        - name: date_de_creation_min
+          in: query
+          required: false
+          schema:
+            type: string
+            format: date
+          description: Date de création minimale incluse (YYYY-MM-DD). Seule l'année est utilisée.
+
+        - name: date_de_creation_max
+          in: query
+          required: false
+          schema:
+            type: string
+            format: date
+          description: Date de création maximale incluse (YYYY-MM-DD). Seule l'année est utilisée.
+
+        - name: date_de_fermeture_min
+          in: query
+          required: false
+          schema:
+            type: string
+            format: date
+          description: >
+            Date de fermeture minimale incluse (YYYY-MM-DD, seule l'année est utilisée).
+            Si utilisé seul, les stations toujours ouvertes (date_de_fermeture null) sont incluses.
+            Si combiné avec date_de_fermeture_max, les stations ouvertes sont exclues.
+
+        - name: date_de_fermeture_max
+          in: query
+          required: false
+          schema:
+            type: string
+            format: date
+          description: >
+            Date de fermeture maximale incluse (YYYY-MM-DD, seule l'année est utilisée).
+            Les stations toujours ouvertes (date_de_fermeture null) sont exclues.
+
         - name: departments
           in: query
           schema:
@@ -230,6 +285,9 @@ paths:
                         lon: 5.3
                         department: "13"
                         region: "Provence-Alpes-Côte d'Azur"
+                        classe_recente: 1
+                        date_de_creation: "1921-01-01"
+                        date_de_fermeture: null
                       - station_id: "7501111156"
                         station_name: "Paris-Montsouris"
                         temperature_mean: 28.5
@@ -240,6 +298,9 @@ paths:
                         alt: 40
                         department: "75"
                         region: "Ile de France"
+                        classe_recente: 2
+                        date_de_creation: "1947-01-01"
+                        date_de_fermeture: null
         "400":
           $ref: "#/components/responses/BadRequest"
 
@@ -613,6 +674,12 @@ paths:
 
         - le tri des résultats (`sort`)
 
+        - la classe de qualité de la station (`classe_recente_min` / `classe_recente_max`)
+
+        - l'année de création de la station (`date_de_creation_min` / `date_de_creation_max`)
+
+        - l'année de fermeture de la station (`date_de_fermeture_min` / `date_de_fermeture_max`)
+
         Exemples de requêtes :
 
         - `period_type=all_time&type_records=hot&sort=-record_value`
@@ -716,6 +783,55 @@ paths:
             type: string
           default: record_value
           example: "-record_value,station_name"
+        - name: classe_recente_min
+          in: query
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 5
+          description: Classe de qualité minimale incluse (1=meilleure).
+        - name: classe_recente_max
+          in: query
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 5
+          description: Classe de qualité maximale incluse (5=moins fiable).
+        - name: date_de_creation_min
+          in: query
+          required: false
+          schema:
+            type: string
+            format: date
+          description: Date de création minimale incluse (YYYY-MM-DD). Seule l'année est utilisée.
+        - name: date_de_creation_max
+          in: query
+          required: false
+          schema:
+            type: string
+            format: date
+          description: Date de création maximale incluse (YYYY-MM-DD). Seule l'année est utilisée.
+        - name: date_de_fermeture_min
+          in: query
+          required: false
+          schema:
+            type: string
+            format: date
+          description: >
+            Date de fermeture minimale incluse (YYYY-MM-DD, seule l'année est utilisée).
+            Si utilisé seul, les stations toujours ouvertes (date_de_fermeture null) sont incluses.
+            Si combiné avec date_de_fermeture_max, les stations ouvertes sont exclues.
+        - name: date_de_fermeture_max
+          in: query
+          required: false
+          schema:
+            type: string
+            format: date
+          description: >
+            Date de fermeture maximale incluse (YYYY-MM-DD, seule l'année est utilisée).
+            Les stations toujours ouvertes (date_de_fermeture null) sont exclues.
       responses:
         "200":
           description: Liste paginée des records de température par station.
@@ -742,6 +858,9 @@ paths:
                         lat: 48.718
                         lon: 2.397
                         alt: 86.0
+                        classe_recente: 1
+                        date_de_creation: "1921-01-01"
+                        date_de_fermeture: null
                       - station_id: "07156"
                         station_name: "Paris-Montsouris"
                         department: "75"
@@ -750,8 +869,9 @@ paths:
                         lat: 48.821667
                         lon: 2.337833
                         alt: 75.0
-
-
+                        classe_recente: 2
+                        date_de_creation: "1947-01-01"
+                        date_de_fermeture: null
         "400":
           $ref: "#/components/responses/BadRequest"
 
@@ -1667,6 +1787,9 @@ components:
         - lat
         - lon
         - alt
+        - classe_recente
+        - date_de_creation
+        - date_de_fermeture
       properties:
         station_id:
           type: string
@@ -1696,7 +1819,20 @@ components:
           type: number
           format: double
           description: Altitude de la station (mètres)
-
+        classe_recente:
+          type: integer
+          minimum: 1
+          maximum: 3
+          description: Classe de qualité de la station (1=meilleure, 3=limite autorisée pour les records)
+        date_de_creation:
+          type: string
+          format: date
+          description: Date de création de la station (1er janvier de l'année d'ouverture)
+        date_de_fermeture:
+          type: string
+          format: date
+          nullable: true
+          description: Date de fermeture de la station (31 décembre de l'année de fermeture), null si toujours ouverte
 
     Pagination:
       type: object
@@ -1736,7 +1872,6 @@ components:
           description: Liste des records de température pour la page
           items:
             $ref: "#/components/schemas/TemperatureRecordEntry"
-
 
     TemperatureDeviationOverviewResponse:
       type: object
@@ -1804,6 +1939,28 @@ components:
             alt_max:
               type: number
               nullable: true
+            classe_recente_min:
+              type: integer
+              nullable: true
+            classe_recente_max:
+              type: integer
+              nullable: true
+            date_de_creation_min:
+              type: string
+              format: date
+              nullable: true
+            date_de_creation_max:
+              type: string
+              format: date
+              nullable: true
+            date_de_fermeture_min:
+              type: string
+              format: date
+              nullable: true
+            date_de_fermeture_max:
+              type: string
+              format: date
+              nullable: true
             departments:
               type: array
               items:
@@ -1852,6 +2009,9 @@ components:
         - alt
         - department
         - region
+        - classe_recente
+        - date_de_creation
+        - date_de_fermeture
       properties:
         station_id:
           type: string
@@ -1884,6 +2044,20 @@ components:
         region:
           type: string
           nullable: true
+        classe_recente:
+          type: integer
+          minimum: 1
+          maximum: 4
+          description: Classe de qualité de la station (1=meilleure, 4=limite autorisée pour la déviation)
+        date_de_creation:
+          type: string
+          format: date
+          description: Date de création de la station (1er janvier de l'année d'ouverture)
+        date_de_fermeture:
+          type: string
+          format: date
+          nullable: true
+          description: Date de fermeture de la station (31 décembre de l'année de fermeture), null si toujours ouverte
 
   responses:
     BadRequest:
