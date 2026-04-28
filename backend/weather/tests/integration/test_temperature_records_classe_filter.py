@@ -63,7 +63,7 @@ def make_overview_query(**kwargs) -> TemperatureDeviationOverviewQuery:
 
 
 def _station_ids_in_records(results) -> set[str]:
-    return {s.id.strip() for s in results}
+    return {s.id.strip() for s in results.entries}
 
 
 def _station_ids_in_overview(result) -> set[str]:

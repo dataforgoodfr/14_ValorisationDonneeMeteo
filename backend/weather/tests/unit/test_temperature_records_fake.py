@@ -88,7 +88,7 @@ def test_fake_records_classe_recente_min_filters_out_lower():
     )
     result = ds.fetch_records(req)
 
-    assert result == []
+    assert result.entries == []
 
 
 def test_fake_records_classe_recente_min_includes_matching():
@@ -99,7 +99,7 @@ def test_fake_records_classe_recente_min_includes_matching():
     )
     result = ds.fetch_records(req)
 
-    assert len(result) >= 5
+    assert len(result.entries) >= 5
 
 
 def test_fake_records_classe_recente_max_includes_matching():
@@ -110,7 +110,7 @@ def test_fake_records_classe_recente_max_includes_matching():
     )
     result = ds.fetch_records(req)
 
-    assert len(result) >= 5
+    assert len(result.entries) >= 5
 
 
 def test_fake_records_classe_recente_range_no_match():
@@ -124,7 +124,7 @@ def test_fake_records_classe_recente_range_no_match():
     )
     result = ds.fetch_records(req)
 
-    assert result == []
+    assert result.entries == []
 
 
 # ---------------------------------------------------------------------------
@@ -145,7 +145,7 @@ def test_fake_records_date_de_creation_max_filters_recent_stations():
     )
     result = ds.fetch_records(req)
 
-    station_ids = {e.station_id for e in result}
+    station_ids = {e.station_id for e in result.entries}
     assert station_ids == {"07481"}  # LYON-BRON uniquement
 
 
@@ -162,7 +162,7 @@ def test_fake_records_date_de_creation_min_filters_old_stations():
     )
     result = ds.fetch_records(req)
 
-    station_ids = {e.station_id for e in result}
+    station_ids = {e.station_id for e in result.entries}
     assert station_ids == {"07255", "07630"}  # BOURGES + TOULOUSE-BLAGNAC
 
 
@@ -184,7 +184,7 @@ def test_fake_records_fermeture_max_excludes_open_stations():
     )
     result = ds.fetch_records(req)
 
-    assert result == []
+    assert result.entries == []
 
 
 def test_fake_records_fermeture_min_alone_includes_open_stations():
@@ -200,7 +200,7 @@ def test_fake_records_fermeture_min_alone_includes_open_stations():
     )
     result = ds.fetch_records(req)
 
-    assert len(result) >= 5
+    assert len(result.entries) >= 5
 
 
 def test_fake_records_fermeture_min_and_max_excludes_open_stations():
@@ -216,4 +216,4 @@ def test_fake_records_fermeture_min_and_max_excludes_open_stations():
     )
     result = ds.fetch_records(req)
 
-    assert result == []
+    assert result.entries == []
