@@ -15,7 +15,7 @@
                     class="shrink-0"
                 />
                 <span
-                    class="text-sm truncate transition-colors"
+                    class="text-lg sm:text-xl/8 truncate transition-colors"
                     :class="station.code === hoveredCode ? 'text-primary' : ''"
                 >{{ station.nom }}</span>
             </li>
