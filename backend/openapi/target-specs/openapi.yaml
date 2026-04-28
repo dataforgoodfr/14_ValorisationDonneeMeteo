@@ -673,7 +673,7 @@ paths:
         - le type de record (`hot` ou `cold`)
 
         - le tri des résultats (`sort`)
-        
+
         - la classe de qualité de la station (`classe_recente_min` / `classe_recente_max`)
 
         - l'année de création de la station (`date_de_creation_min` / `date_de_creation_max`)
@@ -1872,7 +1872,7 @@ components:
           description: Liste des records de température pour la page
           items:
             $ref: "#/components/schemas/TemperatureRecordEntry"
-        
+
     TemperatureDeviationOverviewResponse:
       type: object
       required:
