@@ -3,6 +3,7 @@
 Projet Data For Good - Saison 14
 
 [![CI](https://github.com/jadechy/14_ValorisationDonneeMeteo/actions/workflows/ci.yml/badge.svg)](https://github.com/jadechy/14_ValorisationDonneeMeteo/actions/workflows/ci.yaml)
+[![OpenSSF Scorecard](https://api.scorecard.dev/projects/github.com/jadechy/14_ValorisationDonneeMeteo/badge)](https://scorecard.dev/viewer/?uri=github.com/jadechy/14_ValorisationDonneeMeteo)
 
 ## Structure du projet
 
