@@ -1,4 +1,3 @@
-import { refDebounced } from "@vueuse/core";
 import { useTemperatureRecords } from "~/composables/useTemperature";
 import { departements } from "~/data/records/departements";
 import { dateToStringYMD } from "~/utils/date";
@@ -22,8 +21,6 @@ type RecordsFilters = {
     record?: RangeFilterValue;
     record_date?: DateFilterValue;
 };
-
-const debounceDuration = 300;
 
 export const periodOptions = [
     { value: "all_time", label: "Toute l'année" },
@@ -133,14 +130,6 @@ export const useRecordsTableStore = defineStore("recordsTableStore", () => {
         }
     }
 
-    // Debounce filter inputs before applying client-side filters
-    const debouncedStationIds = refDebounced(stationIds, debounceDuration);
-    const debouncedDepartments = refDebounced(departments, debounceDuration);
-    const debouncedTempMin = refDebounced(temperatureMin, debounceDuration);
-    const debouncedTempMax = refDebounced(temperatureMax, debounceDuration);
-    const debouncedDateStart = refDebounced(dateStart, debounceDuration);
-    const debouncedDateEnd = refDebounced(dateEnd, debounceDuration);
-
     // Build API params from periodSelection
     const params = computed<TemperatureRecordsParams>(() => {
         const result: TemperatureRecordsParams = {
@@ -167,12 +156,12 @@ export const useRecordsTableStore = defineStore("recordsTableStore", () => {
     watch(
         [
             params,
-            debouncedStationIds,
-            debouncedDepartments,
-            debouncedTempMin,
-            debouncedTempMax,
-            debouncedDateStart,
-            debouncedDateEnd,
+            stationIds,
+            departments,
+            temperatureMin,
+            temperatureMax,
+            dateStart,
+            dateEnd,
         ],
         () => {
             page.value = 1;
@@ -200,32 +189,32 @@ export const useRecordsTableStore = defineStore("recordsTableStore", () => {
     const filteredRecords = computed<TemperatureRecordFlatEntry[]>(() => {
         let result = absoluteRecords.value;
 
-        if (debouncedStationIds.value.length > 0) {
+        if (stationIds.value.length > 0) {
             result = result.filter((r) =>
-                debouncedStationIds.value.includes(r.station_id),
+                stationIds.value.includes(r.station_id),
             );
         }
-        if (debouncedDepartments.value.length > 0) {
+        if (departments.value.length > 0) {
             result = result.filter((r) =>
-                debouncedDepartments.value.includes(r.department),
+                departments.value.includes(r.department),
             );
         }
-        if (debouncedTempMin.value) {
+        if (temperatureMin.value) {
             result = result.filter(
-                (r) => r.record_value >= Number(debouncedTempMin.value),
+                (r) => r.record_value >= Number(temperatureMin.value),
             );
         }
-        if (debouncedTempMax.value) {
+        if (temperatureMax.value) {
             result = result.filter(
-                (r) => r.record_value <= Number(debouncedTempMax.value),
+                (r) => r.record_value <= Number(temperatureMax.value),
             );
         }
-        if (debouncedDateStart.value) {
-            const start = dateToStringYMD(debouncedDateStart.value);
+        if (dateStart.value) {
+            const start = dateToStringYMD(dateStart.value);
             result = result.filter((r) => r.record_date >= start);
         }
-        if (debouncedDateEnd.value) {
-            const end = dateToStringYMD(debouncedDateEnd.value);
+        if (dateEnd.value) {
+            const end = dateToStringYMD(dateEnd.value);
             result = result.filter((r) => r.record_date <= end);
         }
 
