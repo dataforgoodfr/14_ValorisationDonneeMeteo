@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import HotColdRatioCard from "~/components/home/HotColdRatioCard.vue";
+import type { TemperatureRecordsGraphParams } from "~/types/api";
 
 const { yesterday, yesterdayLess365Days, yesterdayLastYear } = useCustomDate();
 
@@ -10,11 +11,11 @@ const yesterdayLastYearLess365Days = computed(() => {
 });
 
 const { data } = useTemperatureRecordsGraph(
-    computed(() => ({
+    computed<TemperatureRecordsGraphParams>(() => ({
         date_start: dateToStringYMD(yesterdayLess365Days.value),
         date_end: dateToStringYMD(yesterday.value),
-        granularity: "day" as const,
-        type_records: "all" as const,
+        granularity: "day",
+        type_records: "all",
     })),
 );
 
@@ -22,8 +23,8 @@ const { data: previousData } = useTemperatureRecordsGraph(
     computed(() => ({
         date_start: dateToStringYMD(yesterdayLastYearLess365Days.value),
         date_end: dateToStringYMD(yesterdayLastYear.value),
-        granularity: "day" as const,
-        type_records: "all" as const,
+        granularity: "day",
+        type_records: "all",
     })),
 );
 

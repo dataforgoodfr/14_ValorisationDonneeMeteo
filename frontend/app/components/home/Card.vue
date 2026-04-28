@@ -3,17 +3,29 @@ interface Props {
     title: string;
     tooltipText: string;
     withBorder?: boolean;
+    showTitle?: boolean;
+    transparent?: boolean;
 }
 
-const props = defineProps<Props>();
+const props = withDefaults(defineProps<Props>(), {
+    showTitle: true,
+    transparent: false,
+});
 const isOpen = ref(false);
 </script>
 <template>
     <UCard
-        :class="['flex flex-col', props.withBorder && 'border border-blue-350']"
+        :class="[
+            'flex flex-col',
+            props.withBorder && 'border border-blue-350',
+            props.transparent && 'bg-transparent shadow-none ring-0',
+        ]"
     >
         <template #default>
-            <div class="flex items-center justify-between pb-2">
+            <div
+                v-if="props.showTitle"
+                class="flex items-center justify-between pb-2"
+            >
                 <h1
                     class="text-sm font-semibold text-blue-700 dark:text-blue-350"
                 >
@@ -38,7 +50,7 @@ const isOpen = ref(false);
             <slot name="kpi" />
             <div
                 v-if="$slots['kpi-context-box']"
-                class="kpi-context-box py-1 px-2 rounded-lg leading-none bg-amber-500 dark:bg-amber-700 border-amber-800 dark:border-amber-500 border"
+                class="kpi-context-box w-fit py-1 px-2 rounded-lg leading-none bg-amber-500 dark:bg-amber-700 border-amber-800 dark:border-amber-500 border"
             >
                 <span
                     class="text-xs font-medium text-amber-800 dark:text-amber-500"
