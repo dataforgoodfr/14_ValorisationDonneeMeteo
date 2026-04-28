@@ -635,6 +635,61 @@ paths:
             type: number
           description: Altitude maximale incluse (mètres).
 
+        - name: classe_recente_min
+          in: query
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 5
+          description: Classe de qualité minimale incluse (1=meilleure).
+
+        - name: classe_recente_max
+          in: query
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 5
+          description: Classe de qualité maximale incluse (5=moins fiable).
+
+        - name: date_de_creation_min
+          in: query
+          required: false
+          schema:
+            type: string
+            format: date
+          description: Date de création minimale incluse (YYYY-MM-DD). Seule l'année est utilisée.
+
+        - name: date_de_creation_max
+          in: query
+          required: false
+          schema:
+            type: string
+            format: date
+          description: Date de création maximale incluse (YYYY-MM-DD). Seule l'année est utilisée.
+
+        - name: date_de_fermeture_min
+          in: query
+          required: false
+          schema:
+            type: string
+            format: date
+          description: >
+            Date de fermeture minimale incluse (YYYY-MM-DD, seule l'année est utilisée).
+            Si utilisé seul, les stations toujours ouvertes (date_de_fermeture null) sont incluses.
+            Si combiné avec date_de_fermeture_max, les stations ouvertes sont exclues.
+
+        - name: date_de_fermeture_max
+          in: query
+          required: false
+          schema:
+            type: string
+            format: date
+          description: >
+            Date de fermeture maximale incluse (YYYY-MM-DD, seule l'année est utilisée).
+            Les stations toujours ouvertes (date_de_fermeture null) sont exclues.
+
         - name: departments
           in: query
           required: false
@@ -715,6 +770,12 @@ paths:
                         tmean_max: null
                         alt_min: null
                         alt_max: null
+                        classe_recente_min: null
+                        classe_recente_max: null
+                        date_de_creation_min: null
+                        date_de_creation_max: null
+                        date_de_fermeture_min: null
+                        date_de_fermeture_max: null
                         departments: []
                         regions: []
                       ordering: "-textreme_mean"

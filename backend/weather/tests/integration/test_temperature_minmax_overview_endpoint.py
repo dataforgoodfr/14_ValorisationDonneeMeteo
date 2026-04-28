@@ -202,3 +202,42 @@ def test_empty_result_returns_200(client: APIClient):
     assert resp.status_code == 200
     data = resp.json()
     assert data["stations"] == []
+
+
+def test_metadata_includes_lifecycle_filters(client: APIClient):
+    resp = client.get(
+        URL,
+        {
+            "date_start": "2024-01-01",
+            "date_end": "2024-12-31",
+            "classe_recente_min": 1,
+            "classe_recente_max": 3,
+            "date_de_creation_max": "1950-01-01",
+            "date_de_fermeture_min": "2000-01-01",
+        },
+    )
+
+    assert resp.status_code == 200
+    filters = resp.json()["metadata"]["filters"]
+
+    assert filters["classe_recente_min"] == 1
+    assert filters["classe_recente_max"] == 3
+    assert filters["date_de_creation_min"] is None
+    assert filters["date_de_creation_max"] == "1950-01-01"
+    assert filters["date_de_fermeture_min"] == "2000-01-01"
+    assert filters["date_de_fermeture_max"] is None
+
+
+def test_returns_400_on_invalid_classe_recente_bounds(client: APIClient):
+    resp = client.get(
+        URL,
+        {
+            "date_start": "2024-01-01",
+            "date_end": "2024-12-31",
+            "classe_recente_min": 4,
+            "classe_recente_max": 2,
+        },
+    )
+
+    assert resp.status_code == 400
+    assert resp.json()["error"]["code"] == "INVALID_PARAMETER"
