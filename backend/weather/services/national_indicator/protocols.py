@@ -3,7 +3,7 @@ from __future__ import annotations
 import datetime as dt
 from typing import Protocol
 
-from .types import BaselinePoint, DailySeriesQuery, ObservedPoint
+from .types import BaselinePoint, ObservedPoint, ObservedSeriesQuery
 
 
 class NationalIndicatorObservedDataSource(Protocol):
@@ -11,9 +11,9 @@ class NationalIndicatorObservedDataSource(Protocol):
     Source de données journalières observées pour le calcul ITN.
     """
 
-    def fetch_daily_series(
+    def fetch_observed_series(
         self,
-        query: DailySeriesQuery,
+        query: ObservedSeriesQuery,
     ) -> list[ObservedPoint]: ...
 
 

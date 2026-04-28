@@ -1,91 +1,15 @@
-import datetime as dt
 import pathlib
 
 import pytest
 from django.db import connection
 
-BASE_DIR = pathlib.Path(__file__).resolve().parents[2]  # ajuste selon ton arbo
-
-
-def insert_quotidienne(
-    day: dt.date,
-    code: str,
-    *,
-    tx: float | None = None,
-    tn: float | None = None,
-) -> None:
-    with connection.cursor() as cur:
-        cur.execute(
-            """
-            INSERT INTO public."Quotidienne"
-                ("NUM_POSTE", "NOM_USUEL", "LAT", "LON", "ALTI", "AAAAMMJJ", "TX", "TN", "TNTXM")
-            VALUES
-                (%(code)s, %(name)s, 0, 0, 0, %(day)s, %(tx)s, %(tn)s, %(tntxm)s)
-            ON CONFLICT ("NUM_POSTE", "AAAAMMJJ")
-            DO UPDATE SET "TX" = EXCLUDED."TX", "TN" = EXCLUDED."TN", "TNTXM" = EXCLUDED."TNTXM"
-            """,
-            {
-                "code": code,
-                "name": f"ST {code}",
-                "day": day,
-                "tx": tx,
-                "tn": tn,
-                "tntxm": ((tx or 0) + (tn or 0)) / 2 if tx and tn else None,
-            },
-        )
-
-
-def insert_mv_record(
-    station_code: str,
-    station_name: str,
-    period_type: str,
-    period_value: str | None,
-    record_type: str,
-    value: float,
-    date: dt.date,
-    department: int = 75,
-) -> None:
-    with connection.cursor() as cur:
-        cur.execute(
-            """
-            INSERT INTO public.mv_records_battus
-                (period_type, period_value, record_type,
-                 station_code, station_name, department,
-                 record_value, record_date)
-            VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
-            """,
-            [
-                period_type,
-                period_value,
-                record_type,
-                station_code,
-                station_name,
-                department,
-                value,
-                date,
-            ],
-        )
-
-
-def set_cutoff(date: dt.date) -> None:
-    with connection.cursor() as cur:
-        cur.execute("TRUNCATE public.mv_records_battus_meta;")
-        cur.execute(
-            "INSERT INTO public.mv_records_battus_meta (cutoff_date) VALUES (%s);",
-            [date],
-        )
-
-
-def clear_mv() -> None:
-    with connection.cursor() as cur:
-        cur.execute("TRUNCATE public.mv_records_battus;")
-        cur.execute("TRUNCATE public.mv_records_battus_meta;")
+BASE_DIR = pathlib.Path(__file__).resolve().parents[2]
 
 
 @pytest.fixture(scope="session", autouse=True)
 def setup_db_schema_and_views(django_db_setup, django_db_blocker):
     """
-    Crée les tables sources + views dans la DB de test.
+    Initialise la DB de test avec les tables + vues + MV nécessaires.
     """
     schema_sql = (BASE_DIR / "sql" / "schemas" / "001_source_tables.sql").read_text()
     ref_department_region_sql = (
@@ -102,44 +26,54 @@ def setup_db_schema_and_views(django_db_setup, django_db_blocker):
     itn_baseline_tables_sql = (
         BASE_DIR / "sql" / "test_tables" / "itn_baseline.sql"
     ).read_text()
+    mv_itn_daily_sql = (
+        BASE_DIR
+        / "sql"
+        / "materialized_views"
+        / "itn"
+        / "006_mv_itn_daily_observed.sql"
+    ).read_text()
 
     with django_db_blocker.unblock():
         with connection.cursor() as cur:
+            # Extension
             cur.execute("CREATE EXTENSION IF NOT EXISTS timescaledb;")
+
+            # Nettoyage robuste
             cur.execute("DROP TABLE IF EXISTS public.mv_records_battus_meta;")
-            # mv_records_battus est une vraie vue matérialisée en prod/dev, mais ici
-            # le conftest la recrée comme TABLE ordinaire pour pouvoir y insérer des
-            # données de test. Son type dépend donc de ce que la session précédente a
-            # laissé : DROP TABLE échoue sur une MV et DROP MATERIALIZED VIEW échoue
-            # sur une table. Le DO $$ consulte pg_matviews / pg_tables pour choisir
-            # la bonne commande avant d'exécuter.
-            cur.execute("""
-                DO $$ BEGIN
-                    IF EXISTS (
-                        SELECT 1 FROM pg_matviews
-                        WHERE schemaname = 'public' AND matviewname = 'mv_records_battus'
-                    ) THEN
-                        DROP MATERIALIZED VIEW public.mv_records_battus;
-                    ELSIF EXISTS (
-                        SELECT 1 FROM pg_tables
-                        WHERE schemaname = 'public' AND tablename = 'mv_records_battus'
-                    ) THEN
-                        DROP TABLE public.mv_records_battus;
-                    END IF;
-                END $$;
-            """)
+            cur.execute(
+                "DROP MATERIALIZED VIEW IF EXISTS public.mv_records_battus CASCADE;"
+            )
+            cur.execute(
+                "DROP MATERIALIZED VIEW IF EXISTS public.mv_itn_daily_observed CASCADE;"
+            )
             cur.execute("DROP VIEW IF EXISTS public.v_quotidienne_itn CASCADE;")
             cur.execute("DROP VIEW IF EXISTS public.v_station CASCADE;")
             cur.execute(
                 "DROP TABLE IF EXISTS public.baseline_station_daily_mean_1991_2020 CASCADE;"
             )
+
+            # Schema
             cur.execute(schema_sql)
             cur.execute(ref_department_region_sql)
+
+            # Views
             cur.execute(v_station_sql)
+
+            # MV realtime
             cur.execute(mv_quot_sql)
+
+            # Vue quotidienne
             cur.execute(v_quot_sql)
+
+            # Tables de test
             cur.execute(baseline_station_table_sql)
             cur.execute(itn_baseline_tables_sql)
+
+            # ✅ VRAIE MV ITN (plus de table fake)
+            cur.execute(mv_itn_daily_sql)
+
+            # Tables records (fake)
             cur.execute(
                 "CREATE TABLE public.mv_records_battus_meta (cutoff_date DATE NOT NULL);"
             )

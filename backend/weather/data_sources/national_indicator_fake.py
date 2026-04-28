@@ -17,15 +17,17 @@ import datetime as dt
 import math
 import random
 
+from weather.services.national_indicator.aggregation import aggregate_observed
 from weather.services.national_indicator.protocols import (
     NationalIndicatorBaselineDataSource,
     NationalIndicatorObservedDataSource,
 )
 from weather.services.national_indicator.service import compute_national_indicator
+from weather.services.national_indicator.slicing import apply_slice
 from weather.services.national_indicator.types import (
     BaselinePoint,
-    DailySeriesQuery,
     ObservedPoint,
+    ObservedSeriesQuery,
 )
 from weather.utils.date_range import iter_days_intersecting
 
@@ -75,9 +77,9 @@ class FakeNationalIndicatorDataSource(
     def __init__(self, *, seed: int = 42) -> None:
         self._seed = seed
 
-    def fetch_daily_series(
+    def _daily_points_for_query(
         self,
-        query: DailySeriesQuery,
+        query: ObservedSeriesQuery,
     ) -> list[ObservedPoint]:
         rng = random.Random(self._seed)
         out: list[ObservedPoint] = []
@@ -91,14 +93,32 @@ class FakeNationalIndicatorDataSource(
         for d in days:
             baseline_mean, sigma, _, _ = _climatology_for_date(d)
             temperature = baseline_mean + rng.gauss(0.0, sigma)
-            out.append(
-                ObservedPoint(
-                    date=d,
-                    temperature=temperature,
-                )
-            )
+            out.append(ObservedPoint(date=d, temperature=temperature))
 
         return out
+
+    def fetch_observed_series(
+        self,
+        query: ObservedSeriesQuery,
+    ) -> list[ObservedPoint]:
+        daily = self._daily_points_for_query(query)
+
+        sliced = apply_slice(
+            daily,
+            granularity=query.granularity,
+            slice_type=query.slice_type,
+            month_of_year=query.month_of_year,
+            day_of_month=query.day_of_month,
+        )
+
+        return aggregate_observed(
+            sliced,
+            date_start=query.date_start,
+            date_end=query.date_end,
+            granularity=query.granularity,
+            slice_type=query.slice_type,
+            month_of_year=query.month_of_year,
+        )
 
     def fetch_daily_baseline(self, day: dt.date) -> BaselinePoint:
         mean, stddev, baseline_min, baseline_max = _climatology_for_date(day)

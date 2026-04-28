@@ -8,14 +8,12 @@ from weather.utils.date_range import (
     yearly_points_in_range,
 )
 
-from .aggregation import aggregate_observed
 from .protocols import (
     NationalIndicatorBaselineDataSource,
     NationalIndicatorObservedDataSource,
 )
-from .slicing import apply_slice
 from .source_window import compute_source_window
-from .types import DailySeriesQuery, OutputPoint
+from .types import ObservedSeriesQuery, OutputPoint
 
 
 def compute_target_dates(
@@ -124,37 +122,20 @@ def compute_national_indicator(
         month_of_year=month_of_year,
         day_of_month=day_of_month,
     )
-
-    # 3. Query
-    query = DailySeriesQuery(
-        date_start=src_start,
-        date_end=src_end,
-        target_dates=target_dates,
+    # 3 Fetch ITN
+    observed_points = observed_data_source.fetch_observed_series(
+        ObservedSeriesQuery(
+            date_start=src_start,
+            date_end=src_end,
+            granularity=granularity,
+            slice_type=slice_type,
+            month_of_year=month_of_year,
+            day_of_month=day_of_month,
+            target_dates=target_dates,
+        )
     )
 
-    # 4. Fetch observé journalier
-    daily = observed_data_source.fetch_daily_series(query)
-
-    # 5. Slice
-    sliced = apply_slice(
-        daily,
-        granularity=granularity,
-        slice_type=slice_type,
-        month_of_year=month_of_year,
-        day_of_month=day_of_month,
-    )
-
-    # 6. Agrégation observée
-    observed_points = aggregate_observed(
-        sliced,
-        date_start=date_start,
-        date_end=date_end,
-        granularity=granularity,
-        slice_type=slice_type,
-        month_of_year=month_of_year,
-    )
-
-    # 7. Enrichissement baseline
+    # 4. Enrichissement baseline
     points: list[OutputPoint] = []
     for p in observed_points:
         b = _baseline_for_output_point(
@@ -176,7 +157,7 @@ def compute_national_indicator(
             )
         )
 
-    # 8. Format réponse
+    # 5. Format réponse
     return {
         "time_series": [
             {

@@ -16,7 +16,7 @@ class StubObservedDataSource(NationalIndicatorBaselineDataSource):
     def __init__(self, points: list[ObservedPoint]):
         self._points = points
 
-    def fetch_daily_series(self, _query) -> list[ObservedPoint]:
+    def fetch_observed_series(self, _query) -> list[ObservedPoint]:
         return self._points
 
 
@@ -43,7 +43,7 @@ class AnyDateObservedDataSource(NationalIndicatorBaselineDataSource):
     def __init__(self, temperature: float):
         self._temperature = temperature
 
-    def fetch_daily_series(self, query) -> list[ObservedPoint]:
+    def fetch_observed_series(self, query) -> list[ObservedPoint]:
         start, end = query.date_start, query.date_end
         return [
             ObservedPoint(
@@ -197,7 +197,7 @@ def test_previous_period_dates_are_correct():
     calls: list[tuple[dt.date, dt.date]] = []
 
     class TrackingObservedDataSource(NationalIndicatorBaselineDataSource):
-        def fetch_daily_series(self, query) -> list[ObservedPoint]:
+        def fetch_observed_series(self, query) -> list[ObservedPoint]:
             calls.append((query.date_start, query.date_end))
             return []
 
@@ -223,7 +223,7 @@ def test_previous_period_computes_independent_stats():
     }
 
     class TwoDayObserved(NationalIndicatorBaselineDataSource):
-        def fetch_daily_series(self, query) -> list[ObservedPoint]:
+        def fetch_observed_series(self, query) -> list[ObservedPoint]:
             temps = {dt.date(2024, 1, 10): 25.0, dt.date(2024, 1, 9): 5.0}
             start, end = query.date_start, query.date_end
             return [

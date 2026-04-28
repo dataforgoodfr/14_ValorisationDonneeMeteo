@@ -7,14 +7,17 @@ from django.urls import reverse
 from rest_framework.test import APIClient
 
 from weather.bootstrap_itn import ITNDependencies, ITNDependencyProvider
+from weather.services.national_indicator.aggregation import aggregate_observed
 from weather.services.national_indicator.protocols import (
     NationalIndicatorBaselineDataSource,
     NationalIndicatorObservedDataSource,
 )
+from weather.services.national_indicator.slicing import apply_slice
 from weather.services.national_indicator.types import (
     BaselinePoint,
     DailySeriesQuery,
     ObservedPoint,
+    ObservedSeriesQuery,
 )
 from weather.utils.date_range import iter_days_intersecting
 
@@ -76,6 +79,35 @@ def test_get_national_indicator_month_happy_path(client: APIClient):
                 baseline_std_dev_lower=mean - 1.0,
                 baseline_max=0.0,
                 baseline_min=0.0,
+            )
+
+        def fetch_observed_series(
+            self,
+            query: ObservedSeriesQuery,
+        ) -> list[ObservedPoint]:
+            daily = self.fetch_daily_series(
+                DailySeriesQuery(
+                    date_start=query.date_start,
+                    date_end=query.date_end,
+                    target_dates=query.target_dates,
+                )
+            )
+
+            sliced = apply_slice(
+                daily,
+                granularity=query.granularity,
+                slice_type=query.slice_type,
+                month_of_year=query.month_of_year,
+                day_of_month=query.day_of_month,
+            )
+
+            return aggregate_observed(
+                sliced,
+                date_start=query.date_start,
+                date_end=query.date_end,
+                granularity=query.granularity,
+                slice_type=query.slice_type,
+                month_of_year=query.month_of_year,
             )
 
     ITNDependencyProvider.set_builder(
