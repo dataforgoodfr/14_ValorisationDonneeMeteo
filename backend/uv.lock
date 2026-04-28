@@ -1464,6 +1464,11 @@ notebooks = [
     { name = "pandas" },
 ]
 
+[package.dev-dependencies]
+dev = [
+    { name = "ruff" },
+]
+
 [package.metadata]
 requires-dist = [
     { name = "django", specifier = ">=5.1,<6.0" },
@@ -1491,6 +1496,9 @@ requires-dist = [
     { name = "whitenoise", specifier = ">=6.7.0" },
 ]
 provides-extras = ["dev", "notebooks"]
+
+[package.metadata.requires-dev]
+dev = [{ name = "ruff", specifier = ">=0.14.14" }]
 
 [[package]]
 name = "mistune"
