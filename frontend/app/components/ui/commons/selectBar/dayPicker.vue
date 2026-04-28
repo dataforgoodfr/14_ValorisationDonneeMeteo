@@ -116,36 +116,28 @@ const pt = {
 </script>
 
 <template>
-    <div id="container-day-picker" class="flex gap-2">
-        <div class="flex flex-col text-center gap-1">
-            <p class="text-sm text-default">Jour de début</p>
-            <DatePicker
-                v-model="localStartDate"
-                :max-date="localEndDate"
-                date-format="dd/mm/yy"
-                :pt="pt"
-                unstyled
-                append-to="self"
-                show-icon
-                icon-display="input"
-            />
-        </div>
-        <div class="pt-7 self-center">
-            <UIcon name="i-lucide-arrow-right" />
-        </div>
-        <div class="flex flex-col text-center gap-1">
-            <p class="text-sm text-default">Jour de fin</p>
-            <DatePicker
-                v-model="localEndDate"
-                :min-date="localStartDate"
-                :max-date="maxEndDate"
-                date-format="dd/mm/yy"
-                :pt="pt"
-                unstyled
-                append-to="self"
-                show-icon
-                icon-display="input"
-            />
-        </div>
+    <div id="container-day-picker" class="flex gap-2 items-center">
+        <DatePicker
+            v-model="localStartDate"
+            :max-date="localEndDate"
+            date-format="dd/mm/yy"
+            :pt="pt"
+            unstyled
+            append-to="self"
+            show-icon
+            icon-display="input"
+        />
+        <UIcon name="i-lucide-arrow-right" />
+        <DatePicker
+            v-model="localEndDate"
+            :min-date="localStartDate"
+            :max-date="maxEndDate"
+            date-format="dd/mm/yy"
+            :pt="pt"
+            unstyled
+            append-to="self"
+            show-icon
+            icon-display="input"
+        />
     </div>
 </template>

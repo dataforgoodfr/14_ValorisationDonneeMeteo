@@ -152,7 +152,7 @@ paths:
             type: integer
             minimum: 1
             maximum: 500
-            default: 50
+          default: 50
           description: Nombre maximal d'éléments retournés.
 
         - name: offset
@@ -175,6 +175,61 @@ paths:
           schema:
             type: number
           required: false
+
+        - name: classe_recente_min
+          in: query
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 5
+          description: Classe de qualité minimale incluse (1=meilleure).
+
+        - name: classe_recente_max
+          in: query
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 5
+          description: Classe de qualité maximale incluse (5=moins fiable).
+
+        - name: date_de_creation_min
+          in: query
+          required: false
+          schema:
+            type: string
+            format: date
+          description: Date de création minimale incluse (YYYY-MM-DD). Seule l'année est utilisée.
+
+        - name: date_de_creation_max
+          in: query
+          required: false
+          schema:
+            type: string
+            format: date
+          description: Date de création maximale incluse (YYYY-MM-DD). Seule l'année est utilisée.
+
+        - name: date_de_fermeture_min
+          in: query
+          required: false
+          schema:
+            type: string
+            format: date
+          description: >
+            Date de fermeture minimale incluse (YYYY-MM-DD, seule l'année est utilisée).
+            Si utilisé seul, les stations toujours ouvertes (date_de_fermeture null) sont incluses.
+            Si combiné avec date_de_fermeture_max, les stations ouvertes sont exclues.
+
+        - name: date_de_fermeture_max
+          in: query
+          required: false
+          schema:
+            type: string
+            format: date
+          description: >
+            Date de fermeture maximale incluse (YYYY-MM-DD, seule l'année est utilisée).
+            Les stations toujours ouvertes (date_de_fermeture null) sont exclues.
 
         - name: departments
           in: query
@@ -230,6 +285,9 @@ paths:
                         lon: 5.3
                         department: "13"
                         region: "Provence-Alpes-Côte d'Azur"
+                        classe_recente: 1
+                        date_de_creation: "1921-01-01"
+                        date_de_fermeture: null
                       - station_id: "7501111156"
                         station_name: "Paris-Montsouris"
                         temperature_mean: 28.5
@@ -240,6 +298,9 @@ paths:
                         alt: 40
                         department: "75"
                         region: "Ile de France"
+                        classe_recente: 2
+                        date_de_creation: "1947-01-01"
+                        date_de_fermeture: null
         "400":
           $ref: "#/components/responses/BadRequest"
 
@@ -604,20 +665,30 @@ paths:
     get:
       summary: Records de température
       description: |
-        Liste les records de température par station.
+        Liste les records de température par station avec support de la pagination et du tri.
 
         L'endpoint permet de filtrer :
         - le découpage temporel (`period_type`) : tous les temps, par mois ou par saison
 
         - le type de record (`hot` ou `cold`)
 
+        - le tri des résultats (`sort`)
+
+        - la classe de qualité de la station (`classe_recente_min` / `classe_recente_max`)
+
+        - l'année de création de la station (`date_de_creation_min` / `date_de_creation_max`)
+
+        - l'année de fermeture de la station (`date_de_fermeture_min` / `date_de_fermeture_max`)
+
         Exemples de requêtes :
 
-        - `period_type=all_time&type_records=hot`
+        - `period_type=all_time&type_records=hot&sort=-record_value`
 
-        - `period_type=month&month=7&type_records=hot`
+        - `period_type=month&month=7&type_records=hot&page=1&page_size=50`
 
-        - `period_type=season&season=summer&type_records=cold`
+        - `period_type=season&season=summer&type_records=cold&sort=station_name`
+
+        - `period_type=all_time&type_records=hot&sort=-record_value,station_name`
 
       operationId: getTemperatureRecords
       tags:
@@ -667,37 +738,140 @@ paths:
           schema:
             type: string
             enum: [hot, cold]
-            default: hot
+          default: hot
+        - name: page
+          in: query
+          required: false
+          description: |
+            Numéro de page (défaut: 1).
+          schema:
+            type: integer
+            minimum: 1
+          default: 1
+          example: 1
+        - name: page_size
+          in: query
+          required: false
+          description: |
+            Nombre de résultats par page (défaut: 50).
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 500
+          default: 50
+          example: 50
+        - name: sort
+          in: query
+          required: false
+          description: |
+            Champ(s) de tri avec ordre. Supporte un ou plusieurs critères séparés par des virgules.
+
+            Format : `[field]` pour ascendant, `[-field]` pour descendant.
+
+            Champs disponibles :
+            - `record_value` : valeur du record (défaut)
+            - `station_name` : nom de la station
+            - `record_date` : date du record
+            - `department` : département
+
+            Exemples :
+            - `record_value` : tri par valeur croissante
+            - `-record_value` : tri par valeur décroissante
+            - `record_value,station_name` : tri par valeur puis nom croissant
+            - `-record_value,station_name` : tri par valeur décroissante puis nom croissant
+          schema:
+            type: string
+          default: record_value
+          example: "-record_value,station_name"
+        - name: classe_recente_min
+          in: query
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 5
+          description: Classe de qualité minimale incluse (1=meilleure).
+        - name: classe_recente_max
+          in: query
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 5
+          description: Classe de qualité maximale incluse (5=moins fiable).
+        - name: date_de_creation_min
+          in: query
+          required: false
+          schema:
+            type: string
+            format: date
+          description: Date de création minimale incluse (YYYY-MM-DD). Seule l'année est utilisée.
+        - name: date_de_creation_max
+          in: query
+          required: false
+          schema:
+            type: string
+            format: date
+          description: Date de création maximale incluse (YYYY-MM-DD). Seule l'année est utilisée.
+        - name: date_de_fermeture_min
+          in: query
+          required: false
+          schema:
+            type: string
+            format: date
+          description: >
+            Date de fermeture minimale incluse (YYYY-MM-DD, seule l'année est utilisée).
+            Si utilisé seul, les stations toujours ouvertes (date_de_fermeture null) sont incluses.
+            Si combiné avec date_de_fermeture_max, les stations ouvertes sont exclues.
+        - name: date_de_fermeture_max
+          in: query
+          required: false
+          schema:
+            type: string
+            format: date
+          description: >
+            Date de fermeture maximale incluse (YYYY-MM-DD, seule l'année est utilisée).
+            Les stations toujours ouvertes (date_de_fermeture null) sont exclues.
       responses:
         "200":
-          description: Liste des records de température par station.
+          description: Liste paginée des records de température par station.
           content:
             application/json:
               schema:
-                type: array
-                items:
-                  $ref: "#/components/schemas/TemperatureRecordEntry"
+                $ref: "#/components/schemas/TemperatureRecordsResponse"
               examples:
                 sample:
                   summary: Exemple de réponse
                   value:
-                    - station_id: "07149"
-                      station_name: "Orly"
-                      department: "94"
-                      record_value: 40.4
-                      record_date: "2019-07-25"
-                      lat: 48.718
-                      lon: 2.397
-                      alt: 86.0
-                    - station_id: "07156"
-                      station_name: "Paris-Montsouris"
-                      department: "75"
-                      record_value: 39.7
-                      record_date: "2019-07-25"
-                      lat: 48.821667
-                      lon: 2.337833
-                      alt: 75.0
 
+                    pagination:
+                      total_count: 100
+                      page: 1
+                      page_size: 50
+                      total_pages: 2
+                    results:
+                      - station_id: "07149"
+                        station_name: "Orly"
+                        department: "94"
+                        record_value: 40.4
+                        record_date: "2019-07-25"
+                        lat: 48.718
+                        lon: 2.397
+                        alt: 86.0
+                        classe_recente: 1
+                        date_de_creation: "1921-01-01"
+                        date_de_fermeture: null
+                      - station_id: "07156"
+                        station_name: "Paris-Montsouris"
+                        department: "75"
+                        record_value: 39.7
+                        record_date: "2019-07-25"
+                        lat: 48.821667
+                        lon: 2.337833
+                        alt: 75.0
+                        classe_recente: 2
+                        date_de_creation: "1947-01-01"
+                        date_de_fermeture: null
         "400":
           $ref: "#/components/responses/BadRequest"
 
@@ -1613,6 +1787,9 @@ components:
         - lat
         - lon
         - alt
+        - classe_recente
+        - date_de_creation
+        - date_de_fermeture
       properties:
         station_id:
           type: string
@@ -1642,6 +1819,60 @@ components:
           type: number
           format: double
           description: Altitude de la station (mètres)
+        classe_recente:
+          type: integer
+          minimum: 1
+          maximum: 3
+          description: Classe de qualité de la station (1=meilleure, 3=limite autorisée pour les records)
+        date_de_creation:
+          type: string
+          format: date
+          description: Date de création de la station (1er janvier de l'année d'ouverture)
+        date_de_fermeture:
+          type: string
+          format: date
+          nullable: true
+          description: Date de fermeture de la station (31 décembre de l'année de fermeture), null si toujours ouverte
+
+    Pagination:
+      type: object
+      required:
+        - total_count
+        - page
+        - page_size
+        - total_pages
+      properties:
+        total_count:
+          type: integer
+          description: Nombre total de résultats
+          example: 100
+        page:
+          type: integer
+          description: Numéro de la page actuelle
+          example: 1
+        page_size:
+          type: integer
+          description: Nombre de résultats par page
+          example: 50
+        total_pages:
+          type: integer
+          description: Nombre total de pages
+          example: 2
+
+    TemperatureRecordsResponse:
+      type: object
+      required:
+        - pagination
+        - results
+      properties:
+        pagination:
+          $ref: "#/components/schemas/Pagination"
+        results:
+          type: array
+          description: Liste des records de température pour la page
+          items:
+            $ref: "#/components/schemas/TemperatureRecordEntry"
+
     TemperatureDeviationOverviewResponse:
       type: object
       required:
@@ -1708,6 +1939,28 @@ components:
             alt_max:
               type: number
               nullable: true
+            classe_recente_min:
+              type: integer
+              nullable: true
+            classe_recente_max:
+              type: integer
+              nullable: true
+            date_de_creation_min:
+              type: string
+              format: date
+              nullable: true
+            date_de_creation_max:
+              type: string
+              format: date
+              nullable: true
+            date_de_fermeture_min:
+              type: string
+              format: date
+              nullable: true
+            date_de_fermeture_max:
+              type: string
+              format: date
+              nullable: true
             departments:
               type: array
               items:
@@ -1756,6 +2009,9 @@ components:
         - alt
         - department
         - region
+        - classe_recente
+        - date_de_creation
+        - date_de_fermeture
       properties:
         station_id:
           type: string
@@ -1788,6 +2044,20 @@ components:
         region:
           type: string
           nullable: true
+        classe_recente:
+          type: integer
+          minimum: 1
+          maximum: 4
+          description: Classe de qualité de la station (1=meilleure, 4=limite autorisée pour la déviation)
+        date_de_creation:
+          type: string
+          format: date
+          description: Date de création de la station (1er janvier de l'année d'ouverture)
+        date_de_fermeture:
+          type: string
+          format: date
+          nullable: true
+          description: Date de fermeture de la station (31 décembre de l'année de fermeture), null si toujours ouverte
 
   responses:
     BadRequest:

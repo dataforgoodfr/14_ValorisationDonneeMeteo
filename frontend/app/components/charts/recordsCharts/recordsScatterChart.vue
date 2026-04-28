@@ -128,7 +128,7 @@ const option = computed<ECOption>(() => {
             nameLocation: "middle",
             nameGap: 25,
             nameTextStyle: {
-                fontSize: FONT_CHARTS.fontSize,
+                fontSize: FONT_CHARTS.axisName,
                 fontWeight: "bold",
             },
             axisPointer: { type: "line", label: { show: false } },
@@ -154,11 +154,13 @@ const option = computed<ECOption>(() => {
             nameLocation: "middle",
             nameGap: 40,
             nameTextStyle: {
-                fontSize: FONT_CHARTS.fontSize,
+                fontSize: FONT_CHARTS.axisName,
                 fontWeight: "bold",
             },
-            axisLabel: { fontSize: FONT_CHARTS.fontSize },
-            splitLine: { lineStyle: { type: "dashed" } },
+            axisLabel: { fontSize: FONT_CHARTS.axis },
+            splitLine: {
+                lineStyle: { type: "dashed", color: mapColors.value.splitLine },
+            },
         })),
         series: [
             ...territoryPlots.flatMap((_, index) => [

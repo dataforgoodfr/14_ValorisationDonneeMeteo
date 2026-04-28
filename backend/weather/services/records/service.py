@@ -1,7 +1,7 @@
 import datetime as dt
 
 from .protocols import RecordsDataSource
-from .types import RecordsQuery, StationRecords
+from .types import RecordsQuery, RecordsResult
 
 
 def compute_records(
@@ -16,7 +16,9 @@ def compute_records(
     type_records: str = "all",
     temperature_min: float | None = None,
     temperature_max: float | None = None,
-) -> tuple[StationRecords, ...]:
+    page: int = 1,
+    page_size: int = 50,
+) -> RecordsResult:
     query = RecordsQuery(
         date_start=date_start,
         date_end=date_end,
@@ -27,6 +29,8 @@ def compute_records(
         type_records=type_records,
         temperature_min=temperature_min,
         temperature_max=temperature_max,
+        page=page,
+        page_size=page_size,
     )
 
     return data_source.fetch_records(query)

@@ -235,7 +235,7 @@ export function useDeviationCalendarOption(
             axisLine: { lineStyle: { color: "#3a5080" } },
             axisLabel: {
                 color: "#000000",
-                fontSize: FONT_CHARTS.fontSize,
+                fontSize: FONT_CHARTS.axis,
                 interval: labelInterval,
                 rotate: labelRotate,
             },
@@ -244,7 +244,7 @@ export function useDeviationCalendarOption(
             nameGap: granularity === "year" ? 25 : 38,
             nameTextStyle: {
                 color: mapColors.value.foreground,
-                fontSize: FONT_CHARTS.fontSize,
+                fontSize: FONT_CHARTS.axisName,
                 fontWeight: "bold",
             },
         });
@@ -258,14 +258,14 @@ export function useDeviationCalendarOption(
             axisLine: { lineStyle: { color: "#3a5080" } },
             axisLabel: {
                 color: mapColors.value.foreground,
-                fontSize: FONT_CHARTS.fontSize,
+                fontSize: FONT_CHARTS.axis,
             },
             name: yAxisName,
             nameLocation: "middle",
             nameGap: 35,
             nameTextStyle: {
                 color: mapColors.value.foreground,
-                fontSize: FONT_CHARTS.fontSize,
+                fontSize: FONT_CHARTS.axisName,
                 fontWeight: "bold",
             },
         });
@@ -275,7 +275,7 @@ export function useDeviationCalendarOption(
             top: `${top - 4}%`,
             right: "12%",
             textStyle: {
-                fontSize: FONT_CHARTS.fontSize,
+                fontSize: FONT_CHARTS.title,
                 fontWeight: "bold",
                 color: mapColors.value.foreground,
             },

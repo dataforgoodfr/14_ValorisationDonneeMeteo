@@ -396,6 +396,13 @@ class TemperatureRecordsQuerySerializer(serializers.Serializer):
         required=False,
         default="hot",
     )
+    page = serializers.IntegerField(required=False, default=1, min_value=1)
+    page_size = serializers.IntegerField(required=False, default=50, min_value=1)
+    sort = serializers.CharField(
+        required=False,
+        default="record_value",
+        help_text="Champ(s) de tri avec ordre (ex: 'record_value', '-record_value', 'record_value,station_name', '-record_value,station_name')",
+    )
     date_start = serializers.DateField(required=False)
     date_end = serializers.DateField(required=False)
     territoire = serializers.ChoiceField(
@@ -404,8 +411,35 @@ class TemperatureRecordsQuerySerializer(serializers.Serializer):
         default="france",
     )
     territoire_id = serializers.CharField(required=False)
+    classe_recente_min = serializers.IntegerField(
+        required=False, allow_null=True, min_value=1, max_value=5
+    )
+    classe_recente_max = serializers.IntegerField(
+        required=False, allow_null=True, min_value=1, max_value=5
+    )
+    date_de_creation_min = serializers.DateField(required=False, allow_null=True)
+    date_de_creation_max = serializers.DateField(required=False, allow_null=True)
+    date_de_fermeture_min = serializers.DateField(required=False, allow_null=True)
+    date_de_fermeture_max = serializers.DateField(required=False, allow_null=True)
 
-    def validate(self, attrs):
+    def validate_sort(self, value) -> str:
+        """Valide le format du paramètre sort."""
+        if not value:
+            return value
+
+        sort_parts = [s.strip() for s in value.split(",")]
+        valid_fields = ["record_value", "station_name", "record_date", "department"]
+
+        for sort_part in sort_parts:
+            field = sort_part.lstrip("-")
+            if field not in valid_fields:
+                raise serializers.ValidationError(
+                    f"Champ de tri '{field}' invalide. Valeurs possibles: {', '.join(valid_fields)}"
+                )
+
+        return value
+
+    def validate(self, attrs) -> dict:
         period_type = attrs.get("period_type", "all_time")
         month = attrs.get("month")
         season = attrs.get("season")
@@ -431,6 +465,40 @@ class TemperatureRecordsQuerySerializer(serializers.Serializer):
             raise serializers.ValidationError(
                 {"territoire_id": f"Requis si territoire={territoire}."}
             )
+
+        cr_min = attrs.get("classe_recente_min")
+        cr_max = attrs.get("classe_recente_max")
+        if cr_min is not None and cr_max is not None and cr_min > cr_max:
+            raise serializers.ValidationError(
+                {
+                    "classe_recente_max": "classe_recente_max doit être >= classe_recente_min."
+                }
+            )
+
+        dc_min = attrs.get("date_de_creation_min")
+        dc_max = attrs.get("date_de_creation_max")
+        if dc_min is not None and dc_max is not None and dc_min > dc_max:
+            raise serializers.ValidationError(
+                {
+                    "date_de_creation_max": "date_de_creation_max doit être >= date_de_creation_min."
+                }
+            )
+
+        df_min = attrs.get("date_de_fermeture_min")
+        df_max = attrs.get("date_de_fermeture_max")
+        if df_min is not None and df_max is not None and df_min > df_max:
+            raise serializers.ValidationError(
+                {
+                    "date_de_fermeture_max": "date_de_fermeture_max doit être >= date_de_fermeture_min."
+                }
+            )
+
+        attrs.setdefault("classe_recente_min", None)
+        attrs.setdefault("classe_recente_max", None)
+        attrs.setdefault("date_de_creation_min", None)
+        attrs.setdefault("date_de_creation_max", None)
+        attrs.setdefault("date_de_fermeture_min", None)
+        attrs.setdefault("date_de_fermeture_max", None)
 
         return attrs
 
@@ -464,6 +532,19 @@ class TemperatureDeviationOverviewQuerySerializer(serializers.Serializer):
 
     alt_min = serializers.FloatField(required=False, allow_null=True)
     alt_max = serializers.FloatField(required=False, allow_null=True)
+
+    classe_recente_min = serializers.IntegerField(
+        required=False, allow_null=True, min_value=1, max_value=5
+    )
+    classe_recente_max = serializers.IntegerField(
+        required=False, allow_null=True, min_value=1, max_value=5
+    )
+
+    date_de_creation_min = serializers.DateField(required=False, allow_null=True)
+    date_de_creation_max = serializers.DateField(required=False, allow_null=True)
+
+    date_de_fermeture_min = serializers.DateField(required=False, allow_null=True)
+    date_de_fermeture_max = serializers.DateField(required=False, allow_null=True)
 
     departments = CommaSeparatedStringListField(required=False)
     regions = CommaSeparatedStringListField(required=False)
@@ -525,6 +606,33 @@ class TemperatureDeviationOverviewQuerySerializer(serializers.Serializer):
                 {"alt_max": "alt_max doit être >= alt_min."}
             )
 
+        cl_min = attrs.get("classe_recente_min")
+        cl_max = attrs.get("classe_recente_max")
+        if cl_min is not None and cl_max is not None and cl_min > cl_max:
+            raise serializers.ValidationError(
+                {
+                    "classe_recente_max": "classe_recente_max doit être >= classe_recente_min."
+                }
+            )
+
+        dc_min = attrs.get("date_de_creation_min")
+        dc_max = attrs.get("date_de_creation_max")
+        if dc_min is not None and dc_max is not None and dc_min > dc_max:
+            raise serializers.ValidationError(
+                {
+                    "date_de_creation_max": "date_de_creation_max doit être >= date_de_creation_min."
+                }
+            )
+
+        df_min = attrs.get("date_de_fermeture_min")
+        df_max = attrs.get("date_de_fermeture_max")
+        if df_min is not None and df_max is not None and df_min > df_max:
+            raise serializers.ValidationError(
+                {
+                    "date_de_fermeture_max": "date_de_fermeture_max doit être >= date_de_fermeture_min."
+                }
+            )
+
         station_search = attrs.get("station_search")
         if station_search is not None:
             attrs["station_search"] = station_search.strip()
@@ -539,6 +647,21 @@ class TemperatureDeviationOverviewQuerySerializer(serializers.Serializer):
         attrs["deviation_max"] = dmax if "deviation_max" in attrs else None
         attrs["alt_min"] = alt_min if "alt_min" in attrs else None
         attrs["alt_max"] = alt_max if "alt_max" in attrs else None
+
+        attrs["classe_recente_min"] = cl_min if "classe_recente_min" in attrs else None
+        attrs["classe_recente_max"] = cl_max if "classe_recente_max" in attrs else None
+        attrs["date_de_creation_min"] = (
+            dc_min if "date_de_creation_min" in attrs else None
+        )
+        attrs["date_de_creation_max"] = (
+            dc_max if "date_de_creation_max" in attrs else None
+        )
+        attrs["date_de_fermeture_min"] = (
+            df_min if "date_de_fermeture_min" in attrs else None
+        )
+        attrs["date_de_fermeture_max"] = (
+            df_max if "date_de_fermeture_max" in attrs else None
+        )
 
         attrs["departments"] = attrs.get("departments", ())
         attrs["regions"] = attrs.get("regions", ())
@@ -588,6 +711,18 @@ class TemperatureDeviationOverviewResponseSerializer(serializers.Serializer):
     national = TemperatureDeviationOverviewNationalSerializer()
     pagination = PaginationMetadataSerializer()
     stations = TemperatureDeviationOverviewStationSerializer(many=True)
+
+
+class PaginationSerializer(serializers.Serializer):
+    total_count = serializers.IntegerField()
+    page = serializers.IntegerField()
+    page_size = serializers.IntegerField()
+    total_pages = serializers.IntegerField()
+
+
+class TemperatureRecordsResponseSerializer(serializers.Serializer):
+    pagination = PaginationSerializer()
+    results = TemperatureRecordEntrySerializer(many=True)
 
 
 class NationalIndicatorKpiQuerySerializer(serializers.Serializer):

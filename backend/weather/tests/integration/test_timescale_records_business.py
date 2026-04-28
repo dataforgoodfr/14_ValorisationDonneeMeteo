@@ -41,7 +41,7 @@ def make_query(**kwargs) -> RecordsQuery:
 
 
 def _station_by_id(results, station_id: str):
-    return next((s for s in results if s.id.strip() == station_id), None)
+    return next((s for s in results.entries if s.id.strip() == station_id), None)
 
 
 # ---------------------------------------------------------------------------
@@ -340,7 +340,7 @@ def test_department_filter_excludes_other_departments():
     ds = TimescaleRecordsDataSource()
     results = ds.fetch_records(make_query(departments=("13",)))
 
-    ids = {s.id.strip() for s in results}
+    ids = {s.id.strip() for s in results.entries}
     assert code_13 in ids
     assert (
         code_69 not in ids

@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import datetime as dt
 from collections import defaultdict
+from typing import Any
 
 from django.db import connection
 from django.db.models import OuterRef, Subquery
@@ -35,10 +36,15 @@ from weather.services.national_indicator.types import (
     ObservedPoint as NationalObservedPoint,
 )
 from weather.services.records.types import (
+    Pagination as PaginationRecordType,
+)
+from weather.services.records.types import (
     RecordsQuery,
+    RecordsResult,
     StationRecords,
     TemperatureRecord,
 )
+from weather.services.records_graph.protocols import RecordsGraphDataSource
 from weather.services.records_graph.types import (
     RecordsGraphBucket,
     RecordsGraphRecord,
@@ -72,6 +78,10 @@ from weather.services.temperature_records.types import (
     SEASON_MONTHS,
     TemperatureRecordEntry,
     TemperatureRecordsRequest,
+    TemperatureRecordsResult,
+)
+from weather.services.temperature_records.types import (
+    Pagination as PaginationRecord,
 )
 
 
@@ -407,47 +417,85 @@ class TimescaleTemperatureDeviationDailyDataSource(
         order_sql = ordering_map[query.ordering]
 
         where_clauses = ["classe_recente BETWEEN 1 AND 4"]
-        params: list = [query.date_start, query.date_end]
+        params: dict = {"date_start": query.date_start, "date_end": query.date_end}
 
         if query.station_search:
-            where_clauses.append("station_name ILIKE %s")
-            params.append(f"%{query.station_search}%")
+            where_clauses.append("station_name ILIKE %(station_search)s")
+            params["station_search"] = f"%{query.station_search}%"
 
         if query.station_ids:
-            where_clauses.append("station_id = ANY(%s)")
-            params.append(list(query.station_ids))
+            where_clauses.append("station_id = ANY(%(station_ids)s)")
+            params["station_ids"] = list(query.station_ids)
 
         if query.temperature_mean_min is not None:
-            where_clauses.append("temperature_mean >= %s")
-            params.append(query.temperature_mean_min)
+            where_clauses.append("temperature_mean >= %(temperature_mean_min)s")
+            params["temperature_mean_min"] = query.temperature_mean_min
 
         if query.temperature_mean_max is not None:
-            where_clauses.append("temperature_mean <= %s")
-            params.append(query.temperature_mean_max)
+            where_clauses.append("temperature_mean <= %(temperature_mean_max)s")
+            params["temperature_mean_max"] = query.temperature_mean_max
 
         if query.deviation_min is not None:
-            where_clauses.append("deviation >= %s")
-            params.append(query.deviation_min)
+            where_clauses.append("deviation >= %(deviation_min)s")
+            params["deviation_min"] = query.deviation_min
 
         if query.deviation_max is not None:
-            where_clauses.append("deviation <= %s")
-            params.append(query.deviation_max)
+            where_clauses.append("deviation <= %(deviation_max)s")
+            params["deviation_max"] = query.deviation_max
 
         if query.alt_min is not None:
-            where_clauses.append("alt >= %s")
-            params.append(query.alt_min)
+            where_clauses.append("alt >= %(alt_min)s")
+            params["alt_min"] = query.alt_min
 
         if query.alt_max is not None:
-            where_clauses.append("alt <= %s")
-            params.append(query.alt_max)
+            where_clauses.append("alt <= %(alt_max)s")
+            params["alt_max"] = query.alt_max
+
+        if query.classe_recente_min is not None:
+            where_clauses.append("classe_recente >= %(classe_recente_min)s")
+            params["classe_recente_min"] = query.classe_recente_min
+
+        if query.classe_recente_max is not None:
+            where_clauses.append("classe_recente <= %(classe_recente_max)s")
+            params["classe_recente_max"] = query.classe_recente_max
+
+        if query.date_de_creation_min is not None:
+            where_clauses.append("annee_de_creation >= %(date_de_creation_min)s")
+            params["date_de_creation_min"] = query.date_de_creation_min.year
+
+        if query.date_de_creation_max is not None:
+            where_clauses.append("annee_de_creation <= %(date_de_creation_max)s")
+            params["date_de_creation_max"] = query.date_de_creation_max.year
+
+        if (
+            query.date_de_fermeture_min is not None
+            and query.date_de_fermeture_max is not None
+        ):
+            where_clauses.append(
+                "(annee_de_fermeture IS NOT NULL"
+                " AND annee_de_fermeture >= %(date_de_fermeture_min)s"
+                " AND annee_de_fermeture <= %(date_de_fermeture_max)s)"
+            )
+            params["date_de_fermeture_min"] = query.date_de_fermeture_min.year
+            params["date_de_fermeture_max"] = query.date_de_fermeture_max.year
+        elif query.date_de_fermeture_min is not None:
+            where_clauses.append(
+                "(annee_de_fermeture IS NULL OR annee_de_fermeture >= %(date_de_fermeture_min)s)"
+            )
+            params["date_de_fermeture_min"] = query.date_de_fermeture_min.year
+        elif query.date_de_fermeture_max is not None:
+            where_clauses.append(
+                "(annee_de_fermeture IS NOT NULL AND annee_de_fermeture <= %(date_de_fermeture_max)s)"
+            )
+            params["date_de_fermeture_max"] = query.date_de_fermeture_max.year
 
         if query.departments:
-            where_clauses.append("department = ANY(%s)")
-            params.append(list(query.departments))
+            where_clauses.append("department = ANY(%(departments)s)")
+            params["departments"] = list(query.departments)
 
         if query.regions:
-            where_clauses.append("region = ANY(%s)")
-            params.append(list(query.regions))
+            where_clauses.append("region = ANY(%(regions)s)")
+            params["regions"] = list(query.regions)
 
         filtered_where_sql = ""
         if where_clauses:
@@ -464,7 +512,7 @@ class TimescaleTemperatureDeviationDailyDataSource(
                         ON b.station_code = q.station_code
                             AND b.month = EXTRACT(MONTH FROM q.date)::int
                             AND b.day = EXTRACT(DAY FROM q.date)::int
-                WHERE %s <= q.date AND q.date <= %s
+                WHERE %(date_start)s <= q.date AND q.date <= %(date_end)s
                 GROUP BY q.station_code
             ),
             station_enriched AS (
@@ -483,7 +531,7 @@ class TimescaleTemperatureDeviationDailyDataSource(
                     s.annee_de_creation AS annee_de_creation,
                     s.annee_de_fermeture AS annee_de_fermeture
                 FROM station_agg a
-                    LEFT JOIN v_station s
+                    LEFT JOIN v_station_deviation s
                         ON s.station_code = a.station_id
                     LEFT JOIN ref_department_region r
                         ON r.departement = s.departement
@@ -499,7 +547,8 @@ class TimescaleTemperatureDeviationDailyDataSource(
             """
         )
 
-        page_params = [*params, query.limit, query.offset]
+        params["limit"] = query.limit
+        params["offset"] = query.offset
 
         page_sql = (
             base_cte
@@ -521,7 +570,7 @@ class TimescaleTemperatureDeviationDailyDataSource(
             FROM station_enriched
             {filtered_where_sql}
             ORDER BY {order_sql}
-            LIMIT %s OFFSET %s
+            LIMIT %(limit)s OFFSET %(offset)s
             """
         )
 
@@ -529,7 +578,7 @@ class TimescaleTemperatureDeviationDailyDataSource(
             cur.execute(count_sql, params)
             total_count = cur.fetchone()[0]
 
-            cur.execute(page_sql, page_params)
+            cur.execute(page_sql, params)
             columns = [col[0] for col in cur.description]
             rows = [dict(zip(columns, row, strict=False)) for row in cur.fetchall()]
 
@@ -573,14 +622,75 @@ class TimescaleTemperatureRecordsDataSource:
 
     def fetch_records(
         self, request: TemperatureRecordsRequest
-    ) -> list[TemperatureRecordEntry]:
+    ) -> TemperatureRecordsResult:
         col = "TX" if request.type_records == "hot" else "TN"
         agg = "MAX" if request.type_records == "hot" else "MIN"
         cmp = ">" if request.type_records == "hot" else "<"
+        page = request.page
+        page_size = request.page_size
+        offset = (page - 1) * page_size
 
         period_clause, params = self._period_clause(request)
 
-        sql = f"""
+        sort_parts = [s.strip() for s in request.sort.split(",")]
+
+        field_mapping = {
+            "record_value": f'o."{col}"',
+            "station_name": "s.name",
+            "record_date": 'o."AAAAMMJJ"',
+            "department": "s.departement",
+        }
+
+        order_clauses = []
+        for sort_part in sort_parts:
+            sort_field = sort_part.lstrip("-")
+            sort_order = "DESC" if sort_part.startswith("-") else "ASC"
+
+            if sort_field in field_mapping:
+                order_clauses.append(f"{field_mapping[sort_field]} {sort_order}")
+
+        if order_clauses:
+            order_sql = ", ".join(order_clauses)
+        else:
+            order_sql = f'o."{col}" DESC, s.name ASC'
+
+        extra_where_parts = []
+        if request.classe_recente_min is not None:
+            extra_where_parts.append("AND s.classe_recente >= %(cr_min)s")
+            params["cr_min"] = request.classe_recente_min
+        if request.classe_recente_max is not None:
+            extra_where_parts.append("AND s.classe_recente <= %(cr_max)s")
+            params["cr_max"] = request.classe_recente_max
+        if request.date_de_creation_min is not None:
+            extra_where_parts.append("AND s.annee_de_creation >= %(dc_min)s")
+            params["dc_min"] = request.date_de_creation_min.year
+        if request.date_de_creation_max is not None:
+            extra_where_parts.append("AND s.annee_de_creation <= %(dc_max)s")
+            params["dc_max"] = request.date_de_creation_max.year
+        if (
+            request.date_de_fermeture_min is not None
+            and request.date_de_fermeture_max is not None
+        ):
+            extra_where_parts.append(
+                "AND (s.annee_de_fermeture IS NOT NULL"
+                " AND s.annee_de_fermeture >= %(df_min)s"
+                " AND s.annee_de_fermeture <= %(df_max)s)"
+            )
+            params["df_min"] = request.date_de_fermeture_min.year
+            params["df_max"] = request.date_de_fermeture_max.year
+        elif request.date_de_fermeture_min is not None:
+            extra_where_parts.append(
+                "AND (s.annee_de_fermeture IS NULL OR s.annee_de_fermeture >= %(df_min)s)"
+            )
+            params["df_min"] = request.date_de_fermeture_min.year
+        elif request.date_de_fermeture_max is not None:
+            extra_where_parts.append(
+                "AND (s.annee_de_fermeture IS NOT NULL AND s.annee_de_fermeture <= %(df_max)s)"
+            )
+            params["df_max"] = request.date_de_fermeture_max.year
+        extra_where_sql = "\n              ".join(extra_where_parts)
+
+        base_sql = f"""
             WITH ordered AS (
                 SELECT
                     q."NUM_POSTE",
@@ -595,6 +705,32 @@ class TimescaleTemperatureRecordsDataSource:
                 WHERE {period_clause}
                   AND q."{col}" IS NOT NULL
             )
+        """
+
+        count_sql = (
+            base_sql
+            + f"""
+            SELECT COUNT(*)
+            FROM ordered o
+            JOIN public.v_station s
+              ON s.station_code = o."NUM_POSTE"
+            WHERE o.prev_val IS NULL
+               OR o."{col}" {cmp} o.prev_val
+        """
+        )
+
+        with connection.cursor() as cur:
+            cur.execute(count_sql, params)
+            total_count = cur.fetchone()[0]
+
+        total_pages = (total_count + page_size - 1) // page_size if page_size else 1
+
+        params["page_size"] = page_size
+        params["offset"] = offset
+
+        data_sql = (
+            base_sql
+            + f"""
             SELECT
                 o."NUM_POSTE",
                 s.name,
@@ -608,24 +744,26 @@ class TimescaleTemperatureRecordsDataSource:
                 s.annee_de_creation,
                 s.annee_de_fermeture
             FROM ordered o
-            JOIN public.v_station s ON s.station_code = o."NUM_POSTE"
+            JOIN public.v_station_records s ON s.station_code = o."NUM_POSTE"
             WHERE (o.prev_val IS NULL OR o."{col}" {cmp} o.prev_val)
               AND s.classe_recente BETWEEN 1 AND 3
-            ORDER BY s.name, o."AAAAMMJJ"
+              {extra_where_sql}
+            ORDER BY {order_sql}
+            LIMIT %(page_size)s OFFSET %(offset)s
         """
+        )
 
         with connection.cursor() as cur:
-            cur.execute(sql, params)
+            cur.execute(data_sql, params)
+
             cols = [c.name for c in cur.description]
             rows = [dict(zip(cols, row, strict=False)) for row in cur.fetchall()]
 
-        return [
+        results = [
             TemperatureRecordEntry(
                 station_id=row["NUM_POSTE"].strip(),
                 station_name=row["name"],
-                department=str(row["departement"])
-                if row["departement"] is not None
-                else "",
+                department=str(row["departement"]) if row["departement"] else "",
                 record_value=float(row[col]),
                 record_date=row["AAAAMMJJ"].date()
                 if isinstance(row["AAAAMMJJ"], dt.datetime)
@@ -640,8 +778,18 @@ class TimescaleTemperatureRecordsDataSource:
             for row in rows
         ]
 
-    def _period_clause(self, request: TemperatureRecordsRequest) -> tuple[str, list]:
-        return _temperature_records_period_clause(request)
+        return TemperatureRecordsResult(
+            entries=results,
+            pagination=PaginationRecord(
+                total_count=total_count,
+                page=page,
+                page_size=page_size,
+                total_pages=total_pages,
+            ),
+        )
+
+    def _period_clause(self, request: TemperatureRecordsRequest) -> tuple[str, dict]:
+        return _temperature_records_period_clause_named(request)
 
 
 def _territoire_clause_named(
@@ -650,12 +798,12 @@ def _territoire_clause_named(
     dept_col: str = 'vs."departement"',
     station_col: str = 'o."NUM_POSTE"',
 ) -> tuple[str, dict]:
-    """
+    """MaterializedTemperatureRecordsDataSource
     Retourne (clause SQL, params) pour filtrer par territoire.
     Utilise des placeholders nommés (%(name)s).
     """
     if not territoire or territoire == "france":
-        return "", {}
+        return f"{dept_col} <= 95", {}
     if territoire == "department":
         return f"{dept_col} = %(territoire_id)s", {"territoire_id": territoire_id}
     if territoire == "station":
@@ -724,6 +872,27 @@ class MaterializedTemperatureRecordsDataSource:
         else:
             period_value = None
 
+        sort_parts = [s.strip() for s in request.sort.split(",")]
+
+        field_mapping = {
+            "record_value": "record_value",
+            "station_name": "station_name",
+            "record_date": "record_date",
+            "department": "department",
+        }
+
+        order_clauses = []
+        for sort_part in sort_parts:
+            sort_field = sort_part.lstrip("-")
+            sort_order = "DESC" if sort_part.startswith("-") else "ASC"
+
+            if sort_field in field_mapping:
+                order_clauses.append(f"{field_mapping[sort_field]} {sort_order}")
+
+        if order_clauses:
+            order_sql = ", ".join(order_clauses)
+        else:
+            order_sql = "record_value DESC, station_name ASC, record_date ASC"
         clauses = [
             "record_type = %(record_type)s",
             "period_type = %(period_type)s",
@@ -752,21 +921,66 @@ class MaterializedTemperatureRecordsDataSource:
             clauses.append(terr_clause)
             params.update(terr_params)
 
+        if request.classe_recente_min is not None:
+            clauses.append("vs.classe_recente >= %(cr_min)s")
+            params["cr_min"] = request.classe_recente_min
+        if request.classe_recente_max is not None:
+            clauses.append("vs.classe_recente <= %(cr_max)s")
+            params["cr_max"] = request.classe_recente_max
+        if request.date_de_creation_min is not None:
+            clauses.append("vs.annee_de_creation >= %(dc_min)s")
+            params["dc_min"] = request.date_de_creation_min.year
+        if request.date_de_creation_max is not None:
+            clauses.append("vs.annee_de_creation <= %(dc_max)s")
+            params["dc_max"] = request.date_de_creation_max.year
+        if (
+            request.date_de_fermeture_min is not None
+            and request.date_de_fermeture_max is not None
+        ):
+            clauses.append(
+                "(vs.annee_de_fermeture IS NOT NULL"
+                " AND vs.annee_de_fermeture >= %(df_min)s"
+                " AND vs.annee_de_fermeture <= %(df_max)s)"
+            )
+            params["df_min"] = request.date_de_fermeture_min.year
+            params["df_max"] = request.date_de_fermeture_max.year
+        elif request.date_de_fermeture_min is not None:
+            clauses.append(
+                "(vs.annee_de_fermeture IS NULL OR vs.annee_de_fermeture >= %(df_min)s)"
+            )
+            params["df_min"] = request.date_de_fermeture_min.year
+        elif request.date_de_fermeture_max is not None:
+            clauses.append(
+                "(vs.annee_de_fermeture IS NOT NULL AND vs.annee_de_fermeture <= %(df_max)s)"
+            )
+            params["df_max"] = request.date_de_fermeture_max.year
+
         where = " AND ".join(clauses)
+
         sql = f"""
-            SELECT m.station_code, m.station_name, m.department, m.record_value, m.record_date, vs.lat, vs.lon, vs.alt, vs.classe_recente, vs.annee_de_creation, vs.annee_de_fermeture
-                FROM public.mv_records_battus m
-            LEFT JOIN public.v_station vs ON vs.station_code = m.station_code
+            SELECT
+                m.station_code,
+                m.station_name,
+                m.department,
+                m.record_value,
+                m.record_date,
+                vs.lat,
+                vs.lon,
+                vs.alt,
+                vs.classe_recente,
+                vs.annee_de_creation,
+                vs.annee_de_fermeture
+            FROM public.mv_records_battus m
+            LEFT JOIN public.v_station_records vs ON vs.station_code = m.station_code
             WHERE {where}
               AND vs.classe_recente BETWEEN 1 AND 3
-            ORDER BY station_name, record_date
-        """
-
+            ORDER BY {order_sql}
+            """
         with connection.cursor() as cur:
             cur.execute(sql, params)
+
             cols = [c.name for c in cur.description]
             rows = [dict(zip(cols, row, strict=False)) for row in cur.fetchall()]
-
         return [
             TemperatureRecordEntry(
                 station_id=row["station_code"].strip(),
@@ -800,6 +1014,7 @@ class HybridTemperatureRecordsDataSource:
 
     Fallback silencieux vers la MV seule si mv_records_battus_meta est absente
     ou vide (env de dev sans script de seed exécuté).
+
     """
 
     def __init__(self) -> None:
@@ -807,16 +1022,78 @@ class HybridTemperatureRecordsDataSource:
 
     def fetch_records(
         self, request: TemperatureRecordsRequest
-    ) -> list[TemperatureRecordEntry]:
-        mv_results = self._mv_source.fetch_records(request)
+    ) -> TemperatureRecordsResult:
+        mv_entries = self._mv_source.fetch_records(request)
         try:
             cutoff = self._get_cutoff_date()
         except Exception:
-            return mv_results
+            return self._paginate(mv_entries, request)
         if cutoff is None:
-            return mv_results
+            return self._paginate(mv_entries, request)
         hot_results = self._fetch_records_after_cutoff(request, cutoff)
-        return mv_results + hot_results
+        all_entries = mv_entries + hot_results
+        return self._paginate(all_entries, request)
+
+    def _paginate(
+        self,
+        entries: list[TemperatureRecordEntry],
+        request: TemperatureRecordsRequest,
+    ) -> TemperatureRecordsResult:
+        if request.sort:
+            sort_parts = [s.strip() for s in request.sort.split(",")]
+
+            def _sort_key(entry: TemperatureRecordEntry) -> tuple[Any, ...]:
+                sort_values = []
+                for sort_part in sort_parts:
+                    sort_field = sort_part.lstrip("-")
+                    reverse = sort_part.startswith("-")
+
+                    if sort_field == "station_name":
+                        value = entry.station_name
+                    elif sort_field == "record_date":
+                        value = entry.record_date
+                    elif sort_field == "department":
+                        value = entry.department
+                    else:  # record_value
+                        value = entry.record_value
+
+                    if reverse:
+                        if isinstance(value, str):
+                            value = "".join(chr(255 - ord(c)) for c in value)
+                        elif isinstance(value, int | float):
+                            value = -value
+                        elif hasattr(value, "__neg__"):
+                            try:
+                                value = -value
+                            except TypeError:
+                                pass
+
+                    sort_values.append(value)
+
+                return tuple(sort_values)
+
+            entries = sorted(entries, key=_sort_key)
+
+        total_count = len(entries)
+        page = request.page
+        page_size = request.page_size
+
+        start = (page - 1) * page_size
+        end = start + page_size
+
+        paginated = entries[start:end]
+
+        total_pages = (total_count + page_size - 1) // page_size
+
+        return TemperatureRecordsResult(
+            entries=paginated,
+            pagination=PaginationRecord(
+                total_count=total_count,
+                page=page,
+                page_size=page_size,
+                total_pages=total_pages,
+            ),
+        )
 
     def _get_cutoff_date(self) -> dt.date | None:
         with connection.cursor() as cur:
@@ -859,6 +1136,43 @@ class HybridTemperatureRecordsDataSource:
             date_filter_parts.append('AND o."AAAAMMJJ" <= %(date_end)s')
         date_filter_clauses = "\n              ".join(date_filter_parts)
         terr_filter_clause = f"AND {terr_clause}" if terr_clause else ""
+
+        station_filter_extra: dict = {}
+        station_filter_parts = []
+        if request.classe_recente_min is not None:
+            station_filter_parts.append("AND vs.classe_recente >= %(cr_min)s")
+            station_filter_extra["cr_min"] = request.classe_recente_min
+        if request.classe_recente_max is not None:
+            station_filter_parts.append("AND vs.classe_recente <= %(cr_max)s")
+            station_filter_extra["cr_max"] = request.classe_recente_max
+        if request.date_de_creation_min is not None:
+            station_filter_parts.append("AND vs.annee_de_creation >= %(dc_min)s")
+            station_filter_extra["dc_min"] = request.date_de_creation_min.year
+        if request.date_de_creation_max is not None:
+            station_filter_parts.append("AND vs.annee_de_creation <= %(dc_max)s")
+            station_filter_extra["dc_max"] = request.date_de_creation_max.year
+        if (
+            request.date_de_fermeture_min is not None
+            and request.date_de_fermeture_max is not None
+        ):
+            station_filter_parts.append(
+                "AND (vs.annee_de_fermeture IS NOT NULL"
+                " AND vs.annee_de_fermeture >= %(df_min)s"
+                " AND vs.annee_de_fermeture <= %(df_max)s)"
+            )
+            station_filter_extra["df_min"] = request.date_de_fermeture_min.year
+            station_filter_extra["df_max"] = request.date_de_fermeture_max.year
+        elif request.date_de_fermeture_min is not None:
+            station_filter_parts.append(
+                "AND (vs.annee_de_fermeture IS NULL OR vs.annee_de_fermeture >= %(df_min)s)"
+            )
+            station_filter_extra["df_min"] = request.date_de_fermeture_min.year
+        elif request.date_de_fermeture_max is not None:
+            station_filter_parts.append(
+                "AND (vs.annee_de_fermeture IS NOT NULL AND vs.annee_de_fermeture <= %(df_max)s)"
+            )
+            station_filter_extra["df_max"] = request.date_de_fermeture_max.year
+        station_filter_clauses = "\n              ".join(station_filter_parts)
 
         sql = f"""
             WITH mv_seeds AS (
@@ -904,12 +1218,13 @@ class HybridTemperatureRecordsDataSource:
                 vs.annee_de_creation,
                 vs.annee_de_fermeture
             FROM ordered o
-            JOIN public.v_station vs ON vs.station_code = o."NUM_POSTE"
+            JOIN public.v_station_records vs ON vs.station_code = o."NUM_POSTE"
             WHERE o."{col}" {cmp} o.prev_val
               AND o."AAAAMMJJ" >= make_date(vs.annee_de_creation + 20, 1, 1)
               AND vs.classe_recente BETWEEN 1 AND 3
               {date_filter_clauses}
               {terr_filter_clause}
+              {station_filter_clauses}
             ORDER BY vs.name, o."AAAAMMJJ"
         """
 
@@ -920,6 +1235,7 @@ class HybridTemperatureRecordsDataSource:
             "cutoff_date": cutoff_date,
             **period_named_params,
             **terr_named_params,
+            **station_filter_extra,
         }
         if request.date_start:
             params["date_start"] = request.date_start
@@ -990,11 +1306,11 @@ class TimescaleRecordsDataSource:
                 month=query.month,
                 season=query.season,
             )
-            entries = self._hybrid.fetch_records(req)
+            result_obj = self._hybrid.fetch_records(req)
             if type_records == "hot":
-                hot_entries = entries
+                hot_entries = result_obj.entries
             else:
-                cold_entries = entries
+                cold_entries = result_obj.entries
 
         station_hot: dict[str, list[TemperatureRecordEntry]] = defaultdict(list)
         station_cold: dict[str, list[TemperatureRecordEntry]] = defaultdict(list)
@@ -1057,8 +1373,24 @@ class TimescaleRecordsDataSource:
                     ),
                 )
             )
+        total_count = len(result)
 
-        return tuple(result)
+        start = (query.page - 1) * query.page_size
+        end = start + query.page_size
+
+        paginated = result[start:end]
+
+        total_pages = (total_count + query.page_size - 1) // query.page_size
+
+        return RecordsResult(
+            entries=paginated,
+            pagination=PaginationRecordType(
+                total_count=total_count,
+                page=query.page,
+                page_size=query.page_size,
+                total_pages=total_pages,
+            ),
+        )
 
 
 class TimescaleTemperatureMinMaxDataSource(MinMaxGraphDataSource):
@@ -1232,7 +1564,7 @@ def _generate_buckets(
     return _generate_buckets_year(date_start, date_end)
 
 
-class TimescaleRecordsGraphDataSource:
+class TimescaleRecordsGraphDataSource(RecordsGraphDataSource):
     """
     Data source pour le graphe de records.
     Lit depuis mv_records_battus et agrège par bucket temporel.
@@ -1241,7 +1573,7 @@ class TimescaleRecordsGraphDataSource:
 
     _GRANULARITY_TO_DATE_TRUNC = {"day": "day", "month": "month", "year": "year"}
 
-    def fetch_graph(self, request: RecordsGraphRequest) -> list[RecordsGraphBucket]:
+    def fetch_graph(self, request: RecordsGraphRequest) -> RecordsGraphResult:
         if request.period_type == "month":
             period_value: str | None = str(request.month)
         elif request.period_type == "season":

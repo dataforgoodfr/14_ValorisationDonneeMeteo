@@ -174,8 +174,11 @@ curl "http://localhost:8000/api/v1/temperature/national-indicator?date_start=202
 # Écart à la normale — OVERVIEW (table + carte)
 curl "http://localhost:8000/api/v1/temperature/deviation?date_start=2024-01-01&date_end=2024-01-31"
 
-# Exemple avec filtres
+# Exemple avec filtres géographiques et altimétriques
 curl "http://localhost:8000/api/v1/temperature/deviation?date_start=2024-01-01&date_end=2024-01-31&departments=13,75&regions=Île-de-France&alt_min=100&alt_max=500&ordering=-deviation&page=1&page_size=20"
+
+# Exemple avec filtres sur la qualité et le cycle de vie des stations
+curl "http://localhost:8000/api/v1/temperature/deviation?date_start=2024-01-01&date_end=2024-01-31&classe_recente_min=1&classe_recente_max=2&date_de_creation_max=1950-01-01&date_de_fermeture_min=2000-01-01"
 
 # Écart à la normale — GRAPH
 curl "http://localhost:8000/api/v1/temperature/deviation/graph?date_start=2024-01-01&date_end=2024-01-31&granularity=day&station_ids=07149,07222"
@@ -183,6 +186,10 @@ curl "http://localhost:8000/api/v1/temperature/deviation/graph?date_start=2024-0
 #Records de température
 curl "http://localhost:8000/api/v1/temperature/records?period_type=all_time&type_records=hot"
 curl "http://localhost:8000/api/v1/temperature/records?period_type=month&month=7&type_records=hot"
+
+# Records — filtrer par classe et cycle de vie de la station
+curl "http://localhost:8000/api/v1/temperature/records?type_records=hot&classe_recente_min=1&classe_recente_max=2"
+curl "http://localhost:8000/api/v1/temperature/records?type_records=hot&date_de_creation_min=1950-01-01&date_de_fermeture_min=2000-01-01"
 ```
 
 ## Structure du projet

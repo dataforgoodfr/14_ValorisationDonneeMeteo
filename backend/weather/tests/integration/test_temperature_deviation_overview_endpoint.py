@@ -181,6 +181,32 @@ def test_overview_endpoint_filters_by_department(client: APIClient):
     assert all(s["department"] == "13" for s in stations)
 
 
+def test_overview_endpoint_metadata_includes_station_lifecycle_filters(
+    client: APIClient,
+):
+    resp = client.get(
+        _url(),
+        {
+            "date_start": "2024-01-01",
+            "date_end": "2024-01-31",
+            "classe_recente_min": 1,
+            "classe_recente_max": 2,
+            "date_de_creation_max": "1950-01-01",
+            "date_de_fermeture_min": "2000-01-01",
+        },
+    )
+
+    assert resp.status_code == 200
+    filters = resp.json()["metadata"]["filters"]
+
+    assert filters["classe_recente_min"] == 1
+    assert filters["classe_recente_max"] == 2
+    assert filters["date_de_creation_min"] is None
+    assert filters["date_de_creation_max"] == "1950-01-01"
+    assert filters["date_de_fermeture_min"] == "2000-01-01"
+    assert filters["date_de_fermeture_max"] is None
+
+
 def test_overview_endpoint_national_is_independent_from_station_filters(
     client: APIClient,
 ):
