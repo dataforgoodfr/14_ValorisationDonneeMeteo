@@ -1,19 +1,29 @@
 from __future__ import annotations
 
+import datetime as dt
 from typing import Protocol
 
-from .types import DailyPoint, DailySeriesQuery
+from .types import BaselinePoint, DailySeriesQuery, ObservedPoint
 
 
-class NationalIndicatorDailyDataSource(Protocol):
+class NationalIndicatorObservedDataSource(Protocol):
     """
-    Interface "source de données journalières" pour le calcul ITN.
-
-    - En fake : génère une série journalière avec une climatologie.
-    - En réel : requête DB (Timescale/Postgres) pour récupérer les points journaliers.
+    Source de données journalières observées pour le calcul ITN.
     """
 
     def fetch_daily_series(
         self,
         query: DailySeriesQuery,
-    ) -> list[DailyPoint]: ...
+    ) -> list[ObservedPoint]: ...
+
+
+class NationalIndicatorBaselineDataSource(Protocol):
+    """
+    Source de climatologie ITN 1991-2020, selon la granularité demandée.
+    """
+
+    def fetch_daily_baseline(self, day: dt.date) -> BaselinePoint: ...
+
+    def fetch_monthly_baseline(self, month: int) -> BaselinePoint: ...
+
+    def fetch_yearly_baseline(self) -> BaselinePoint: ...

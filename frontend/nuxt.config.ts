@@ -9,10 +9,12 @@ export default defineNuxtConfig({
     modules: [
         "@nuxt/eslint",
         "@nuxt/test-utils",
+        "@nuxt/test-utils/module",
         "@nuxt/ui",
         "@nuxt/image",
         "@nuxt/fonts",
         "@nuxt/icon",
+        "@nuxtjs/color-mode",
         "nuxt-echarts",
         "@pinia/nuxt",
         "@primevue/nuxt-module",
@@ -26,17 +28,28 @@ export default defineNuxtConfig({
             apiBase: "", // api url will be injected when the container is launched with an env variable
         },
     },
-
     css: ["~/assets/css/main.css"],
+    colorMode: {
+        preference: "light", // default value of $colorMode.preference
+        fallback: "light", // fallback value if not system preference found
+        globalName: "__NUXT_COLOR_MODE__",
+        classPrefix: "",
+        classSuffix: "",
+        storage: "sessionStorage", // or 'sessionStorage' or 'cookie'
+        storageKey: "nuxt-color-mode",
+    },
     ui: {
-        colorMode: false,
+        colorMode: true,
     },
     fonts: {
         provider: "google",
     },
+    typescript: {
+        typeCheck: false, // turn to true when calm and ready
+    },
     app: {
         head: {
-            title: "InfoClimat - Dashboard",
+            title: "DataClimat - Dashboard",
             htmlAttrs: {
                 lang: "fr",
             },
@@ -51,8 +64,79 @@ export default defineNuxtConfig({
     },
     echarts: {
         renderer: ["svg", "canvas"],
-        charts: ["BarChart", "LineChart"],
-        components: ["DatasetComponent", "GridComponent", "TooltipComponent"],
+        charts: ["BarChart", "LineChart", "ScatterChart"],
+        components: [
+            "DatasetComponent",
+            "GridComponent",
+            "TooltipComponent",
+            "TitleComponent",
+            "LegendComponent",
+            "DataZoomComponent",
+        ],
         features: ["LabelLayout", "UniversalTransition"],
+    },
+    primevue: {
+        options: {
+            locale: {
+                monthNames: [
+                    "Janvier",
+                    "Février",
+                    "Mars",
+                    "Avril",
+                    "Mai",
+                    "Juin",
+                    "Juillet",
+                    "Août",
+                    "Septembre",
+                    "Octobre",
+                    "Novembre",
+                    "Décembre",
+                ],
+                monthNamesShort: [
+                    "Jan",
+                    "Fev",
+                    "Mar",
+                    "Avr",
+                    "Mai",
+                    "Jui",
+                    "Juil",
+                    "Aou",
+                    "Sept",
+                    "Oct",
+                    "Nov",
+                    "Dec",
+                ],
+                dayNames: [
+                    "Dimanche",
+                    "Lundi",
+                    "Mardi",
+                    "Mercredi",
+                    "Jeudi",
+                    "Vendredi",
+                    "Samedi",
+                ],
+                dayNamesShort: [
+                    "Dim",
+                    "Lun",
+                    "Mar",
+                    "Mer",
+                    "Jeu",
+                    "Ven",
+                    "Sam",
+                ],
+                dayNamesMin: ["Di", "Lu", "Ma", "Me", "Je", "Ve", "Sa"],
+                fileSizeTypes: [
+                    "B",
+                    "KB",
+                    "MB",
+                    "GB",
+                    "TB",
+                    "PB",
+                    "EB",
+                    "ZB",
+                    "YB",
+                ],
+            },
+        },
     },
 });

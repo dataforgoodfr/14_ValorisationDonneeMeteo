@@ -23,8 +23,12 @@ Thumbs.db
 
 # Claude
 .claude
+
 # Precommit hooks: ruff cache
 .ruff_cache
 
 # Rapport
 rapport.md
+# backend data
+backend/db_data/quotidienne_2024_2025.csv
+backend/db_data/station.sql

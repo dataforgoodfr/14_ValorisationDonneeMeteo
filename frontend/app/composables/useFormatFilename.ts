@@ -1,0 +1,33 @@
+import { dateToStringYMD } from "#imports";
+
+function nowDateFormatted() {
+    // Helper function to pad numbers with a leading zero
+    const nowDate = new Date();
+    const pad = (num: number) => num.toString().padStart(2, "0");
+
+    const year = nowDate.getFullYear();
+    const month = pad(nowDate.getMonth() + 1); // getMonth() is zero-based (0-11)
+    const day = pad(nowDate.getDate());
+
+    const hours = pad(nowDate.getHours());
+    const minutes = pad(nowDate.getMinutes());
+    const seconds = pad(nowDate.getSeconds());
+
+    return `${year}${month}${day}_${hours}${minutes}${seconds}`;
+}
+
+const toISODate = (date: Date) => dateToStringYMD(date);
+
+export function useFormatFileName(
+    chartName: string,
+    granularity: string,
+    fileFormat: string,
+    dateStart: Date | undefined = undefined,
+    dateEnd: Date | undefined = undefined,
+) {
+    const datePart =
+        dateStart && dateEnd
+            ? `_${toISODate(dateStart)}_to_${toISODate(dateEnd)}`
+            : "";
+    return `${nowDateFormatted()}_${chartName}_${granularity}${datePart}.${fileFormat}`;
+}

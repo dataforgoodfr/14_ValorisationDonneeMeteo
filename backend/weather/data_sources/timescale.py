@@ -1,12 +1,25 @@
 from __future__ import annotations
 
 import datetime as dt
-from dataclasses import dataclass
-from itertools import groupby
+from collections import defaultdict
+from typing import Any
 
-from weather.models import Quotidienne
+from django.db import connection
+from django.db.models import OuterRef, Subquery
+from django.db.models.functions import ExtractDay, ExtractMonth
+
+from weather.models import (
+    BaselineStationDailyMean19912020,
+    ITNBaselineDaily19912020,
+    ITNBaselineMonthly19912020,
+    ITNBaselineYearly19912020,
+    QuotidienneITN,
+    Station,
+)
+from weather.regions import departments_for_region
 from weather.services.national_indicator.protocols import (
-    NationalIndicatorDailyDataSource,
+    NationalIndicatorBaselineDataSource,
+    NationalIndicatorObservedDataSource,
 )
 from weather.services.national_indicator.stations import (
     ITN_STATION_CODES_FOR_QUERY,
@@ -15,7 +28,64 @@ from weather.services.national_indicator.stations import (
     expected_reims_code,
     expected_station_codes,
 )
-from weather.services.national_indicator.types import DailyPoint, DailySeriesQuery
+from weather.services.national_indicator.types import (
+    BaselinePoint,
+    DailySeriesQuery,
+)
+from weather.services.national_indicator.types import (
+    ObservedPoint as NationalObservedPoint,
+)
+from weather.services.records.types import (
+    Pagination as PaginationRecordType,
+)
+from weather.services.records.types import (
+    RecordsQuery,
+    RecordsResult,
+    StationRecords,
+    TemperatureRecord,
+)
+from weather.services.records_graph.types import (
+    RecordsGraphBucket,
+    RecordsGraphRecord,
+    RecordsGraphRequest,
+    RecordsGraphResult,
+)
+from weather.services.temperature_deviation.protocols import (
+    TemperatureDeviationDailyDataSource,
+    TemperatureDeviationOverviewDataSource,
+)
+from weather.services.temperature_deviation.types import (
+    DailyBaselinePoint,
+    DailyDeviationPoint,
+    DailyDeviationSeriesQuery,
+    MonthlyBaselinePoint,
+    ObservedPoint,
+    Pagination,
+    StationDailySeries,
+    TemperatureDeviationOverviewQuery,
+    TemperatureDeviationOverviewResult,
+    TemperatureDeviationOverviewStation,
+    YearlyBaselinePoint,
+)
+from weather.services.temperature_minmax.protocols import MinMaxGraphDataSource
+from weather.services.temperature_minmax.types import (
+    DailyMinMaxPoint,
+    MinMaxGraphQuery,
+    StationDailyMinMaxSeries,
+)
+from weather.services.temperature_records.types import (
+    SEASON_MONTHS,
+    TemperatureRecordEntry,
+    TemperatureRecordsRequest,
+    TemperatureRecordsResult,
+)
+from weather.services.temperature_records.types import (
+    Pagination as PaginationRecord,
+)
+
+
+def _float_or_none(value) -> float | None:
+    return float(value) if value is not None else None
 
 
 def _normalize_reims(
@@ -32,93 +102,1414 @@ def _normalize_reims(
     return m
 
 
-@dataclass(frozen=True)
-class BaselineStub:
-    """
-    Baseline "pipot" temporaire.
-    A remplacer par une vraie climato plus tard, quand on saura comment calculer la baseline 1991-2020
-    """
+def _station_daily_baseline_subquery():
+    return BaselineStationDailyMean19912020.objects.filter(
+        station_code=OuterRef("station_code"),
+        month=OuterRef("month"),
+        day=OuterRef("day"),
+    ).values("baseline_mean_tntxm")[:1]
 
-    mean: float = 0.0
-    std_upper: float = 0.0
-    std_lower: float = 0.0
-    max_: float = 0.0
-    min_: float = 0.0
 
-    def mean_for(self, temperature: float) -> float:
-        # écart=1 (parce que pourquoi pas) => baseline_mean == temperature - 1
-        return temperature - 1
+def _station_name_subquery():
+    return Station.objects.filter(station_code=OuterRef("station_code")).values("name")[
+        :1
+    ]
+
+
+def _daily_station_queryset(
+    date_start: dt.date,
+    date_end: dt.date,
+):
+    baseline_sq = _station_daily_baseline_subquery()
+
+    return (
+        QuotidienneITN.objects.filter(
+            date__gte=date_start,
+            date__lte=date_end,
+        )
+        .annotate(
+            month=ExtractMonth("date"),
+            day=ExtractDay("date"),
+        )
+        .annotate(
+            baseline_mean_day=Subquery(baseline_sq),
+        )
+        .filter(baseline_mean_day__isnull=False)
+    )
+
+
+def _mean(values: list[float]) -> float:
+    if not values:
+        return 0.0
+    return sum(values) / len(values)
 
 
 def compute_itn_for_day(
     day: dt.date, station_code_to_temp_map: dict[str, float]
 ) -> float | None:
     expected_stations_for_day = expected_station_codes(day)
-
+    if len(expected_stations_for_day) != 30:
+        raise ValueError(
+            f"Expected 30 stations, got {len(expected_stations_for_day)} for {day}"
+        )
     # Normalisation : ignorer l'autre Reims si elle existe
     station_code_to_temp_map = _normalize_reims(day, station_code_to_temp_map)
     # Égalité stricte sur les 30 slots
     computed_stations_codes = set(station_code_to_temp_map.keys())
+
     if computed_stations_codes != expected_stations_for_day:
         return None
 
-    return sum(station_code_to_temp_map[c] for c in expected_stations_for_day) / 30.0
+    return sum(station_code_to_temp_map[c] for c in expected_stations_for_day) / float(
+        len(expected_stations_for_day)
+    )
 
 
-class TimescaleNationalIndicatorDailyDataSource(NationalIndicatorDailyDataSource):
-    """
-    DataSource "réelle" : lit Quotidienne(tntxm) et produit une série nationale journalière.
-    - Drop si jour incomplet (29 always + Reims attendu).
-    - Baseline: stub (pipot) pour l'instant.
-    """
-
-    def __init__(self, *, baseline: BaselineStub | None = None) -> None:
-        self._baseline = baseline or BaselineStub()
-
+class TimescaleNationalIndicatorObservedDataSource(NationalIndicatorObservedDataSource):
     def fetch_daily_series(
         self,
         query: DailySeriesQuery,
-    ) -> list[DailyPoint]:
-        qs = Quotidienne.objects.filter(
+    ) -> list[NationalObservedPoint]:
+        qs = QuotidienneITN.objects.filter(
             date__gte=query.date_start,
             date__lte=query.date_end,
-            station__code__in=ITN_STATION_CODES_FOR_QUERY,
-            tntxm__isnull=False,
+            station_code__in=ITN_STATION_CODES_FOR_QUERY,
         )
 
-        # Réduction volumétrie: si on a une liste exacte de dates à prélever
         if query.target_dates is not None:
             qs = qs.filter(date__in=query.target_dates)
 
-        rows = qs.values_list("date", "station__code", "tntxm").order_by(
-            "date", "station__code"
+        rows = qs.order_by("date", "station_code").values(
+            "date", "station_code", "tntxm"
         )
 
-        out: list[DailyPoint] = []
+        grouped: dict[dt.date, dict[str, float]] = defaultdict(dict)
+        for row in rows:
+            value = row["tntxm"]
+            if value is None:
+                continue
+            grouped[row["date"]][row["station_code"]] = float(value)
 
-        # rows: Iterable[tuple[date, str, float]]
-        for day, day_rows in groupby(rows, key=lambda r: r[0]):
-            station_code_to_temp_map: dict[str, float] = {}
-            for _, station_code, tntxm in day_rows:
-                # en cas de doublon station/jour, on écrase (ne devrait pas arriver)
-                station_code_to_temp_map[str(station_code)] = float(tntxm)
-
-            itn = compute_itn_for_day(day, station_code_to_temp_map)
-            print(f"itn : {itn}")
+        out: list[NationalObservedPoint] = []
+        for day in sorted(grouped):
+            itn = compute_itn_for_day(day, grouped[day])
             if itn is None:
-                continue  # drop le point
+                continue
 
-            b = self._baseline
             out.append(
-                DailyPoint(
+                NationalObservedPoint(
                     date=day,
                     temperature=itn,
-                    baseline_mean=b.mean_for(itn),
-                    baseline_std_dev_upper=b.std_upper,
-                    baseline_std_dev_lower=b.std_lower,
-                    baseline_max=b.max_,
-                    baseline_min=b.min_,
                 )
             )
 
         return out
+
+
+class TimescaleNationalIndicatorBaselineDataSource(NationalIndicatorBaselineDataSource):
+    """
+    Source baseline ITN basée sur les MV Timescale.
+    """
+
+    def fetch_daily_baseline(self, day: dt.date) -> BaselinePoint:
+        row = ITNBaselineDaily19912020.objects.get(
+            month=day.month,
+            day_of_month=day.day,
+        )
+
+        return self._map(row.itn_mean, row.itn_stddev)
+
+    def fetch_monthly_baseline(self, month: int) -> BaselinePoint:
+        row = ITNBaselineMonthly19912020.objects.get(month=month)
+        return self._map(row.itn_mean, row.itn_stddev)
+
+    def fetch_yearly_baseline(self) -> BaselinePoint:
+        row = ITNBaselineYearly19912020.objects.first()
+        if row is None:
+            raise ValueError("Baseline yearly ITN introuvable")
+        return self._map(row.itn_mean, row.itn_stddev)
+
+    @staticmethod
+    def _map(mean: float, std: float) -> BaselinePoint:
+        return BaselinePoint(
+            baseline_mean=float(mean),
+            baseline_std_dev_upper=float(mean + std),
+            baseline_std_dev_lower=float(mean - std),
+            baseline_max=0.0,  # TODO MV future
+            baseline_min=0.0,  # TODO MV future
+        )
+
+
+class TimescaleTemperatureDeviationDailyDataSource(
+    TemperatureDeviationDailyDataSource,
+    TemperatureDeviationOverviewDataSource,
+):
+    def _baseline_subquery(self):
+        return BaselineStationDailyMean19912020.objects.filter(
+            station_code=OuterRef("station_code"),
+            month=OuterRef("month"),
+            day=OuterRef("day"),
+        ).values("baseline_mean_tntxm")[:1]
+
+    def fetch_stations_daily_series(
+        self, query: DailyDeviationSeriesQuery
+    ) -> list[StationDailySeries]:
+        if not query.station_ids:
+            return []
+
+        baseline_sq = self._baseline_subquery()
+
+        qs = QuotidienneITN.objects.filter(
+            date__gte=query.date_start,
+            date__lte=query.date_end,
+            station_code__in=query.station_ids,
+        )
+
+        if query.target_dates is not None:
+            qs = qs.filter(date__in=query.target_dates)
+
+        rows = (
+            qs.annotate(
+                month=ExtractMonth("date"),
+                day=ExtractDay("date"),
+            )
+            .annotate(
+                baseline_mean=Subquery(baseline_sq),
+            )
+            .filter(baseline_mean__isnull=False)
+            .order_by("station_code", "date")
+            .values("station_code", "date", "tntxm", "baseline_mean")
+        )
+
+        station_names = {
+            s.station_code: s.name
+            for s in Station.objects.filter(station_code__in=query.station_ids).only(
+                "station_code", "name"
+            )
+        }
+
+        grouped: dict[str, list[DailyDeviationPoint]] = defaultdict(list)
+
+        for row in rows:
+            grouped[row["station_code"]].append(
+                DailyDeviationPoint(
+                    date=row["date"],
+                    temperature=float(row["tntxm"]),
+                    baseline_mean=float(row["baseline_mean"]),
+                )
+            )
+
+        return [
+            StationDailySeries(
+                station_id=station_id,
+                station_name=station_names.get(station_id, station_id),
+                points=grouped[station_id],
+            )
+            for station_id in query.station_ids
+            if station_id in grouped
+        ]
+
+    def fetch_national_observed_series(
+        self, query: DailyDeviationSeriesQuery
+    ) -> list[ObservedPoint]:
+        observed_points = (
+            TimescaleNationalIndicatorObservedDataSource().fetch_daily_series(
+                DailySeriesQuery(
+                    date_start=query.date_start,
+                    date_end=query.date_end,
+                    target_dates=query.target_dates,
+                )
+            )
+        )
+
+        return [
+            ObservedPoint(
+                date=point.date,
+                temperature=float(point.temperature),
+            )
+            for point in observed_points
+        ]
+
+    def fetch_national_daily_baseline(self) -> list[DailyBaselinePoint]:
+        rows = ITNBaselineDaily19912020.objects.all().order_by("month", "day_of_month")
+
+        return [
+            DailyBaselinePoint(
+                month=row.month,
+                day_of_month=row.day_of_month,
+                mean=float(row.itn_mean),
+            )
+            for row in rows
+        ]
+
+    def fetch_national_monthly_baseline(self) -> list[MonthlyBaselinePoint]:
+        rows = ITNBaselineMonthly19912020.objects.all().order_by("month")
+
+        return [
+            MonthlyBaselinePoint(
+                month=row.month,
+                mean=float(row.itn_mean),
+            )
+            for row in rows
+        ]
+
+    def fetch_national_yearly_baseline(self) -> YearlyBaselinePoint | None:
+        row = ITNBaselineYearly19912020.objects.first()
+        if row is None:
+            return None
+
+        return YearlyBaselinePoint(mean=float(row.itn_mean))
+
+    def fetch_national_mean_deviation(
+        self,
+        *,
+        date_start: dt.date,
+        date_end: dt.date,
+    ) -> float:
+        observed_points = (
+            TimescaleNationalIndicatorObservedDataSource().fetch_daily_series(
+                DailySeriesQuery(
+                    date_start=date_start,
+                    date_end=date_end,
+                    target_dates=None,
+                )
+            )
+        )
+
+        if not observed_points:
+            return 0.0
+
+        baseline_by_day = {
+            (row.month, row.day_of_month): float(row.itn_mean)
+            for row in ITNBaselineDaily19912020.objects.all()
+        }
+
+        deviations = []
+        for point in observed_points:
+            baseline_mean = baseline_by_day.get((point.date.month, point.date.day))
+            if baseline_mean is None:
+                continue
+            deviations.append(float(point.temperature) - baseline_mean)
+
+        if not deviations:
+            return 0.0
+
+        return _mean(deviations)
+
+    def fetch_station_overview(
+        self,
+        query: TemperatureDeviationOverviewQuery,
+    ) -> TemperatureDeviationOverviewResult:
+        ordering_map = {
+            "station_name": "station_name ASC, station_id ASC",
+            "-station_name": "station_name DESC, station_id ASC",
+            "temperature_mean": "temperature_mean ASC, station_id ASC",
+            "-temperature_mean": "temperature_mean DESC, station_id ASC",
+            "deviation": "deviation ASC, station_id ASC",
+            "-deviation": "deviation DESC, station_id ASC",
+            "department": "department ASC NULLS LAST, station_id ASC",
+            "-department": "department DESC NULLS LAST, station_id ASC",
+            "region": "region ASC NULLS LAST, station_id ASC",
+            "-region": "region DESC NULLS LAST, station_id ASC",
+        }
+
+        order_sql = ordering_map[query.ordering]
+
+        where_clauses = ["classe_recente BETWEEN 1 AND 4"]
+        params: list = [query.date_start, query.date_end]
+
+        if query.station_search:
+            where_clauses.append("station_name ILIKE %s")
+            params.append(f"%{query.station_search}%")
+
+        if query.station_ids:
+            where_clauses.append("station_id = ANY(%s)")
+            params.append(list(query.station_ids))
+
+        if query.temperature_mean_min is not None:
+            where_clauses.append("temperature_mean >= %s")
+            params.append(query.temperature_mean_min)
+
+        if query.temperature_mean_max is not None:
+            where_clauses.append("temperature_mean <= %s")
+            params.append(query.temperature_mean_max)
+
+        if query.deviation_min is not None:
+            where_clauses.append("deviation >= %s")
+            params.append(query.deviation_min)
+
+        if query.deviation_max is not None:
+            where_clauses.append("deviation <= %s")
+            params.append(query.deviation_max)
+
+        if query.alt_min is not None:
+            where_clauses.append("alt >= %s")
+            params.append(query.alt_min)
+
+        if query.alt_max is not None:
+            where_clauses.append("alt <= %s")
+            params.append(query.alt_max)
+
+        if query.departments:
+            where_clauses.append("department = ANY(%s)")
+            params.append(list(query.departments))
+
+        if query.regions:
+            where_clauses.append("region = ANY(%s)")
+            params.append(list(query.regions))
+
+        filtered_where_sql = ""
+        if where_clauses:
+            filtered_where_sql = "WHERE " + " AND ".join(where_clauses)
+
+        base_cte = """
+            WITH station_agg AS (
+                SELECT
+                    q.station_code AS station_id,
+                    AVG(q.tntxm)::double precision AS temperature_mean,
+                    AVG(b.baseline_mean_tntxm)::double precision AS baseline_mean
+                FROM v_quotidienne_itn q
+                    JOIN baseline_station_daily_mean_1991_2020 b
+                        ON b.station_code = q.station_code
+                            AND b.month = EXTRACT(MONTH FROM q.date)::int
+                            AND b.day = EXTRACT(DAY FROM q.date)::int
+                WHERE %s <= q.date AND q.date <= %s
+                GROUP BY q.station_code
+            ),
+            station_enriched AS (
+                SELECT
+                    a.station_id,
+                    COALESCE(s.name, a.station_id) AS station_name,
+                    s.lat AS lat,
+                    s.lon AS lon,
+                    s.departement AS department,
+                    s.alt AS alt,
+                    COALESCE(r.region, 'Autre') AS region,
+                    a.temperature_mean,
+                    a.baseline_mean,
+                    (a.temperature_mean - a.baseline_mean) AS deviation,
+                    s.classe_recente AS classe_recente,
+                    s.annee_de_creation AS annee_de_creation,
+                    s.annee_de_fermeture AS annee_de_fermeture
+                FROM station_agg a
+                    LEFT JOIN v_station s
+                        ON s.station_code = a.station_id
+                    LEFT JOIN ref_department_region r
+                        ON r.departement = s.departement
+            )
+        """
+
+        count_sql = (
+            base_cte
+            + f"""
+            SELECT COUNT(*)
+            FROM station_enriched
+            {filtered_where_sql}
+            """
+        )
+
+        page_params = [*params, query.limit, query.offset]
+
+        page_sql = (
+            base_cte
+            + f"""
+            SELECT
+                station_id,
+                station_name,
+                lat,
+                lon,
+                department,
+                alt,
+                region,
+                temperature_mean,
+                baseline_mean,
+                deviation,
+                classe_recente,
+                annee_de_creation,
+                annee_de_fermeture
+            FROM station_enriched
+            {filtered_where_sql}
+            ORDER BY {order_sql}
+            LIMIT %s OFFSET %s
+            """
+        )
+
+        with connection.cursor() as cur:
+            cur.execute(count_sql, params)
+            total_count = cur.fetchone()[0]
+
+            cur.execute(page_sql, page_params)
+            columns = [col[0] for col in cur.description]
+            rows = [dict(zip(columns, row, strict=False)) for row in cur.fetchall()]
+
+        stations = [
+            TemperatureDeviationOverviewStation(
+                station_id=row["station_id"],
+                station_name=row["station_name"],
+                lat=row["lat"],
+                lon=row["lon"],
+                department=str(row["department"])
+                if row["department"] is not None
+                else None,
+                alt=row["alt"],
+                region=row["region"],
+                temperature_mean=float(row["temperature_mean"]),
+                baseline_mean=float(row["baseline_mean"]),
+                deviation=float(row["deviation"]),
+                classe_recente=row["classe_recente"],
+                date_de_creation=_date_de_creation(row["annee_de_creation"]),
+                date_de_fermeture=_date_de_fermeture(row["annee_de_fermeture"]),
+            )
+            for row in rows
+        ]
+
+        return TemperatureDeviationOverviewResult(
+            national_deviation_mean=0.0,  # ignoré par le service
+            pagination=Pagination(
+                total_count=total_count,
+                limit=query.limit,
+                offset=query.offset,
+            ),
+            stations=stations,
+        )
+
+
+class TimescaleTemperatureRecordsDataSource:
+    """
+    Data source réelle : calcule les records progressifs via window function SQL.
+    Retourne N lignes par station (une par fois que la station a battu son propre record).
+    """
+
+    def fetch_records(
+        self, request: TemperatureRecordsRequest
+    ) -> TemperatureRecordsResult:
+        col = "TX" if request.type_records == "hot" else "TN"
+        agg = "MAX" if request.type_records == "hot" else "MIN"
+        cmp = ">" if request.type_records == "hot" else "<"
+        page = request.page
+        page_size = request.page_size
+        offset = (page - 1) * page_size
+
+        period_clause, params = self._period_clause(request)
+
+        sort_parts = [s.strip() for s in request.sort.split(",")]
+
+        field_mapping = {
+            "record_value": f'o."{col}"',
+            "station_name": "s.name",
+            "record_date": 'o."AAAAMMJJ"',
+            "department": "s.departement",
+        }
+
+        order_clauses = []
+        for sort_part in sort_parts:
+            sort_field = sort_part.lstrip("-")
+            sort_order = "DESC" if sort_part.startswith("-") else "ASC"
+
+            if sort_field in field_mapping:
+                order_clauses.append(f"{field_mapping[sort_field]} {sort_order}")
+
+        if order_clauses:
+            order_sql = ", ".join(order_clauses)
+        else:
+            order_sql = f'o."{col}" DESC, s.name ASC'
+
+        base_sql = f"""
+            WITH ordered AS (
+                SELECT
+                    q."NUM_POSTE",
+                    q."AAAAMMJJ",
+                    q."{col}",
+                    {agg}(q."{col}") OVER (
+                        PARTITION BY q."NUM_POSTE"
+                        ORDER BY q."AAAAMMJJ"
+                        ROWS BETWEEN UNBOUNDED PRECEDING AND 1 PRECEDING
+                    ) AS prev_val
+                FROM public."Quotidienne" q
+                WHERE {period_clause}
+                  AND q."{col}" IS NOT NULL
+            )
+        """
+
+        count_sql = (
+            base_sql
+            + f"""
+            SELECT COUNT(*)
+            FROM ordered o
+            JOIN public.v_station s
+              ON s.station_code = o."NUM_POSTE"
+            WHERE o.prev_val IS NULL
+               OR o."{col}" {cmp} o.prev_val
+        """
+        )
+
+        with connection.cursor() as cur:
+            cur.execute(count_sql, params)
+            total_count = cur.fetchone()[0]
+
+        total_pages = (total_count + page_size - 1) // page_size if page_size else 1
+
+        data_sql = (
+            base_sql
+            + f"""
+            SELECT
+                o."NUM_POSTE",
+                s.name,
+                s.departement,
+                o."{col}",
+                o."AAAAMMJJ",
+                s.lat,
+                s.lon,
+                s.alt,
+                s.classe_recente,
+                s.annee_de_creation,
+                s.annee_de_fermeture
+            FROM ordered o
+JOIN public.v_station s ON s.station_code = o."NUM_POSTE"
+            WHERE (o.prev_val IS NULL OR o."{col}" {cmp} o.prev_val)
+              AND s.classe_recente BETWEEN 1 AND 3
+            ORDER BY {order_sql}
+            LIMIT %s OFFSET %s
+        """
+        )
+
+        with connection.cursor() as cur:
+            cur.execute(data_sql, params + [page_size, offset])
+
+            cols = [c.name for c in cur.description]
+            rows = [dict(zip(cols, row, strict=False)) for row in cur.fetchall()]
+
+        results = [
+            TemperatureRecordEntry(
+                station_id=row["NUM_POSTE"].strip(),
+                station_name=row["name"],
+                department=str(row["departement"]) if row["departement"] else "",
+                record_value=float(row[col]),
+                record_date=row["AAAAMMJJ"].date()
+                if isinstance(row["AAAAMMJJ"], dt.datetime)
+                else row["AAAAMMJJ"],
+                lat=row["lat"],
+                lon=row["lon"],
+                alt=row["alt"],
+                classe_recente=row["classe_recente"],
+                date_de_creation=_date_de_creation(row["annee_de_creation"]),
+                date_de_fermeture=_date_de_fermeture(row["annee_de_fermeture"]),
+            )
+            for row in rows
+        ]
+
+        return TemperatureRecordsResult(
+            entries=results,
+            pagination=PaginationRecord(
+                total_count=total_count,
+                page=page,
+                page_size=page_size,
+                total_pages=total_pages,
+            ),
+        )
+
+    def _period_clause(self, request: TemperatureRecordsRequest) -> tuple[str, list]:
+        return _temperature_records_period_clause(request)
+
+
+def _territoire_clause_named(
+    territoire: str | None,
+    territoire_id: str | None,
+    dept_col: str = 'vs."departement"',
+    station_col: str = 'o."NUM_POSTE"',
+) -> tuple[str, dict]:
+    """MaterializedTemperatureRecordsDataSource
+    Retourne (clause SQL, params) pour filtrer par territoire.
+    Utilise des placeholders nommés (%(name)s).
+    """
+    if not territoire or territoire == "france":
+        return f"{dept_col} <= 95", {}
+    if territoire == "department":
+        return f"{dept_col} = %(territoire_id)s", {"territoire_id": territoire_id}
+    if territoire == "station":
+        return f"{station_col} = %(territoire_id)s", {"territoire_id": territoire_id}
+    if territoire == "region":
+        depts = departments_for_region(territoire_id or "")
+        if not depts:
+            return "FALSE", {}
+        named = {f"terr_dept_{i}": d for i, d in enumerate(depts)}
+        placeholders = ", ".join(f"%(terr_dept_{i})s" for i in range(len(depts)))
+        return f"{dept_col} IN ({placeholders})", named
+    return "", {}
+
+
+def _temperature_records_period_clause(
+    request: TemperatureRecordsRequest,
+) -> tuple[str, list]:
+    if request.period_type == "month":
+        return 'EXTRACT(MONTH FROM q."AAAAMMJJ") = %s', [request.month]
+    elif request.period_type == "season":
+        months = list(SEASON_MONTHS[request.season])
+        placeholders = ", ".join(["%s"] * len(months))
+        return f'EXTRACT(MONTH FROM q."AAAAMMJJ") IN ({placeholders})', months
+    else:
+        return "TRUE", []
+
+
+def _temperature_records_period_clause_named(
+    request: TemperatureRecordsRequest,
+) -> tuple[str, dict]:
+    """Variante de _temperature_records_period_clause avec placeholders nommés %(…)s."""
+    if request.period_type == "month":
+        return 'EXTRACT(MONTH FROM q."AAAAMMJJ") = %(period_month)s', {
+            "period_month": request.month
+        }
+    elif request.period_type == "season":
+        months = list(SEASON_MONTHS[request.season])
+        named = {f"period_season_{i}": m for i, m in enumerate(months)}
+        placeholders = ", ".join(f"%(period_season_{i})s" for i in range(len(months)))
+        return f'EXTRACT(MONTH FROM q."AAAAMMJJ") IN ({placeholders})', named
+    else:
+        return "TRUE", {}
+
+
+class MaterializedTemperatureRecordsDataSource:
+    """
+    Data source optimisée : lit les records pré-calculés depuis la vue
+    matérialisée mv_records_battus. Temps de réponse < 10 ms.
+
+    Pré-requis : la MV doit exister en base. La créer avec :
+        psql < backend/sql/materialized_views/records/001_mv_records_battus.sql
+
+    Rafraîchissement après import de nouvelles données :
+        python manage.py refresh_records_mv
+    """
+
+    def fetch_records(
+        self, request: TemperatureRecordsRequest
+    ) -> list[TemperatureRecordEntry]:
+        record_type = "TX" if request.type_records == "hot" else "TN"
+
+        if request.period_type == "month":
+            period_value: str | None = str(request.month)
+        elif request.period_type == "season":
+            period_value = request.season
+        else:
+            period_value = None
+
+        sort_parts = [s.strip() for s in request.sort.split(",")]
+
+        field_mapping = {
+            "record_value": "record_value",
+            "station_name": "station_name",
+            "record_date": "record_date",
+            "department": "department",
+        }
+
+        order_clauses = []
+        for sort_part in sort_parts:
+            sort_field = sort_part.lstrip("-")
+            sort_order = "DESC" if sort_part.startswith("-") else "ASC"
+
+            if sort_field in field_mapping:
+                order_clauses.append(f"{field_mapping[sort_field]} {sort_order}")
+
+        if order_clauses:
+            order_sql = ", ".join(order_clauses)
+        else:
+            order_sql = "record_value DESC, station_name ASC, record_date ASC"
+        clauses = [
+            "record_type = %(record_type)s",
+            "period_type = %(period_type)s",
+            "period_value IS NOT DISTINCT FROM %(period_value)s",
+        ]
+        params: dict = {
+            "record_type": record_type,
+            "period_type": request.period_type,
+            "period_value": period_value,
+        }
+
+        if request.date_start:
+            clauses.append("record_date >= %(date_start)s")
+            params["date_start"] = request.date_start
+        if request.date_end:
+            clauses.append("record_date <= %(date_end)s")
+            params["date_end"] = request.date_end
+
+        terr_clause, terr_params = _territoire_clause_named(
+            request.territoire,
+            request.territoire_id,
+            dept_col="department",
+            station_col="station_code",
+        )
+        if terr_clause:
+            clauses.append(terr_clause)
+            params.update(terr_params)
+
+        where = " AND ".join(clauses)
+
+        sql = f"""
+            SELECT
+                m.station_code,
+                m.station_name,
+                m.department,
+                m.record_value,
+                m.record_date,
+                vs.lat,
+                vs.lon,
+                vs.alt,
+                vs.classe_recente,
+                vs.annee_de_creation,
+                vs.annee_de_fermeture
+            FROM public.mv_records_battus m
+            LEFT JOIN public.v_station vs ON vs.station_code = m.station_code
+            WHERE {where}
+              AND vs.classe_recente BETWEEN 1 AND 3
+            ORDER BY {order_sql}
+            """
+        with connection.cursor() as cur:
+            cur.execute(sql, params)
+
+            cols = [c.name for c in cur.description]
+            rows = [dict(zip(cols, row, strict=False)) for row in cur.fetchall()]
+        return [
+            TemperatureRecordEntry(
+                station_id=row["station_code"].strip(),
+                station_name=row["station_name"],
+                department=str(row["department"])
+                if row["department"] is not None
+                else "",
+                record_value=float(row["record_value"]),
+                record_date=row["record_date"].date()
+                if isinstance(row["record_date"], dt.datetime)
+                else row["record_date"],
+                lat=row["lat"],
+                lon=row["lon"],
+                alt=row["alt"],
+                classe_recente=row["classe_recente"],
+                date_de_creation=_date_de_creation(row["annee_de_creation"]),
+                date_de_fermeture=_date_de_fermeture(row["annee_de_fermeture"]),
+            )
+            for row in rows
+        ]
+
+
+class HybridTemperatureRecordsDataSource:
+    """
+    Data source hybride : lit les records pré-calculés depuis mv_records_battus
+    (snapshot figé) et complète à chaud les nouvelles données (après cutoff_date)
+    via une window function amorcée par les records actuels de la MV.
+
+    La MV n'est jamais rafraîchie. La cutoff_date est stockée dans
+    mv_records_battus_meta au moment de la création de la MV.
+
+    Fallback silencieux vers la MV seule si mv_records_battus_meta est absente
+    ou vide (env de dev sans script de seed exécuté).
+
+    """
+
+    def __init__(self) -> None:
+        self._mv_source = MaterializedTemperatureRecordsDataSource()
+
+    def fetch_records(
+        self, request: TemperatureRecordsRequest
+    ) -> TemperatureRecordsResult:
+        mv_entries = self._mv_source.fetch_records(request)
+        try:
+            cutoff = self._get_cutoff_date()
+        except Exception:
+            return self._paginate(mv_entries, request)
+        if cutoff is None:
+            return self._paginate(mv_entries, request)
+        hot_results = self._fetch_records_after_cutoff(request, cutoff)
+        all_entries = mv_entries + hot_results
+        return self._paginate(all_entries, request)
+
+    def _paginate(
+        self,
+        entries: list[TemperatureRecordEntry],
+        request: TemperatureRecordsRequest,
+    ) -> TemperatureRecordsResult:
+        if request.sort:
+            sort_parts = [s.strip() for s in request.sort.split(",")]
+
+            def _sort_key(entry: TemperatureRecordEntry) -> tuple[Any, ...]:
+                sort_values = []
+                for sort_part in sort_parts:
+                    sort_field = sort_part.lstrip("-")
+                    reverse = sort_part.startswith("-")
+
+                    if sort_field == "station_name":
+                        value = entry.station_name
+                    elif sort_field == "record_date":
+                        value = entry.record_date
+                    elif sort_field == "department":
+                        value = entry.department
+                    else:  # record_value
+                        value = entry.record_value
+
+                    if reverse:
+                        if isinstance(value, str):
+                            value = "".join(chr(255 - ord(c)) for c in value)
+                        elif isinstance(value, int | float):
+                            value = -value
+                        elif hasattr(value, "__neg__"):
+                            try:
+                                value = -value
+                            except TypeError:
+                                pass
+
+                    sort_values.append(value)
+
+                return tuple(sort_values)
+
+            entries = sorted(entries, key=_sort_key)
+
+        total_count = len(entries)
+        page = request.page
+        page_size = request.page_size
+
+        start = (page - 1) * page_size
+        end = start + page_size
+
+        paginated = entries[start:end]
+
+        total_pages = (total_count + page_size - 1) // page_size
+
+        return TemperatureRecordsResult(
+            entries=paginated,
+            pagination=PaginationRecord(
+                total_count=total_count,
+                page=page,
+                page_size=page_size,
+                total_pages=total_pages,
+            ),
+        )
+
+    def _get_cutoff_date(self) -> dt.date | None:
+        with connection.cursor() as cur:
+            cur.execute("SELECT cutoff_date FROM public.mv_records_battus_meta LIMIT 1")
+            row = cur.fetchone()
+        return row[0] if row else None
+
+    def _fetch_records_after_cutoff(
+        self, request: TemperatureRecordsRequest, cutoff_date: dt.date
+    ) -> list[TemperatureRecordEntry]:
+        hot = request.type_records == "hot"
+        col = "TX" if hot else "TN"
+        agg = "MAX" if hot else "MIN"
+        cmp = ">" if hot else "<"
+        extremum_fn = "GREATEST" if hot else "LEAST"
+        neutral_val = (
+            "'-Infinity'::double precision" if hot else "'Infinity'::double precision"
+        )
+        record_type = col
+
+        if request.period_type == "month":
+            period_value: str | None = str(request.month)
+        elif request.period_type == "season":
+            period_value = request.season
+        else:
+            period_value = None
+
+        period_clause, period_named_params = _temperature_records_period_clause_named(
+            request
+        )
+
+        terr_clause, terr_named_params = _territoire_clause_named(
+            request.territoire, request.territoire_id
+        )
+
+        date_filter_parts = []
+        if request.date_start:
+            date_filter_parts.append('AND o."AAAAMMJJ" >= %(date_start)s')
+        if request.date_end:
+            date_filter_parts.append('AND o."AAAAMMJJ" <= %(date_end)s')
+        date_filter_clauses = "\n              ".join(date_filter_parts)
+        terr_filter_clause = f"AND {terr_clause}" if terr_clause else ""
+
+        sql = f"""
+            WITH mv_seeds AS (
+                SELECT station_code, {agg}(record_value) AS seed_val
+                FROM public.mv_records_battus
+                WHERE record_type = %(record_type)s
+                  AND period_type = %(period_type)s
+                  AND period_value IS NOT DISTINCT FROM %(period_value)s
+                GROUP BY station_code
+            ),
+            ordered AS (
+                SELECT
+                    q."NUM_POSTE",
+                    q."AAAAMMJJ",
+                    q."{col}",
+                    {extremum_fn}(
+                        COALESCE(s.seed_val, {neutral_val}),
+                        COALESCE(
+                            {agg}(q."{col}") OVER (
+                                PARTITION BY q."NUM_POSTE"
+                                ORDER BY q."AAAAMMJJ"
+                                ROWS BETWEEN UNBOUNDED PRECEDING AND 1 PRECEDING
+                            ),
+                            {neutral_val}
+                        )
+                    ) AS prev_val
+                FROM public."Quotidienne" q
+                LEFT JOIN mv_seeds s ON s.station_code = q."NUM_POSTE"
+                WHERE q."AAAAMMJJ" > %(cutoff_date)s
+                  AND {period_clause}
+                  AND q."{col}" IS NOT NULL
+            )
+            SELECT
+                o."NUM_POSTE",
+                vs.name,
+                vs.departement,
+                o."{col}",
+                o."AAAAMMJJ",
+                vs.lat,
+                vs.lon,
+                vs.alt,
+                vs.classe_recente,
+                vs.annee_de_creation,
+                vs.annee_de_fermeture
+            FROM ordered o
+            JOIN public.v_station vs ON vs.station_code = o."NUM_POSTE"
+            WHERE o."{col}" {cmp} o.prev_val
+              AND o."AAAAMMJJ" >= make_date(vs.annee_de_creation + 20, 1, 1)
+              AND vs.classe_recente BETWEEN 1 AND 3
+              {date_filter_clauses}
+              {terr_filter_clause}
+            ORDER BY vs.name, o."AAAAMMJJ"
+        """
+
+        params = {
+            "record_type": record_type,
+            "period_type": request.period_type,
+            "period_value": period_value,
+            "cutoff_date": cutoff_date,
+            **period_named_params,
+            **terr_named_params,
+        }
+        if request.date_start:
+            params["date_start"] = request.date_start
+        if request.date_end:
+            params["date_end"] = request.date_end
+
+        with connection.cursor() as cur:
+            cur.execute(sql, params)
+            cols = [c.name for c in cur.description]
+            rows = [dict(zip(cols, row, strict=False)) for row in cur.fetchall()]
+
+        return [
+            TemperatureRecordEntry(
+                station_id=row["NUM_POSTE"].strip(),
+                station_name=row["name"],
+                department=str(row["departement"])
+                if row["departement"] is not None
+                else "",
+                record_value=float(row[col]),
+                record_date=row["AAAAMMJJ"].date()
+                if isinstance(row["AAAAMMJJ"], dt.datetime)
+                else row["AAAAMMJJ"],
+                lat=row["lat"],
+                lon=row["lon"],
+                alt=row["alt"],
+                classe_recente=row["classe_recente"],
+                date_de_creation=_date_de_creation(row["annee_de_creation"]),
+                date_de_fermeture=_date_de_fermeture(row["annee_de_fermeture"]),
+            )
+            for row in rows
+        ]
+
+
+class TimescaleRecordsDataSource:
+    """
+    Adaptateur qui implémente RecordsDataSource (nouvelle spec) en s'appuyant sur
+    HybridTemperatureRecordsDataSource.
+
+    Mapping :
+      record_scope  → period_type  (all_time, monthly→month, seasonal→season)
+      record_kind   → "absolute" = dernier record par station, "historical" = tous
+      type_records  → "all" déclenche les deux passages hot + cold
+    """
+
+    _SCOPE_TO_PERIOD = {
+        "all_time": "all_time",
+        "monthly": "month",
+        "seasonal": "season",
+    }
+
+    def __init__(self) -> None:
+        self._hybrid = HybridTemperatureRecordsDataSource()
+
+    def fetch_records(self, query: RecordsQuery) -> tuple[StationRecords, ...]:
+        period_type = self._SCOPE_TO_PERIOD[query.record_scope]
+
+        types: list[str] = (
+            ["hot", "cold"] if query.type_records == "all" else [query.type_records]
+        )
+
+        hot_entries: list[TemperatureRecordEntry] = []
+        cold_entries: list[TemperatureRecordEntry] = []
+
+        for type_records in types:
+            req = TemperatureRecordsRequest(
+                period_type=period_type,
+                type_records=type_records,
+                month=query.month,
+                season=query.season,
+            )
+            result_obj = self._hybrid.fetch_records(req)
+            if type_records == "hot":
+                hot_entries = result_obj.entries
+            else:
+                cold_entries = result_obj.entries
+
+        station_hot: dict[str, list[TemperatureRecordEntry]] = defaultdict(list)
+        station_cold: dict[str, list[TemperatureRecordEntry]] = defaultdict(list)
+        station_name: dict[str, str] = {}
+        station_department: dict[str, str] = {}
+
+        for e in hot_entries:
+            station_hot[e.station_id].append(e)
+            station_name[e.station_id] = e.station_name
+            station_department[e.station_id] = e.department
+
+        for e in cold_entries:
+            station_cold[e.station_id].append(e)
+            station_name[e.station_id] = e.station_name
+            station_department[e.station_id] = e.department
+
+        all_ids: set[str] = set(station_hot) | set(station_cold)
+
+        if query.station_ids:
+            all_ids &= set(query.station_ids)
+
+        if query.departments:
+            all_ids = {
+                sid
+                for sid in all_ids
+                if station_department.get(sid, _department_of_station(sid))
+                in query.departments
+            }
+
+        result: list[StationRecords] = []
+        for station_id in sorted(all_ids):
+            hot_recs = station_hot.get(station_id, [])
+            cold_recs = station_cold.get(station_id, [])
+
+            if query.record_kind == "absolute":
+                hot_recs = hot_recs[-1:] if hot_recs else []
+                cold_recs = cold_recs[-1:] if cold_recs else []
+
+            hot_recs = _apply_temperature_filter(
+                hot_recs, query.temperature_min, query.temperature_max
+            )
+            cold_recs = _apply_temperature_filter(
+                cold_recs, query.temperature_min, query.temperature_max
+            )
+
+            if not hot_recs and not cold_recs:
+                continue
+
+            result.append(
+                StationRecords(
+                    id=station_id,
+                    name=station_name.get(station_id, station_id),
+                    hot_records=tuple(
+                        TemperatureRecord(value=e.record_value, date=e.record_date)
+                        for e in hot_recs
+                    ),
+                    cold_records=tuple(
+                        TemperatureRecord(value=e.record_value, date=e.record_date)
+                        for e in cold_recs
+                    ),
+                )
+            )
+        total_count = len(result)
+
+        start = (query.page - 1) * query.page_size
+        end = start + query.page_size
+
+        paginated = result[start:end]
+
+        total_pages = (total_count + query.page_size - 1) // query.page_size
+
+        return RecordsResult(
+            entries=paginated,
+            pagination=PaginationRecordType(
+                total_count=total_count,
+                page=query.page,
+                page_size=query.page_size,
+                total_pages=total_pages,
+            ),
+        )
+
+
+class TimescaleTemperatureMinMaxDataSource(MinMaxGraphDataSource):
+    def fetch_daily_series(
+        self, query: MinMaxGraphQuery
+    ) -> list[StationDailyMinMaxSeries]:
+        where_clauses = [
+            'q."AAAAMMJJ" BETWEEN %(date_start)s AND %(date_end)s',
+            '(q."TN" IS NOT NULL OR q."TX" IS NOT NULL)',
+        ]
+        params: dict = {"date_start": query.date_start, "date_end": query.date_end}
+
+        if query.station_ids:
+            where_clauses.append('q."NUM_POSTE" = ANY(%(station_ids)s)')
+            params["station_ids"] = list(query.station_ids)
+
+        if query.departments:
+            where_clauses.append("s.departement = ANY(%(departments)s)")
+            params["departments"] = [int(d) for d in query.departments if d.isdigit()]
+
+        if query.regions:
+            where_clauses.append("r.region = ANY(%(regions)s)")
+            params["regions"] = list(query.regions)
+
+        where_sql = " AND ".join(where_clauses)
+
+        sql = f"""
+            SELECT
+                q."NUM_POSTE"   AS station_id,
+                s.name          AS station_name,
+                q."AAAAMMJJ"    AS date,
+                q."TN"          AS tmin,
+                q."TX"          AS tmax
+            FROM public."Quotidienne" q
+            JOIN public.v_station s
+                ON s.station_code = q."NUM_POSTE"
+            LEFT JOIN public.ref_department_region r
+                ON r.departement = s.departement
+            WHERE {where_sql}
+            ORDER BY q."NUM_POSTE", q."AAAAMMJJ"
+        """
+
+        with connection.cursor() as cur:
+            cur.execute(sql, params)
+            cols = [c.name for c in cur.description]
+            rows = [dict(zip(cols, row, strict=False)) for row in cur.fetchall()]
+
+        grouped: dict[str, list[DailyMinMaxPoint]] = defaultdict(list)
+        station_names: dict[str, str] = {}
+
+        for row in rows:
+            sid = row["station_id"].strip()
+            station_names[sid] = row["station_name"]
+            grouped[sid].append(
+                DailyMinMaxPoint(
+                    date=row["date"].date()
+                    if isinstance(row["date"], dt.datetime)
+                    else row["date"],
+                    tmin=_float_or_none(row["tmin"]),
+                    tmax=_float_or_none(row["tmax"]),
+                )
+            )
+
+        return [
+            StationDailyMinMaxSeries(
+                station_id=sid,
+                station_name=station_names[sid],
+                points=grouped[sid],
+            )
+            for sid in grouped
+        ]
+
+    def fetch_national_daily_series(
+        self, query: MinMaxGraphQuery
+    ) -> list[DailyMinMaxPoint]:
+        sql = """
+            SELECT
+                q."AAAAMMJJ"    AS date,
+                AVG(q."TN")     AS tmin,
+                AVG(q."TX")     AS tmax
+            FROM public."Quotidienne" q
+            WHERE q."AAAAMMJJ" BETWEEN %(date_start)s AND %(date_end)s
+              AND q."TN" IS NOT NULL
+              AND q."TX" IS NOT NULL
+            GROUP BY q."AAAAMMJJ"
+            ORDER BY q."AAAAMMJJ"
+        """
+
+        with connection.cursor() as cur:
+            cur.execute(
+                sql, {"date_start": query.date_start, "date_end": query.date_end}
+            )
+            cols = [c.name for c in cur.description]
+            rows = [dict(zip(cols, row, strict=False)) for row in cur.fetchall()]
+
+        return [
+            DailyMinMaxPoint(
+                date=row["date"].date()
+                if isinstance(row["date"], dt.datetime)
+                else row["date"],
+                tmin=_float_or_none(row["tmin"]),
+                tmax=_float_or_none(row["tmax"]),
+            )
+            for row in rows
+        ]
+
+
+def _date_de_creation(annee: int) -> dt.date:
+    """Approximation de la date de création au 1er janvier de l'année de création."""
+    return dt.date(annee, 1, 1)
+
+
+def _date_de_fermeture(annee: int | None) -> dt.date | None:
+    """Approximation de la date de fermeture au 31 décembre de l'année de fermeture, lorsqu'elle existe."""
+    if annee is None:
+        return None
+    return dt.date(annee, 12, 31)
+
+
+def _department_of_station(station_id: str) -> str:
+    if station_id.startswith(("971", "972", "973", "974", "976")):
+        return station_id[:3]
+    return station_id[:2]
+
+
+def _apply_temperature_filter(
+    entries: list[TemperatureRecordEntry],
+    temperature_min: float | None,
+    temperature_max: float | None,
+) -> list[TemperatureRecordEntry]:
+    return [
+        e
+        for e in entries
+        if (temperature_min is None or e.record_value >= temperature_min)
+        and (temperature_max is None or e.record_value <= temperature_max)
+    ]
+
+
+def _generate_buckets_day(date_start: dt.date, date_end: dt.date) -> list[str]:
+    buckets: list[str] = []
+    current = date_start
+    while current <= date_end:
+        buckets.append(current.strftime("%Y-%m-%d"))
+        current += dt.timedelta(days=1)
+    return buckets
+
+
+def _generate_buckets_month(date_start: dt.date, date_end: dt.date) -> list[str]:
+    buckets: list[str] = []
+    current = date_start.replace(day=1)
+    end_month = date_end.replace(day=1)
+    while current <= end_month:
+        buckets.append(current.strftime("%Y-%m"))
+        month = current.month + 1
+        year = current.year + (month - 1) // 12
+        current = current.replace(year=year, month=((month - 1) % 12) + 1)
+    return buckets
+
+
+def _generate_buckets_year(date_start: dt.date, date_end: dt.date) -> list[str]:
+    return [str(year) for year in range(date_start.year, date_end.year + 1)]
+
+
+def _generate_buckets(
+    date_start: dt.date, date_end: dt.date, granularity: str
+) -> list[str]:
+    if granularity == "day":
+        return _generate_buckets_day(date_start, date_end)
+    if granularity == "month":
+        return _generate_buckets_month(date_start, date_end)
+    return _generate_buckets_year(date_start, date_end)
+
+
+class TimescaleRecordsGraphDataSource:
+    """
+    Data source pour le graphe de records.
+    Lit depuis mv_records_battus et agrège par bucket temporel.
+    Retourne un point par unité de granularité, y compris les buckets à 0.
+    """
+
+    _GRANULARITY_TO_DATE_TRUNC = {"day": "day", "month": "month", "year": "year"}
+
+    def fetch_graph(self, request: RecordsGraphRequest) -> list[RecordsGraphBucket]:
+        if request.period_type == "month":
+            period_value: str | None = str(request.month)
+        elif request.period_type == "season":
+            period_value = request.season
+        else:
+            period_value = None
+
+        date_trunc = self._GRANULARITY_TO_DATE_TRUNC[request.granularity]
+
+        clauses = [
+            "period_type = %(period_type)s",
+            "period_value IS NOT DISTINCT FROM %(period_value)s",
+            "record_date >= %(date_start)s",
+            "record_date <= %(date_end)s",
+        ]
+        params: dict = {
+            "period_type": request.period_type,
+            "period_value": period_value,
+            "date_start": request.date_start,
+            "date_end": request.date_end,
+        }
+
+        if request.type_records != "all":
+            record_type = "TX" if request.type_records == "hot" else "TN"
+            clauses.insert(0, "record_type = %(record_type)s")
+            params["record_type"] = record_type
+
+        terr_clause, terr_params = _territoire_clause_named(
+            request.territoire,
+            request.territoire_id,
+            dept_col="department",
+            station_col="station_code",
+        )
+        if terr_clause:
+            clauses.append(terr_clause)
+            params.update(terr_params)
+
+        where = " AND ".join(clauses)
+        sql = f"""
+            SELECT
+                DATE_TRUNC('{date_trunc}', record_date)::date AS bucket_date,
+                COUNT(*) AS cnt
+            FROM public.mv_records_battus
+            WHERE {where}
+            GROUP BY DATE_TRUNC('{date_trunc}', record_date)
+            ORDER BY bucket_date
+        """
+
+        sql_records = f"""
+            SELECT station_code, station_name, record_value, record_date, record_type
+            FROM public.mv_records_battus
+            WHERE {where}
+            ORDER BY record_date
+        """
+
+        with connection.cursor() as cur:
+            cur.execute(sql, params)
+            cols = [c[0] for c in cur.description]
+            bucket_rows = {
+                row["bucket_date"].strftime(
+                    "%Y-%m-%d"
+                    if date_trunc == "day"
+                    else "%Y-%m"
+                    if date_trunc == "month"
+                    else "%Y"
+                ): row["cnt"]
+                for row in (dict(zip(cols, r, strict=False)) for r in cur.fetchall())
+            }
+            cur.execute(sql_records, params)
+            cols = [c[0] for c in cur.description]
+            record_rows = [dict(zip(cols, r, strict=False)) for r in cur.fetchall()]
+
+        all_buckets = _generate_buckets(
+            request.date_start, request.date_end, request.granularity
+        )
+        buckets = [
+            RecordsGraphBucket(bucket=b, nb_records_battus=bucket_rows.get(b, 0))
+            for b in all_buckets
+        ]
+        records = [
+            RecordsGraphRecord(
+                date=row["record_date"].date()
+                if hasattr(row["record_date"], "date")
+                else row["record_date"],
+                station_id=row["station_code"],
+                station_name=row["station_name"],
+                type_records="hot" if row["record_type"] == "TX" else "cold",
+                valeur=float(row["record_value"]),
+            )
+            for row in record_rows
+        ]
+        return RecordsGraphResult(buckets=buckets, records=records)

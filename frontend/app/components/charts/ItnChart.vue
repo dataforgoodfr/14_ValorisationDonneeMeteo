@@ -1,17 +1,35 @@
 <script setup lang="ts">
 import * as echarts from "echarts/core";
-
+import langFR from "~/i18n/langFR.js";
+import type { SelectBarAdapter } from "~/components/ui/commons/selectBar/types";
+import type {
+    NationalIndicatorDataPoint,
+    NationalIndicatorResponse,
+} from "~/types/api";
+import { CHART_ATTRIBUTION_GRAPHIC } from "~/constants/chartAttribution";
+import { ITN_SERIES, useItnColors } from "~/constants/itn";
+import { useMapColors } from "~/constants/colors";
+import { FONT_CHARTS } from "~/constants/fonts";
+import { itnChartTooltipFormatter } from "./tooltipFormatters/itnChartTooltipFormatter";
 import {
+    itnStackedTooltipFormatter,
+    formatStackedAxisLabel,
+    formatContinuousAxisLabel,
+} from "./tooltipFormatters/itnStackedTooltipFormatter";
+import {
+    DataZoomComponent,
+    GraphicComponent,
+    GridComponent,
+    LegendComponent,
     TitleComponent,
     ToolboxComponent,
     TooltipComponent,
-    GridComponent,
-    DataZoomComponent,
-    LegendComponent,
 } from "echarts/components";
 import { LineChart } from "echarts/charts";
 import { UniversalTransition } from "echarts/features";
 import { CanvasRenderer } from "echarts/renderers";
+
+echarts.registerLocale("FR", langFR);
 echarts.use([
     TitleComponent,
     ToolboxComponent,
@@ -22,25 +40,215 @@ echarts.use([
     UniversalTransition,
     LegendComponent,
     DataZoomComponent,
+    GraphicComponent,
 ]);
 
-const itnStore = useItnStore();
+interface Props {
+    adapter: SelectBarAdapter<NationalIndicatorResponse>;
+}
+
+const props = defineProps<Props>();
 
 // provide init-options
-const renderer = ref<"svg" | "canvas">("svg");
+const renderer = ref<"svg" | "canvas">("canvas");
 const initOptions = computed(() => ({
     height: 600,
+    locale: "FR",
     renderer: renderer.value,
 }));
 provide(INIT_OPTIONS_KEY, initOptions);
 
-const colorEcartType = "rgba(175, 175, 175, 1)";
-const colorExtremes = "rgba(100, 100, 100, 0.2)";
+const itnColors = useItnColors();
+const mapColors = useMapColors();
+
+function buildStackedOption(
+    timeSeries: NationalIndicatorDataPoint[],
+    granularity: "month" | "day",
+): ECOption {
+    function getXKey(dateStr: string): string {
+        const d = new Date(dateStr);
+        const m = String(d.getMonth() + 1).padStart(2, "0");
+        return granularity === "month"
+            ? m
+            : `${m}-${String(d.getDate()).padStart(2, "0")}`;
+    }
+
+    const allPositions = [
+        ...new Set(timeSeries.map((p) => getXKey(p.date))),
+    ].sort();
+
+    // Baseline: première occurrence par position (identique pour toutes les années)
+    const baselineByPos = new Map<string, NationalIndicatorDataPoint>();
+    for (const p of timeSeries) {
+        const k = getXKey(p.date);
+        if (!baselineByPos.has(k)) baselineByPos.set(k, p);
+    }
+
+    // Températures par année
+    const byYear = new Map<number, Map<string, number>>();
+    for (const p of timeSeries) {
+        const year = new Date(p.date).getFullYear();
+        const k = getXKey(p.date);
+        if (!byYear.has(year)) byYear.set(year, new Map());
+        byYear.get(year)!.set(k, p.temperature);
+    }
+    const years = [...byYear.keys()].sort();
+
+    const baselineSource = allPositions.map((pos) => {
+        const p = baselineByPos.get(pos)!;
+        return [
+            pos,
+            p.baseline_min,
+            p.baseline_max - p.baseline_min,
+            p.baseline_std_dev_lower,
+            p.baseline_std_dev_upper - p.baseline_std_dev_lower,
+            p.baseline_mean,
+        ];
+    });
+
+    const baselineSeries: ECOption["series"] = [
+        {
+            type: "line",
+            encode: { x: "position", y: "baseline_min" },
+            stack: "extreme",
+            stackStrategy: "all",
+            symbol: "none",
+            lineStyle: { opacity: 0 },
+            areaStyle: { color: "transparent" },
+            tooltip: { show: false },
+        },
+        {
+            name: ITN_SERIES.extremes,
+            type: "line",
+            encode: { x: "position", y: "baseline_band" },
+            stack: "extreme",
+            stackStrategy: "all",
+            symbol: "none",
+            color: itnColors.value.extremes,
+            lineStyle: { opacity: 0 },
+            areaStyle: { color: itnColors.value.extremes },
+        },
+        {
+            type: "line",
+            encode: { x: "position", y: "baseline_std_dev_lower" },
+            stack: "std",
+            stackStrategy: "all",
+            symbol: "none",
+            lineStyle: { opacity: 0 },
+            areaStyle: { color: "transparent" },
+            tooltip: { show: false },
+        },
+        {
+            name: ITN_SERIES.stdDev,
+            type: "line",
+            encode: { x: "position", y: "baseline_std_dev_band" },
+            stack: "std",
+            stackStrategy: "all",
+            symbol: "none",
+            color: itnColors.value.ecartType,
+            lineStyle: { opacity: 0 },
+            areaStyle: { color: itnColors.value.ecartType },
+        },
+        {
+            name: ITN_SERIES.temperature,
+            type: "line",
+            encode: { x: "position", y: "baseline_mean" },
+            symbol: "none",
+            lineStyle: { width: 2, color: itnColors.value.baselineLine },
+            z: 5,
+        },
+    ];
+
+    const yearSeries: ECOption["series"] = years.map((year) => ({
+        name: String(year),
+        type: "line",
+        data: allPositions.map((pos) => [
+            pos,
+            byYear.get(year)?.get(pos) ?? null,
+        ]),
+        symbol: "none",
+        lineStyle: { width: 1.5 },
+        connectNulls: false,
+        z: 10,
+    }));
+
+    return {
+        dataset: {
+            dimensions: [
+                "position",
+                "baseline_min",
+                "baseline_band",
+                "baseline_std_dev_lower",
+                "baseline_std_dev_band",
+                "baseline_mean",
+            ],
+            source: baselineSource,
+        },
+        grid: { left: 30, right: 10, bottom: 150, containLabel: true },
+        xAxis: {
+            type: "category",
+            data: allPositions,
+            axisLabel: {
+                fontSize: FONT_CHARTS.axis,
+                interval:
+                    granularity === "day"
+                        ? (_index: number, value: string) =>
+                              value.endsWith("-01")
+                        : 0,
+                formatter: (val: string) =>
+                    formatStackedAxisLabel(val, granularity),
+            },
+        },
+        yAxis: {
+            type: "value",
+            name: "Température (°C)",
+            nameRotate: 90,
+            nameLocation: "middle",
+            nameGap: 40,
+            nameTextStyle: { fontSize: FONT_CHARTS.axisName },
+            axisLabel: { fontSize: FONT_CHARTS.axis },
+            splitLine: {
+                lineStyle: { type: "dashed", color: mapColors.value.splitLine },
+            },
+        },
+        series: [...baselineSeries, ...yearSeries],
+        legend: {
+            data: [
+                ITN_SERIES.extremes,
+                ITN_SERIES.baseline,
+                ITN_SERIES.temperature,
+                ...years.map(String),
+            ],
+            bottom: 85,
+            textStyle: { fontSize: FONT_CHARTS.legend },
+        },
+        title: {
+            text: "Indicateur thermique national",
+            left: "center",
+            textStyle: { fontSize: FONT_CHARTS.title },
+        },
+        tooltip: {
+            trigger: "axis",
+            formatter: (params) =>
+                itnStackedTooltipFormatter(params, granularity),
+        },
+        emphasis: { focus: "none", disabled: true },
+        graphic: CHART_ATTRIBUTION_GRAPHIC,
+    };
+}
 
 const option = computed<ECOption>(() => {
-    const timeSeries = insertCrossingPoints(
-        itnStore.itnData?.time_series ?? [],
-    );
+    const data = props.adapter.data.value;
+
+    if (props.adapter.chartType?.value === "stacked" && data) {
+        const gran = props.adapter.granularity.value;
+        return buildStackedOption(
+            data.time_series,
+            gran === "year" ? "month" : gran,
+        );
+    }
+
+    const timeSeries = insertCrossingPoints(data?.time_series ?? []);
 
     return {
         dataset: {
@@ -57,6 +265,7 @@ const option = computed<ECOption>(() => {
                 "hot_red_band",
                 "cold_blue_band",
                 "hot_cold_invisible_band",
+                "isInterpolated",
             ],
             source:
                 timeSeries.map((point) => ({
@@ -81,21 +290,43 @@ const option = computed<ECOption>(() => {
                         point.temperature,
                         point.baseline_mean,
                     ),
+                    isInterpolated: point.isInterpolated ? 1 : 0,
                 })) ?? [],
         },
         grid: {
-            left: 10,
+            left: 30,
             right: 10,
+            bottom: 150,
             containLabel: true,
         },
-        xAxis: { type: "time" },
-        yAxis: {},
+        xAxis: {
+            type: "time",
+            axisLabel: {
+                fontSize: FONT_CHARTS.axis,
+                ...(props.adapter.granularity.value === "day"
+                    ? { formatter: formatContinuousAxisLabel }
+                    : {}),
+            },
+        },
+        yAxis: {
+            type: "value",
+            name: "Température (°C)",
+            nameRotate: 90,
+            nameLocation: "middle",
+            nameGap: 40,
+            nameTextStyle: { fontSize: FONT_CHARTS.axisName },
+            axisLabel: { fontSize: FONT_CHARTS.axis },
+            splitLine: {
+                lineStyle: { type: "dashed", color: mapColors.value.splitLine },
+            },
+        },
         series: [
             // extreme - Invisible base — pushes the band up to start at lower bound
             {
                 type: "line",
                 encode: { x: "date", y: "baseline_min" },
                 stack: "extreme",
+                stackStrategy: "all",
                 symbol: "none",
                 lineStyle: { opacity: 0 },
                 areaStyle: { color: "transparent" },
@@ -103,20 +334,22 @@ const option = computed<ECOption>(() => {
             },
             // extreme - baseline_band
             {
-                name: "Extrêmes",
+                name: ITN_SERIES.extremes,
                 type: "line",
                 encode: { x: "date", y: "baseline_band" },
                 stack: "extreme",
+                stackStrategy: "all",
                 symbol: "none",
-                color: colorExtremes,
+                color: itnColors.value.extremes,
                 lineStyle: { opacity: 0 },
-                areaStyle: { color: colorExtremes },
+                areaStyle: { color: itnColors.value.extremes },
             },
             // ecart-type - Invisible base — pushes the band up to start at lower bound
             {
                 type: "line",
                 encode: { x: "date", y: "baseline_std_dev_lower" },
                 stack: "std",
+                stackStrategy: "all",
                 symbol: "none",
                 lineStyle: { opacity: 0 },
                 areaStyle: { color: "transparent" },
@@ -124,38 +357,40 @@ const option = computed<ECOption>(() => {
             },
             // ecart-type - baseline_std_dev_band
             {
-                name: "Écart-type",
+                name: ITN_SERIES.stdDev,
                 type: "line",
                 encode: { x: "date", y: "baseline_std_dev_band" },
                 stack: "std",
+                stackStrategy: "all",
                 symbol: "none",
-                color: colorEcartType,
+                color: itnColors.value.ecartType,
                 lineStyle: { opacity: 0 },
-                areaStyle: { color: colorEcartType },
+                areaStyle: { color: itnColors.value.ecartType },
             },
             // Moyenne - baseline_mean
             {
-                name: "Indicateur MF",
+                name: ITN_SERIES.baseline,
                 type: "line",
                 encode: { x: "date", y: "baseline_mean" },
                 symbol: "none",
             },
             // Temperature - temperature
             {
-                name: "Température",
+                name: ITN_SERIES.temperature,
                 type: "line",
                 stack: "temperature",
                 encode: { x: "date", y: "temperature" },
-                color: "#999",
+                color: itnColors.value.temperatureLine,
                 lineStyle: { width: 0.5 },
                 symbol: "none",
             },
             // hot_cold_invisible_band
             {
-                name: "Température",
+                name: ITN_SERIES.temperature,
                 type: "line",
                 encode: { x: "date", y: "hot_cold_invisible_band" },
                 stack: "hot_cold",
+                stackStrategy: "all",
                 symbol: "none",
                 lineStyle: { opacity: 0 },
                 areaStyle: { color: "transparent" },
@@ -163,84 +398,70 @@ const option = computed<ECOption>(() => {
             },
             // hot_red_band
             {
-                name: "Température",
+                name: ITN_SERIES.temperature,
                 type: "line",
                 encode: { x: "date", y: "hot_red_band" },
                 stack: "hot_cold",
+                stackStrategy: "all",
                 symbol: "none",
-                color: "#f00",
+                color: itnColors.value.hotBand,
                 lineStyle: { opacity: 0 },
-                areaStyle: { color: "rgba(255, 0, 0, 0.6)" },
+                areaStyle: { color: itnColors.value.hotBand },
                 tooltip: { show: false },
             },
             // cold_blue_band
             {
-                name: "Température",
+                name: ITN_SERIES.temperature,
                 type: "line",
                 encode: { x: "date", y: "cold_blue_band" },
                 stack: "hot_cold",
+                stackStrategy: "all",
                 symbol: "none",
-                color: "#00f",
+                color: itnColors.value.coldBand,
                 lineStyle: { opacity: 0 },
-                areaStyle: { color: "rgba(0, 0, 255, 0.6)" },
+                areaStyle: { color: itnColors.value.coldBand },
                 tooltip: { show: false },
             },
         ],
+        title: {
+            text: "Indicateur thermique national",
+            left: "center",
+            textStyle: { fontSize: FONT_CHARTS.title },
+        },
         legend: {
-            data: ["Température", "Indicateur MF", "Écart-type", "Extrêmes"],
-            top: 0,
+            data: [
+                ITN_SERIES.temperature,
+                ITN_SERIES.baseline,
+                ITN_SERIES.stdDev,
+                ITN_SERIES.extremes,
+            ],
+            bottom: 85,
+            textStyle: { fontSize: FONT_CHARTS.legend },
         },
         tooltip: {
             trigger: "axis",
-            formatter: (params) => {
-                if (!Array.isArray(params)) return "";
-                const [first] = params;
-                if (!first) return "";
-
-                const d = first.value as Record<string, number | string>;
-                const fmt = (v: number) => `${v.toFixed(2)}°C`;
-                const find = (name: string) =>
-                    params.find((p) => p.seriesName === name);
-
-                const dateOptions: Intl.DateTimeFormatOptions =
-                    itnStore.granularity === "month"
-                        ? { year: "numeric", month: "long" }
-                        : itnStore.granularity === "year"
-                          ? { year: "numeric" }
-                          : {
-                                weekday: "short",
-                                day: "numeric",
-                                month: "short",
-                                year: "numeric",
-                            };
-                const formattedDate = new Date(
-                    d.date as string,
-                ).toLocaleDateString("fr-FR", dateOptions);
-
-                return [
-                    formattedDate,
-                    `${find("Température")?.marker ?? ""}Température : ${fmt(d.temperature as number)}`,
-                    `${find("Indicateur MF")?.marker ?? ""}Indicateur MF : ${fmt(d.baseline_mean as number)}`,
-                    `${find("Extrêmes")?.marker ?? ""}Extrêmes : [${fmt(d.baseline_min as number)} – ${fmt(d.baseline_max as number)}]`,
-                    `${find("Écart-type")?.marker ?? ""}Écart-type : [${fmt(d.baseline_std_dev_lower as number)} – ${fmt(d.baseline_std_dev_upper as number)}]`,
-                ].join("<br/>");
-            },
+            formatter: (params) =>
+                itnChartTooltipFormatter(
+                    params,
+                    props.adapter.granularity.value,
+                ),
         },
-        dataZoom: [
-            {
-                type: "slider",
-                minSpan: 20,
-            },
-        ],
+        emphasis: {
+            focus: "none",
+            disabled: true, // disables all emphasis state changes on hover
+        },
+        graphic: CHART_ATTRIBUTION_GRAPHIC,
     };
 });
 </script>
 
 <template>
     <VChart
+        :ref="adapter.chartRef"
+        :key="`${adapter.granularity.value}-${adapter.chartType?.value ?? 'line'}`"
         :option="option"
         :init-options="initOptions"
-        :loading="itnStore.pending"
+        :loading="adapter.pending.value"
         :loading-options="{ text: 'Chargement…', color: '#3b82f6' }"
         autoresize
     />

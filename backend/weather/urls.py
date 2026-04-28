@@ -6,16 +6,18 @@ from django.urls import include, path
 from rest_framework.routers import DefaultRouter
 
 from .views import (
-    HoraireTempsReelViewSet,
     NationalIndicatorAPIView,
-    QuotidienneViewSet,
+    NationalIndicatorKpiAPIView,
+    RecordsGraphAPIView,
     StationViewSet,
+    TemperatureDeviationGraphAPIView,
+    TemperatureDeviationOverviewAPIView,
+    TemperatureMinMaxGraphAPIView,
+    TemperatureRecordsAPIView,
 )
 
 router = DefaultRouter()
 router.register(r"stations", StationViewSet, basename="station")
-router.register(r"horaire", HoraireTempsReelViewSet, basename="horaire")
-router.register(r"quotidien", QuotidienneViewSet, basename="quotidien")
 
 urlpatterns = [
     path("", include(router.urls)),
@@ -23,5 +25,35 @@ urlpatterns = [
         "temperature/national-indicator",
         NationalIndicatorAPIView.as_view(),
         name="temperature-national-indicator",
+    ),
+    path(
+        "temperature/national-indicator/kpi",
+        NationalIndicatorKpiAPIView.as_view(),
+        name="temperature-national-indicator-kpi",
+    ),
+    path(
+        "temperature/records",
+        TemperatureRecordsAPIView.as_view(),
+        name="temperature-records",
+    ),
+    path(
+        "temperature/extremes/graph",
+        TemperatureMinMaxGraphAPIView.as_view(),
+        name="temperature-extremes-graph",
+    ),
+    path(
+        "temperature/deviation/graph",
+        TemperatureDeviationGraphAPIView.as_view(),
+        name="temperature-deviation-graph",
+    ),
+    path(
+        "temperature/deviation",
+        TemperatureDeviationOverviewAPIView.as_view(),
+        name="temperature-deviation-overview",
+    ),
+    path(
+        "temperature/records/graph",
+        RecordsGraphAPIView.as_view(),
+        name="temperature-records-graph",
     ),
 ]

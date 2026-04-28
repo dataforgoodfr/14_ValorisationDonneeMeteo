@@ -10,10 +10,16 @@ export function useNationalIndicator(
     const { useApiFetch } = useApiClient();
 
     if (enabled === undefined) {
-        return useApiFetch<NationalIndicatorResponse>(
+        const result = useApiFetch<NationalIndicatorResponse>(
             "/temperature/national-indicator",
-            { query: params },
+            { query: params, watch: false },
         );
+
+        watch(params, () => {
+            result.execute();
+        });
+
+        return result;
     }
 
     const isEnabled = toRef(enabled);
