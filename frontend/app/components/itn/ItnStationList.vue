@@ -17,7 +17,8 @@
                 <span
                     class="text-lg sm:text-xl/8 truncate transition-colors"
                     :class="station.code === hoveredCode ? 'text-primary' : ''"
-                >{{ station.nom }}</span>
+                    >{{ station.nom }}</span
+                >
             </li>
         </ul>
     </div>

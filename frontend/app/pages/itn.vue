@@ -31,6 +31,9 @@ const heroData = {
                     <div class="flex-1 min-w-0">
                         <ItnChart :adapter="selectBarAdapter" />
                     </div>
+                    <ItnKpiPanel
+                        v-if="selectBarAdapter.chartType?.value !== 'stacked'"
+                    />
                 </div>
             </template>
         </ChartLayout>

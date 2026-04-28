@@ -12,7 +12,7 @@
 import maplibregl from "maplibre-gl";
 import "maplibre-gl/dist/maplibre-gl.css";
 import * as topojson from "topojson-client";
-import type { FeatureCollection, Geometry, Point } from "geojson";
+import type { FeatureCollection, Geometry } from "geojson";
 import type { Topology, GeometryCollection } from "topojson-specification";
 import type { ItnStation } from "~/types/api";
 
@@ -216,9 +216,7 @@ watch(
 
         popup
             .setLngLat([station.lon, station.lat])
-            .setHTML(
-                `<span class="itn-popup-label">${station.nom}</span>`,
-            )
+            .setHTML(`<span class="itn-popup-label">${station.nom}</span>`)
             .addTo(map);
     },
 );
