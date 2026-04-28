@@ -108,6 +108,77 @@ def test_get_national_indicator_month_happy_path(client: APIClient):
     # month + full => baseline mensuelle
     assert ts[0]["baseline_mean"] == 2001.0
 
+    # température (≈1.06) << lower (1999.0) => cold peak
+    assert ts[0]["is_cold_peak"] is True
+    assert ts[0]["is_hot_peak"] is False
+
+
+def test_get_national_indicator_peak_flags_in_response(client: APIClient):
+    # baseline upper=12, lower=8 pour chaque jour
+    _upper = 12.0
+    _lower = 8.0
+    _mean = 10.0
+
+    class PeakTestDependency(
+        NationalIndicatorObservedDataSource,
+        NationalIndicatorBaselineDataSource,
+    ):
+        def fetch_daily_series(self, query: DailySeriesQuery) -> list[ObservedPoint]:
+            days = query.target_dates or tuple(
+                iter_days_intersecting(query.date_start, query.date_end)
+            )
+            temps = {
+                dt.date(2025, 6, 1): _upper + 1.0,  # hot peak
+                dt.date(2025, 6, 2): _mean,  # normal
+                dt.date(2025, 6, 3): _lower - 1.0,  # cold peak
+            }
+            return [ObservedPoint(date=d, temperature=temps[d]) for d in days]
+
+        def fetch_daily_baseline(self, day: dt.date) -> BaselinePoint:
+            return BaselinePoint(
+                baseline_mean=_mean,
+                baseline_std_dev_upper=_upper,
+                baseline_std_dev_lower=_lower,
+                baseline_max=0.0,
+                baseline_min=0.0,
+            )
+
+        def fetch_monthly_baseline(self, month: int) -> BaselinePoint:
+            return self.fetch_daily_baseline(dt.date(2025, month, 1))
+
+        def fetch_yearly_baseline(self) -> BaselinePoint:
+            return self.fetch_daily_baseline(dt.date(2025, 1, 1))
+
+    ITNDependencyProvider.set_builder(
+        lambda: ITNDependencies(
+            observed_data_source=PeakTestDependency(),
+            baseline_data_source=PeakTestDependency(),
+        )
+    )
+
+    url = reverse("temperature-national-indicator")
+    resp = client.get(
+        url,
+        {
+            "date_start": "2025-06-01",
+            "date_end": "2025-06-03",
+            "granularity": "day",
+        },
+    )
+
+    assert resp.status_code == 200
+    ts = resp.json()["time_series"]
+    assert len(ts) == 3
+
+    assert ts[0]["is_hot_peak"] is True
+    assert ts[0]["is_cold_peak"] is False
+
+    assert ts[1]["is_hot_peak"] is False
+    assert ts[1]["is_cold_peak"] is False
+
+    assert ts[2]["is_hot_peak"] is False
+    assert ts[2]["is_cold_peak"] is True
+
 
 def test_get_national_indicator_missing_required_parameter_returns_400(
     client: APIClient,
