@@ -13,7 +13,10 @@ from weather.bootstrap_temperature_deviation import (
     TemperatureDeviationDependencyProvider,
     TemperatureDeviationOverviewDependencyProvider,
 )
-from weather.bootstrap_temperature_minmax import TemperatureMinMaxDependencyProvider
+from weather.bootstrap_temperature_minmax import (
+    TemperatureMinMaxDependencyProvider,
+    TemperatureMinMaxOverviewDependencyProvider,
+)
 from weather.bootstrap_temperature_records import TemperatureRecordsDependencyProvider
 from weather.services.national_indicator.kpi_use_case import get_national_indicator_kpi
 from weather.services.national_indicator.use_case import get_national_indicator
@@ -23,6 +26,8 @@ from weather.services.temperature_deviation.use_case import (
     get_temperature_deviation,
     get_temperature_deviation_overview,
 )
+from weather.services.temperature_minmax.service import compute_minmax_overview
+from weather.services.temperature_minmax.types import MinMaxOverviewQuery
 from weather.services.temperature_minmax.use_case import get_minmax_graph
 from weather.services.temperature_records.types import TemperatureRecordsRequest
 from weather.services.temperature_records.use_case import get_temperature_records
@@ -45,6 +50,9 @@ from .serializers import (
     TemperatureDeviationResponseSerializer,
     TemperatureMinMaxGraphQuerySerializer,
     TemperatureMinMaxGraphResponseSerializer,
+    TemperatureMinMaxOverviewQuerySerializer,
+    TemperatureMinMaxOverviewResponseSerializer,
+    TemperatureRecordEntrySerializer,
     TemperatureRecordsQuerySerializer,
     TemperatureRecordsResponseSerializer,
 )
@@ -436,6 +444,84 @@ class TemperatureDeviationOverviewAPIView(APIView):
         }
 
         out = TemperatureDeviationOverviewResponseSerializer(data=full_payload)
+        out.is_valid(raise_exception=True)
+
+        return Response(out.data, status=status.HTTP_200_OK)
+
+
+def _make_minmax_overview_query(params: dict) -> MinMaxOverviewQuery:
+    return MinMaxOverviewQuery(
+        date_start=params["date_start"],
+        date_end=params["date_end"],
+        type=params["type"],
+        station_ids=params.get("station_ids", ()),
+        station_search=params.get("station_search"),
+        tmean_min=params.get("tmean_min"),
+        tmean_max=params.get("tmean_max"),
+        textreme_min=params.get("textreme_min"),
+        textreme_max=params.get("textreme_max"),
+        alt_min=params.get("alt_min"),
+        alt_max=params.get("alt_max"),
+        departments=params.get("departments", ()),
+        regions=params.get("regions", ()),
+        ordering=params["ordering"],
+        limit=params["limit"],
+        offset=params["offset"],
+    )
+
+
+class TemperatureMinMaxOverviewAPIView(APIView):
+    """
+    GET /api/v1/temperature/extremes
+    """
+
+    authentication_classes = []
+    permission_classes = []
+
+    def get(self, request):
+        q = TemperatureMinMaxOverviewQuerySerializer(data=request.query_params)
+        if not q.is_valid():
+            return Response(
+                ErrorSerializer.build(
+                    code="INVALID_PARAMETER",
+                    message="Paramètre invalide ou manquant",
+                    details=q.errors,
+                ),
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        params = q.validated_data
+
+        ds = TemperatureMinMaxOverviewDependencyProvider.get_dep()
+
+        data = compute_minmax_overview(
+            data_source=ds,
+            query=_make_minmax_overview_query(params),
+        )
+
+        full_payload = {
+            "metadata": {
+                "date_start": params["date_start"],
+                "date_end": params["date_end"],
+                "type": params["type"],
+                "filters": {
+                    "station_search": params.get("station_search"),
+                    "station_ids": list(params.get("station_ids", ())),
+                    "tmean_min": params.get("tmean_min"),
+                    "tmean_max": params.get("tmean_max"),
+                    "textreme_min": params.get("textreme_min"),
+                    "textreme_max": params.get("textreme_max"),
+                    "alt_min": params.get("alt_min"),
+                    "alt_max": params.get("alt_max"),
+                    "departments": list(params.get("departments", ())),
+                    "regions": list(params.get("regions", ())),
+                },
+                "ordering": params["ordering"],
+            },
+            **data,
+        }
+
+        out = TemperatureMinMaxOverviewResponseSerializer(data=full_payload)
         out.is_valid(raise_exception=True)
 
         return Response(out.data, status=status.HTTP_200_OK)
