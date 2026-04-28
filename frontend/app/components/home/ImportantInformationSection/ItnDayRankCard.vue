@@ -43,6 +43,10 @@ function toOrdinal(n: number): string {
     return n === 1 ? "1er" : `${n}ème`;
 }
 
+function extractYear(date: string): string {
+    return date.slice(0, "YYYY".length);
+}
+
 const yesterdayLabel = computed(() =>
     yesterday.value.toLocaleDateString("fr-FR", {
         day: "numeric",
@@ -78,7 +82,7 @@ const yesterdayLabel = computed(() =>
                         minimumFractionDigits: 1,
                         maximumFractionDigits: 1,
                     })
-                }}°C en {{ recordEntry.date.slice(0, 4) }}
+                }}°C en {{ extractYear(recordEntry.date) }}
             </template>
         </template>
     </Card>
