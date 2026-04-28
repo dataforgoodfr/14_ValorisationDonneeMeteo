@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import Card from "../Card.vue";
+import type { NationalIndicatorParams } from "~/types/api";
 
 const { yesterday, yesterdayLess365Days } = useCustomDate();
 
@@ -11,7 +12,7 @@ const { data: kpi } = useNationalIndicatorKpi(
 );
 
 const { data: itnData } = useNationalIndicator(
-    computed(() => ({
+    computed<NationalIndicatorParams>(() => ({
         date_start: dateToStringYMD(yesterdayLess365Days.value),
         date_end: dateToStringYMD(yesterday.value),
         granularity: "year",
@@ -35,7 +36,7 @@ const itnColorClass = computed(() => {
 const itnDiff = computed(() => {
     if (kpi.value?.itn_mean == null || kpi.value.previous?.itn_mean == null)
         return null;
-    return +(kpi.value.itn_mean - kpi.value.previous.itn_mean);
+    return kpi.value.itn_mean - kpi.value.previous.itn_mean;
 });
 
 const hotPeak = computed(() => kpi.value?.hot_peak_count ?? null);
