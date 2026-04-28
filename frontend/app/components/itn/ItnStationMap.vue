@@ -14,8 +14,7 @@ import "maplibre-gl/dist/maplibre-gl.css";
 import * as topojson from "topojson-client";
 import type { FeatureCollection, Geometry, Point } from "geojson";
 import type { Topology, GeometryCollection } from "topojson-specification";
-import type { ItnMappableStation } from "~/types/api";
-import { COLORS } from "~/constants/colors";
+import type { ItnStation } from "~/types/api";
 
 interface DepartmentProperties {
     code: string;
@@ -27,7 +26,7 @@ type FranceTopology = Topology<{
 }>;
 
 const props = defineProps<{
-    stations: ItnMappableStation[];
+    stations: ItnStation[];
     hoveredCode: string | null;
 }>();
 
@@ -61,7 +60,7 @@ const BLANK_STYLE: maplibregl.StyleSpecification = {
 const DOM_REGION_CODES = ["01", "02", "03", "04", "06"];
 
 function stationsToGeoJSON(
-    stations: ItnMappableStation[],
+    stations: ItnStation[],
 ): FeatureCollection<Geometry> {
     return {
         type: "FeatureCollection",
@@ -79,7 +78,7 @@ function stationsToGeoJSON(
     };
 }
 
-function setStationsData(stations: ItnMappableStation[]) {
+function setStationsData(stations: ItnStation[]) {
     if (!map) return;
     const source = map.getSource("stations-itn") as
         | maplibregl.GeoJSONSource

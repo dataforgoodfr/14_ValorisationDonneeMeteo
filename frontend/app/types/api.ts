@@ -332,7 +332,7 @@ export interface MappableStation {
     department?: string;
 }
 
-export interface ItnMappableStation {
+export interface ItnStation {
     code: string;
     lat: number;
     lon: number;

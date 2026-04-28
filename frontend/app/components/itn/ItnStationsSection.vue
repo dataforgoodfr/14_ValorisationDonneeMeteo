@@ -20,17 +20,11 @@
 </template>
 
 <script setup lang="ts">
-import type { ItnMappableStation } from "~/types/api";
 import { ITN_STATIONS } from "~/constants/itn";
 import ItnStationMap from "~/components/itn/ItnStationMap.vue";
 import ItnStationList from "~/components/itn/ItnStationList.vue";
 
 const hoveredCode = ref<string | null>(null);
 
-const stations: ItnMappableStation[] = ITN_STATIONS.map((s) => ({
-    code: s.station_code,
-    lat: s.lat,
-    lon: s.lon,
-    nom: s.name,
-}));
+const stations = ITN_STATIONS;
 </script>

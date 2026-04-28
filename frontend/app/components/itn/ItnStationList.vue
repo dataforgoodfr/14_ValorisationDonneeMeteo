@@ -24,11 +24,11 @@
 </template>
 
 <script setup lang="ts">
-import type { ItnMappableStation } from "~/types/api";
+import type { ItnStation } from "~/types/api";
 import { ITN_STATION_WEIGHT } from "~/constants/itn";
 
 const props = defineProps<{
-    stations: ItnMappableStation[];
+    stations: ItnStation[];
     hoveredCode: string | null;
 }>();
 
