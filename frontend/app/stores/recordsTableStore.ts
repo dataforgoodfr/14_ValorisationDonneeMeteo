@@ -179,12 +179,18 @@ export const useRecordsTableStore = defineStore("recordsTableStore", () => {
         },
     );
 
-    const { data: rawRecords, pending, error } = useTemperatureRecords(params);
+    const {
+        data: rawRecords,
+        pending,
+        error,
+    } = useTemperatureRecords(
+        computed(() => ({ ...params.value, page_size: 9999 })),
+    );
 
     // Group flat list by station, keeping the last record per station (= absolute record)
     const absoluteRecords = computed<TemperatureRecordFlatEntry[]>(() => {
         const stationMap = new Map<string, TemperatureRecordFlatEntry>();
-        for (const record of rawRecords.value ?? []) {
+        for (const record of rawRecords.value?.results ?? []) {
             stationMap.set(record.station_id, record);
         }
         return Array.from(stationMap.values());
