@@ -29,3 +29,19 @@ class RecordsQuery:
     temperature_max: float | None
     month: int | None = None
     season: str | None = None
+    page: int = 1
+    page_size: int = 50
+
+
+@dataclass(frozen=True)
+class Pagination:
+    total_count: int
+    page: int
+    page_size: int
+    total_pages: int
+
+
+@dataclass(frozen=True)
+class RecordsResult:
+    entries: list[StationRecords]
+    pagination: Pagination

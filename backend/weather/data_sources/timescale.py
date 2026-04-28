@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import datetime as dt
 from collections import defaultdict
+from typing import Any
 
 from django.db import connection
 from django.db.models import OuterRef, Subquery
@@ -35,7 +36,11 @@ from weather.services.national_indicator.types import (
     ObservedPoint as NationalObservedPoint,
 )
 from weather.services.records.types import (
+    Pagination as PaginationRecordType,
+)
+from weather.services.records.types import (
     RecordsQuery,
+    RecordsResult,
     StationRecords,
     TemperatureRecord,
 )
@@ -72,6 +77,10 @@ from weather.services.temperature_records.types import (
     SEASON_MONTHS,
     TemperatureRecordEntry,
     TemperatureRecordsRequest,
+    TemperatureRecordsResult,
+)
+from weather.services.temperature_records.types import (
+    Pagination as PaginationRecord,
 )
 
 
@@ -573,14 +582,39 @@ class TimescaleTemperatureRecordsDataSource:
 
     def fetch_records(
         self, request: TemperatureRecordsRequest
-    ) -> list[TemperatureRecordEntry]:
+    ) -> TemperatureRecordsResult:
         col = "TX" if request.type_records == "hot" else "TN"
         agg = "MAX" if request.type_records == "hot" else "MIN"
         cmp = ">" if request.type_records == "hot" else "<"
+        page = request.page
+        page_size = request.page_size
+        offset = (page - 1) * page_size
 
         period_clause, params = self._period_clause(request)
 
-        sql = f"""
+        sort_parts = [s.strip() for s in request.sort.split(",")]
+
+        field_mapping = {
+            "record_value": f'o."{col}"',
+            "station_name": "s.name",
+            "record_date": 'o."AAAAMMJJ"',
+            "department": "s.departement",
+        }
+
+        order_clauses = []
+        for sort_part in sort_parts:
+            sort_field = sort_part.lstrip("-")
+            sort_order = "DESC" if sort_part.startswith("-") else "ASC"
+
+            if sort_field in field_mapping:
+                order_clauses.append(f"{field_mapping[sort_field]} {sort_order}")
+
+        if order_clauses:
+            order_sql = ", ".join(order_clauses)
+        else:
+            order_sql = f'o."{col}" DESC, s.name ASC'
+
+        base_sql = f"""
             WITH ordered AS (
                 SELECT
                     q."NUM_POSTE",
@@ -595,6 +629,29 @@ class TimescaleTemperatureRecordsDataSource:
                 WHERE {period_clause}
                   AND q."{col}" IS NOT NULL
             )
+        """
+
+        count_sql = (
+            base_sql
+            + f"""
+            SELECT COUNT(*)
+            FROM ordered o
+            JOIN public.v_station s
+              ON s.station_code = o."NUM_POSTE"
+            WHERE o.prev_val IS NULL
+               OR o."{col}" {cmp} o.prev_val
+        """
+        )
+
+        with connection.cursor() as cur:
+            cur.execute(count_sql, params)
+            total_count = cur.fetchone()[0]
+
+        total_pages = (total_count + page_size - 1) // page_size if page_size else 1
+
+        data_sql = (
+            base_sql
+            + f"""
             SELECT
                 o."NUM_POSTE",
                 s.name,
@@ -608,24 +665,25 @@ class TimescaleTemperatureRecordsDataSource:
                 s.annee_de_creation,
                 s.annee_de_fermeture
             FROM ordered o
-            JOIN public.v_station s ON s.station_code = o."NUM_POSTE"
+JOIN public.v_station s ON s.station_code = o."NUM_POSTE"
             WHERE (o.prev_val IS NULL OR o."{col}" {cmp} o.prev_val)
               AND s.classe_recente BETWEEN 1 AND 3
-            ORDER BY s.name, o."AAAAMMJJ"
+            ORDER BY {order_sql}
+            LIMIT %s OFFSET %s
         """
+        )
 
         with connection.cursor() as cur:
-            cur.execute(sql, params)
+            cur.execute(data_sql, params + [page_size, offset])
+
             cols = [c.name for c in cur.description]
             rows = [dict(zip(cols, row, strict=False)) for row in cur.fetchall()]
 
-        return [
+        results = [
             TemperatureRecordEntry(
                 station_id=row["NUM_POSTE"].strip(),
                 station_name=row["name"],
-                department=str(row["departement"])
-                if row["departement"] is not None
-                else "",
+                department=str(row["departement"]) if row["departement"] else "",
                 record_value=float(row[col]),
                 record_date=row["AAAAMMJJ"].date()
                 if isinstance(row["AAAAMMJJ"], dt.datetime)
@@ -640,6 +698,16 @@ class TimescaleTemperatureRecordsDataSource:
             for row in rows
         ]
 
+        return TemperatureRecordsResult(
+            entries=results,
+            pagination=PaginationRecord(
+                total_count=total_count,
+                page=page,
+                page_size=page_size,
+                total_pages=total_pages,
+            ),
+        )
+
     def _period_clause(self, request: TemperatureRecordsRequest) -> tuple[str, list]:
         return _temperature_records_period_clause(request)
 
@@ -650,7 +718,7 @@ def _territoire_clause_named(
     dept_col: str = 'vs."departement"',
     station_col: str = 'o."NUM_POSTE"',
 ) -> tuple[str, dict]:
-    """
+    """MaterializedTemperatureRecordsDataSource
     Retourne (clause SQL, params) pour filtrer par territoire.
     Utilise des placeholders nommés (%(name)s).
     """
@@ -724,6 +792,27 @@ class MaterializedTemperatureRecordsDataSource:
         else:
             period_value = None
 
+        sort_parts = [s.strip() for s in request.sort.split(",")]
+
+        field_mapping = {
+            "record_value": "record_value",
+            "station_name": "station_name",
+            "record_date": "record_date",
+            "department": "department",
+        }
+
+        order_clauses = []
+        for sort_part in sort_parts:
+            sort_field = sort_part.lstrip("-")
+            sort_order = "DESC" if sort_part.startswith("-") else "ASC"
+
+            if sort_field in field_mapping:
+                order_clauses.append(f"{field_mapping[sort_field]} {sort_order}")
+
+        if order_clauses:
+            order_sql = ", ".join(order_clauses)
+        else:
+            order_sql = "record_value DESC, station_name ASC, record_date ASC"
         clauses = [
             "record_type = %(record_type)s",
             "period_type = %(period_type)s",
@@ -753,20 +842,31 @@ class MaterializedTemperatureRecordsDataSource:
             params.update(terr_params)
 
         where = " AND ".join(clauses)
+
         sql = f"""
-            SELECT m.station_code, m.station_name, m.department, m.record_value, m.record_date, vs.lat, vs.lon, vs.alt, vs.classe_recente, vs.annee_de_creation, vs.annee_de_fermeture
-                FROM public.mv_records_battus m
+            SELECT
+                m.station_code,
+                m.station_name,
+                m.department,
+                m.record_value,
+                m.record_date,
+                vs.lat,
+                vs.lon,
+                vs.alt,
+                vs.classe_recente,
+                vs.annee_de_creation,
+                vs.annee_de_fermeture
+            FROM public.mv_records_battus m
             LEFT JOIN public.v_station vs ON vs.station_code = m.station_code
             WHERE {where}
               AND vs.classe_recente BETWEEN 1 AND 3
-            ORDER BY station_name, record_date
-        """
-
+            ORDER BY {order_sql}
+            """
         with connection.cursor() as cur:
             cur.execute(sql, params)
+
             cols = [c.name for c in cur.description]
             rows = [dict(zip(cols, row, strict=False)) for row in cur.fetchall()]
-
         return [
             TemperatureRecordEntry(
                 station_id=row["station_code"].strip(),
@@ -800,6 +900,7 @@ class HybridTemperatureRecordsDataSource:
 
     Fallback silencieux vers la MV seule si mv_records_battus_meta est absente
     ou vide (env de dev sans script de seed exécuté).
+
     """
 
     def __init__(self) -> None:
@@ -807,16 +908,78 @@ class HybridTemperatureRecordsDataSource:
 
     def fetch_records(
         self, request: TemperatureRecordsRequest
-    ) -> list[TemperatureRecordEntry]:
-        mv_results = self._mv_source.fetch_records(request)
+    ) -> TemperatureRecordsResult:
+        mv_entries = self._mv_source.fetch_records(request)
         try:
             cutoff = self._get_cutoff_date()
         except Exception:
-            return mv_results
+            return self._paginate(mv_entries, request)
         if cutoff is None:
-            return mv_results
+            return self._paginate(mv_entries, request)
         hot_results = self._fetch_records_after_cutoff(request, cutoff)
-        return mv_results + hot_results
+        all_entries = mv_entries + hot_results
+        return self._paginate(all_entries, request)
+
+    def _paginate(
+        self,
+        entries: list[TemperatureRecordEntry],
+        request: TemperatureRecordsRequest,
+    ) -> TemperatureRecordsResult:
+        if request.sort:
+            sort_parts = [s.strip() for s in request.sort.split(",")]
+
+            def _sort_key(entry: TemperatureRecordEntry) -> tuple[Any, ...]:
+                sort_values = []
+                for sort_part in sort_parts:
+                    sort_field = sort_part.lstrip("-")
+                    reverse = sort_part.startswith("-")
+
+                    if sort_field == "station_name":
+                        value = entry.station_name
+                    elif sort_field == "record_date":
+                        value = entry.record_date
+                    elif sort_field == "department":
+                        value = entry.department
+                    else:  # record_value
+                        value = entry.record_value
+
+                    if reverse:
+                        if isinstance(value, str):
+                            value = "".join(chr(255 - ord(c)) for c in value)
+                        elif isinstance(value, int | float):
+                            value = -value
+                        elif hasattr(value, "__neg__"):
+                            try:
+                                value = -value
+                            except TypeError:
+                                pass
+
+                    sort_values.append(value)
+
+                return tuple(sort_values)
+
+            entries = sorted(entries, key=_sort_key)
+
+        total_count = len(entries)
+        page = request.page
+        page_size = request.page_size
+
+        start = (page - 1) * page_size
+        end = start + page_size
+
+        paginated = entries[start:end]
+
+        total_pages = (total_count + page_size - 1) // page_size
+
+        return TemperatureRecordsResult(
+            entries=paginated,
+            pagination=PaginationRecord(
+                total_count=total_count,
+                page=page,
+                page_size=page_size,
+                total_pages=total_pages,
+            ),
+        )
 
     def _get_cutoff_date(self) -> dt.date | None:
         with connection.cursor() as cur:
@@ -990,11 +1153,11 @@ class TimescaleRecordsDataSource:
                 month=query.month,
                 season=query.season,
             )
-            entries = self._hybrid.fetch_records(req)
+            result_obj = self._hybrid.fetch_records(req)
             if type_records == "hot":
-                hot_entries = entries
+                hot_entries = result_obj.entries
             else:
-                cold_entries = entries
+                cold_entries = result_obj.entries
 
         station_hot: dict[str, list[TemperatureRecordEntry]] = defaultdict(list)
         station_cold: dict[str, list[TemperatureRecordEntry]] = defaultdict(list)
@@ -1057,8 +1220,24 @@ class TimescaleRecordsDataSource:
                     ),
                 )
             )
+        total_count = len(result)
 
-        return tuple(result)
+        start = (query.page - 1) * query.page_size
+        end = start + query.page_size
+
+        paginated = result[start:end]
+
+        total_pages = (total_count + query.page_size - 1) // query.page_size
+
+        return RecordsResult(
+            entries=paginated,
+            pagination=PaginationRecordType(
+                total_count=total_count,
+                page=query.page,
+                page_size=query.page_size,
+                total_pages=total_pages,
+            ),
+        )
 
 
 class TimescaleTemperatureMinMaxDataSource(MinMaxGraphDataSource):

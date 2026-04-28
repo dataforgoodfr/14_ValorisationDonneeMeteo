@@ -38,10 +38,17 @@ def test_fetch_records_hot_month_happy_path():
     insert_quotidienne(dt.date(2020, 7, 10), station_code, tx=35.0, tn=19.0)
 
     ds = TimescaleTemperatureRecordsDataSource()
-    req = TemperatureRecordsRequest(period_type="month", type_records="hot", month=7)
+    req = TemperatureRecordsRequest(
+        period_type="month",
+        type_records="hot",
+        month=7,
+        sort="record_value",
+    )
     result = ds.fetch_records(req)
 
-    station_entries = [e for e in result if e.station_id.strip() == station_code]
+    station_entries = [
+        e for e in result.entries if e.station_id.strip() == station_code
+    ]
     # 2 records progressifs : 38.0 (2003) et 42.6 (2019)
     assert len(station_entries) == 2
 
@@ -73,7 +80,9 @@ def test_fetch_records_cold_month_happy_path():
     req = TemperatureRecordsRequest(period_type="month", type_records="cold", month=1)
     result = ds.fetch_records(req)
 
-    station_entries = [e for e in result if e.station_id.strip() == station_code]
+    station_entries = [
+        e for e in result.entries if e.station_id.strip() == station_code
+    ]
     assert len(station_entries) == 1
 
     entry = station_entries[0]
@@ -105,11 +114,16 @@ def test_fetch_records_season_aggregates_across_months():
 
     ds = TimescaleTemperatureRecordsDataSource()
     req = TemperatureRecordsRequest(
-        period_type="season", type_records="hot", season="summer"
+        period_type="season",
+        type_records="hot",
+        season="summer",
+        sort="record_date",
     )
     result = ds.fetch_records(req)
 
-    station_entries = [e for e in result if e.station_id.strip() == station_code]
+    station_entries = [
+        e for e in result.entries if e.station_id.strip() == station_code
+    ]
     # 2 records progressifs : 40.0 (2003-08) et 44.0 (2019-06)
     assert len(station_entries) == 2
 
@@ -138,7 +152,9 @@ def test_fetch_records_all_time_returns_entries():
     req = TemperatureRecordsRequest(period_type="all_time", type_records="hot")
     result = ds.fetch_records(req)
 
-    station_entries = [e for e in result if e.station_id.strip() == station_code]
+    station_entries = [
+        e for e in result.entries if e.station_id.strip() == station_code
+    ]
     # 2 records progressifs : 0.0 (1985) et 42.6 (2019)
     assert len(station_entries) == 2
     assert station_entries[-1].record_value == 42.6
@@ -157,7 +173,9 @@ def test_fetch_records_returns_correct_types():
     req = TemperatureRecordsRequest(period_type="all_time", type_records="hot")
     result = ds.fetch_records(req)
 
-    station_entries = [e for e in result if e.station_id.strip() == station_code]
+    station_entries = [
+        e for e in result.entries if e.station_id.strip() == station_code
+    ]
     assert len(station_entries) >= 1
 
     entry = station_entries[0]
@@ -169,3 +187,104 @@ def test_fetch_records_returns_correct_types():
     assert isinstance(entry.lat, float)
     assert isinstance(entry.lon, float)
     assert isinstance(entry.alt, float)
+
+
+@pytest.mark.django_db
+def test_fetch_records_pagination_logic():
+    station_code = "99006001"
+    insert_station(station_code, "Station Pagination", departement=99)
+
+    insert_quotidienne(dt.date(2000, 1, 1), station_code, tx=10.0, tn=0.0)
+    insert_quotidienne(dt.date(2001, 1, 1), station_code, tx=20.0, tn=0.0)
+    insert_quotidienne(dt.date(2002, 1, 1), station_code, tx=30.0, tn=0.0)
+
+    ds = TimescaleTemperatureRecordsDataSource()
+
+    req = TemperatureRecordsRequest(
+        period_type="all_time", type_records="hot", page=1, page_size=2
+    )
+    result = ds.fetch_records(req)
+
+    assert len(result.entries) == 2
+    assert result.pagination.total_count >= 3
+    assert result.pagination.page == 1
+    assert result.pagination.total_pages >= 2
+
+    req_page2 = TemperatureRecordsRequest(
+        period_type="all_time", type_records="hot", page=2, page_size=2
+    )
+    result2 = ds.fetch_records(req_page2)
+    assert len(result2.entries) == 1
+
+
+@pytest.mark.django_db
+def test_fetch_records_pagination_limit_and_offset():
+    """Teste que la pagination (page/page_size) fonctionne comme limit/offset."""
+    station_code = "99008001"
+    insert_station(station_code, "Station Pagination", departement=99)
+
+    #  insert 3 records
+    insert_quotidienne(dt.date(2000, 1, 1), station_code, tx=10.0, tn=0.0)
+    insert_quotidienne(dt.date(2010, 1, 1), station_code, tx=20.0, tn=0.0)
+    insert_quotidienne(dt.date(2020, 1, 1), station_code, tx=30.0, tn=0.0)
+
+    ds = TimescaleTemperatureRecordsDataSource()
+
+    req = TemperatureRecordsRequest(
+        period_type="all_time",
+        type_records="hot",
+        page=2,  # Équivalent offset 1
+        page_size=1,  # Équivalent limit 1
+    )
+    result = ds.fetch_records(req)
+
+    assert result.pagination.total_count == 3
+    assert len(result.entries) == 1
+
+    assert result.entries[0].record_date == dt.date(2010, 1, 1)
+
+
+@pytest.mark.django_db
+def test_fetch_records_sorting_by_value_desc():
+    """Teste le tri par valeur décroissante (-record_value)."""
+    s1 = "99009001"
+    s2 = "99009002"
+    insert_station(s1, "Station A", departement=11)
+    insert_station(s2, "Station B", departement=22)
+
+    insert_quotidienne(dt.date(2020, 1, 1), s1, tx=15.0, tn=0.0)
+    insert_quotidienne(dt.date(2020, 1, 1), s2, tx=35.0, tn=0.0)
+
+    ds = TimescaleTemperatureRecordsDataSource()
+
+    req = TemperatureRecordsRequest(
+        period_type="all_time", type_records="hot", sort="-record_value"
+    )
+    result = ds.fetch_records(req)
+
+    assert len(result.entries) >= 2
+
+    assert result.entries[0].record_value == 35.0
+    assert result.entries[1].record_value == 15.0
+
+
+@pytest.mark.django_db
+def test_fetch_records_sorting_by_station_name_desc():
+    """Teste le tri inversé sur un champ texte (important pour valider ta logique chr(255-ord))."""
+    s1 = "99010001"
+    s2 = "99010002"
+    insert_station(s1, "Antibes", departement=6)
+    insert_station(s2, "Zubiri", departement=99)
+
+    insert_quotidienne(dt.date(2020, 1, 1), s1, tx=20.0, tn=0.0)
+    insert_quotidienne(dt.date(2020, 1, 1), s2, tx=20.0, tn=0.0)
+
+    ds = TimescaleTemperatureRecordsDataSource()
+
+    req = TemperatureRecordsRequest(
+        period_type="all_time", type_records="hot", sort="-station_name"
+    )
+    result = ds.fetch_records(req)
+
+    names = [e.station_name for e in result.entries if e.station_id in [s1, s2]]
+    assert names == ["Zubiri", "Antibes"]

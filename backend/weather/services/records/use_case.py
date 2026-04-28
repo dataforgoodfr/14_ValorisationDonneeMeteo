@@ -4,7 +4,7 @@ from weather.services.records.protocols import (
     RecordsDataSource,
 )
 from weather.services.records.service import compute_records
-from weather.services.records.types import StationRecords
+from weather.services.records.types import RecordsResult
 
 
 def get_records(
@@ -19,7 +19,9 @@ def get_records(
     type_records: str = "all",
     temperature_min: float | None = None,
     temperature_max: float | None = None,
-) -> tuple[StationRecords, ...]:
+    page: int = 1,
+    page_size: int = 50,
+) -> RecordsResult:
     return compute_records(
         data_source=data_source,
         date_start=date_start,
@@ -31,4 +33,6 @@ def get_records(
         type_records=type_records,
         temperature_min=temperature_min,
         temperature_max=temperature_max,
+        page=page,
+        page_size=page_size,
     )

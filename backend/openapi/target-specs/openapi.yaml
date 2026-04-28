@@ -152,7 +152,7 @@ paths:
             type: integer
             minimum: 1
             maximum: 500
-            default: 50
+          default: 50
           description: Nombre maximal d'éléments retournés.
 
         - name: offset
@@ -604,20 +604,24 @@ paths:
     get:
       summary: Records de température
       description: |
-        Liste les records de température par station.
+        Liste les records de température par station avec support de la pagination et du tri.
 
         L'endpoint permet de filtrer :
         - le découpage temporel (`period_type`) : tous les temps, par mois ou par saison
 
         - le type de record (`hot` ou `cold`)
 
+        - le tri des résultats (`sort`)
+
         Exemples de requêtes :
 
-        - `period_type=all_time&type_records=hot`
+        - `period_type=all_time&type_records=hot&sort=-record_value`
 
-        - `period_type=month&month=7&type_records=hot`
+        - `period_type=month&month=7&type_records=hot&page=1&page_size=50`
 
-        - `period_type=season&season=summer&type_records=cold`
+        - `period_type=season&season=summer&type_records=cold&sort=station_name`
+
+        - `period_type=all_time&type_records=hot&sort=-record_value,station_name`
 
       operationId: getTemperatureRecords
       tags:
@@ -667,36 +671,86 @@ paths:
           schema:
             type: string
             enum: [hot, cold]
-            default: hot
+          default: hot
+        - name: page
+          in: query
+          required: false
+          description: |
+            Numéro de page (défaut: 1).
+          schema:
+            type: integer
+            minimum: 1
+          default: 1
+          example: 1
+        - name: page_size
+          in: query
+          required: false
+          description: |
+            Nombre de résultats par page (défaut: 50).
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 500
+          default: 50
+          example: 50
+        - name: sort
+          in: query
+          required: false
+          description: |
+            Champ(s) de tri avec ordre. Supporte un ou plusieurs critères séparés par des virgules.
+
+            Format : `[field]` pour ascendant, `[-field]` pour descendant.
+
+            Champs disponibles :
+            - `record_value` : valeur du record (défaut)
+            - `station_name` : nom de la station
+            - `record_date` : date du record
+            - `department` : département
+
+            Exemples :
+            - `record_value` : tri par valeur croissante
+            - `-record_value` : tri par valeur décroissante
+            - `record_value,station_name` : tri par valeur puis nom croissant
+            - `-record_value,station_name` : tri par valeur décroissante puis nom croissant
+          schema:
+            type: string
+          default: record_value
+          example: "-record_value,station_name"
       responses:
         "200":
-          description: Liste des records de température par station.
+          description: Liste paginée des records de température par station.
           content:
             application/json:
               schema:
-                type: array
-                items:
-                  $ref: "#/components/schemas/TemperatureRecordEntry"
+                $ref: "#/components/schemas/TemperatureRecordsResponse"
               examples:
                 sample:
                   summary: Exemple de réponse
                   value:
-                    - station_id: "07149"
-                      station_name: "Orly"
-                      department: "94"
-                      record_value: 40.4
-                      record_date: "2019-07-25"
-                      lat: 48.718
-                      lon: 2.397
-                      alt: 86.0
-                    - station_id: "07156"
-                      station_name: "Paris-Montsouris"
-                      department: "75"
-                      record_value: 39.7
-                      record_date: "2019-07-25"
-                      lat: 48.821667
-                      lon: 2.337833
-                      alt: 75.0
+
+                    pagination:
+                      total_count: 100
+                      page: 1
+                      page_size: 50
+                      total_pages: 2
+                    results:
+                      - station_id: "07149"
+                        station_name: "Orly"
+                        department: "94"
+                        record_value: 40.4
+                        record_date: "2019-07-25"
+                        lat: 48.718
+                        lon: 2.397
+                        alt: 86.0
+                      - station_id: "07156"
+                        station_name: "Paris-Montsouris"
+                        department: "75"
+                        record_value: 39.7
+                        record_date: "2019-07-25"
+                        lat: 48.821667
+                        lon: 2.337833
+                        alt: 75.0
+
 
         "400":
           $ref: "#/components/responses/BadRequest"
@@ -1642,6 +1696,48 @@ components:
           type: number
           format: double
           description: Altitude de la station (mètres)
+
+
+    Pagination:
+      type: object
+      required:
+        - total_count
+        - page
+        - page_size
+        - total_pages
+      properties:
+        total_count:
+          type: integer
+          description: Nombre total de résultats
+          example: 100
+        page:
+          type: integer
+          description: Numéro de la page actuelle
+          example: 1
+        page_size:
+          type: integer
+          description: Nombre de résultats par page
+          example: 50
+        total_pages:
+          type: integer
+          description: Nombre total de pages
+          example: 2
+
+    TemperatureRecordsResponse:
+      type: object
+      required:
+        - pagination
+        - results
+      properties:
+        pagination:
+          $ref: "#/components/schemas/Pagination"
+        results:
+          type: array
+          description: Liste des records de température pour la page
+          items:
+            $ref: "#/components/schemas/TemperatureRecordEntry"
+
+
     TemperatureDeviationOverviewResponse:
       type: object
       required:

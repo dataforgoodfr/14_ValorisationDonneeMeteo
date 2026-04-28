@@ -21,6 +21,9 @@ class TemperatureRecordsRequest:
     date_end: dt.date | None = None
     territoire: str | None = None  # "france" | "region" | "department" | "station"
     territoire_id: str | None = None
+    page: int = 1
+    page_size: int = 50
+    sort: str = "record_value"  # "record_value", "-record_value", "record_value,station_name", "-record_value,station_name",  "record_date", "department".
 
 
 @dataclass(frozen=True)
@@ -36,3 +39,17 @@ class TemperatureRecordEntry:
     classe_recente: int
     date_de_creation: dt.date
     date_de_fermeture: dt.date | None
+
+
+@dataclass(frozen=True)
+class Pagination:
+    total_count: int
+    page: int
+    page_size: int
+    total_pages: int
+
+
+@dataclass(frozen=True)
+class TemperatureRecordsResult:
+    entries: list[TemperatureRecordEntry]
+    pagination: Pagination

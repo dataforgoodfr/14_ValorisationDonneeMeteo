@@ -34,7 +34,7 @@ def test_after_cutoff_record_before_20ans_is_excluded():
         TemperatureRecordsRequest(period_type="all_time", type_records="hot")
     )
 
-    entries = [e for e in result if e.station_id.strip() == code]
+    entries = [e for e in result.entries if e.station_id.strip() == code]
     assert entries == [], "Une station de moins de 20 ans ne doit pas apparaître"
 
 
@@ -54,7 +54,7 @@ def test_after_cutoff_record_exactly_at_20ans_is_included():
         TemperatureRecordsRequest(period_type="all_time", type_records="hot")
     )
 
-    entries = [e for e in result if e.station_id.strip() == code]
+    entries = [e for e in result.entries if e.station_id.strip() == code]
     assert len(entries) == 1
     assert entries[0].record_date == dt.date(2026, 1, 1)
 
@@ -74,7 +74,7 @@ def test_after_cutoff_record_after_20ans_is_included():
         TemperatureRecordsRequest(period_type="all_time", type_records="hot")
     )
 
-    entries = [e for e in result if e.station_id.strip() == code]
+    entries = [e for e in result.entries if e.station_id.strip() == code]
     assert len(entries) == 1
     assert entries[0].record_value == 42.0
 
@@ -97,6 +97,6 @@ def test_after_cutoff_only_recent_records_cross_20ans_threshold():
         TemperatureRecordsRequest(period_type="all_time", type_records="hot")
     )
 
-    entries = [e for e in result if e.station_id.strip() == code]
+    entries = [e for e in result.entries if e.station_id.strip() == code]
     assert len(entries) == 1
     assert entries[0].record_date == dt.date(2029, 7, 20)

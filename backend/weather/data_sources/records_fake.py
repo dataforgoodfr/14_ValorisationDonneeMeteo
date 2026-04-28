@@ -7,7 +7,9 @@ import random
 
 from weather.services.records.protocols import RecordsDataSource
 from weather.services.records.types import (
+    Pagination,
     RecordsQuery,
+    RecordsResult,
     StationRecords,
     TemperatureRecord,
 )
@@ -204,7 +206,22 @@ class FakeRecordsDataSource(RecordsDataSource):
 
             out.append(station)
 
-        return tuple(out)
+        total_count = len(out)
+        start = (query.page - 1) * query.page_size
+        end = start + query.page_size
+        paginated = out[start:end]
+
+        total_pages = (total_count + query.page_size - 1) // query.page_size
+
+        return RecordsResult(
+            stations=tuple(paginated),
+            pagination=Pagination(
+                total_count=total_count,
+                page=query.page,
+                page_size=query.page_size,
+                total_pages=total_pages,
+            ),
+        )
 
     def _generate_station_records(
         self,
