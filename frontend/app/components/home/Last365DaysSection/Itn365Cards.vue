@@ -115,9 +115,10 @@ const coldDiff = computed(() => {
         <div class="flex gap-6">
             <div class="w-fit">
                 <Card
-                    title="Pics de chaleur"
-                    tooltip-text="Nombre de jours anormalement chauds sur les 365 derniers jours, selon les normales 1991-2020."
+                    title="Nombre de jours anormalement chauds"
+                    tooltip-text="Nombre de jours parmi les 365 derniers jours, pour lesquels l'ITN est au-delà de l'écart-type de la période des normales 1991-2020"
                 >
+                    >
                     <template #kpi>
                         <p class="font-semibold text-4xl mb-1 text-red-400">
                             <span v-if="hotPeak != null">
@@ -149,8 +150,8 @@ const coldDiff = computed(() => {
 
             <div class="w-fit">
                 <Card
-                    title="Pics de froid"
-                    tooltip-text="Nombre de jours anormalement froids sur les 365 derniers jours, selon les normales 1991-2020."
+                    title="Nombre de jours anormalement froids"
+                    tooltip-text="Nombre de jours parmi les 365 derniers jours, pour lesquels l'ITN est en-deçà de l'écart-type de la période des normales 1991-2020"
                 >
                     <template #kpi>
                         <p class="font-semibold text-4xl mb-1 text-blue-400">
