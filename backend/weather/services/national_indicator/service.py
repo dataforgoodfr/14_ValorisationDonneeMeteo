@@ -173,6 +173,8 @@ def compute_national_indicator(
                 baseline_std_dev_lower=b.baseline_std_dev_lower,
                 baseline_max=b.baseline_max,
                 baseline_min=b.baseline_min,
+                is_hot_peak=p.temperature > b.baseline_std_dev_upper,
+                is_cold_peak=p.temperature < b.baseline_std_dev_lower,
             )
         )
 
@@ -187,6 +189,8 @@ def compute_national_indicator(
                 "baseline_std_dev_lower": round(p.baseline_std_dev_lower, 2),
                 "baseline_max": round(p.baseline_max, 2),
                 "baseline_min": round(p.baseline_min, 2),
+                "is_hot_peak": p.is_hot_peak,
+                "is_cold_peak": p.is_cold_peak,
             }
             for p in points
         ]

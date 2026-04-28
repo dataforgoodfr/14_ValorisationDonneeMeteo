@@ -843,7 +843,6 @@ paths:
                 sample:
                   summary: Exemple de réponse
                   value:
-
                     pagination:
                       total_count: 100
                       page: 1
@@ -1438,6 +1437,8 @@ components:
               - baseline_std_dev_lower
               - baseline_max
               - baseline_min
+              - is_hot_peak
+              - is_cold_peak
             properties:
               date:
                 type: string
@@ -1471,6 +1472,12 @@ components:
                 type: number
                 format: float
                 description: "Température minimale observée sur la période 1991-2020"
+              is_hot_peak:
+                type: boolean
+                description: "Vrai si la température dépasse baseline_std_dev_upper"
+              is_cold_peak:
+                type: boolean
+                description: "Vrai si la température est inférieure à baseline_std_dev_lower"
 
     KpiPeriodStats:
       type: object

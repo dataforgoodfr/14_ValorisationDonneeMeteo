@@ -72,6 +72,8 @@ export interface NationalIndicatorDataPoint {
     baseline_std_dev_lower: number;
     baseline_max: number;
     baseline_min: number;
+    is_hot_peak: boolean;
+    is_cold_peak: boolean;
     isInterpolated?: boolean;
 }
 
