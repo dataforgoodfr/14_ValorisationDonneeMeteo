@@ -1614,6 +1614,44 @@ def _build_minmax_overview_where(
         clauses.append("alt <= %(alt_max)s")
         params["alt_max"] = query.alt_max
 
+    if query.classe_recente_min is not None:
+        clauses.append("classe >= %(classe_recente_min)s")
+        params["classe_recente_min"] = query.classe_recente_min
+
+    if query.classe_recente_max is not None:
+        clauses.append("classe <= %(classe_recente_max)s")
+        params["classe_recente_max"] = query.classe_recente_max
+
+    if query.date_de_creation_min is not None:
+        clauses.append("annee_de_creation >= %(date_de_creation_min)s")
+        params["date_de_creation_min"] = query.date_de_creation_min.year
+
+    if query.date_de_creation_max is not None:
+        clauses.append("annee_de_creation <= %(date_de_creation_max)s")
+        params["date_de_creation_max"] = query.date_de_creation_max.year
+
+    if (
+        query.date_de_fermeture_min is not None
+        and query.date_de_fermeture_max is not None
+    ):
+        clauses.append(
+            "(annee_de_fermeture IS NOT NULL"
+            " AND annee_de_fermeture >= %(date_de_fermeture_min)s"
+            " AND annee_de_fermeture <= %(date_de_fermeture_max)s)"
+        )
+        params["date_de_fermeture_min"] = query.date_de_fermeture_min.year
+        params["date_de_fermeture_max"] = query.date_de_fermeture_max.year
+    elif query.date_de_fermeture_min is not None:
+        clauses.append(
+            "(annee_de_fermeture IS NULL OR annee_de_fermeture >= %(date_de_fermeture_min)s)"
+        )
+        params["date_de_fermeture_min"] = query.date_de_fermeture_min.year
+    elif query.date_de_fermeture_max is not None:
+        clauses.append(
+            "(annee_de_fermeture IS NOT NULL AND annee_de_fermeture <= %(date_de_fermeture_max)s)"
+        )
+        params["date_de_fermeture_max"] = query.date_de_fermeture_max.year
+
     if query.departments:
         clauses.append("department::text = ANY(%(departments)s)")
         params["departments"] = list(query.departments)

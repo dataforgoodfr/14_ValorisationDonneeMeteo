@@ -74,6 +74,12 @@ class MinMaxOverviewQuery:
     textreme_max: float | None = None
     alt_min: float | None = None
     alt_max: float | None = None
+    classe_recente_min: int | None = None
+    classe_recente_max: int | None = None
+    date_de_creation_min: dt.date | None = None
+    date_de_creation_max: dt.date | None = None
+    date_de_fermeture_min: dt.date | None = None
+    date_de_fermeture_max: dt.date | None = None
     departments: tuple[str, ...] = ()
     regions: tuple[str, ...] = ()
     ordering: str = "-textreme_mean"
