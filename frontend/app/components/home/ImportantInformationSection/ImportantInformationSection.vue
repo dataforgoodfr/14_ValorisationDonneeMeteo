@@ -2,6 +2,7 @@
 import Section from "../Section.vue";
 import ITNCard from "./ITNCard.vue";
 import ItnDayRankCard from "./ItnDayRankCard.vue";
+import OngoingPeakCard from "./OngoingPeakCard.vue";
 </script>
 <template>
     <div>
@@ -9,7 +10,7 @@ import ItnDayRankCard from "./ItnDayRankCard.vue";
             <div class="flex flex-col gap-5 md:flex-row">
                 <ITNCard />
                 <ItnDayRankCard />
-                <ITNCard />
+                <OngoingPeakCard />
             </div>
         </Section>
     </div>
