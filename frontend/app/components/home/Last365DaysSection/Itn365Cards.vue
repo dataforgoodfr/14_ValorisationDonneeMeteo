@@ -14,8 +14,8 @@ const { data: itnData } = useNationalIndicator(
     computed(() => ({
         date_start: dateToStringYMD(yesterdayLess365Days.value),
         date_end: dateToStringYMD(yesterday.value),
-        granularity: "year" as const,
-        slice_type: "full" as const,
+        granularity: "year",
+        slice_type: "full",
     })),
 );
 
