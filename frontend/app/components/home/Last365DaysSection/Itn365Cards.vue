@@ -35,7 +35,7 @@ const itnColorClass = computed(() => {
 const itnDiff = computed(() => {
     if (kpi.value?.itn_mean == null || kpi.value.previous?.itn_mean == null)
         return null;
-    return +(kpi.value.itn_mean - kpi.value.previous.itn_mean).toFixed(1);
+    return +(kpi.value.itn_mean - kpi.value.previous.itn_mean);
 });
 
 const hotPeak = computed(() => kpi.value?.hot_peak_count ?? null);
@@ -97,7 +97,8 @@ const coldDiff = computed(() => {
                                 itnDiff < 0 ? 'text-blue-400' : 'text-red-400'
                             "
                         >
-                            {{ itnDiff >= 0 ? "+" : "" }}{{ itnDiff }}°C
+                            {{ itnDiff >= 0 ? "+" : ""
+                            }}{{ itnDiff.toFixed(1) }}°C
                         </span>
                         vs. 365 jours précédents
                     </template>
