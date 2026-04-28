@@ -44,6 +44,7 @@ from weather.services.records.types import (
     StationRecords,
     TemperatureRecord,
 )
+from weather.services.records_graph.protocols import RecordsGraphDataSource
 from weather.services.records_graph.types import (
     RecordsGraphBucket,
     RecordsGraphRecord,
@@ -1411,7 +1412,7 @@ def _generate_buckets(
     return _generate_buckets_year(date_start, date_end)
 
 
-class TimescaleRecordsGraphDataSource:
+class TimescaleRecordsGraphDataSource(RecordsGraphDataSource):
     """
     Data source pour le graphe de records.
     Lit depuis mv_records_battus et agrège par bucket temporel.
@@ -1420,7 +1421,7 @@ class TimescaleRecordsGraphDataSource:
 
     _GRANULARITY_TO_DATE_TRUNC = {"day": "day", "month": "month", "year": "year"}
 
-    def fetch_graph(self, request: RecordsGraphRequest) -> list[RecordsGraphBucket]:
+    def fetch_graph(self, request: RecordsGraphRequest) -> RecordsGraphResult:
         if request.period_type == "month":
             period_value: str | None = str(request.month)
         elif request.period_type == "season":
