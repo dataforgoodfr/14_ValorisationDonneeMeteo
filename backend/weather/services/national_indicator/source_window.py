@@ -35,4 +35,13 @@ def compute_source_window(
 
         return start, end
 
+    if granularity == "year" and slice_type == "full":
+        return dt.date(date_start.year, 1, 1), dt.date(date_end.year, 12, 31)
+
+    if granularity == "month" and slice_type == "full":
+        last_day = clamp_day_to_month_end(date_end.year, date_end.month, 31)
+        return dt.date(date_start.year, date_start.month, 1), dt.date(
+            date_end.year, date_end.month, last_day
+        )
+
     return date_start, date_end
