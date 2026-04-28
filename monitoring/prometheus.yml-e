@@ -1,0 +1,36 @@
+# monitoring/prometheus.yml
+#
+# Configuration de Prometheus pour le projet ValorisationDonneeMeteo.
+# Prometheus scrape les métriques de ton backend Django toutes les 15 secondes.
+
+global:
+  scrape_interval: 15s         # À quelle fréquence on collecte les métriques
+  evaluation_interval: 15s     # À quelle fréquence on évalue les règles d'alerte
+  scrape_timeout: 10s
+
+  # Labels ajoutés à toutes les métriques (utile pour distinguer les envs)
+  external_labels:
+    env: "dev"
+    project: "valorisation-donnee-meteo"
+
+# ──────────────────────────────────────────────────────────────────
+# Targets : les services dont Prometheus va collecter les métriques
+# ──────────────────────────────────────────────────────────────────
+scrape_configs:
+
+  # Prometheus se monitore lui-même
+  - job_name: "prometheus"
+    static_configs:
+      - targets: ["localhost:9090"]
+
+  # Backend Django — expose /metrics via django-prometheus
+  # Le nom "backend" correspond au nom du service dans docker-compose.dev.yml
+  - job_name: "django-backend"
+    metrics_path: "/metrics"
+    static_configs:
+      - targets: ["backend:8000"]
+    # Labels supplémentaires attachés à ces métriques
+    relabel_configs:
+      - source_labels: [__address__]
+        target_label: instance
+        replacement: "backend-django"
