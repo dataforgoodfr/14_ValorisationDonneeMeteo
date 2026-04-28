@@ -49,14 +49,14 @@ const infoPanelSections: InfoSection[] = [
         label: "Méthode de calcul",
         content: [
             {
-                title: "Ecart à la normale quotidien en France métropolitaine",
+                title: "Écart à la normale quotidien en France métropolitaine",
                 text:
                     "L'écart de température à la normale en France métropolitaine calculé chaque jour" +
                     " est la différence entre la valeur de l'Indicateur thermique National (ITN) mesurée ce jour" +
                     " et la valeur de l'ITN moyennée sur 30 ans ce même jour de l'année",
             },
             {
-                title: "Ecart à la normale quotidien d'une station",
+                title: "Écart à la normale quotidien d'une station",
                 text:
                     "L'écart de température à la normale d'une station calculé chaque jour" +
                     " est la différence entre la température moyenne TNTXM de la station mesurée ce jour" +
@@ -64,7 +64,7 @@ const infoPanelSections: InfoSection[] = [
                     " même jour de l'année",
             },
             {
-                title: "Ecart à la normale mensuel/annuel ",
+                title: "Écart à la normale mensuel/annuel ",
                 text:
                     "Les normales mensuelles/annuelles sont calculées en moyennant les normales" +
                     " quotidennes pour chaque mois/année",
