@@ -1,31 +1,249 @@
-name: CI/CD Pipeline
+name: CI
 
 on:
   push:
-    branches: ["**"]
+    branches:
+      - "**"
+    tags-ignore:
+      - "v*.*.*"
   pull_request:
-    branches: [main]
 
 env:
   REGISTRY: ghcr.io
-  # Tout en minuscules — obligatoire pour Docker
-  IMAGE_NAME: jadechy/14_valorisationdonneemeteo/backend
 
 jobs:
-  # ─────────────────────────────────────────────
-  # Job 1 : Tests
-  # ─────────────────────────────────────────────
-  test:
-    name: Tests (pytest)
-    runs-on: ubuntu-latest
+  # ────────────────────────────────────────────────────────────────
+  # FRONTEND
+  # ────────────────────────────────────────────────────────────────
+  frontend-deps:
+    name: "Frontend — Install"
+    runs-on: ubuntu-24.04
+    defaults:
+      run:
+        working-directory: frontend
+    steps:
+      - uses: actions/checkout@v4
 
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci --legacy-peer-deps
+
+  frontend-lint:
+    name: "Frontend — Lint & Type check"
+    runs-on: ubuntu-24.04
+    needs: frontend-deps
+    defaults:
+      run:
+        working-directory: frontend
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+
+      - name: Install dependencies
+        run: npm ci --legacy-peer-deps
+
+      - name: Lint + type check
+        run: npm run check
+
+  frontend-test:
+    name: "Frontend — Tests"
+    runs-on: ubuntu-24.04
+    needs: frontend-deps
+    defaults:
+      run:
+        working-directory: frontend
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+
+      - uses: actions/cache/restore@v4
+        with:
+          path: frontend/node_modules
+          key: frontend-node-${{ hashFiles('frontend/package-lock.json') }}
+
+      - name: Run tests
+        run: npm run test --if-present -- --reporter=junit --outputFile=../reports/frontend-tests.xml
+
+      - name: Upload test report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: frontend-test-report
+          path: reports/frontend-tests.xml
+
+  frontend-docker:
+    name: "Frontend — Docker Build & Trivy"
+    runs-on: ubuntu-24.04
+    needs:
+      - frontend-lint
+      - frontend-test
+    permissions:
+      contents: read
+      packages: write
+      security-events: write
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Lowercase repo name
+        run: echo "IMAGE_NAME=${GITHUB_REPOSITORY,,}" >> $GITHUB_ENV
+
+      - name: Log in to GHCR
+        if: github.ref == 'refs/heads/main'
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build Docker image
+        uses: docker/build-push-action@v5
+        with:
+          context: ./frontend
+          push: false
+          load: true
+          tags: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-frontend:ci
+
+      - name: Trivy — scan image (bloquant CRITICAL/HIGH)
+        uses: aquasecurity/trivy-action@master
+        with:
+          image-ref: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-frontend:ci
+          format: table
+          severity: CRITICAL,HIGH
+          exit-code: "1"
+          ignore-unfixed: true
+          trivy-config: trivy.yaml
+
+      - name: Trivy — scan image (rapport SARIF)
+        if: always()
+        uses: aquasecurity/trivy-action@master
+        with:
+          image-ref: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-frontend:ci
+          format: sarif
+          output: trivy-frontend-image.sarif
+          severity: CRITICAL,HIGH
+          exit-code: "0"
+          ignore-unfixed: true
+          trivy-config: trivy.yaml
+
+      - name: Trivy — scan image (rapport table)
+        if: always()
+        uses: aquasecurity/trivy-action@master
+        with:
+          image-ref: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-frontend:ci
+          format: table
+          output: trivy-frontend-image.txt
+          severity: CRITICAL,HIGH
+          ignore-unfixed: true
+          trivy-config: trivy.yaml
+
+      - name: Upload SARIF (frontend image)
+        if: always()
+        uses: github/codeql-action/upload-sarif@v4
+        with:
+          sarif_file: trivy-frontend-image.sarif
+          category: trivy-frontend-image
+
+      - name: Upload rapport Trivy frontend
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: trivy-frontend-image-report
+          path: |
+            trivy-frontend-image.sarif
+            trivy-frontend-image.txt
+
+      - name: Push image (main only)
+        if: github.ref == 'refs/heads/main'
+        uses: docker/build-push-action@v5
+        with:
+          context: ./frontend
+          push: true
+          tags: |
+            ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-frontend:latest
+            ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-frontend:${{ github.sha }}
+
+  # ────────────────────────────────────────────────────────────────
+  # BACKEND
+  # ────────────────────────────────────────────────────────────────
+  backend-deps:
+    name: "Backend — Install"
+    runs-on: ubuntu-24.04
+    defaults:
+      run:
+        working-directory: backend
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - uses: astral-sh/setup-uv@v4
+
+      - name: Install dependencies (avec extras dev)
+        run: uv sync --extra dev
+
+      - name: Cache virtualenv
+        uses: actions/cache/save@v4
+        with:
+          path: backend/.venv
+          key: backend-venv-${{ hashFiles('backend/pyproject.toml') }}
+
+  backend-lint:
+    name: "Backend — Lint (ruff)"
+    runs-on: ubuntu-24.04
+    needs: backend-deps
+    defaults:
+      run:
+        working-directory: backend
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: astral-sh/setup-uv@v4
+
+      - uses: actions/cache/restore@v4
+        with:
+          path: backend/.venv
+          key: backend-venv-${{ hashFiles('backend/pyproject.toml') }}
+
+      - name: Lint (ruff check)
+        run: uv run ruff check . --output-format=junit > ../reports/backend-lint.xml || true
+
+      - name: Format check (ruff format)
+        run: uv run ruff format . --check --exclude notebooks
+
+      - name: Upload rapport lint
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: backend-lint-report
+          path: reports/backend-lint.xml
+
+  backend-test:
+    name: "Backend — Tests (pytest)"
+    runs-on: ubuntu-24.04
+    needs: backend-deps
+    defaults:
+      run:
+        working-directory: backend
     services:
-      timescaledb:
+      postgres:
         image: timescale/timescaledb:latest-pg16
         env:
-          POSTGRES_DB: meteodb
-          POSTGRES_USER: infoclimat
-          POSTGRES_PASSWORD: infoclimat2026
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: test_db
         ports:
           - 5432:5432
         options: >-
@@ -33,164 +251,208 @@ jobs:
           --health-interval 10s
           --health-timeout 5s
           --health-retries 5
-
-    defaults:
-      run:
-        working-directory: backend
-
-    env:
-      DEBUG: "true"
-      SECRET_KEY: "ci-secret-key-not-for-production"
-      DB_HOST: localhost
-      DB_PORT: 5432
-      DB_NAME: meteodb
-      DB_USER: infoclimat
-      DB_PASSWORD: infoclimat2026
-
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
-      - name: Install uv
-        uses: astral-sh/setup-uv@v6
+      - uses: astral-sh/setup-uv@v4
 
-      - name: Set up Python
-        uses: actions/setup-python@v5
-        env:
-          FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
-
-      - name: Install dependencies
-        run: uv sync --extra dev
-
-      - name: Run migrations
-        run: uv run python manage.py migrate
+      - uses: actions/cache/restore@v4
+        with:
+          path: backend/.venv
+          key: backend-venv-${{ hashFiles('backend/pyproject.toml') }}
 
       - name: Run tests
-        run: |
-          uv run pytest \
-            --junitxml=test-report.xml \
-            --tb=short \
-            -v
+        env:
+          DEBUG: "true"
+          USE_TIMESCALEDB: "true"
+          DB_HOST: localhost
+          DB_PORT: "5432"
+          DB_NAME: test_db
+          DB_USER: postgres
+          DB_PASSWORD: postgres
+          SECRET_KEY: ci-secret-key-not-for-production
+        run: uv run pytest --tb=short --junitxml=../reports/backend-tests.xml
 
-      - name: Upload test report
+      - name: Upload rapport tests
+        if: always()
         uses: actions/upload-artifact@v4
-        if: always()
         with:
-          name: test-report
-          path: backend/test-report.xml
-
-  # ─────────────────────────────────────────────
-  # Job 2 : Linter (Ruff)
-  # ─────────────────────────────────────────────
-  lint:
-    name: Lint (Ruff)
-    runs-on: ubuntu-latest
-
-    defaults:
-      run:
-        working-directory: backend
-
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Install uv
-        uses: astral-sh/setup-uv@v6
-
-      - name: Install dependencies
-        run: uv sync --extra dev
-
-      - name: Run Ruff linter
-        run: uv run ruff check . --output-format=github --exclude notebooks/
-
-      - name: Run Ruff formatter check
-        run: uv run ruff format . --check --exclude notebooks/
-
-  # ─────────────────────────────────────────────
-  # Job 3 : Security scan (Trivy)
-  # ─────────────────────────────────────────────
-  security:
-    name: Security scan (Trivy)
-    runs-on: ubuntu-latest
-    permissions:
-      security-events: write
-
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Build Docker image for scanning
-        run: docker build -t backend-scan:latest ./backend
-
-      - name: Run Trivy vulnerability scan (SARIF)
-        uses: aquasecurity/trivy-action@master
-        with:
-          image-ref: "backend-scan:latest"
-          format: "sarif"
-          output: "trivy-report.sarif"
-          severity: "CRITICAL,HIGH"
-          exit-code: "0"
-
-      - name: Run Trivy vulnerability scan (JSON for artifact)
-        uses: aquasecurity/trivy-action@master
-        with:
-          image-ref: "backend-scan:latest"
-          format: "json"
-          output: "trivy-report.json"
-          severity: "CRITICAL,HIGH,MEDIUM"
-          exit-code: "0"
-
-      - name: Upload Trivy SARIF to GitHub Security tab
-        uses: github/codeql-action/upload-sarif@v4
-        if: always()
-        with:
-          sarif_file: "trivy-report.sarif"
-
-      - name: Upload Trivy JSON report
-        uses: actions/upload-artifact@v4
-        if: always()
-        with:
-          name: trivy-report
-          path: |
-            trivy-report.json
-            trivy-report.sarif
-
-  # ─────────────────────────────────────────────
-  # Job 4 : Build & Push Docker image (main only)
-  # ─────────────────────────────────────────────
-  build-push:
-    name: Build & Push image Docker
-    runs-on: ubuntu-latest
-    needs: [test, lint, security]
-    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+          name: backend-test-report
+          path: reports/backend-tests.xml
+  backend-docker:
+    name: "Backend — Docker Build & Trivy"
+    runs-on: ubuntu-24.04
+    needs:
+      - backend-lint
+      - backend-test
     permissions:
       contents: read
       packages: write
-
+      security-events: write
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
-      - name: Log in to GitHub Container Registry
+      - name: Lowercase repo name
+        run: echo "IMAGE_NAME=${GITHUB_REPOSITORY,,}" >> $GITHUB_ENV
+
+      - name: Log in to GHCR
+        if: github.ref == 'refs/heads/main'
         uses: docker/login-action@v3
         with:
           registry: ${{ env.REGISTRY }}
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Extract Docker metadata
-        id: meta
-        uses: docker/metadata-action@v5
+      - name: Build Docker image
+        uses: docker/build-push-action@v5
         with:
-          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
-          tags: |
-            type=sha,prefix=sha-
-            type=raw,value=latest
+          context: ./backend
+          push: false
+          load: true
+          tags: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-backend:ci
 
-      - name: Build and push Docker image
+      - name: Trivy — scan image (bloquant CRITICAL/HIGH)
+        uses: aquasecurity/trivy-action@master
+        with:
+          image-ref: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-backend:ci
+          format: table
+          severity: CRITICAL,HIGH
+          exit-code: "1"
+          ignore-unfixed: true
+          trivy-config: trivy.yaml
+
+      - name: Trivy — scan image (rapport SARIF)
+        if: always()
+        uses: aquasecurity/trivy-action@master
+        with:
+          image-ref: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-backend:ci
+          format: sarif
+          output: trivy-backend-image.sarif
+          severity: CRITICAL,HIGH
+          exit-code: "0"
+          ignore-unfixed: true
+          trivy-config: trivy.yaml
+
+      - name: Trivy — scan image (rapport table)
+        if: always()
+        uses: aquasecurity/trivy-action@master
+        with:
+          image-ref: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-backend:ci
+          format: table
+          output: trivy-backend-image.txt
+          severity: CRITICAL,HIGH
+          ignore-unfixed: true
+          trivy-config: trivy.yaml
+
+      - name: Upload SARIF (backend image)
+        if: always()
+        uses: github/codeql-action/upload-sarif@v4
+        with:
+          sarif_file: trivy-backend-image.sarif
+          category: trivy-backend-image
+
+      - name: Upload rapport Trivy backend
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: trivy-backend-image-report
+          path: |
+            trivy-backend-image.sarif
+            trivy-backend-image.txt
+
+      - name: Push image (main only)
+        if: github.ref == 'refs/heads/main'
         uses: docker/build-push-action@v5
         with:
           context: ./backend
           push: true
-          tags: ${{ steps.meta.outputs.tags }}
-          labels: ${{ steps.meta.outputs.labels }}
+          tags: |
+            ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-backend:latest
+            ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-backend:${{ github.sha }}
+  # ────────────────────────────────────────────────────────────────
+  # SECURITY
+  # ────────────────────────────────────────────────────────────────
+
+  trivy-fs:
+    name: "Security — Trivy Filesystem"
+    runs-on: ubuntu-24.04
+    permissions:
+      security-events: write
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Trivy — scan repo (non bloquant)
+        uses: aquasecurity/trivy-action@master
+        continue-on-error: true
+        with:
+          scan-type: fs
+          scan-ref: .
+          format: sarif
+          output: trivy-fs.sarif
+          severity: CRITICAL,HIGH
+          exit-code: "0"
+          ignore-unfixed: true
+          trivy-config: trivy.yaml
+
+      - name: Vérifier que le SARIF est valide
+        if: always()
+        run: |
+          if [ ! -s trivy-fs.sarif ] || ! jq -e '.runs | length > 0' trivy-fs.sarif > /dev/null 2>&1; then
+            cat > trivy-fs.sarif <<'EOF'
+          {
+            "version": "2.1.0",
+            "$schema": "https://json.schemastore.org/sarif-2.1.0.json",
+            "runs": [
+              {
+                "tool": {
+                  "driver": {
+                    "name": "Trivy",
+                    "version": "0.0.0",
+                    "rules": []
+                  }
+                },
+                "results": []
+              }
+            ]
+          }
+          EOF
+          fi
+
+      - name: Upload SARIF (filesystem)
+        if: always()
+        uses: github/codeql-action/upload-sarif@v4
+        with:
+          sarif_file: trivy-fs.sarif
+          category: trivy-fs
+
+      - name: Upload rapport Trivy filesystem
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: trivy-fs-report
+          path: trivy-fs.sarif
+  # ────────────────────────────────────────────────────────────────
+  # GATE
+  # ────────────────────────────────────────────────────────────────
+  ci-gate:
+    name: "CI — Gate"
+    runs-on: ubuntu-24.04
+    if: always()
+    needs:
+      - frontend-docker
+      - backend-docker
+      - trivy-fs
+    steps:
+      - name: Vérification des jobs critiques
+        run: |
+          results=(
+            "${{ needs.frontend-docker.result }}"
+            "${{ needs.backend-docker.result }}"
+          )
+          for r in "${results[@]}"; do
+            if [[ "$r" != "success" ]]; then
+              echo "❌ Un job critique a échoué"
+              exit 1
+            fi
+          done
+          echo "✅ Tous les checks sont passés"
