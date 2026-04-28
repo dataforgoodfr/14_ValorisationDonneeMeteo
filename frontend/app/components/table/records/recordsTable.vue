@@ -22,7 +22,6 @@ const {
     pageSize,
     typeRecords,
     periodSelection,
-    pagedStations,
     filteredRecords,
     filteredCount,
     pending,
@@ -46,7 +45,7 @@ function downloadCsv() {
 // Track the record type that corresponds to the data currently displayed,
 // so the badge color only flips once the new data has arrived.
 const displayedTypeRecords = ref(typeRecords.value);
-watch(pagedStations, () => {
+watch(filteredRecords, () => {
     displayedTypeRecords.value = typeRecords.value;
 });
 
@@ -56,6 +55,7 @@ const temperatureBadgeColor = computed(() =>
 
 const ordering = ref("");
 function setOrdering(key: string) {
+    page.value = 1;
     if (ordering.value === key) ordering.value = `-${key}`;
     else if (ordering.value === `-${key}`) ordering.value = "";
     else ordering.value = key;
@@ -68,27 +68,30 @@ interface TableRow {
     recordDate: string;
 }
 
-const rawTableData = computed<TableRow[]>(() =>
-    pagedStations.value.map((s) => ({
+// Sort ALL filtered records before pagination so that ordering is global.
+const sortedRecords = computed<TableRow[]>(() => {
+    const all = filteredRecords.value.map((s) => ({
         name: s.station_name,
         departement: s.department,
         record: s.record_value,
         recordDate: s.record_date,
-    })),
-);
-
-const tableData = computed<TableRow[]>(() => {
-    if (!ordering.value) return rawTableData.value;
+    }));
+    if (!ordering.value) return all;
     const desc = ordering.value.startsWith("-");
     const key = (
         desc ? ordering.value.slice(1) : ordering.value
     ) as keyof TableRow;
     const dir = desc ? -1 : 1;
-    return [...rawTableData.value].sort((a, b) => {
+    return [...all].sort((a, b) => {
         if (a[key] < b[key]) return -dir;
         if (a[key] > b[key]) return dir;
         return 0;
     });
+});
+
+const tableData = computed<TableRow[]>(() => {
+    const start = (page.value - 1) * pageSize.value;
+    return sortedRecords.value.slice(start, start + pageSize.value);
 });
 
 const sortableCol = makeSortableColFactory<TableRow>(ordering, setOrdering);
