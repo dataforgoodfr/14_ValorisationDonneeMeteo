@@ -7,8 +7,13 @@
             tooltip-text="Station avec le record absolu sur la période sélectionnée"
         >
             <template #kpi>
+                <UIcon
+                    v-if="store.pending"
+                    name="i-lucide-loader-circle"
+                    class="text-lg animate-spin text-muted"
+                />
                 <span
-                    v-if="extremeStation"
+                    v-else-if="extremeStation"
                     class="text-lg font-semibold"
                     :class="
                         store.typeRecords === 'hot'
@@ -22,7 +27,7 @@
                 <span v-else class="text-lg font-semibold text-muted">—</span>
             </template>
             <template #kpi-context-text>
-                <template v-if="extremeStation">
+                <template v-if="!store.pending && extremeStation">
                     {{ extremeStation.station_name }} ·
                     {{ extremeStation.department }} ·
                     {{ formatDate(extremeStation.record_date) }}

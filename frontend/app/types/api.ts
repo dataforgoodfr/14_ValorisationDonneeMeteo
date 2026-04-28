@@ -280,8 +280,17 @@ export interface TemperatureRecordsParams {
     departments?: string;
     temperature_min?: number;
     temperature_max?: number;
-    limit?: number;
-    offset?: number;
+    page?: number;
+    page_size?: number;
+}
+
+export interface TemperatureRecordsPagination {
+    total_pages: number;
+}
+
+export interface TemperatureRecordsPaginatedResponse {
+    pagination: TemperatureRecordsPagination;
+    results: TemperatureRecordFlatEntry[];
 }
 
 export interface TemperatureRecordFlatEntry {

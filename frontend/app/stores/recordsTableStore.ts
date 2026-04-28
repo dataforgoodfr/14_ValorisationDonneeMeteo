@@ -23,8 +23,6 @@ type RecordsFilters = {
     record_date?: DateFilterValue;
 };
 
-const debounceDuration = 300;
-
 export const periodOptions = [
     { value: "all_time", label: "Toute l'année" },
     { value: "season_spring", label: "Printemps" },
@@ -45,6 +43,8 @@ export const periodOptions = [
     { value: "month_12", label: "Décembre" },
 ];
 
+const debounceDuration = 300;
+
 export const useRecordsTableStore = defineStore("recordsTableStore", () => {
     // Pagination
     const page = ref(1);
@@ -61,6 +61,19 @@ export const useRecordsTableStore = defineStore("recordsTableStore", () => {
     const temperatureMax = ref<string | undefined>(undefined);
     const dateStart = ref<Date | undefined>(undefined);
     const dateEnd = ref<Date | undefined>(undefined);
+
+    const debouncedStationIds = refDebounced(stationIds, debounceDuration);
+    const debouncedDepartments = refDebounced(departments, debounceDuration);
+    const debouncedTemperatureMin = refDebounced(
+        temperatureMin,
+        debounceDuration,
+    );
+    const debouncedTemperatureMax = refDebounced(
+        temperatureMax,
+        debounceDuration,
+    );
+    const debouncedDateStart = refDebounced(dateStart, debounceDuration);
+    const debouncedDateEnd = refDebounced(dateEnd, debounceDuration);
 
     // Static options for the Département dropdown
     const staticOptions = {
@@ -133,14 +146,6 @@ export const useRecordsTableStore = defineStore("recordsTableStore", () => {
         }
     }
 
-    // Debounce filter inputs before applying client-side filters
-    const debouncedStationIds = refDebounced(stationIds, debounceDuration);
-    const debouncedDepartments = refDebounced(departments, debounceDuration);
-    const debouncedTempMin = refDebounced(temperatureMin, debounceDuration);
-    const debouncedTempMax = refDebounced(temperatureMax, debounceDuration);
-    const debouncedDateStart = refDebounced(dateStart, debounceDuration);
-    const debouncedDateEnd = refDebounced(dateEnd, debounceDuration);
-
     // Build API params from periodSelection
     const params = computed<TemperatureRecordsParams>(() => {
         const result: TemperatureRecordsParams = {
@@ -169,8 +174,8 @@ export const useRecordsTableStore = defineStore("recordsTableStore", () => {
             params,
             debouncedStationIds,
             debouncedDepartments,
-            debouncedTempMin,
-            debouncedTempMax,
+            debouncedTemperatureMin,
+            debouncedTemperatureMax,
             debouncedDateStart,
             debouncedDateEnd,
         ],
@@ -179,18 +184,24 @@ export const useRecordsTableStore = defineStore("recordsTableStore", () => {
         },
     );
 
-    const { data: rawRecords, pending, error } = useTemperatureRecords(params);
+    const {
+        data: rawRecords,
+        pending,
+        error,
+    } = useTemperatureRecords(
+        computed(() => ({ ...params.value, page_size: 9999 })),
+    );
 
     // Group flat list by station, keeping the last record per station (= absolute record)
     const absoluteRecords = computed<TemperatureRecordFlatEntry[]>(() => {
         const stationMap = new Map<string, TemperatureRecordFlatEntry>();
-        for (const record of rawRecords.value ?? []) {
+        for (const record of rawRecords.value?.results ?? []) {
             stationMap.set(record.station_id, record);
         }
         return Array.from(stationMap.values());
     });
 
-    // Apply client-side filters
+    // Apply client-side filters (debounced to avoid filtering on every keystroke)
     const filteredRecords = computed<TemperatureRecordFlatEntry[]>(() => {
         let result = absoluteRecords.value;
 
@@ -204,14 +215,14 @@ export const useRecordsTableStore = defineStore("recordsTableStore", () => {
                 debouncedDepartments.value.includes(r.department),
             );
         }
-        if (debouncedTempMin.value) {
+        if (debouncedTemperatureMin.value) {
             result = result.filter(
-                (r) => r.record_value >= Number(debouncedTempMin.value),
+                (r) => r.record_value >= Number(debouncedTemperatureMin.value),
             );
         }
-        if (debouncedTempMax.value) {
+        if (debouncedTemperatureMax.value) {
             result = result.filter(
-                (r) => r.record_value <= Number(debouncedTempMax.value),
+                (r) => r.record_value <= Number(debouncedTemperatureMax.value),
             );
         }
         if (debouncedDateStart.value) {
