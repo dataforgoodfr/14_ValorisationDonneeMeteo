@@ -526,22 +526,215 @@ paths:
 
   /temperature/extremes:
     get:
-      summary: Pics de chaleur et de froid
-      description: |
-        Identifie et compte les jours de pics de chaleur/froid par rapport à la normale.
+      summary: Vue synthétique des températures extrêmes par station
+      description: >
+        Retourne une liste paginée de stations avec leurs températures moyennes
+        extrêmes (Tmax ou Tmin selon le paramètre `type`) sur une période donnée.
 
-        **Documentation des paramètres et schémas à compléter**
-      operationId: getTemperatureExtremes
+        Le tableau peut être filtré par recherche textuelle, plages numériques,
+        zone géographique ou liste explicite d'identifiants de stations.
+      operationId: getTemperatureExtremesOverview
       tags:
         - Temperature
-      parameters: []
+      parameters:
+        - name: date_start
+          in: query
+          required: true
+          schema:
+            type: string
+            format: date
+          description: Date de début incluse (YYYY-MM-DD).
+          example: "2024-06-01"
+
+        - name: date_end
+          in: query
+          required: true
+          schema:
+            type: string
+            format: date
+          description: Date de fin incluse (YYYY-MM-DD).
+          example: "2024-08-31"
+
+        - name: type
+          in: query
+          required: false
+          schema:
+            type: string
+            enum:
+              - tmax
+              - tmin
+            default: tmax
+          description: >
+            Type d'extrême à calculer : `tmax` pour la température maximale,
+            `tmin` pour la température minimale.
+
+        - name: station_ids
+          in: query
+          required: false
+          schema:
+            type: string
+          description: >
+            Liste d'identifiants de stations séparés par des virgules.
+          example: "07149,07255"
+
+        - name: station_search
+          in: query
+          required: false
+          schema:
+            type: string
+          description: Filtre textuel sur le nom de la station.
+          example: "Lyon"
+
+        - name: textreme_min
+          in: query
+          required: false
+          schema:
+            type: number
+            format: float
+          description: Valeur minimale incluse de la température extrême moyenne (°C).
+          example: 25.0
+
+        - name: textreme_max
+          in: query
+          required: false
+          schema:
+            type: number
+            format: float
+          description: Valeur maximale incluse de la température extrême moyenne (°C).
+          example: 40.0
+
+        - name: tmean_min
+          in: query
+          required: false
+          schema:
+            type: number
+            format: float
+          description: Valeur minimale incluse de la température moyenne (°C).
+          example: 15.0
+
+        - name: tmean_max
+          in: query
+          required: false
+          schema:
+            type: number
+            format: float
+          description: Valeur maximale incluse de la température moyenne (°C).
+          example: 30.0
+
+        - name: alt_min
+          in: query
+          required: false
+          schema:
+            type: number
+          description: Altitude minimale incluse (mètres).
+
+        - name: alt_max
+          in: query
+          required: false
+          schema:
+            type: number
+          description: Altitude maximale incluse (mètres).
+
+        - name: departments
+          in: query
+          required: false
+          schema:
+            type: string
+          description: >
+            Liste de départements séparés par des virgules (ex: "13,75,2A").
+
+        - name: regions
+          in: query
+          required: false
+          schema:
+            type: string
+          description: >
+            Liste de régions séparées par des virgules.
+
+        - name: ordering
+          in: query
+          required: false
+          schema:
+            type: string
+            enum:
+              - station_name
+              - -station_name
+              - textreme_mean
+              - -textreme_mean
+              - tmean_mean
+              - -tmean_mean
+              - department
+              - -department
+              - region
+              - -region
+              - alt
+              - -alt
+            default: -textreme_mean
+          description: >
+            Champ de tri du tableau. Le préfixe '-' indique un tri décroissant.
+
+        - name: limit
+          in: query
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+            default: 50
+          description: Nombre maximal d'éléments retournés.
+
+        - name: offset
+          in: query
+          required: false
+          schema:
+            type: integer
+            minimum: 0
+            default: 0
+          description: Nombre d'éléments à ignorer avant de commencer la page.
+
       responses:
         "200":
-          description: Succès
+          description: Tableau paginé des stations avec leurs températures extrêmes moyennes.
           content:
             application/json:
               schema:
-                type: object
+                $ref: "#/components/schemas/TemperatureMinMaxOverviewResponse"
+              examples:
+                sample:
+                  summary: Top stations par Tmax moyenne sur l'été 2024
+                  value:
+                    metadata:
+                      date_start: "2024-06-01"
+                      date_end: "2024-08-31"
+                      type: "tmax"
+                      filters:
+                        station_search: null
+                        station_ids: []
+                        textreme_min: null
+                        textreme_max: null
+                        tmean_min: null
+                        tmean_max: null
+                        alt_min: null
+                        alt_max: null
+                        departments: []
+                        regions: []
+                      ordering: "-textreme_mean"
+                    pagination:
+                      total_count: 2158
+                      limit: 50
+                      offset: 0
+                    stations:
+                      - station_id: "83042001"
+                        station_name: "COGOLIN_SAPC"
+                        textreme_mean: 35.32
+                        tmean_mean: 26.75
+                        lat: 43.26
+                        lon: 6.51
+                        alt: 31.0
+                        department: "83"
+                        region: "Provence-Alpes-Côte d'Azur"
+                        classe: 1
+                        annee_de_creation: 1997
+                        annee_de_fermeture: null
         "400":
           $ref: "#/components/responses/BadRequest"
 
@@ -1759,6 +1952,138 @@ components:
           description: "Liste des séries correspondant aux stations demandées"
           items:
             $ref: "#/components/schemas/StationTemperatureDeviationSeries"
+    TemperatureMinMaxOverviewResponse:
+      type: object
+      required:
+        - metadata
+        - pagination
+        - stations
+      properties:
+        metadata:
+          $ref: "#/components/schemas/TemperatureMinMaxOverviewMetadata"
+        pagination:
+          $ref: "#/components/schemas/PaginationMetadata"
+        stations:
+          type: array
+          items:
+            $ref: "#/components/schemas/TemperatureMinMaxOverviewStation"
+
+    TemperatureMinMaxOverviewMetadata:
+      type: object
+      required:
+        - date_start
+        - date_end
+        - type
+        - filters
+        - ordering
+      properties:
+        date_start:
+          type: string
+          format: date
+        date_end:
+          type: string
+          format: date
+        type:
+          type: string
+          enum:
+            - tmax
+            - tmin
+          description: Type d'extrême calculé.
+        filters:
+          type: object
+          properties:
+            station_ids:
+              type: array
+              items:
+                type: string
+            station_search:
+              type: string
+              nullable: true
+            textreme_min:
+              type: number
+              nullable: true
+            textreme_max:
+              type: number
+              nullable: true
+            tmean_min:
+              type: number
+              nullable: true
+            tmean_max:
+              type: number
+              nullable: true
+            alt_min:
+              type: number
+              nullable: true
+            alt_max:
+              type: number
+              nullable: true
+            departments:
+              type: array
+              items:
+                type: string
+            regions:
+              type: array
+              items:
+                type: string
+        ordering:
+          type: string
+
+    TemperatureMinMaxOverviewStation:
+      type: object
+      required:
+        - station_id
+        - station_name
+        - textreme_mean
+        - tmean_mean
+      properties:
+        station_id:
+          type: string
+          description: Identifiant unique de la station.
+        station_name:
+          type: string
+          description: Nom de la station.
+        textreme_mean:
+          type: number
+          format: float
+          description: Moyenne de la température extrême (Tmax ou Tmin selon `type`) sur la période.
+        tmean_mean:
+          type: number
+          format: float
+          description: Moyenne de la température journalière ((Tmin+Tmax)/2) sur la période.
+        lat:
+          type: number
+          format: double
+          nullable: true
+        lon:
+          type: number
+          format: double
+          nullable: true
+        alt:
+          type: number
+          format: double
+          nullable: true
+          description: Altitude de la station (mètres).
+        department:
+          type: string
+          nullable: true
+          description: Code du département.
+        region:
+          type: string
+          nullable: true
+          description: Nom de la région.
+        classe:
+          type: integer
+          nullable: true
+          description: Classe de la station (1 = référence nationale, 5 = usage local).
+        annee_de_creation:
+          type: integer
+          nullable: true
+          description: Année de création de la station.
+        annee_de_fermeture:
+          type: integer
+          nullable: true
+          description: Année de fermeture de la station (null si toujours active).
+
     Error:
       type: object
       required:
