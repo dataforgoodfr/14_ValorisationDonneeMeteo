@@ -96,6 +96,18 @@ def setup_db_schema_and_views(django_db_setup, django_db_blocker):
         BASE_DIR / "sql" / "materialized_views" / "001_mv_quotidienne_realtime.sql"
     ).read_text()
     v_quot_sql = (BASE_DIR / "sql" / "views" / "002_v_quotidienne.sql").read_text()
+    v_station_classe_4 = (
+        BASE_DIR / "sql" / "views" / "003_v_station_classe_4.sql"
+    ).read_text()
+    v_station_classe_3_sql = (
+        BASE_DIR / "sql" / "views" / "004_v_station_classe_3.sql"
+    ).read_text()
+    v_station_deviation_sql = (
+        BASE_DIR / "sql" / "views" / "005_v_station_deviation.sql"
+    ).read_text()
+    v_station_records_sql = (
+        BASE_DIR / "sql" / "views" / "006_v_station_records.sql"
+    ).read_text()
     baseline_station_table_sql = (
         BASE_DIR / "sql" / "test_tables" / "baseline_station_daily_mean_9120.sql"
     ).read_text()
@@ -138,6 +150,10 @@ def setup_db_schema_and_views(django_db_setup, django_db_blocker):
             cur.execute(v_station_sql)
             cur.execute(mv_quot_sql)
             cur.execute(v_quot_sql)
+            cur.execute(v_station_classe_4)
+            cur.execute(v_station_classe_3_sql)
+            cur.execute(v_station_deviation_sql)
+            cur.execute(v_station_records_sql)
             cur.execute(baseline_station_table_sql)
             cur.execute(itn_baseline_tables_sql)
             cur.execute(
