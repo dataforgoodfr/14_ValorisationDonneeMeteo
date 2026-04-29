@@ -115,6 +115,10 @@ export interface TemperatureDeviationParams {
     deviation_max?: number;
     altitude_min?: number;
     altitude_max?: number;
+    classe_recente_min?: number;
+    classe_recente_max?: number;
+    date_de_creation_min?: string;
+    date_de_creation_max?: string;
     ordering?: string;
     limit?: number;
     offset?: number;
@@ -156,6 +160,8 @@ export interface TemperatureDeviationStation {
     lon: number;
     department: string;
     region: string;
+    classe_recente: number;
+    date_de_creation: string;
 }
 
 export interface TemperatureDeviationResponse {
@@ -304,6 +310,8 @@ export interface TemperatureRecordFlatEntry {
     lat: number;
     lon: number;
     alt: number;
+    classe_recente: number;
+    date_de_creation: string;
 }
 
 export interface TemperatureRecordStation {

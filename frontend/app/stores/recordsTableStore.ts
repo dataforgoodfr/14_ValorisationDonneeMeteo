@@ -21,6 +21,8 @@ type RecordsFilters = {
     departement?: StringFilterValue;
     record?: RangeFilterValue;
     record_date?: DateFilterValue;
+    classe?: RangeFilterValue;
+    anneeDeCreation?: RangeFilterValue;
 };
 
 export const periodOptions = [
@@ -61,6 +63,10 @@ export const useRecordsTableStore = defineStore("recordsTableStore", () => {
     const temperatureMax = ref<string | undefined>(undefined);
     const dateStart = ref<Date | undefined>(undefined);
     const dateEnd = ref<Date | undefined>(undefined);
+    const classeMin = ref<string | undefined>(undefined);
+    const classeMax = ref<string | undefined>(undefined);
+    const creationYearMin = ref<string | undefined>(undefined);
+    const creationYearMax = ref<string | undefined>(undefined);
 
     const debouncedStationIds = refDebounced(stationIds, debounceDuration);
     const debouncedDepartments = refDebounced(departments, debounceDuration);
@@ -74,6 +80,16 @@ export const useRecordsTableStore = defineStore("recordsTableStore", () => {
     );
     const debouncedDateStart = refDebounced(dateStart, debounceDuration);
     const debouncedDateEnd = refDebounced(dateEnd, debounceDuration);
+    const debouncedClasseMin = refDebounced(classeMin, debounceDuration);
+    const debouncedClasseMax = refDebounced(classeMax, debounceDuration);
+    const debouncedCreationYearMin = refDebounced(
+        creationYearMin,
+        debounceDuration,
+    );
+    const debouncedCreationYearMax = refDebounced(
+        creationYearMax,
+        debounceDuration,
+    );
 
     // Static options for the Département dropdown
     const staticOptions = {
@@ -106,6 +122,20 @@ export const useRecordsTableStore = defineStore("recordsTableStore", () => {
                 max: dateEnd.value,
             };
         }
+        if (classeMin.value || classeMax.value) {
+            result.classe = {
+                type: "number-range",
+                min: classeMin.value,
+                max: classeMax.value,
+            };
+        }
+        if (creationYearMin.value || creationYearMax.value) {
+            result.anneeDeCreation = {
+                type: "number-range",
+                min: creationYearMin.value,
+                max: creationYearMax.value,
+            };
+        }
 
         return result;
     });
@@ -122,6 +152,12 @@ export const useRecordsTableStore = defineStore("recordsTableStore", () => {
             if (id === "record") {
                 temperatureMin.value = value.min;
                 temperatureMax.value = value.max;
+            } else if (id === "classe") {
+                classeMin.value = value.min;
+                classeMax.value = value.max;
+            } else if (id === "anneeDeCreation") {
+                creationYearMin.value = value.min;
+                creationYearMax.value = value.max;
             }
         } else if (value.type === "date-range") {
             if (id === "record_date") {
@@ -143,6 +179,12 @@ export const useRecordsTableStore = defineStore("recordsTableStore", () => {
         } else if (id === "record_date") {
             dateStart.value = undefined;
             dateEnd.value = undefined;
+        } else if (id === "classe") {
+            classeMin.value = undefined;
+            classeMax.value = undefined;
+        } else if (id === "anneeDeCreation") {
+            creationYearMin.value = undefined;
+            creationYearMax.value = undefined;
         }
     }
 
@@ -178,6 +220,10 @@ export const useRecordsTableStore = defineStore("recordsTableStore", () => {
             debouncedTemperatureMax,
             debouncedDateStart,
             debouncedDateEnd,
+            debouncedClasseMin,
+            debouncedClasseMax,
+            debouncedCreationYearMin,
+            debouncedCreationYearMax,
         ],
         () => {
             page.value = 1;
@@ -232,6 +278,26 @@ export const useRecordsTableStore = defineStore("recordsTableStore", () => {
         if (debouncedDateEnd.value) {
             const end = dateToStringYMD(debouncedDateEnd.value);
             result = result.filter((r) => r.record_date <= end);
+        }
+        if (debouncedClasseMin.value) {
+            const min = Number(debouncedClasseMin.value);
+            result = result.filter((r) => r.classe_recente >= min);
+        }
+        if (debouncedClasseMax.value) {
+            const max = Number(debouncedClasseMax.value);
+            result = result.filter((r) => r.classe_recente <= max);
+        }
+        if (debouncedCreationYearMin.value) {
+            const min = Number(debouncedCreationYearMin.value);
+            result = result.filter(
+                (r) => new Date(r.date_de_creation).getFullYear() >= min,
+            );
+        }
+        if (debouncedCreationYearMax.value) {
+            const max = Number(debouncedCreationYearMax.value);
+            result = result.filter(
+                (r) => new Date(r.date_de_creation).getFullYear() <= max,
+            );
         }
 
         return result;

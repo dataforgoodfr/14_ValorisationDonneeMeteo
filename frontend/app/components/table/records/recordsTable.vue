@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { h } from "vue";
-import { UBadge } from "#components";
+import { UBadge, UButton } from "#components";
 import { storeToRefs } from "pinia";
 import { useRecordsTableStore } from "~/stores/recordsTableStore";
 import RecordsFilterBar from "~/components/table/records/RecordsFilterBar.vue";
@@ -11,6 +11,7 @@ import {
     REGION_META,
     STATION_META,
     TEMPERATURE_BADGE_SIZE,
+    TABLE_HEADER_BTN_MULTILINE_CLASS,
     makeSortableColFactory,
     temperatureBadgeClass,
     truncatedCell,
@@ -66,6 +67,8 @@ interface TableRow {
     departement: string;
     record: number;
     recordDate: string;
+    classeRecente: number;
+    anneeDeCreation: number;
 }
 
 // Sort ALL filtered records before pagination so that ordering is global.
@@ -75,6 +78,8 @@ const sortedRecords = computed<TableRow[]>(() => {
         departement: s.department,
         record: s.record_value,
         recordDate: s.record_date,
+        classeRecente: s.classe_recente,
+        anneeDeCreation: new Date(s.date_de_creation).getFullYear(),
     }));
     if (!ordering.value) return all;
     const desc = ordering.value.startsWith("-");
@@ -101,7 +106,7 @@ const columns = [
         meta: STATION_META,
         cellCustom: ({ row }) => truncatedCell(row.getValue("name")),
     }),
-    sortableCol("departement", "Département", {
+    sortableCol("departement", "Dept.", {
         meta: REGION_META,
         cellCustom: ({ row }) => truncatedCell(row.getValue("departement")),
     }),
@@ -123,7 +128,55 @@ const columns = [
                 () => `${row.getValue<number>("record").toFixed(1)} °C`,
             ),
     }),
-    sortableCol("recordDate", "Date du record", { meta: CENTERED_COL }),
+    sortableCol("recordDate", "Date du record", {
+        meta: CENTERED_COL,
+        headerCustom: () =>
+            h(
+                UButton,
+                {
+                    variant: "ghost",
+                    trailingIcon: ordering.value.includes("recordDate")
+                        ? ordering.value.startsWith("-")
+                            ? "i-lucide-arrow-down"
+                            : "i-lucide-arrow-up"
+                        : "i-lucide-arrow-up-down",
+                    color: "neutral",
+                    class: TABLE_HEADER_BTN_MULTILINE_CLASS,
+                    onClick: () => setOrdering("recordDate"),
+                },
+                () =>
+                    h(
+                        "span",
+                        { class: "whitespace-pre-line" },
+                        "Date du\nrecord",
+                    ),
+            ),
+    }),
+    sortableCol("classeRecente", "Classe", { meta: CENTERED_COL }),
+    sortableCol("anneeDeCreation", "Année de création", {
+        meta: CENTERED_COL,
+        headerCustom: () =>
+            h(
+                UButton,
+                {
+                    variant: "ghost",
+                    trailingIcon: ordering.value.includes("anneeDeCreation")
+                        ? ordering.value.startsWith("-")
+                            ? "i-lucide-arrow-down"
+                            : "i-lucide-arrow-up"
+                        : "i-lucide-arrow-up-down",
+                    color: "neutral",
+                    class: TABLE_HEADER_BTN_MULTILINE_CLASS,
+                    onClick: () => setOrdering("anneeDeCreation"),
+                },
+                () =>
+                    h(
+                        "span",
+                        { class: "whitespace-pre-line" },
+                        "Année\nde création",
+                    ),
+            ),
+    }),
 ];
 </script>
 

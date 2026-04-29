@@ -15,6 +15,8 @@ type DeviationTableFilters = {
     // altitude?: RangeFilterValue;
     deviation?: RangeFilterValue;
     temperatureMean?: RangeFilterValue;
+    classe?: RangeFilterValue;
+    anneeDeCreation?: RangeFilterValue;
 };
 
 const dates = useCustomDate();
@@ -35,6 +37,10 @@ export const useDeviationTableStore = defineStore("deviationTableStore", () => {
     const deviationMax = ref<string | undefined>(undefined);
     const temperatureMeanMin = ref<string | undefined>(undefined);
     const temperatureMeanMax = ref<string | undefined>(undefined);
+    const classeMin = ref<string | undefined>(undefined);
+    const classeMax = ref<string | undefined>(undefined);
+    const creationYearMin = ref<string | undefined>(undefined);
+    const creationYearMax = ref<string | undefined>(undefined);
 
     // Static options
     const staticOptions = {
@@ -77,6 +83,18 @@ export const useDeviationTableStore = defineStore("deviationTableStore", () => {
                 min: temperatureMeanMin.value,
                 max: temperatureMeanMax.value,
             };
+        if (classeMin.value || classeMax.value)
+            result.classe = {
+                type: "number-range",
+                min: classeMin.value,
+                max: classeMax.value,
+            };
+        if (creationYearMin.value || creationYearMax.value)
+            result.anneeDeCreation = {
+                type: "number-range",
+                min: creationYearMin.value,
+                max: creationYearMax.value,
+            };
         return result;
     });
 
@@ -95,6 +113,12 @@ export const useDeviationTableStore = defineStore("deviationTableStore", () => {
             } else if (id === "temperatureMean") {
                 temperatureMeanMin.value = value.min;
                 temperatureMeanMax.value = value.max;
+            } else if (id === "classe") {
+                classeMin.value = value.min;
+                classeMax.value = value.max;
+            } else if (id === "anneeDeCreation") {
+                creationYearMin.value = value.min;
+                creationYearMax.value = value.max;
             }
         }
     }
@@ -115,6 +139,12 @@ export const useDeviationTableStore = defineStore("deviationTableStore", () => {
         } else if (id === "temperatureMean") {
             temperatureMeanMin.value = undefined;
             temperatureMeanMax.value = undefined;
+        } else if (id === "classe") {
+            classeMin.value = undefined;
+            classeMax.value = undefined;
+        } else if (id === "anneeDeCreation") {
+            creationYearMin.value = undefined;
+            creationYearMax.value = undefined;
         }
     }
 
@@ -134,6 +164,16 @@ export const useDeviationTableStore = defineStore("deviationTableStore", () => {
     );
     const debouncedTMeanMax = refDebounced(
         temperatureMeanMax,
+        debounceDuration,
+    );
+    const debouncedClasseMin = refDebounced(classeMin, debounceDuration);
+    const debouncedClasseMax = refDebounced(classeMax, debounceDuration);
+    const debouncedCreationYearMin = refDebounced(
+        creationYearMin,
+        debounceDuration,
+    );
+    const debouncedCreationYearMax = refDebounced(
+        creationYearMax,
         debounceDuration,
     );
 
@@ -167,6 +207,14 @@ export const useDeviationTableStore = defineStore("deviationTableStore", () => {
             result.temperature_mean_min = Number(debouncedTMeanMin.value);
         if (debouncedTMeanMax.value)
             result.temperature_mean_max = Number(debouncedTMeanMax.value);
+        if (debouncedClasseMin.value)
+            result.classe_recente_min = Number(debouncedClasseMin.value);
+        if (debouncedClasseMax.value)
+            result.classe_recente_max = Number(debouncedClasseMax.value);
+        if (debouncedCreationYearMin.value)
+            result.date_de_creation_min = `${debouncedCreationYearMin.value}-01-01`;
+        if (debouncedCreationYearMax.value)
+            result.date_de_creation_max = `${debouncedCreationYearMax.value}-12-31`;
         return result;
     });
 
