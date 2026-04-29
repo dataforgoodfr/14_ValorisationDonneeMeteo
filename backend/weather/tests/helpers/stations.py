@@ -11,7 +11,7 @@ def insert_station(
     lat: float = 0.0,
     lon: float = 0.0,
     alt: float = 0.0,
-    annee_de_creation: int = 2000,
+    annee_de_creation: int = 1950,
     classe_recente: int = 1,
 ) -> None:
     now = dt.datetime.now()

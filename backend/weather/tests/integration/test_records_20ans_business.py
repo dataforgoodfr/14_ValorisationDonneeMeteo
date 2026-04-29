@@ -22,8 +22,8 @@ from weather.tests.helpers.stations import insert_station
 def test_after_cutoff_record_before_20ans_is_excluded():
     """Record post-cutoff dont la date est < création+20 → exclu."""
     code = "76116001"
-    # Créée en 2010, seuil = 2030-01-01
-    insert_station(code, "Station Jeune", departement=76, annee_de_creation=2010)
+    # Créée en 1980, seuil = 2030-01-01
+    insert_station(code, "Station Jeune", departement=76, annee_de_creation=1980)
     set_cutoff(dt.date(2025, 12, 31))
 
     # 2026 < 2030 → doit être ignoré
@@ -42,8 +42,8 @@ def test_after_cutoff_record_before_20ans_is_excluded():
 def test_after_cutoff_record_exactly_at_20ans_is_included():
     """Record post-cutoff dont la date est exactement création+20 → inclus."""
     code = "76116002"
-    # Créée en 2006, seuil = 2026-01-01
-    insert_station(code, "Station 20ans pile", departement=76, annee_de_creation=2006)
+    # Créée en 1976, seuil = 2026-01-01
+    insert_station(code, "Station 20ans pile", departement=76, annee_de_creation=1976)
     set_cutoff(dt.date(2025, 12, 31))
 
     # 2026-01-01 == seuil → doit être inclus
@@ -63,8 +63,8 @@ def test_after_cutoff_record_exactly_at_20ans_is_included():
 def test_after_cutoff_record_after_20ans_is_included():
     """Record post-cutoff dont la date est > création+20 → inclus normalement."""
     code = "76116003"
-    # Créée en 2000, seuil = 2020-01-01
-    insert_station(code, "Station Ancienne", departement=76, annee_de_creation=2000)
+    # Créée en 1970, seuil = 2020-01-01
+    insert_station(code, "Station Ancienne", departement=76, annee_de_creation=1970)
     set_cutoff(dt.date(2025, 12, 31))
 
     insert_quotidienne(dt.date(2026, 8, 10), code, tx=42.0)
@@ -83,8 +83,8 @@ def test_after_cutoff_record_after_20ans_is_included():
 def test_after_cutoff_only_recent_records_cross_20ans_threshold():
     """Station avec records pré et post-seuil : seul le post-seuil apparaît."""
     code = "76116004"
-    # Créée en 2008, seuil = 2028-01-01
-    insert_station(code, "Station Mixte", departement=76, annee_de_creation=2008)
+    # Créée en 1978, seuil = 2028-01-01
+    insert_station(code, "Station Mixte", departement=76, annee_de_creation=1978)
     set_cutoff(dt.date(2025, 12, 31))
 
     # 2026 < 2028 → filtré
