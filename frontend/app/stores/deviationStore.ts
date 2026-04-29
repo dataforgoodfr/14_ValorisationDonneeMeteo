@@ -110,9 +110,11 @@ export const useDeviationStore = defineStore("deviationStore", () => {
         }
         if (value === "month") {
             pickedDateStart.value = dates.last10Year.value;
+            pickedDateEnd.value = dates.lastMonth.value;
         }
         if (value === "year") {
             pickedDateStart.value = dates.absoluteMinDataDate.value;
+            pickedDateEnd.value = dates.lastYear.value;
         }
     };
 
