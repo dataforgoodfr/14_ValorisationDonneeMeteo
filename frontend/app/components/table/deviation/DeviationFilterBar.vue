@@ -27,6 +27,12 @@ const filterFields: FilterField[] = [
         type: "number-range",
         unit: "°C",
     },
+    { id: "classe", label: "Classe", type: "number-range" },
+    {
+        id: "anneeDeCreation",
+        label: "Année de création",
+        type: "number-range",
+    },
 ];
 
 const store = useDeviationTableStore();

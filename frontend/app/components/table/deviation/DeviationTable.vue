@@ -68,6 +68,8 @@ interface TableRow {
     region: string | undefined;
     deviation: number | undefined;
     temperatureMean: number | undefined;
+    classeRecente: number | undefined;
+    anneeDeCreation: number | undefined;
 }
 
 const tableData = computed<TableRow[]>(() =>
@@ -77,6 +79,8 @@ const tableData = computed<TableRow[]>(() =>
         region: s.region,
         deviation: s.deviation,
         temperatureMean: s.temperature_mean,
+        classeRecente: s.classe_recente,
+        anneeDeCreation: new Date(s.date_de_creation).getFullYear(),
     })),
 );
 
@@ -90,7 +94,25 @@ const columns = [
         meta: STATION_META,
         cellCustom: ({ row }) => truncatedCell(row.getValue("station_name")),
     }),
-    sortableCol("department", "Département", { meta: CENTERED_TD }),
+    sortableCol("department", "Département", {
+        meta: CENTERED_TD,
+        headerCustom: () =>
+            h(
+                UButton,
+                {
+                    variant: "ghost",
+                    trailingIcon: ordering.value.includes("department")
+                        ? ordering.value.startsWith("-")
+                            ? "i-lucide-arrow-down"
+                            : "i-lucide-arrow-up"
+                        : "i-lucide-arrow-up-down",
+                    color: "neutral",
+                    class: TABLE_HEADER_BTN_MULTILINE_CLASS,
+                    onClick: () => setOrdering("department"),
+                },
+                () => h("span", { class: "whitespace-pre-line" }, "Dept."),
+            ),
+    }),
     sortableCol("region", "Région", {
         meta: REGION_META,
         cellCustom: ({ row }) => truncatedCell(row.getValue("region")),
@@ -162,6 +184,31 @@ const columns = [
             ),
         cellCustom: ({ row }) =>
             `${row.getValue<number>("temperatureMean").toFixed(1)} °C`,
+    }),
+    sortableCol("classeRecente", "Classe", { meta: CENTERED_TD }),
+    sortableCol("anneeDeCreation", "Année de création", {
+        meta: CENTERED_TD,
+        headerCustom: () =>
+            h(
+                UButton,
+                {
+                    variant: "ghost",
+                    trailingIcon: ordering.value.includes("anneeDeCreation")
+                        ? ordering.value.startsWith("-")
+                            ? "i-lucide-arrow-down"
+                            : "i-lucide-arrow-up"
+                        : "i-lucide-arrow-up-down",
+                    color: "neutral",
+                    class: TABLE_HEADER_BTN_MULTILINE_CLASS,
+                    onClick: () => setOrdering("anneeDeCreation"),
+                },
+                () =>
+                    h(
+                        "span",
+                        { class: "whitespace-pre-line" },
+                        "Année\nde création",
+                    ),
+            ),
     }),
 ];
 </script>

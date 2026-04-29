@@ -15,6 +15,13 @@ const filterFields: FilterField[] = [
     { id: "departement", label: "Département", type: "string" },
     { id: "record", label: "Température record", type: "number-range" },
     { id: "record_date", label: "Date du record", type: "date-range" },
+    { id: "classe", label: "Classe", type: "number-range" },
+    { id: "altitude", label: "Altitude", type: "number-range" },
+    {
+        id: "anneeDeCreation",
+        label: "Année de création",
+        type: "number-range",
+    },
 ];
 
 const store = useRecordsTableStore();
