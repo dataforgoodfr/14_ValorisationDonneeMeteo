@@ -14,20 +14,34 @@ ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 export PGPASSWORD="$DB_PASSWORD"
 
 VIEWS_DIR="${ROOT_DIR}/sql/views"
+MATERIALIZED_VIEW_SQL="${ROOT_DIR}/sql/materialized_views/001_mv_quotidienne_realtime.sql"
+
+apply_sql_file() {
+  local sql_path="$1"
+
+  if [[ ! -f "$sql_path" ]]; then
+    echo "ERROR: SQL file not found: ${sql_path}" >&2
+    exit 1
+  fi
+
+  echo "Applying $(basename "$sql_path")"
+  psql -h "$DB_HOST" \
+     -p "$DB_PORT" \
+     -U "$DB_USER" \
+     -d "$DB_NAME" \
+     -v ON_ERROR_STOP=1 \
+     -f "$sql_path"
+}
 
 if [[ ! -d "$VIEWS_DIR" ]]; then
-  echo "ERROR: views directory not found: $VIEWS_DIR" >&2
+  echo "ERROR: views directory not found: ${VIEWS_DIR}" >&2
   exit 1
 fi
 
-for f in "$VIEWS_DIR"/*.sql; do
-  echo "Applying $(basename "$f")"
-  psql -h "$DB_HOST" \
-       -p "$DB_PORT" \
-       -U "$DB_USER" \
-       -d "$DB_NAME" \
-       -v ON_ERROR_STOP=1 \
-       -f "$f"
+apply_sql_file "$MATERIALIZED_VIEW_SQL"
+
+for f in "${VIEWS_DIR}"/*.sql; do
+  apply_sql_file "$f"
 done
 
 echo "Sanity checks:"
