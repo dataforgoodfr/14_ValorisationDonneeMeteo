@@ -16,6 +16,7 @@ const hotRecordsParams: TemperatureRecordsGraphParams = {
     granularity: "day",
     date_start: dateToStringYMD(today.value),
     date_end: dateToStringYMD(today.value),
+    period_type: "month",
 };
 const { data: hotRecords } = useTemperatureRecordsGraph(hotRecordsParams);
 
@@ -24,6 +25,7 @@ const coldRecordsParams: TemperatureRecordsGraphParams = {
     granularity: "day",
     date_start: dateToStringYMD(today.value),
     date_end: dateToStringYMD(today.value),
+    period_type: "month",
 };
 const { data: coldRecords } = useTemperatureRecordsGraph(coldRecordsParams);
 const hotRecordsCount = computed(
@@ -39,6 +41,7 @@ const yesterdayHotRecordsParams: TemperatureRecordsGraphParams = {
     granularity: "day",
     date_start: dateToStringYMD(yesterday.value),
     date_end: dateToStringYMD(yesterday.value),
+    period_type: "month",
 };
 const { data: yesterdayHotRecords } = useTemperatureRecordsGraph(
     yesterdayHotRecordsParams,
@@ -49,6 +52,7 @@ const yesterdayColdRecordsParams: TemperatureRecordsGraphParams = {
     granularity: "day",
     date_start: dateToStringYMD(yesterday.value),
     date_end: dateToStringYMD(yesterday.value),
+    period_type: "month",
 };
 const { data: yesterdayColdRecords } = useTemperatureRecordsGraph(
     yesterdayColdRecordsParams,

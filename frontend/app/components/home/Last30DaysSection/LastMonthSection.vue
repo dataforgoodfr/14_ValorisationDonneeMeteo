@@ -30,6 +30,7 @@ const hotRecordsParams: TemperatureRecordsGraphParams = {
     month: currentMonth,
     date_start: dateToStringYMD(yesterdayLess30Days.value),
     date_end: dateToStringYMD(yesterday.value),
+    period_type: "month",
 };
 const { data: hotRecords } = useTemperatureRecordsGraph(hotRecordsParams);
 
@@ -39,6 +40,7 @@ const coldRecordsParams: TemperatureRecordsGraphParams = {
     month: currentMonth,
     date_start: dateToStringYMD(yesterdayLess30Days.value),
     date_end: dateToStringYMD(yesterday.value),
+    period_type: "month",
 };
 const { data: coldRecords } = useTemperatureRecordsGraph(coldRecordsParams);
 const hotRecordsCount = computed(
@@ -64,6 +66,7 @@ const lastYearHotRecordsParams: TemperatureRecordsGraphParams = {
     month: currentMonth,
     date_start: dateToStringYMD(lastYearLast30Days),
     date_end: dateToStringYMD(yesterdayLastYear),
+    period_type: "month",
 };
 const { data: lastYearHotRecords } = useTemperatureRecordsGraph(
     lastYearHotRecordsParams,
@@ -75,6 +78,7 @@ const lastYearColdRecordsParams: TemperatureRecordsGraphParams = {
     month: currentMonth,
     date_start: dateToStringYMD(lastYearLast30Days),
     date_end: dateToStringYMD(yesterdayLastYear),
+    period_type: "month",
 };
 const { data: lastYearColdRecords } = useTemperatureRecordsGraph(
     lastYearColdRecordsParams,
