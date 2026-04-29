@@ -294,8 +294,13 @@ class FakeTemperatureDeviationOverviewDataSource(
         reverse = query.ordering.startswith("-")
         field = query.ordering.lstrip("-")
 
+        nullable_fields = {"alt", "date_de_fermeture", "department", "region"}
+
         def key(x):
-            return getattr(x, field)
+            val = getattr(x, field)
+            if field in nullable_fields:
+                return (val is None, val)
+            return val
 
         data = sorted(data, key=key, reverse=reverse)
         total_count = len(data)

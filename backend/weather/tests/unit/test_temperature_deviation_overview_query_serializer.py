@@ -280,6 +280,29 @@ def test_temperature_deviation_overview_query_serializer_rejects_date_de_fermetu
     assert "date_de_fermeture_max" in s.errors
 
 
+def test_temperature_deviation_overview_query_serializer_accepts_altitude_classe_creation_fields():
+    ordering_fields = (
+        "alt",
+        "-alt",
+        "classe_recente",
+        "-classe_recente",
+        "date_de_creation",
+        "-date_de_creation",
+        "date_de_fermeture",
+        "-date_de_fermeture",
+    )
+    for ordering in ordering_fields:
+        s = TemperatureDeviationOverviewQuerySerializer(
+            data={
+                "date_start": "2025-03-01",
+                "date_end": "2025-03-31",
+                "ordering": ordering,
+            }
+        )
+        assert s.is_valid(), f"ordering={ordering!r}: {s.errors}"
+        assert s.validated_data["ordering"] == ordering
+
+
 def test_temperature_deviation_overview_query_serializer_absent_new_filters_are_none():
     s = TemperatureDeviationOverviewQuerySerializer(
         data={

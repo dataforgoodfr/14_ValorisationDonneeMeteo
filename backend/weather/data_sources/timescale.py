@@ -412,6 +412,14 @@ class TimescaleTemperatureDeviationDailyDataSource(
             "-department": "department DESC NULLS LAST, station_id ASC",
             "region": "region ASC NULLS LAST, station_id ASC",
             "-region": "region DESC NULLS LAST, station_id ASC",
+            "alt": "alt ASC NULLS LAST, station_id ASC",
+            "-alt": "alt DESC NULLS LAST, station_id ASC",
+            "classe_recente": "classe_recente ASC, station_id ASC",
+            "-classe_recente": "classe_recente DESC, station_id ASC",
+            "date_de_creation": "annee_de_creation ASC, station_id ASC",
+            "-date_de_creation": "annee_de_creation DESC, station_id ASC",
+            "date_de_fermeture": "annee_de_fermeture ASC NULLS LAST, station_id ASC",
+            "-date_de_fermeture": "annee_de_fermeture DESC NULLS LAST, station_id ASC",
         }
 
         order_sql = ordering_map[query.ordering]
