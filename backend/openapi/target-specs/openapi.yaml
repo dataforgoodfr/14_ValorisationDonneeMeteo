@@ -141,6 +141,14 @@ paths:
               - -department
               - region
               - -region
+              - alt
+              - -alt
+              - classe_recente
+              - -classe_recente
+              - date_de_creation
+              - -date_de_creation
+              - date_de_fermeture
+              - -date_de_fermeture
             default: -deviation
           description: >
             Champ de tri du tableau. Le préfixe '-' indique un tri décroissant.
@@ -1981,6 +1989,25 @@ components:
                 type: string
         ordering:
           type: string
+          enum:
+            - station_name
+            - -station_name
+            - temperature_mean
+            - -temperature_mean
+            - deviation
+            - -deviation
+            - department
+            - -department
+            - region
+            - -region
+            - alt
+            - -alt
+            - classe_recente
+            - -classe_recente
+            - date_de_creation
+            - -date_de_creation
+            - date_de_fermeture
+            - -date_de_fermeture
 
     TemperatureDeviationOverviewNational:
       type: object
