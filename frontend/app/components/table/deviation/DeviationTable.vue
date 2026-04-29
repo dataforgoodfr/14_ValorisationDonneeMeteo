@@ -68,8 +68,8 @@ interface TableRow {
     region: string | undefined;
     deviation: number | undefined;
     temperatureMean: number | undefined;
-    classeRecente: number;
-    anneeDeCreation: number;
+    classeRecente: number | undefined;
+    anneeDeCreation: number | undefined;
 }
 
 const tableData = computed<TableRow[]>(() =>
