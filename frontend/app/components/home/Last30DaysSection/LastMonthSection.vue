@@ -5,23 +5,22 @@ import GoToDataLink from "../GoToDataLink.vue";
 import Section from "../Section.vue";
 import TemperatureRecord from "../TemperatureRecord.vue";
 
-const { yesterday, yesterdayLess30Days } = useCustomDate();
+const { today, yesterday, yesterdayLess30Days } = useCustomDate();
 
 const hotTypeRecords = ref<TypeRecords>("hot");
 const coldTypeRecords = ref<TypeRecords>("cold");
 const currentMonth = new Date().getMonth();
 
 // This month records
-const currentYear = new Date().getFullYear();
-const firstDayOfMonth = new Date(currentYear, currentMonth, 1);
-const lastDayOfMonth = new Date(currentYear, currentMonth + 1, 0);
+const last30Days = new Date();
+last30Days.setDate(today.value.getDate() - 30);
 
 const hotRecordsParams = {
   type_records: hotTypeRecords.value,
   granularity: "month" as const,
   month: currentMonth,
-  date_start: dateToStringYMD(firstDayOfMonth),
-  date_end: dateToStringYMD(lastDayOfMonth),
+  date_start: dateToStringYMD(last30Days),
+  date_end: dateToStringYMD(today.value),
 };
 const { data: hotRecords } = useTemperatureRecordsGraph(hotRecordsParams);
 
@@ -29,23 +28,25 @@ const coldRecordsParams = {
   type_records: coldTypeRecords.value,
   granularity: "month" as const,
   month: currentMonth,
-  date_start: dateToStringYMD(firstDayOfMonth),
-  date_end: dateToStringYMD(lastDayOfMonth),
+  date_start: dateToStringYMD(last30Days),
+  date_end: dateToStringYMD(today.value),
 };
 const { data: coldRecords } = useTemperatureRecordsGraph(coldRecordsParams);
 const hotRecordsCount = computed(() => hotRecords.value?.buckets[0]?.nb_records_battus ?? 0);
 const coldRecordsCount = computed(() => coldRecords.value?.buckets[0]?.nb_records_battus ?? 0);
 
 // Last year month records
-const lastYearFirstDayOfMonth = new Date(currentYear - 1, currentMonth, 1);
-const lastYearLastDayOfMonth = new Date(currentYear - 1, currentMonth + 1, 0);
+const todayLastYear = new Date(today.value);
+todayLastYear.setFullYear(todayLastYear.getFullYear() - 1);
+const  lastYearLast30Days = new Date(todayLastYear);
+lastYearLast30Days.setDate(lastYearLast30Days.getDate() - 30);
 
 const lastYearHotRecordsParams = {
    type_records: hotTypeRecords.value,
   granularity: "month" as const,
   month: currentMonth,
-  date_start: dateToStringYMD(lastYearFirstDayOfMonth),
-  date_end: dateToStringYMD(lastYearLastDayOfMonth),
+  date_start: dateToStringYMD(lastYearLast30Days),
+  date_end: dateToStringYMD(todayLastYear),
 };
 const { data: lastYearHotRecords } = useTemperatureRecordsGraph(lastYearHotRecordsParams);
 
@@ -53,8 +54,8 @@ const lastYearColdRecordsParams = {
   type_records: coldTypeRecords.value,
   granularity: "month" as const,
   month: currentMonth,
-  date_start: dateToStringYMD(lastYearFirstDayOfMonth),
-  date_end: dateToStringYMD(lastYearLastDayOfMonth),
+  date_start: dateToStringYMD(lastYearLast30Days),
+  date_end: dateToStringYMD(todayLastYear),
 };
 const { data: lastYearColdRecords } = useTemperatureRecordsGraph(lastYearColdRecordsParams);
 const lastYearHotRecordsCount = computed(() => lastYearHotRecords.value?.buckets[0]?.nb_records_battus ?? 0);
