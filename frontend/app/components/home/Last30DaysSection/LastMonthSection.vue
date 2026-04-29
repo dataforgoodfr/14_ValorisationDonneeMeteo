@@ -7,6 +7,18 @@ import TemperatureRecord from "../TemperatureRecord.vue";
 
 const { yesterday, yesterdayLess30Days } = useCustomDate();
 
+function getYesterdayLastYear(yesterday: Date) {
+    const yesterdayLastYear = yesterday;
+    yesterdayLastYear.setFullYear(yesterdayLastYear.getFullYear() - 1);
+    return yesterdayLastYear;
+}
+
+function getLastYearLast30Days(yesterday: Date) {
+    const lastYearLast30Days = yesterday;
+    lastYearLast30Days.setDate(lastYearLast30Days.getDate() - 30);
+    return lastYearLast30Days;
+}
+
 const hotTypeRecords = ref<TypeRecords>("hot");
 const coldTypeRecords = ref<TypeRecords>("cold");
 const currentMonth = new Date().getMonth();
@@ -37,10 +49,8 @@ const coldRecordsCount = computed(
 );
 
 // Last year month records
-const yesterdayLastYear = new Date(yesterday.value);
-yesterdayLastYear.setFullYear(yesterdayLastYear.getFullYear() - 1);
-const lastYearLast30Days = new Date(yesterdayLastYear);
-lastYearLast30Days.setDate(lastYearLast30Days.getDate() - 30);
+const yesterdayLastYear = getYesterdayLastYear(yesterday.value);
+const lastYearLast30Days = getLastYearLast30Days(yesterdayLastYear);
 
 const lastYearHotRecordsParams = {
     type_records: hotTypeRecords.value,
