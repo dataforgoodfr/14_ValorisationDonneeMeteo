@@ -42,10 +42,16 @@ const coldRecordsParams: TemperatureRecordsGraphParams = {
 };
 const { data: coldRecords } = useTemperatureRecordsGraph(coldRecordsParams);
 const hotRecordsCount = computed(
-    () => hotRecords.value?.buckets[0]?.nb_records_battus ?? 0,
+    () =>
+        hotRecords.value?.buckets
+            .map((bucket) => bucket.nb_records_battus)
+            .reduce((a, b) => a + b, 0) ?? 0,
 );
 const coldRecordsCount = computed(
-    () => coldRecords.value?.buckets[0]?.nb_records_battus ?? 0,
+    () =>
+        coldRecords.value?.buckets
+            .map((bucket) => bucket.nb_records_battus)
+            .reduce((a, b) => a + b, 0) ?? 0,
 );
 
 // Last year month records
@@ -74,10 +80,16 @@ const { data: lastYearColdRecords } = useTemperatureRecordsGraph(
     lastYearColdRecordsParams,
 );
 const lastYearHotRecordsCount = computed(
-    () => lastYearHotRecords.value?.buckets[0]?.nb_records_battus ?? 0,
+    () =>
+        lastYearHotRecords.value?.buckets
+            .map((bucket) => bucket.nb_records_battus)
+            .reduce((a, b) => a + b, 0) ?? 0,
 );
 const lastYearColdRecordsCount = computed(
-    () => lastYearColdRecords.value?.buckets[0]?.nb_records_battus ?? 0,
+    () =>
+        lastYearColdRecords.value?.buckets
+            .map((bucket) => bucket.nb_records_battus)
+            .reduce((a, b) => a + b, 0) ?? 0,
 );
 </script>
 
@@ -105,7 +117,7 @@ const lastYearColdRecordsCount = computed(
                     type="hot"
                     period="les 30 derniers jours"
                     title="Records de chaleur"
-                    tooltip-text="Le nombre de records de chaleur battus sur le mois en cours"
+                    tooltip-text="Le nombre de records de chaleur battus sur les 30 derniers jours"
                     compare-to="année dernière"
                 />
                 <TemperatureRecord
@@ -114,7 +126,7 @@ const lastYearColdRecordsCount = computed(
                     type="cold"
                     period="les 30 derniers jours"
                     title="Records de froid"
-                    tooltip-text="Le nombre de records de froid battus sur le mois en cours"
+                    tooltip-text="Le nombre de records de froid battus sur les 30 derniers jours"
                     compare-to="année dernière"
                 />
             </div>
