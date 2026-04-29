@@ -291,6 +291,28 @@ class FakeTemperatureDeviationOverviewDataSource(
         if query.deviation_max is not None:
             data = [x for x in data if x.deviation <= query.deviation_max]
 
+        if query.classe_recente_min is not None:
+            data = [x for x in data if x.classe_recente >= query.classe_recente_min]
+
+        if query.classe_recente_max is not None:
+            data = [x for x in data if x.classe_recente <= query.classe_recente_max]
+
+        if query.date_de_creation_min is not None:
+            data = [x for x in data if x.date_de_creation >= query.date_de_creation_min]
+
+        if query.date_de_creation_max is not None:
+            data = [x for x in data if x.date_de_creation <= query.date_de_creation_max]
+
+        if query.date_de_fermeture_min is not None:
+            data = [
+                x for x in data if x.date_de_fermeture >= query.date_de_fermeture_min
+            ]
+
+        if query.date_de_fermeture_max is not None:
+            data = [
+                x for x in data if x.date_de_fermeture <= query.date_de_fermeture_max
+            ]
+
         reverse = query.ordering.startswith("-")
         field = query.ordering.lstrip("-")
 
