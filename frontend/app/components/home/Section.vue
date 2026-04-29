@@ -5,7 +5,7 @@ interface Props {
 const props = defineProps<Props>();
 </script>
 <template>
-    <div class="flex flex-col min-h-5">
+    <div class="flex flex-col min-h-5 pb-20">
         <h3 class="flex items-center gap-2 text-slate-500 font-bold">
             {{ props.title }}
         </h3>

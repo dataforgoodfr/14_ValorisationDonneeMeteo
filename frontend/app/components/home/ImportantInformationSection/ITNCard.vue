@@ -12,6 +12,7 @@ const { yesterday, yesterdayLastYear } = useCustomDate();
     >
         <template #kpi>
             <p
+                v-if="yesterdayTemperature"
                 class="font-semibold text-4xl mb-1"
                 :class="
                     (yesterdayTemperature ?? 0) <= 0
@@ -22,7 +23,7 @@ const { yesterday, yesterdayLastYear } = useCustomDate();
                 {{ yesterdayTemperature?.toFixed(1) }} °C
             </p>
         </template>
-        <template #kpi-context-box>
+        <template v-if="gap" #kpi-context-box>
             {{ gap?.toFixed(1) }}°C vs normale 1991-2020
         </template>
         <template #variation>
@@ -37,6 +38,7 @@ const { yesterday, yesterdayLastYear } = useCustomDate();
                 class="text-red-450"
             />
             <span
+                v-if="temperatureChangeYearOverYear"
                 class="text-sm font-semibold"
                 :class="
                     (temperatureChangeYearOverYear ?? 0) <= 0
