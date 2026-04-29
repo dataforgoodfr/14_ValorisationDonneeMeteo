@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { TypeRecords } from "~/types/api";
+import type { TemperatureRecordsGraphParams, TypeRecords } from "~/types/api";
 import GoToDataLink from "../GoToDataLink.vue";
 import ITNCard from "../ImportantInformationSection/ITNCard.vue";
 import Section from "../Section.vue";
@@ -14,17 +14,17 @@ const coldTypeRecords = ref<TypeRecords>("cold");
 const last30Days = new Date();
 last30Days.setDate(today.value.getDate() - 30);
 
-const hotRecordsParams = {
+const hotRecordsParams: TemperatureRecordsGraphParams = {
     type_records: hotTypeRecords.value,
-    granularity: "day" as const,
+    granularity: "day",
     date_start: dateToStringYMD(today.value),
     date_end: dateToStringYMD(today.value),
 };
 const { data: hotRecords } = useTemperatureRecordsGraph(hotRecordsParams);
 
-const coldRecordsParams = {
+const coldRecordsParams: TemperatureRecordsGraphParams = {
     type_records: coldTypeRecords.value,
-    granularity: "day" as const,
+    granularity: "day",
     date_start: dateToStringYMD(today.value),
     date_end: dateToStringYMD(today.value),
 };
@@ -37,9 +37,9 @@ const coldRecordsCount = computed(
 );
 
 // Yesterday records
-const yesterdayHotRecordsParams = {
+const yesterdayHotRecordsParams: TemperatureRecordsGraphParams = {
     type_records: hotTypeRecords.value,
-    granularity: "day" as const,
+    granularity: "day",
     date_start: dateToStringYMD(yesterday.value),
     date_end: dateToStringYMD(yesterday.value),
 };
@@ -47,9 +47,9 @@ const { data: yesterdayHotRecords } = useTemperatureRecordsGraph(
     yesterdayHotRecordsParams,
 );
 
-const yesterdayColdRecordsParams = {
+const yesterdayColdRecordsParams: TemperatureRecordsGraphParams = {
     type_records: coldTypeRecords.value,
-    granularity: "day" as const,
+    granularity: "day",
     date_start: dateToStringYMD(yesterday.value),
     date_end: dateToStringYMD(yesterday.value),
 };
