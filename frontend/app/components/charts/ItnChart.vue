@@ -60,6 +60,7 @@ provide(INIT_OPTIONS_KEY, initOptions);
 
 const itnColors = useItnColors();
 const mapColors = useMapColors();
+const colorMode = useColorMode();
 
 function buildStackedOption(
     timeSeries: NationalIndicatorDataPoint[],
@@ -458,7 +459,7 @@ const option = computed<ECOption>(() => {
 <template>
     <VChart
         :ref="adapter.chartRef"
-        :key="`${adapter.granularity.value}-${adapter.chartType?.value ?? 'line'}`"
+        :key="`${adapter.granularity.value}-${adapter.chartType?.value ?? 'line'}-${colorMode.value}`"
         :option="option"
         :init-options="initOptions"
         :loading="adapter.pending.value"
