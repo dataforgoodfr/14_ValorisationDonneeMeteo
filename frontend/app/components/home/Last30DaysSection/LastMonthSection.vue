@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { TypeRecords } from "~/types/api";
+import type { TemperatureRecordsGraphParams, TypeRecords } from "~/types/api";
 import ExtremeStationCard from "../ExtremeStationCard.vue";
 import GoToDataLink from "../GoToDataLink.vue";
 import Section from "../Section.vue";
@@ -24,18 +24,18 @@ const coldTypeRecords = ref<TypeRecords>("cold");
 const currentMonth = new Date().getMonth();
 
 // This month records
-const hotRecordsParams = {
+const hotRecordsParams: TemperatureRecordsGraphParams = {
     type_records: hotTypeRecords.value,
-    granularity: "month" as const,
+    granularity: "month",
     month: currentMonth,
     date_start: dateToStringYMD(yesterdayLess30Days.value),
     date_end: dateToStringYMD(yesterday.value),
 };
 const { data: hotRecords } = useTemperatureRecordsGraph(hotRecordsParams);
 
-const coldRecordsParams = {
+const coldRecordsParams: TemperatureRecordsGraphParams = {
     type_records: coldTypeRecords.value,
-    granularity: "month" as const,
+    granularity: "month",
     month: currentMonth,
     date_start: dateToStringYMD(yesterdayLess30Days.value),
     date_end: dateToStringYMD(yesterday.value),
@@ -52,9 +52,9 @@ const coldRecordsCount = computed(
 const yesterdayLastYear = getYesterdayLastYear(yesterday.value);
 const lastYearLast30Days = getLastYearLast30Days(yesterdayLastYear);
 
-const lastYearHotRecordsParams = {
+const lastYearHotRecordsParams: TemperatureRecordsGraphParams = {
     type_records: hotTypeRecords.value,
-    granularity: "month" as const,
+    granularity: "month",
     month: currentMonth,
     date_start: dateToStringYMD(lastYearLast30Days),
     date_end: dateToStringYMD(yesterdayLastYear),
@@ -63,9 +63,9 @@ const { data: lastYearHotRecords } = useTemperatureRecordsGraph(
     lastYearHotRecordsParams,
 );
 
-const lastYearColdRecordsParams = {
+const lastYearColdRecordsParams: TemperatureRecordsGraphParams = {
     type_records: coldTypeRecords.value,
-    granularity: "month" as const,
+    granularity: "month",
     month: currentMonth,
     date_start: dateToStringYMD(lastYearLast30Days),
     date_end: dateToStringYMD(yesterdayLastYear),
