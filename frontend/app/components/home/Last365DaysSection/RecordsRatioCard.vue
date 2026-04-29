@@ -16,6 +16,7 @@ const { data } = useTemperatureRecordsGraph(
         date_end: dateToStringYMD(yesterday.value),
         granularity: "day",
         type_records: "all",
+        period_type: "month",
     })),
 );
 
@@ -25,6 +26,7 @@ const { data: previousData } = useTemperatureRecordsGraph(
         date_end: dateToStringYMD(yesterdayLastYear.value),
         granularity: "day",
         type_records: "all",
+        period_type: "month",
     })),
 );
 
