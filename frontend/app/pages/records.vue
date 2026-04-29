@@ -63,7 +63,7 @@ const infoPanelSections: InfoSection[] = [
     {
         label: "Stations éligibles",
         content:
-            "Pour être pertinent un record ne peut être déclaré comme tel que si la station a au moins 20 dans de données et si" +
+            "Pour être pertinent un record ne peut être déclaré comme tel que si la station a au moins 50 dans de données et si" +
             " sa classe de qualité de mesure de température définie par MéteoFrance est comprise entre 1 et 3.",
     },
     {
