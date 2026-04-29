@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import ItnChart from "~/components/charts/ItnChart.vue";
 import ItnKpiPanel from "~/components/charts/ItnKpiPanel.vue";
+import ItnStationsSection from "~/components/itn/ItnStationsSection.vue";
 import PagesHero from "~/components/layout/PagesHero.vue";
 import SelectBar from "~/components/ui/commons/selectBar/selectBar.vue";
 import ChartLayout from "~/components/layout/ChartLayout.vue";
@@ -100,7 +101,7 @@ const infoPanelSections: InfoSection[] = [
                 </div>
             </template>
         </ChartLayout>
-
+        <ItnStationsSection />
         <InfoPanel :title="heroData.title" :sections="infoPanelSections" />
     </UContainer>
 </template>

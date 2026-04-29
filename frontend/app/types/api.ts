@@ -343,6 +343,14 @@ export interface MappableStation {
     department?: string;
 }
 
+export interface ItnStation {
+    code: string;
+    lat: number;
+    lon: number;
+    nom: string;
+    classe: number;
+}
+
 export interface MapColorConfig {
     min: number;
     max: number;
