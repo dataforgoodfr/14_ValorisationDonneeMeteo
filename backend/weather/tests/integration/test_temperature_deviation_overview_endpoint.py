@@ -23,13 +23,12 @@ def client() -> APIClient:
     return APIClient()
 
 
-def _url() -> str:
-    return "/api/v1/temperature/deviation"
+ENDPOINT = "/api/v1/temperature/deviation"
 
 
 def test_overview_endpoint_happy_path(client: APIClient):
     resp = client.get(
-        _url(),
+        ENDPOINT,
         {
             "date_start": "2025-03-01",
             "date_end": "2025-03-31",
@@ -51,7 +50,7 @@ def test_overview_endpoint_happy_path(client: APIClient):
 
 def test_overview_endpoint_returns_400_on_invalid_dates(client: APIClient):
     resp = client.get(
-        _url(),
+        ENDPOINT,
         {
             "date_start": "2025-04-01",
             "date_end": "2025-03-01",
@@ -65,7 +64,7 @@ def test_overview_endpoint_returns_400_on_invalid_dates(client: APIClient):
 
 def test_overview_endpoint_returns_400_on_invalid_bounds(client: APIClient):
     resp = client.get(
-        _url(),
+        ENDPOINT,
         {
             "date_start": "2025-03-01",
             "date_end": "2025-03-31",
@@ -79,7 +78,7 @@ def test_overview_endpoint_returns_400_on_invalid_bounds(client: APIClient):
 
 def test_overview_endpoint_pagination(client: APIClient):
     resp = client.get(
-        _url(),
+        ENDPOINT,
         {
             "date_start": "2025-03-01",
             "date_end": "2025-03-31",
@@ -98,7 +97,7 @@ def test_overview_endpoint_pagination(client: APIClient):
 
 def test_overview_endpoint_ordering(client: APIClient):
     resp = client.get(
-        _url(),
+        ENDPOINT,
         {
             "date_start": "2025-03-01",
             "date_end": "2025-03-31",
@@ -115,7 +114,7 @@ def test_overview_endpoint_ordering(client: APIClient):
 
 def test_overview_endpoint_filters(client: APIClient):
     resp = client.get(
-        _url(),
+        ENDPOINT,
         {
             "date_start": "2025-03-01",
             "date_end": "2025-03-31",
@@ -131,7 +130,7 @@ def test_overview_endpoint_filters(client: APIClient):
 
 def test_overview_endpoint_empty_result(client: APIClient):
     resp = client.get(
-        _url(),
+        ENDPOINT,
         {
             "date_start": "2025-03-01",
             "date_end": "2025-03-31",
@@ -148,7 +147,7 @@ def test_overview_endpoint_empty_result(client: APIClient):
 
 def test_overview_endpoint_returns_added_station_fields(client: APIClient):
     resp = client.get(
-        _url(),
+        ENDPOINT,
         {
             "date_start": "2025-03-01",
             "date_end": "2025-03-31",
@@ -167,7 +166,7 @@ def test_overview_endpoint_returns_added_station_fields(client: APIClient):
 
 def test_overview_endpoint_filters_by_department(client: APIClient):
     resp = client.get(
-        _url(),
+        ENDPOINT,
         {
             "date_start": "2025-03-01",
             "date_end": "2025-03-31",
@@ -185,7 +184,7 @@ def test_overview_endpoint_metadata_includes_station_lifecycle_filters(
     client: APIClient,
 ):
     resp = client.get(
-        _url(),
+        ENDPOINT,
         {
             "date_start": "2024-01-01",
             "date_end": "2024-01-31",
@@ -211,14 +210,14 @@ def test_overview_endpoint_national_is_independent_from_station_filters(
     client: APIClient,
 ):
     resp_all = client.get(
-        _url(),
+        ENDPOINT,
         {
             "date_start": "2025-03-01",
             "date_end": "2025-03-31",
         },
     )
     resp_filtered = client.get(
-        _url(),
+        ENDPOINT,
         {
             "date_start": "2025-03-01",
             "date_end": "2025-03-31",
@@ -236,7 +235,7 @@ def test_overview_endpoint_national_is_independent_from_station_filters(
 
 def test_overview_endpoint_returns_400_on_negative_offset(client: APIClient):
     resp = client.get(
-        _url(),
+        ENDPOINT,
         {
             "date_start": "2025-03-01",
             "date_end": "2025-03-31",
@@ -249,7 +248,7 @@ def test_overview_endpoint_returns_400_on_negative_offset(client: APIClient):
 
 def test_overview_endpoint_filters_by_station_ids(client: APIClient):
     resp = client.get(
-        _url(),
+        ENDPOINT,
         {
             "date_start": "2025-03-01",
             "date_end": "2025-03-31",
@@ -267,7 +266,7 @@ def test_overview_endpoint_filters_by_station_ids(client: APIClient):
 
 def test_overview_endpoint_combines_station_ids_and_station_search(client: APIClient):
     resp = client.get(
-        _url(),
+        ENDPOINT,
         {
             "date_start": "2025-03-01",
             "date_end": "2025-03-31",
@@ -287,7 +286,7 @@ def test_overview_endpoint_combines_station_ids_and_station_search(client: APICl
 
 def test_overview_endpoint_echoes_station_ids_in_metadata_filters(client: APIClient):
     resp = client.get(
-        _url(),
+        ENDPOINT,
         {
             "date_start": "2025-03-01",
             "date_end": "2025-03-31",
@@ -301,7 +300,7 @@ def test_overview_endpoint_echoes_station_ids_in_metadata_filters(client: APICli
 
 def test_overview_endpoint_ordering_by_department(client: APIClient):
     resp = client.get(
-        _url(),
+        ENDPOINT,
         {
             "date_start": "2025-03-01",
             "date_end": "2025-03-31",
@@ -318,7 +317,7 @@ def test_overview_endpoint_ordering_by_department(client: APIClient):
 
 def test_overview_endpoint_ordering_by_region(client: APIClient):
     resp = client.get(
-        _url(),
+        ENDPOINT,
         {
             "date_start": "2025-03-01",
             "date_end": "2025-03-31",
