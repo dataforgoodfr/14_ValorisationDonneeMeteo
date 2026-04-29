@@ -13,17 +13,8 @@ import maplibregl from "maplibre-gl";
 import "maplibre-gl/dist/maplibre-gl.css";
 import * as topojson from "topojson-client";
 import type { FeatureCollection, Geometry } from "geojson";
-import type { Topology, GeometryCollection } from "topojson-specification";
 import type { ItnStation } from "~/types/api";
-
-interface DepartmentProperties {
-    code: string;
-}
-
-type FranceTopology = Topology<{
-    DEP: GeometryCollection<DepartmentProperties>;
-    REG: GeometryCollection<DepartmentProperties>;
-}>;
+import type { FranceTopology } from "~/types/map";
 
 const props = defineProps<{
     stations: ItnStation[];
@@ -57,8 +48,6 @@ const BLANK_STYLE: maplibregl.StyleSpecification = {
     ],
 };
 
-const DOM_REGION_CODES = ["01", "02", "03", "04", "06"];
-
 function stationsToGeoJSON(
     stations: ItnStation[],
 ): FeatureCollection<Geometry> {
@@ -79,15 +68,21 @@ function stationsToGeoJSON(
 }
 
 function setStationsData(stations: ItnStation[]) {
-    if (!map) return;
+    if (!map) {
+        return;
+    }
+
     const source = map.getSource("stations-itn") as
         | maplibregl.GeoJSONSource
         | undefined;
+
     source?.setData(stationsToGeoJSON(stations));
 }
 
 function initLayers() {
-    if (!map) return;
+    if (!map) {
+        return;
+    }
 
     map.addSource("stations-itn", {
         type: "geojson",
@@ -120,8 +115,11 @@ function initLayers() {
     map.on("mouseenter", "stations-itn-base", (e) => {
         map!.getCanvas().style.cursor = "default";
         const feature = e.features?.[0];
-        if (!feature) return;
-        const { code } = feature.properties as { code: string };
+        if (!feature) {
+            return;
+        }
+
+        const { code } = feature.properties;
         emit("update:hoveredCode", code);
     });
 
@@ -136,10 +134,6 @@ onMounted(async () => {
     const topoData = (await res.json()) as FranceTopology;
 
     const geojsonRegion = topojson.feature(topoData, topoData.objects.REG);
-
-    const regFeatures = geojsonRegion.features.filter(
-        (f) => !DOM_REGION_CODES.includes(f.properties.code),
-    );
 
     map = new maplibregl.Map({
         container: mapContainer.value!,
@@ -164,7 +158,10 @@ onMounted(async () => {
     map.on("load", () => {
         map!.addSource("france-reg", {
             type: "geojson",
-            data: { type: "FeatureCollection", features: regFeatures },
+            data: {
+                type: "FeatureCollection",
+                features: geojsonRegion.features,
+            },
         });
         map!.addLayer({
             id: "france-reg-border",
@@ -184,10 +181,13 @@ onUnmounted(() => {
     map = null;
 });
 
+// Update stations data when it changes.
 watch(
     () => props.stations,
     (stations) => {
-        if (mapReady.value) setStationsData(stations);
+        if (mapReady.value) {
+            setStationsData(stations);
+        }
     },
 );
 

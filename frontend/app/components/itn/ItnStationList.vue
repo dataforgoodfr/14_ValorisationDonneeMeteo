@@ -9,7 +9,7 @@
                 @mouseleave="emit('update:hoveredCode', null)"
             >
                 <UBadge
-                    :label="ITN_STATION_WEIGHT"
+                    :label="`P${station.classe}`"
                     variant="soft"
                     size="xl"
                     class="shrink-0"
@@ -26,7 +26,6 @@
 
 <script setup lang="ts">
 import type { ItnStation } from "~/types/api";
-import { ITN_STATION_WEIGHT } from "~/constants/itn";
 
 const props = defineProps<{
     stations: ItnStation[];

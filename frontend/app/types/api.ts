@@ -337,6 +337,7 @@ export interface ItnStation {
     lat: number;
     lon: number;
     nom: string;
+    classe: number;
 }
 
 export interface MapColorConfig {

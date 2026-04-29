@@ -39,24 +39,15 @@ import maplibregl from "maplibre-gl";
 import "maplibre-gl/dist/maplibre-gl.css";
 import * as topojson from "topojson-client";
 import type { FeatureCollection, Geometry, Point } from "geojson";
-import type { GeometryCollection, Topology } from "topojson-specification";
 import type {
     MapColorConfig,
     MappableStation,
     MapTooltipFormatter,
 } from "~/types/api";
+import type { FranceTopology } from "~/types/map";
 import { useMapColors } from "~/constants/colors";
 
 const mapColors = useMapColors();
-
-interface DepartmentProperties {
-    code: string;
-}
-
-type FranceTopology = Topology<{
-    DEP: GeometryCollection<DepartmentProperties>;
-    REG: GeometryCollection<DepartmentProperties>;
-}>;
 
 const props = defineProps<{
     stations: MappableStation[];
