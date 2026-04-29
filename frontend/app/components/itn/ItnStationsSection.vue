@@ -1,10 +1,12 @@
 <template>
-    <section class="flex flex-col gap-6">
-        <p class="text-lg sm:text-xl/8 text-muted text-balance mt-6">
+    <section
+        class="flex flex-col gap-4 dark:bg-elevated rounded-lg p-14 border border-gray-200 dark:border-default"
+    >
+        <p class="text-lg sm:text-xl/8 text-muted text-balance mb-6">
             Voici la liste des stations utilisées pour calculer cet indicateur
             thermique, et les poids associés dans le calcul de la moyenne.
         </p>
-        <div class="flex gap-6 divide-x divide-gray-200 dark:divide-default">
+        <div class="flex justify-center flex-wrap gap-6">
             <ItnStationMap
                 :stations="stations"
                 :hovered-code="hoveredCode"

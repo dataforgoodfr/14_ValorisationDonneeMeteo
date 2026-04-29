@@ -1,10 +1,10 @@
 <template>
-    <div class="flex flex-col min-w-0 flex-1">
-        <ul class="overflow-y-auto flex flex-wrap">
+    <div class="flex items-center">
+        <ul class="list-grid">
             <li
                 v-for="station in sortedStations"
                 :key="station.code"
-                class="flex items-center gap-3 px-3 py-1.5 h-16 rounded transition-colors cursor-default select-none w-1/3"
+                class="flex justify-start items-center gap-3 px-3 py-1.5 h-12 rounded transition-colors cursor-default select-none"
                 @mouseenter="emit('update:hoveredCode', station.code)"
                 @mouseleave="emit('update:hoveredCode', null)"
             >
@@ -15,7 +15,7 @@
                     class="shrink-0"
                 />
                 <span
-                    class="text-lg sm:text-xl/8 truncate transition-colors"
+                    class="text-base truncate transition-colors"
                     :class="station.code === hoveredCode ? 'text-primary' : ''"
                     >{{ station.nom }}</span
                 >
@@ -40,3 +40,10 @@ const sortedStations = computed(() =>
     [...props.stations].sort((a, b) => a.nom.localeCompare(b.nom, "fr")),
 );
 </script>
+
+<style>
+.list-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+}
+</style>

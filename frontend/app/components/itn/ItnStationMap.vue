@@ -1,5 +1,5 @@
 <template>
-    <div class="relative flex-shrink-0">
+    <div class="flex justify-center relative shrink-0">
         <div
             ref="mapContainer"
             class="rounded-lg overflow-hidden"
