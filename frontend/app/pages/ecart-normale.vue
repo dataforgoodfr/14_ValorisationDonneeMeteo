@@ -8,12 +8,11 @@ import { useDeviationSelectBarAdapter } from "~/adapters/deviationSelectBarAdapt
 import SelectBar from "~/components/ui/commons/selectBar/selectBar.vue";
 import DeviationChart from "~/components/charts/DeviationChart.vue";
 import DeviationTable from "~/components/table/deviation/DeviationTable.vue";
-import DayPicker from "~/components/ui/commons/selectBar/dayPicker.vue";
+import DatePresetPicker from "~/components/ui/commons/DatePresetPicker.vue";
 import type { ChartType } from "~/components/ui/commons/selectBar/types";
 import MapD3 from "~/components/map/MapD3.vue";
 import DeviationKpiPanel from "~/components/charts/DeviationKpiPanel.vue";
 import { useDeviationTableStore } from "~/stores/deviationTableStore";
-import { useCustomDate } from "~/composables/useCustomDate";
 
 const selectBarAdapter = useDeviationSelectBarAdapter();
 const chartType = computed<ChartType>(
@@ -22,7 +21,8 @@ const chartType = computed<ChartType>(
 
 const tableStore = useDeviationTableStore();
 const { dateStart, dateEnd } = storeToRefs(tableStore);
-const dates = useCustomDate();
+
+const isPeriodInfoOpen = ref(false);
 
 const toISODate = (date: Date) => date.toISOString().substring(0, 10);
 const mapDateStart = computed(() => toISODate(dateStart.value));
@@ -100,12 +100,33 @@ const infoPanelSections: InfoSection[] = [
         />
 
         <div class="flex flex-col gap-4 dark:bg-elevated rounded-lg p-14">
-            <DayPicker
-                v-model:start-date="dateStart"
-                v-model:end-date="dateEnd"
-                :min-date="dates.absoluteMinDataDate.value"
-                :max-date="dates.yesterday.value"
-            />
+            <div class="flex flex-col gap-2">
+                <div class="flex items-center gap-1">
+                    <span class="text-sm font-medium"
+                        >Période de moyennage des données</span
+                    >
+                    <UPopover v-model:open="isPeriodInfoOpen">
+                        <button
+                            class="text-blue-350 hover:text-blue-300 transition-colors cursor-pointer"
+                            @mouseenter="isPeriodInfoOpen = true"
+                            @mouseleave="isPeriodInfoOpen = false"
+                        >
+                            <UIcon name="i-lucide-circle-help" />
+                        </button>
+                        <template #content>
+                            <p class="p-3 text-sm max-w-64">
+                                Sélectionnez la période au cours de laquelle les
+                                données de la carte et du tableau seront
+                                moyennées
+                            </p>
+                        </template>
+                    </UPopover>
+                </div>
+                <DatePresetPicker
+                    v-model:start-date="dateStart"
+                    v-model:end-date="dateEnd"
+                />
+            </div>
 
             <hr class="border-accented" />
 
