@@ -785,16 +785,7 @@ class RecordsGraphQuerySerializer(serializers.Serializer):
     territoire_id = serializers.CharField(required=False)
 
     def validate(self, attrs):
-        period_type = attrs.get("period_type", "all_time")
         territoire = attrs.get("territoire", "france")
-
-        if period_type == "month" and attrs.get("month") is None:
-            raise serializers.ValidationError({"month": "Requis si period_type=month."})
-
-        if period_type == "season" and attrs.get("season") is None:
-            raise serializers.ValidationError(
-                {"season": "Requis si period_type=season."}
-            )
 
         if territoire != "france" and not attrs.get("territoire_id"):
             raise serializers.ValidationError(

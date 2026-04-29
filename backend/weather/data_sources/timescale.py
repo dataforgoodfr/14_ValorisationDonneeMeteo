@@ -1574,27 +1574,27 @@ class TimescaleRecordsGraphDataSource(RecordsGraphDataSource):
     _GRANULARITY_TO_DATE_TRUNC = {"day": "day", "month": "month", "year": "year"}
 
     def fetch_graph(self, request: RecordsGraphRequest) -> RecordsGraphResult:
-        if request.period_type == "month":
-            period_value: str | None = str(request.month)
-        elif request.period_type == "season":
-            period_value = request.season
-        else:
-            period_value = None
-
         date_trunc = self._GRANULARITY_TO_DATE_TRUNC[request.granularity]
 
         clauses = [
             "period_type = %(period_type)s",
-            "period_value IS NOT DISTINCT FROM %(period_value)s",
             "record_date >= %(date_start)s",
             "record_date <= %(date_end)s",
         ]
         params: dict = {
             "period_type": request.period_type,
-            "period_value": period_value,
             "date_start": request.date_start,
             "date_end": request.date_end,
         }
+
+        if request.period_type == "all_time":
+            clauses.append("period_value IS NULL")
+        elif request.period_type == "month" and request.month is not None:
+            clauses.append("period_value = %(period_value)s")
+            params["period_value"] = str(request.month)
+        elif request.period_type == "season" and request.season is not None:
+            clauses.append("period_value = %(period_value)s")
+            params["period_value"] = request.season
 
         if request.type_records != "all":
             record_type = "TX" if request.type_records == "hot" else "TN"

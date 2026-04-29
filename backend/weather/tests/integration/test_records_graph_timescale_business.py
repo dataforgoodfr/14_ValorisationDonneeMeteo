@@ -274,3 +274,139 @@ def test_fetch_graph_period_type_month():
 
     bucket_2019 = next(b for b in result.buckets if b.bucket == "2019")
     assert bucket_2019.nb_records_battus == 1
+
+
+@pytest.mark.django_db
+def test_fetch_graph_period_type_month_all_months():
+    insert_mv_record(
+        station_code="98005001",
+        station_name="Station Juillet",
+        period_type="month",
+        period_value="7",
+        record_type="TX",
+        value=43.0,
+        date=dt.date(2019, 7, 25),
+        department=75,
+    )
+    insert_mv_record(
+        station_code="98005002",
+        station_name="Station Août",
+        period_type="month",
+        period_value="8",
+        record_type="TX",
+        value=41.0,
+        date=dt.date(2019, 8, 10),
+        department=75,
+    )
+    # all_time : ne doit pas être compté avec period_type=month
+    insert_mv_record(
+        station_code="98005003",
+        station_name="Station All Time",
+        period_type="all_time",
+        period_value=None,
+        record_type="TX",
+        value=40.0,
+        date=dt.date(2019, 7, 25),
+        department=75,
+    )
+
+    ds = TimescaleRecordsGraphDataSource()
+    result = ds.fetch_graph(
+        _req(
+            date_start=dt.date(2019, 1, 1),
+            date_end=dt.date(2019, 12, 31),
+            granularity="year",
+            period_type="month",
+            month=None,
+        )
+    )
+
+    bucket_2019 = next(b for b in result.buckets if b.bucket == "2019")
+    assert bucket_2019.nb_records_battus == 2  # juillet + août, pas all_time
+
+
+@pytest.mark.django_db
+def test_fetch_graph_period_type_season_all_seasons():
+    insert_mv_record(
+        station_code="98006001",
+        station_name="Station Été",
+        period_type="season",
+        period_value="summer",
+        record_type="TX",
+        value=43.0,
+        date=dt.date(2019, 7, 25),
+        department=75,
+    )
+    insert_mv_record(
+        station_code="98006002",
+        station_name="Station Printemps",
+        period_type="season",
+        period_value="spring",
+        record_type="TX",
+        value=30.0,
+        date=dt.date(2019, 4, 15),
+        department=75,
+    )
+    # all_time : ne doit pas être compté avec period_type=season
+    insert_mv_record(
+        station_code="98006003",
+        station_name="Station All Time",
+        period_type="all_time",
+        period_value=None,
+        record_type="TX",
+        value=40.0,
+        date=dt.date(2019, 6, 1),
+        department=75,
+    )
+
+    ds = TimescaleRecordsGraphDataSource()
+    result = ds.fetch_graph(
+        _req(
+            date_start=dt.date(2019, 1, 1),
+            date_end=dt.date(2019, 12, 31),
+            granularity="year",
+            period_type="season",
+            season=None,
+        )
+    )
+
+    bucket_2019 = next(b for b in result.buckets if b.bucket == "2019")
+    assert bucket_2019.nb_records_battus == 2  # summer + spring, pas all_time
+
+
+@pytest.mark.django_db
+def test_fetch_graph_period_type_month_specific_excludes_other_months():
+    insert_mv_record(
+        station_code="98007001",
+        station_name="Station Juillet",
+        period_type="month",
+        period_value="7",
+        record_type="TX",
+        value=43.0,
+        date=dt.date(2019, 7, 25),
+        department=75,
+    )
+    insert_mv_record(
+        station_code="98007002",
+        station_name="Station Août",
+        period_type="month",
+        period_value="8",
+        record_type="TX",
+        value=41.0,
+        date=dt.date(2019, 8, 10),
+        department=75,
+    )
+
+    ds = TimescaleRecordsGraphDataSource()
+    result = ds.fetch_graph(
+        _req(
+            date_start=dt.date(2019, 1, 1),
+            date_end=dt.date(2019, 12, 31),
+            granularity="year",
+            period_type="month",
+            month=7,
+        )
+    )
+
+    bucket_2019 = next(b for b in result.buckets if b.bucket == "2019")
+    assert bucket_2019.nb_records_battus == 1  # juillet uniquement

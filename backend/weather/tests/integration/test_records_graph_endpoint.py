@@ -198,7 +198,7 @@ def test_graph_records_have_expected_fields(client: APIClient):
 
 
 @pytest.mark.usefixtures("fake_records_graph_dep")
-def test_graph_period_type_month_requires_month(client: APIClient):
+def test_graph_period_type_month_without_month_returns_200(client: APIClient):
     resp = client.get(
         "/api/v1/temperature/records/graph",
         {
@@ -208,6 +208,24 @@ def test_graph_period_type_month_requires_month(client: APIClient):
             "period_type": "month",
         },
     )
-    assert resp.status_code == 400
+    assert resp.status_code == 200
     body = resp.json()
-    assert "month" in body["error"]["details"]
+    assert "buckets" in body
+    assert "records" in body
+
+
+@pytest.mark.usefixtures("fake_records_graph_dep")
+def test_graph_period_type_season_without_season_returns_200(client: APIClient):
+    resp = client.get(
+        "/api/v1/temperature/records/graph",
+        {
+            "date_start": "2019-01-01",
+            "date_end": "2019-12-31",
+            "granularity": "year",
+            "period_type": "season",
+        },
+    )
+    assert resp.status_code == 200
+    body = resp.json()
+    assert "buckets" in body
+    assert "records" in body
