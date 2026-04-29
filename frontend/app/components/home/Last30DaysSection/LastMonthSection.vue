@@ -7,13 +7,13 @@ import TemperatureRecord from "../TemperatureRecord.vue";
 
 const { yesterday, yesterdayLess30Days } = useCustomDate();
 
-function getYesterdayLastYear(yesterday: Date) {
+function getYesterdayLastYear(yesterday: Date): Date {
     const yesterdayLastYear = yesterday;
     yesterdayLastYear.setFullYear(yesterdayLastYear.getFullYear() - 1);
     return yesterdayLastYear;
 }
 
-function getLastYearLast30Days(yesterday: Date) {
+function getLastYearLast30Days(yesterday: Date): Date {
     const lastYearLast30Days = yesterday;
     lastYearLast30Days.setDate(lastYearLast30Days.getDate() - 30);
     return lastYearLast30Days;
