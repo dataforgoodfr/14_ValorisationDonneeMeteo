@@ -80,7 +80,7 @@ def test_records_graph_query_serializer_rejects_unknown_granularity():
     assert "granularity" in s.errors
 
 
-def test_records_graph_query_serializer_rejects_period_type_month_without_month():
+def test_records_graph_query_serializer_period_type_month_without_month_is_valid():
     s = RecordsGraphQuerySerializer(
         data={
             "date_start": "2020-01-01",
@@ -89,11 +89,12 @@ def test_records_graph_query_serializer_rejects_period_type_month_without_month(
             "period_type": "month",
         }
     )
-    assert not s.is_valid()
-    assert "month" in s.errors
+    assert s.is_valid(), s.errors
+    assert s.validated_data["period_type"] == "month"
+    assert s.validated_data.get("month") is None
 
 
-def test_records_graph_query_serializer_rejects_period_type_season_without_season():
+def test_records_graph_query_serializer_period_type_season_without_season_is_valid():
     s = RecordsGraphQuerySerializer(
         data={
             "date_start": "2020-01-01",
@@ -102,8 +103,9 @@ def test_records_graph_query_serializer_rejects_period_type_season_without_seaso
             "period_type": "season",
         }
     )
-    assert not s.is_valid()
-    assert "season" in s.errors
+    assert s.is_valid(), s.errors
+    assert s.validated_data["period_type"] == "season"
+    assert s.validated_data.get("season") is None
 
 
 def test_records_graph_query_serializer_rejects_month_out_of_range():

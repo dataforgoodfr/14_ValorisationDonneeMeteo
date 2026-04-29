@@ -71,20 +71,24 @@ def test_records_graph_business_passes_request_to_datasource():
     assert ds.last_request == req
 
 
-def test_records_graph_business_raises_if_period_type_month_without_month():
+def test_records_graph_business_period_type_month_without_month_delegates_to_datasource():
     ds = ConfigurableRecordsGraphDataSource(_EMPTY_RESULT)
     req = _req(period_type="month", month=None)
 
-    with pytest.raises(ValueError, match="month"):
-        get_records_graph(request=req, data_source=ds)
+    result = get_records_graph(request=req, data_source=ds)
+
+    assert result == _EMPTY_RESULT
+    assert ds.last_request == req
 
 
-def test_records_graph_business_raises_if_period_type_season_without_season():
+def test_records_graph_business_period_type_season_without_season_delegates_to_datasource():
     ds = ConfigurableRecordsGraphDataSource(_EMPTY_RESULT)
     req = _req(period_type="season", season=None)
 
-    with pytest.raises(ValueError, match="season"):
-        get_records_graph(request=req, data_source=ds)
+    result = get_records_graph(request=req, data_source=ds)
+
+    assert result == _EMPTY_RESULT
+    assert ds.last_request == req
 
 
 def test_records_graph_business_raises_if_date_start_after_date_end():
