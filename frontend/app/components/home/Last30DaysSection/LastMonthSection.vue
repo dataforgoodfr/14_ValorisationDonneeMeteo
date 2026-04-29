@@ -13,24 +13,28 @@ const currentMonth = new Date().getMonth();
 
 // This month records
 const hotRecordsParams = {
-  type_records: hotTypeRecords.value,
-  granularity: "month" as const,
-  month: currentMonth,
-  date_start: dateToStringYMD(yesterdayLess30Days.value),
-  date_end: dateToStringYMD(yesterday.value),
+    type_records: hotTypeRecords.value,
+    granularity: "month" as const,
+    month: currentMonth,
+    date_start: dateToStringYMD(yesterdayLess30Days.value),
+    date_end: dateToStringYMD(yesterday.value),
 };
 const { data: hotRecords } = useTemperatureRecordsGraph(hotRecordsParams);
 
 const coldRecordsParams = {
-  type_records: coldTypeRecords.value,
-  granularity: "month" as const,
-  month: currentMonth,
-  date_start: dateToStringYMD(yesterdayLess30Days.value),
-  date_end: dateToStringYMD(yesterday.value),
+    type_records: coldTypeRecords.value,
+    granularity: "month" as const,
+    month: currentMonth,
+    date_start: dateToStringYMD(yesterdayLess30Days.value),
+    date_end: dateToStringYMD(yesterday.value),
 };
 const { data: coldRecords } = useTemperatureRecordsGraph(coldRecordsParams);
-const hotRecordsCount = computed(() => hotRecords.value?.buckets[0]?.nb_records_battus ?? 0);
-const coldRecordsCount = computed(() => coldRecords.value?.buckets[0]?.nb_records_battus ?? 0);
+const hotRecordsCount = computed(
+    () => hotRecords.value?.buckets[0]?.nb_records_battus ?? 0,
+);
+const coldRecordsCount = computed(
+    () => coldRecords.value?.buckets[0]?.nb_records_battus ?? 0,
+);
 
 // Last year month records
 const yesterdayLastYear = new Date(yesterday.value);
@@ -39,24 +43,32 @@ const lastYearLast30Days = new Date(yesterdayLastYear);
 lastYearLast30Days.setDate(lastYearLast30Days.getDate() - 30);
 
 const lastYearHotRecordsParams = {
-  type_records: hotTypeRecords.value,
-  granularity: "month" as const,
-  month: currentMonth,
-  date_start: dateToStringYMD(lastYearLast30Days),
-  date_end: dateToStringYMD(yesterdayLastYear),
+    type_records: hotTypeRecords.value,
+    granularity: "month" as const,
+    month: currentMonth,
+    date_start: dateToStringYMD(lastYearLast30Days),
+    date_end: dateToStringYMD(yesterdayLastYear),
 };
-const { data: lastYearHotRecords } = useTemperatureRecordsGraph(lastYearHotRecordsParams);
+const { data: lastYearHotRecords } = useTemperatureRecordsGraph(
+    lastYearHotRecordsParams,
+);
 
 const lastYearColdRecordsParams = {
-  type_records: coldTypeRecords.value,
-  granularity: "month" as const,
-  month: currentMonth,
-  date_start: dateToStringYMD(lastYearLast30Days),
-  date_end: dateToStringYMD(yesterdayLastYear),
+    type_records: coldTypeRecords.value,
+    granularity: "month" as const,
+    month: currentMonth,
+    date_start: dateToStringYMD(lastYearLast30Days),
+    date_end: dateToStringYMD(yesterdayLastYear),
 };
-const { data: lastYearColdRecords } = useTemperatureRecordsGraph(lastYearColdRecordsParams);
-const lastYearHotRecordsCount = computed(() => lastYearHotRecords.value?.buckets[0]?.nb_records_battus ?? 0);
-const lastYearColdRecordsCount = computed(() => lastYearColdRecords.value?.buckets[0]?.nb_records_battus ?? 0);
+const { data: lastYearColdRecords } = useTemperatureRecordsGraph(
+    lastYearColdRecordsParams,
+);
+const lastYearHotRecordsCount = computed(
+    () => lastYearHotRecords.value?.buckets[0]?.nb_records_battus ?? 0,
+);
+const lastYearColdRecordsCount = computed(
+    () => lastYearColdRecords.value?.buckets[0]?.nb_records_battus ?? 0,
+);
 </script>
 
 <template>
@@ -77,8 +89,24 @@ const lastYearColdRecordsCount = computed(() => lastYearColdRecords.value?.bucke
                 RECORDS DE TEMPERATURE
             </h2>
             <div class="flex gap-2 md:flex-row flex-col">
-                <TemperatureRecord :records="hotRecordsCount" :difference="hotRecordsCount - lastYearHotRecordsCount" type="hot" period="les 30 derniers jours" title="Records de chaleur" tooltip-text="Le nombre de records de chaleur battus sur le mois en cours" compare-to="année dernière" />
-                <TemperatureRecord :records="coldRecordsCount" :difference="coldRecordsCount - lastYearColdRecordsCount" type="cold" period="les 30 derniers jours" title="Records de froid" tooltip-text="Le nombre de records de froid battus sur le mois en cours" compare-to="année dernière" />
+                <TemperatureRecord
+                    :records="hotRecordsCount"
+                    :difference="hotRecordsCount - lastYearHotRecordsCount"
+                    type="hot"
+                    period="les 30 derniers jours"
+                    title="Records de chaleur"
+                    tooltip-text="Le nombre de records de chaleur battus sur le mois en cours"
+                    compare-to="année dernière"
+                />
+                <TemperatureRecord
+                    :records="coldRecordsCount"
+                    :difference="coldRecordsCount - lastYearColdRecordsCount"
+                    type="cold"
+                    period="les 30 derniers jours"
+                    title="Records de froid"
+                    tooltip-text="Le nombre de records de froid battus sur le mois en cours"
+                    compare-to="année dernière"
+                />
             </div>
             <GoToDataLink :data-url="'/records'" />
         </Section>
