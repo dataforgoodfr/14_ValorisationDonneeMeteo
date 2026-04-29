@@ -48,7 +48,7 @@ const items = computed<NavigationMenuItem[]>(() => [
         :ui="{ left: 'lg:flex-initial', title: 'lg:flex-initial' }"
     >
         <template #title>
-            <div class="flex gap-2 mr-12">
+            <div class="flex gap-2 lg:mr-12">
                 <UIcon name="i-lucide-hexagon" class="size-7" />
                 <h1 class="font-title font-normal">DataClimat</h1>
             </div>
@@ -73,11 +73,13 @@ const items = computed<NavigationMenuItem[]>(() => [
                 <UButton
                     color="neutral"
                     variant="outline"
-                    label="Site Infoclimat.fr"
                     to="https://www.infoclimat.fr/"
                     target="_blank"
                     aria-label="infoclimat"
-                />
+                >
+                    <span class="hidden lg:inline">Site Infoclimat.fr</span>
+                    <span class="lg:hidden">Infoclimat.fr</span>
+                </UButton>
             </UTooltip>
             <USwitch
                 unchecked-icon="i-lucide-sun"
