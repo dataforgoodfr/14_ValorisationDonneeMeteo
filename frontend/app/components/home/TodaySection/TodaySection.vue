@@ -11,9 +11,6 @@ const hotTypeRecords = ref<TypeRecords>("hot");
 const coldTypeRecords = ref<TypeRecords>("cold");
 
 // Today records
-const last30Days = new Date();
-last30Days.setDate(today.value.getDate() - 30);
-
 const hotRecordsParams: TemperatureRecordsGraphParams = {
     type_records: hotTypeRecords.value,
     granularity: "day",
