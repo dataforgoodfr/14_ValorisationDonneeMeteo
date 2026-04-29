@@ -68,11 +68,20 @@ from weather.services.temperature_deviation.types import (
     TemperatureDeviationOverviewStation,
     YearlyBaselinePoint,
 )
-from weather.services.temperature_minmax.protocols import MinMaxGraphDataSource
+from weather.services.temperature_minmax.protocols import (
+    MinMaxGraphDataSource,
+    MinMaxOverviewDataSource,
+)
 from weather.services.temperature_minmax.types import (
     DailyMinMaxPoint,
     MinMaxGraphQuery,
+    MinMaxOverviewQuery,
+    MinMaxOverviewResult,
+    MinMaxOverviewStation,
     StationDailyMinMaxSeries,
+)
+from weather.services.temperature_minmax.types import (
+    Pagination as MinMaxPagination,
 )
 from weather.services.temperature_records.types import (
     SEASON_MONTHS,
@@ -1507,6 +1516,214 @@ def _date_de_fermeture(annee: int | None) -> dt.date | None:
     if annee is None:
         return None
     return dt.date(annee, 12, 31)
+
+
+_MINMAX_OVERVIEW_ORDERING_MAP = {
+    "station_name": "station_name ASC, station_id ASC",
+    "-station_name": "station_name DESC, station_id ASC",
+    "textreme_mean": "textreme_mean ASC, station_id ASC",
+    "-textreme_mean": "textreme_mean DESC, station_id ASC",
+    "tmean_mean": "tmean_mean ASC, station_id ASC",
+    "-tmean_mean": "tmean_mean DESC, station_id ASC",
+    "department": "department ASC NULLS LAST, station_id ASC",
+    "-department": "department DESC NULLS LAST, station_id ASC",
+    "region": "region ASC NULLS LAST, station_id ASC",
+    "-region": "region DESC NULLS LAST, station_id ASC",
+    "alt": "alt ASC NULLS LAST, station_id ASC",
+    "-alt": "alt DESC NULLS LAST, station_id ASC",
+}
+
+_MINMAX_OVERVIEW_BASE_CTE = """
+    WITH station_agg AS (
+        SELECT
+            q."NUM_POSTE" AS station_id,
+            AVG(q."TN")::double precision AS tmin_mean,
+            AVG(q."TX")::double precision AS tmax_mean,
+            ((AVG(q."TN") + AVG(q."TX")) / 2.0)::double precision AS tmean_mean
+        FROM public."Quotidienne" q
+        WHERE q."AAAAMMJJ" BETWEEN %(date_start)s AND %(date_end)s
+          AND q."TN" IS NOT NULL
+          AND q."TX" IS NOT NULL
+        GROUP BY q."NUM_POSTE"
+    ),
+    station_enriched AS (
+        SELECT
+            TRIM(a.station_id) AS station_id,
+            COALESCE(s.name, TRIM(a.station_id)) AS station_name,
+            s.lat AS lat,
+            s.lon AS lon,
+            s.alt AS alt,
+            s.departement AS department,
+            COALESCE(r.region, 'Autre') AS region,
+            s.classe_recente AS classe,
+            s.annee_de_creation AS annee_de_creation,
+            s.annee_de_fermeture AS annee_de_fermeture,
+            a.tmin_mean,
+            a.tmax_mean,
+            a.tmean_mean,
+            CASE WHEN %(type)s = 'tmin' THEN a.tmin_mean ELSE a.tmax_mean END
+                AS textreme_mean
+        FROM station_agg a
+            LEFT JOIN public.v_station s
+                ON s.station_code = TRIM(a.station_id)
+            LEFT JOIN public.ref_department_region r
+                ON r.departement = s.departement
+    )
+"""
+
+
+def _build_minmax_overview_where(
+    query: MinMaxOverviewQuery,
+) -> tuple[str, dict]:
+    clauses: list[str] = []
+    params: dict = {
+        "date_start": query.date_start,
+        "date_end": query.date_end,
+        "type": query.type,
+    }
+
+    if query.station_search:
+        clauses.append("station_name ILIKE %(station_search)s")
+        params["station_search"] = f"%{query.station_search}%"
+
+    if query.station_ids:
+        clauses.append("station_id = ANY(%(station_ids)s)")
+        params["station_ids"] = list(query.station_ids)
+
+    if query.tmean_min is not None:
+        clauses.append("tmean_mean >= %(tmean_min)s")
+        params["tmean_min"] = query.tmean_min
+
+    if query.tmean_max is not None:
+        clauses.append("tmean_mean <= %(tmean_max)s")
+        params["tmean_max"] = query.tmean_max
+
+    if query.textreme_min is not None:
+        clauses.append("textreme_mean >= %(textreme_min)s")
+        params["textreme_min"] = query.textreme_min
+
+    if query.textreme_max is not None:
+        clauses.append("textreme_mean <= %(textreme_max)s")
+        params["textreme_max"] = query.textreme_max
+
+    if query.alt_min is not None:
+        clauses.append("alt >= %(alt_min)s")
+        params["alt_min"] = query.alt_min
+
+    if query.alt_max is not None:
+        clauses.append("alt <= %(alt_max)s")
+        params["alt_max"] = query.alt_max
+
+    if query.classe_recente_min is not None:
+        clauses.append("classe >= %(classe_recente_min)s")
+        params["classe_recente_min"] = query.classe_recente_min
+
+    if query.classe_recente_max is not None:
+        clauses.append("classe <= %(classe_recente_max)s")
+        params["classe_recente_max"] = query.classe_recente_max
+
+    if query.date_de_creation_min is not None:
+        clauses.append("annee_de_creation >= %(date_de_creation_min)s")
+        params["date_de_creation_min"] = query.date_de_creation_min.year
+
+    if query.date_de_creation_max is not None:
+        clauses.append("annee_de_creation <= %(date_de_creation_max)s")
+        params["date_de_creation_max"] = query.date_de_creation_max.year
+
+    if (
+        query.date_de_fermeture_min is not None
+        and query.date_de_fermeture_max is not None
+    ):
+        clauses.append(
+            "(annee_de_fermeture IS NOT NULL"
+            " AND annee_de_fermeture >= %(date_de_fermeture_min)s"
+            " AND annee_de_fermeture <= %(date_de_fermeture_max)s)"
+        )
+        params["date_de_fermeture_min"] = query.date_de_fermeture_min.year
+        params["date_de_fermeture_max"] = query.date_de_fermeture_max.year
+    elif query.date_de_fermeture_min is not None:
+        clauses.append(
+            "(annee_de_fermeture IS NULL OR annee_de_fermeture >= %(date_de_fermeture_min)s)"
+        )
+        params["date_de_fermeture_min"] = query.date_de_fermeture_min.year
+    elif query.date_de_fermeture_max is not None:
+        clauses.append(
+            "(annee_de_fermeture IS NOT NULL AND annee_de_fermeture <= %(date_de_fermeture_max)s)"
+        )
+        params["date_de_fermeture_max"] = query.date_de_fermeture_max.year
+
+    if query.departments:
+        clauses.append("department::text = ANY(%(departments)s)")
+        params["departments"] = list(query.departments)
+
+    if query.regions:
+        clauses.append("region = ANY(%(regions)s)")
+        params["regions"] = list(query.regions)
+
+    where_sql = "WHERE " + " AND ".join(clauses) if clauses else ""
+    return where_sql, params
+
+
+def _row_to_minmax_overview_station(row: dict) -> MinMaxOverviewStation:
+    return MinMaxOverviewStation(
+        station_id=row["station_id"],
+        station_name=row["station_name"],
+        textreme_mean=float(row["textreme_mean"]),
+        tmean_mean=float(row["tmean_mean"]),
+        lat=_float_or_none(row["lat"]),
+        lon=_float_or_none(row["lon"]),
+        alt=_float_or_none(row["alt"]),
+        department=str(row["department"]) if row["department"] is not None else None,
+        region=row["region"],
+        classe=row["classe"],
+        annee_de_creation=row["annee_de_creation"],
+        annee_de_fermeture=row["annee_de_fermeture"],
+    )
+
+
+class TimescaleTemperatureMinMaxOverviewDataSource(MinMaxOverviewDataSource):
+    def fetch_station_overview(
+        self, query: MinMaxOverviewQuery
+    ) -> MinMaxOverviewResult:
+        order_sql = _MINMAX_OVERVIEW_ORDERING_MAP[query.ordering]
+        where_sql, params = _build_minmax_overview_where(query)
+
+        count_sql = f"""
+            {_MINMAX_OVERVIEW_BASE_CTE}
+            SELECT COUNT(*) FROM station_enriched
+            {where_sql}
+        """
+
+        page_sql = f"""
+            {_MINMAX_OVERVIEW_BASE_CTE}
+            SELECT
+                station_id, station_name, lat, lon, alt,
+                department, region, classe,
+                annee_de_creation, annee_de_fermeture,
+                textreme_mean, tmean_mean
+            FROM station_enriched
+            {where_sql}
+            ORDER BY {order_sql}
+            LIMIT %(limit)s OFFSET %(offset)s
+        """
+        page_params = {**params, "limit": query.limit, "offset": query.offset}
+
+        with connection.cursor() as cur:
+            cur.execute(count_sql, params)
+            total_count = cur.fetchone()[0]
+
+            cur.execute(page_sql, page_params)
+            cols = [c.name for c in cur.description]
+            rows = [dict(zip(cols, row, strict=False)) for row in cur.fetchall()]
+
+        return MinMaxOverviewResult(
+            pagination=MinMaxPagination(
+                total_count=total_count,
+                limit=query.limit,
+                offset=query.offset,
+            ),
+            stations=[_row_to_minmax_overview_station(row) for row in rows],
+        )
 
 
 def _department_of_station(station_id: str) -> str:
