@@ -42,23 +42,23 @@ const {
 
 const { apiFetch } = useApiClient();
 
-async function downloadCsv() {
+async function exportCSV() {
     if (!import.meta.client) return;
     const data = await apiFetch<TemperatureDeviationResponse>(
         "/temperature/deviation",
         { query: exportParams.value },
     );
-    const csv = buildDeviationCsv(data.stations);
-    const a = document.createElement("a");
-    a.href = `data:text/csv;charset=utf-8,${encodeURIComponent(csv)}`;
-    a.download = useFormatFileName(
-        "tableau-ecart-normale",
-        "", // non utile pour deviation
-        "csv",
-        dateStart.value,
-        dateEnd.value,
+
+    downloadCSV(
+        buildDeviationCsv(data.stations),
+        useFormatFileName(
+            "tableau-ecart-normale",
+            "", // non utile pour deviation
+            "csv",
+            dateStart.value,
+            dateEnd.value,
+        ),
     );
-    a.click();
 }
 const { setOrdering } = store;
 
@@ -181,7 +181,7 @@ const columns = [
                 icon="i-lucide-download"
                 :ui="EXPORT_BTN_UI"
                 :disabled="pending"
-                @click="downloadCsv"
+                @click="exportCSV"
             />
         </div>
 

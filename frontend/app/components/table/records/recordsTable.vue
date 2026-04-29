@@ -28,18 +28,17 @@ const {
     error,
 } = storeToRefs(store);
 
-function downloadCsv() {
+function exportCSV() {
     if (!import.meta.client) return;
-    const csv = buildRecordsCsv(filteredRecords.value);
-    const a = document.createElement("a");
-    a.href = `data:text/csv;charset=utf-8,${encodeURIComponent(csv)}`;
-    a.download = useFormatFileName(
-        `tableau-records-${typeRecords.value}`,
-        periodSelection.value,
-        "csv",
+
+    downloadCSV(
+        buildRecordsCsv(filteredRecords.value),
+        useFormatFileName(
+            `tableau-records-${typeRecords.value}`,
+            periodSelection.value,
+            "csv",
+        ),
     );
-    a.click();
-    a.remove();
 }
 
 // Track the record type that corresponds to the data currently displayed,
@@ -137,7 +136,7 @@ const columns = [
                 class="ml-auto"
                 :ui="EXPORT_BTN_UI"
                 :disabled="pending"
-                @click="downloadCsv"
+                @click="exportCSV"
             />
         </div>
 
