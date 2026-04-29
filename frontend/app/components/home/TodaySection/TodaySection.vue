@@ -8,7 +8,7 @@ const today = new Date();
 <template>
     <div>
         <Section :title="`AUJOURD'HUI - ${formatDateLongForDisplay(today)}`">
-            <h2 class="text-blue-700 pb-2 dark:text-primary pb-2">
+            <h2 class="text-blue-700 pb-2 dark:text-primary">
                 MIN-MAX DU JOUR
             </h2>
             <div class="flex flex-col gap-2">

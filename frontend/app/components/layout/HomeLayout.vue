@@ -15,7 +15,7 @@ import LastYearSection from "~/components/home/Last365DaysSection/LastYearSectio
         <h2 class="mb-4 text-slate-500">
             Températures et anomalies — France métropolitaine
         </h2>
-        <div class="flex flex-col gap-20">
+        <div class="flex flex-col">
             <div
                 class="lg:grid lg:grid-cols-[2fr_1fr] gap-4 md:flex md:flex-col"
             >
