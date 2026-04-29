@@ -23,6 +23,7 @@ type RecordsFilters = {
     record_date?: DateFilterValue;
     classe?: RangeFilterValue;
     anneeDeCreation?: RangeFilterValue;
+    altitude?: RangeFilterValue;
 };
 
 export const periodOptions = [
@@ -67,6 +68,8 @@ export const useRecordsTableStore = defineStore("recordsTableStore", () => {
     const classeMax = ref<string | undefined>(undefined);
     const creationYearMin = ref<string | undefined>(undefined);
     const creationYearMax = ref<string | undefined>(undefined);
+    const altMin = ref<string | undefined>(undefined);
+    const altMax = ref<string | undefined>(undefined);
 
     const debouncedStationIds = refDebounced(stationIds, debounceDuration);
     const debouncedDepartments = refDebounced(departments, debounceDuration);
@@ -90,6 +93,8 @@ export const useRecordsTableStore = defineStore("recordsTableStore", () => {
         creationYearMax,
         debounceDuration,
     );
+    const debouncedAltMin = refDebounced(altMin, debounceDuration);
+    const debouncedAltMax = refDebounced(altMax, debounceDuration);
 
     // Static options for the Département dropdown
     const staticOptions = {
@@ -136,6 +141,13 @@ export const useRecordsTableStore = defineStore("recordsTableStore", () => {
                 max: creationYearMax.value,
             };
         }
+        if (altMin.value || altMax.value) {
+            result.altitude = {
+                type: "number-range",
+                min: altMin.value,
+                max: altMax.value,
+            };
+        }
 
         return result;
     });
@@ -158,6 +170,9 @@ export const useRecordsTableStore = defineStore("recordsTableStore", () => {
             } else if (id === "anneeDeCreation") {
                 creationYearMin.value = value.min;
                 creationYearMax.value = value.max;
+            } else if (id === "altitude") {
+                altMin.value = value.min;
+                altMax.value = value.max;
             }
         } else if (value.type === "date-range") {
             if (id === "record_date") {
@@ -185,6 +200,9 @@ export const useRecordsTableStore = defineStore("recordsTableStore", () => {
         } else if (id === "anneeDeCreation") {
             creationYearMin.value = undefined;
             creationYearMax.value = undefined;
+        } else if (id === "altitude") {
+            altMin.value = undefined;
+            altMax.value = undefined;
         }
     }
 
@@ -224,6 +242,8 @@ export const useRecordsTableStore = defineStore("recordsTableStore", () => {
             debouncedClasseMax,
             debouncedCreationYearMin,
             debouncedCreationYearMax,
+            debouncedAltMin,
+            debouncedAltMax,
         ],
         () => {
             page.value = 1;
@@ -298,6 +318,14 @@ export const useRecordsTableStore = defineStore("recordsTableStore", () => {
             result = result.filter(
                 (r) => new Date(r.date_de_creation).getFullYear() <= max,
             );
+        }
+        if (debouncedAltMin.value) {
+            const min = Number(debouncedAltMin.value);
+            result = result.filter((r) => r.alt >= min);
+        }
+        if (debouncedAltMax.value) {
+            const max = Number(debouncedAltMax.value);
+            result = result.filter((r) => r.alt <= max);
         }
 
         return result;

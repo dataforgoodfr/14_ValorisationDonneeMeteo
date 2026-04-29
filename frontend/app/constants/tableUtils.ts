@@ -9,7 +9,7 @@ export const CENTERED_COL = { class: { th: "text-center", td: "text-center" } };
 export const STATION_META = {
     class: {
         th: "text-center w-44",
-        td: "w-44 max-w-44 overflow-hidden",
+        td: "w-40 max-w-40 overflow-hidden",
     },
 };
 
