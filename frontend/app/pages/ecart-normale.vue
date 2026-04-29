@@ -132,6 +132,7 @@ const infoPanelSections: InfoSection[] = [
                         <DeviationChart
                             :adapter="selectBarAdapter"
                             :chart-type="chartType"
+                            class="flex-1"
                         />
                         <DeviationKpiPanel />
                     </div>
