@@ -22,5 +22,33 @@ export function useApiClient() {
         });
     }
 
-    return { apiFetch, useApiFetch, baseURL };
+    function useApiQuery<T, P>(
+        endpoint: string,
+        params: MaybeRef<P>,
+        enabled?: MaybeRef<boolean>,
+    ) {
+        const isEnabled = computed<boolean>(() =>
+            enabled !== undefined ? toValue(enabled) : true,
+        );
+
+        const result = useApiFetch<T>(endpoint, {
+            query: params,
+            immediate: false,
+            watch: false,
+        });
+
+        watch(
+            [isEnabled, params],
+            ([enabled]) => {
+                if (enabled) {
+                    result.execute();
+                }
+            },
+            { immediate: true },
+        );
+
+        return result;
+    }
+
+    return { apiFetch, useApiFetch, useApiQuery, baseURL };
 }

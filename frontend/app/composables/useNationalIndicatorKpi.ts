@@ -5,11 +5,12 @@ import type {
 
 export function useNationalIndicatorKpi(
     params: MaybeRef<NationalIndicatorKpiParams>,
+    enabled?: MaybeRef<boolean>,
 ) {
-    const { useApiFetch } = useApiClient();
+    const { useApiQuery } = useApiClient();
 
-    return useApiFetch<NationalIndicatorKpiResponse>(
-        "/temperature/national-indicator/kpi",
-        { query: params },
-    );
+    return useApiQuery<
+        NationalIndicatorKpiResponse,
+        NationalIndicatorKpiParams
+    >("/temperature/national-indicator/kpi", params, enabled);
 }
