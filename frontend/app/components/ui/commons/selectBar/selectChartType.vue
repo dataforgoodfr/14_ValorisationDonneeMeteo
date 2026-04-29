@@ -21,6 +21,7 @@ const chartTypes = adapter.chartTypeOptions;
         <template v-for="item in chartTypes" :key="item.value">
             <UButton
                 :icon="item.icon"
+                class="first:rounded-r-none! last:rounded-l-none!"
                 size="md"
                 :ui="{
                     base:
