@@ -124,19 +124,18 @@ function exportAsCSV() {
     if (!source) return;
     const headers = exportConfig.csvHeaders;
     const rows = source.map((row) => Object.values(row).join(",")).join("\n");
-
     const csv = `${headers}\n${rows}`;
 
-    const a = document.createElement("a");
-    a.href = `data:text/csv;charset=utf-8,${encodeURIComponent(csv)}`;
-    a.download = useFormatFileName(
-        exportConfig.chartName,
-        granularity.value,
-        "csv",
-        pickedDateStart.value,
-        pickedDateEnd.value,
+    downloadCSV(
+        csv,
+        useFormatFileName(
+            exportConfig.chartName,
+            granularity.value,
+            "csv",
+            pickedDateStart.value,
+            pickedDateEnd.value,
+        ),
     );
-    a.click();
 }
 
 function exportAsHTML() {
