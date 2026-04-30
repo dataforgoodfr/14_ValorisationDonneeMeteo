@@ -4,11 +4,13 @@ import { dateToStringDMY } from "#imports";
 
 interface Props {
     hotCold: "hot" | "cold";
+    loading?: boolean;
     temperature?: string;
     date?: Date;
     city?: string;
     departmentString?: string;
-    departmentNumber?: number;
+    departmentNumber?: string | number;
+    disabled?: boolean;
 }
 
 const props = defineProps<Props>();
@@ -31,13 +33,28 @@ const tagData = computed(() => {
 });
 </script>
 <template>
-    <UCard class="w-fit min-w-64" :ui="{ body: 'flex flex-col' }">
+    <UCard class="w-full min-w-64 max-w-80" :ui="{ body: 'flex flex-col' }">
         <div
             id="upper-card"
-            :class="`${tagData.class} text-[13px] self-start flex gap-1 items-center rounded-lg p-1 font-semibold`"
+            :class="`${tagData.class} text-[13px] mb-2 self-start flex gap-1 items-center rounded-lg p-1 font-semibold`"
         >
             <UIcon :name="tagData.icon" class="text-[15px]" />
             <span>{{ tagData.text }}</span>
+        </div>
+        <div
+            v-if="loading"
+            id="lower-card-skeleton"
+            class="flex items-center justify-start gap-2 pt-2"
+        >
+            <USkeleton class="w-4 h-3" />
+            <div class="flex flex-col gap-1">
+                <USkeleton class="w-24 h-4" />
+                <USkeleton class="w-16 h-3" />
+            </div>
+            <div class="flex flex-col gap-1 ml-auto items-end">
+                <USkeleton class="w-14 h-6 rounded-lg" />
+                <USkeleton class="w-12 h-3" />
+            </div>
         </div>
         <div
             v-if="temperature"
@@ -46,7 +63,7 @@ const tagData = computed(() => {
         >
             <div id="lower-left" class="text-dimmed text-xs">#1</div>
             <div id="lower-center">
-                <p class="font-bold">{{ city.toUpperCase() }}</p>
+                <p class="font-bold">{{ city?.toUpperCase() }}</p>
                 <p class="text-dimmed text-xs">
                     {{ departmentString }} ·
                     {{ departmentNumber }}
@@ -58,12 +75,12 @@ const tagData = computed(() => {
                 >
                     {{ temperature }}°C
                 </div>
-                <div class="text-dimmed text-xs">
+                <div v-if="date" class="text-dimmed text-xs">
                     {{ dateToStringDMY(date) }}
                 </div>
             </div>
         </div>
-        <div v-else class="text-xs italic py-4">
+        <div v-if="disabled" class="text-xs italic py-4">
             Données bientôt disponible.
         </div>
     </UCard>

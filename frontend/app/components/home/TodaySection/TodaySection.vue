@@ -71,8 +71,8 @@ const yesterdayColdRecordsCount = computed(
                 MIN-MAX DU JOUR
             </h2>
             <div class="flex flex-col gap-2">
-                <MinMaxCard hot-cold="hot" />
-                <MinMaxCard hot-cold="cold" />
+                <MinMaxCard hot-cold="hot" :disabled="true" />
+                <MinMaxCard hot-cold="cold" :disabled="true" />
             </div>
             <GoToDataLink :data-url="'/itn'" />
 
