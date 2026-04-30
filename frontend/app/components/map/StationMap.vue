@@ -1,9 +1,11 @@
 <template>
-    <div class="relative">
-        <div ref="mapContainer" class="w-full h-[700px]" />
+    <div class="flex flex-col gap-2">
         <div
-            class="absolute bottom-4 left-1/2 -translate-x-1/2 flex flex-col items-center gap-1 pointer-events-none"
-        >
+            ref="mapContainer"
+            class="w-full rounded-lg overflow-hidden"
+            :style="{ height }"
+        />
+        <div class="flex flex-col items-center gap-1">
             <span class="text-xs" :style="{ color: mapColors.foreground }">{{
                 legendLabel
             }}</span>
@@ -16,7 +18,8 @@
                 }"
             />
             <div
-                class="flex justify-between w-full text-xs"
+                class="flex justify-between text-xs"
+                style="width: 160px"
                 :style="{ color: mapColors.foreground }"
             >
                 <span>{{ colorConfig.min }}°C</span>
@@ -26,7 +29,6 @@
                 >
             </div>
         </div>
-        <MapAttribution class="mt-2" />
     </div>
 </template>
 
@@ -47,12 +49,17 @@ import { breakpointsTailwind, useBreakpoints } from "@vueuse/core";
 const mapColors = useMapColors();
 const breakpoints = useBreakpoints(breakpointsTailwind);
 
-const props = defineProps<{
-    stations: MappableStation[];
-    colorConfig: MapColorConfig;
-    tooltipFormatter: MapTooltipFormatter;
-    legendLabel: string;
-}>();
+const props = withDefaults(
+    defineProps<{
+        stations: MappableStation[];
+        colorConfig: MapColorConfig;
+        tooltipFormatter: MapTooltipFormatter;
+        legendLabel: string;
+        height?: string;
+        showControls?: boolean;
+    }>(),
+    { height: "700px", showControls: true },
+);
 
 const legendGradient = computed(() =>
     props.colorConfig.stops.map(([, color]) => color).join(", "),
@@ -197,47 +204,49 @@ onMounted(async () => {
                   [12, 53],
               ],
         attributionControl: false,
-        interactive: true,
+        interactive: props.showControls,
     });
 
-    map.addControl(
-        new maplibregl.NavigationControl({ showCompass: false }),
-        "top-right",
-    );
+    if (props.showControls) {
+        map.addControl(
+            new maplibregl.NavigationControl({ showCompass: false }),
+            "top-right",
+        );
 
-    map.addControl(
-        {
-            onAdd(m) {
-                const el = document.createElement("div");
-                el.className = "maplibregl-ctrl maplibregl-ctrl-group";
-                const btn = document.createElement("button");
-                btn.type = "button";
-                btn.title = "Réinitialiser la vue";
-                btn.setAttribute("aria-label", "Réinitialiser la vue");
-                btn.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="29" height="20" viewBox="0 0 20 20" fill="none"><path d="M3 7V3h4M17 7V3h-4M3 13v4h4M17 13v4h-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
-                btn.onclick = () =>
-                    m.fitBounds(
-                        [
-                            [-5.2, 41.3],
-                            [9.6, 51.1],
-                        ],
-                        {
-                            padding: {
-                                top: 50,
-                                right: 50,
-                                bottom: 50,
-                                left: 40,
+        map.addControl(
+            {
+                onAdd(m) {
+                    const el = document.createElement("div");
+                    el.className = "maplibregl-ctrl maplibregl-ctrl-group";
+                    const btn = document.createElement("button");
+                    btn.type = "button";
+                    btn.title = "Réinitialiser la vue";
+                    btn.setAttribute("aria-label", "Réinitialiser la vue");
+                    btn.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="29" height="20" viewBox="0 0 20 20" fill="none"><path d="M3 7V3h4M17 7V3h-4M3 13v4h4M17 13v4h-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
+                    btn.onclick = () =>
+                        m.fitBounds(
+                            [
+                                [-5.2, 41.3],
+                                [9.6, 51.1],
+                            ],
+                            {
+                                padding: {
+                                    top: 50,
+                                    right: 50,
+                                    bottom: 50,
+                                    left: 40,
+                                },
+                                duration: 500,
                             },
-                            duration: 500,
-                        },
-                    );
-                el.appendChild(btn);
-                return el;
+                        );
+                    el.appendChild(btn);
+                    return el;
+                },
+                onRemove() {},
             },
-            onRemove() {},
-        },
-        "top-right",
-    );
+            "top-right",
+        );
+    }
 
     map.once("load", () => {
         map!.resize();

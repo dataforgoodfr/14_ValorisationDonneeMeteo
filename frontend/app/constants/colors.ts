@@ -25,26 +25,26 @@ export function useMapColors() {
     return computed(() => (cm.value === "dark" ? DARK_COLORS : LIGHT_COLORS));
 }
 
-const deviationMin = -5;
-const deviationMax = 5;
+function makeDeviationColors(min: number, max: number) {
+    return {
+        min,
+        max,
+        stops: [
+            [min, TEMPERATURE_COLORS.cold],
+            [min * 0.6, "hsl(210, 85%, 75%)"],
+            [min * 0.2, "hsl(180, 90%, 85%)"],
+            [min * 0.05, "hsl(160, 95%, 90%)"],
+            [0, "#ffffff"],
+            [max * 0.05, "hsl(50, 96%, 90%)"],
+            [max * 0.2, "hsl(30, 90%, 85%)"],
+            [max * 0.6, "hsl(0, 85%, 75%)"],
+            [max, TEMPERATURE_COLORS.hot],
+        ] as [number, string][],
+    };
+}
 
-const deviationStops: [number, string][] = [
-    [deviationMin, TEMPERATURE_COLORS.cold],
-    [deviationMin * 0.6, "hsl(210, 85%, 75%)"],
-    [deviationMin * 0.2, "hsl(180, 90%, 85%)"],
-    [deviationMin * 0.05, "hsl(160, 95%, 90%)"],
-    [0, "#ffffff"],
-    [deviationMax * 0.05, "hsl(50, 96%, 90%)"],
-    [deviationMax * 0.2, "hsl(30, 90%, 85%)"],
-    [deviationMax * 0.6, "hsl(0, 85%, 75%)"],
-    [deviationMax, TEMPERATURE_COLORS.hot],
-];
-
-export const DEVIATION_MAP_COLORS = {
-    min: deviationMin,
-    max: deviationMax,
-    stops: deviationStops,
-};
+export const DEVIATION_MAP_COLORS = makeDeviationColors(-5, 5);
+export const DEVIATION_MAP_MONTHLY_COLORS = makeDeviationColors(-10, 10);
 
 const recordsMin = -20;
 const recordsMax = 40;

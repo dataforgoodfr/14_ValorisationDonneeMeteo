@@ -4,17 +4,21 @@ import GoToDataLink from "../GoToDataLink.vue";
 import ExtremeCard from "../ExtremeCard.vue";
 import Section from "../Section.vue";
 import TemperatureRecord from "../TemperatureRecord.vue";
+import HomeDeviationMap from "./HomeDeviationMap.vue";
 
 const { yesterday, yesterdayLess30Days } = useCustomDate();
 
+const dateStart = computed(() => dateToStringYMD(yesterdayLess30Days.value));
+const dateEnd = computed(() => dateToStringYMD(yesterday.value));
+
 function getYesterdayLastYear(yesterday: Date): Date {
-    const yesterdayLastYear = yesterday;
+    const yesterdayLastYear = new Date(yesterday);
     yesterdayLastYear.setFullYear(yesterdayLastYear.getFullYear() - 1);
     return yesterdayLastYear;
 }
 
 function getLastYearLast30Days(yesterday: Date): Date {
-    const lastYearLast30Days = yesterday;
+    const lastYearLast30Days = new Date(yesterday);
     lastYearLast30Days.setDate(lastYearLast30Days.getDate() - 30);
     return lastYearLast30Days;
 }
@@ -137,33 +141,43 @@ const lastYearColdRecordsCount = computed(
             <h2 class="text-blue-700 dark:text-primary pb-2">
                 ECART DE TEMPÉRATURE A LA NORMALE
             </h2>
-            <div class="flex flex-col w-fit gap-2 mt-2">
-                <ExtremeCard
-                    hot-cold="hot"
-                    :loading="hotDeviationStatus === 'pending'"
-                    :temperature="
-                        hotStation
-                            ? formatDeviation(hotStation.deviation)
-                            : undefined
-                    "
-                    :city="hotStation?.station_name"
-                    :department-string="hotStation?.region"
-                    :department-number="hotStation?.department"
+            <div class="flex gap-6 mt-2 mb-4 items-start">
+                <HomeDeviationMap
+                    :date-start="dateStart"
+                    :date-end="dateEnd"
+                    class="w-91 shrink-0"
                 />
-                <ExtremeCard
-                    hot-cold="cold"
-                    :loading="coldDeviationStatus === 'pending'"
-                    :temperature="
-                        coldStation
-                            ? formatDeviation(coldStation.deviation)
-                            : undefined
-                    "
-                    :city="coldStation?.station_name"
-                    :department-string="coldStation?.region"
-                    :department-number="coldStation?.department"
-                />
+                <div class="flex flex-col gap-3">
+                    <p class="text-sm text-muted">
+                        Stations avec écart le plus important
+                    </p>
+                    <ExtremeCard
+                        hot-cold="hot"
+                        :loading="hotDeviationStatus === 'pending'"
+                        :temperature="
+                            hotStation
+                                ? formatDeviation(hotStation.deviation)
+                                : undefined
+                        "
+                        :city="hotStation?.station_name"
+                        :department-string="hotStation?.region"
+                        :department-number="hotStation?.department"
+                    />
+                    <ExtremeCard
+                        hot-cold="cold"
+                        :loading="coldDeviationStatus === 'pending'"
+                        :temperature="
+                            coldStation
+                                ? formatDeviation(coldStation.deviation)
+                                : undefined
+                        "
+                        :city="coldStation?.station_name"
+                        :department-string="coldStation?.region"
+                        :department-number="coldStation?.department"
+                    />
+                    <GoToDataLink :data-url="'/ecart-normale'" />
+                </div>
             </div>
-            <GoToDataLink :data-url="'/ecart-normale'" />
             <div class="border-b to-slate-200" />
             <h2 class="text-blue-700 dark:text-primary pb-2 pt-1">
                 RECORDS MENSUELS DE TEMPÉRATURE
