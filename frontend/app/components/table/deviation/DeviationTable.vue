@@ -64,12 +64,12 @@ const { setOrdering } = store;
 
 interface TableRow {
     station_name: string;
-    department: string | undefined;
-    region: string | undefined;
-    deviation: number | undefined;
-    temperatureMean: number | undefined;
-    classeRecente: number | undefined;
-    anneeDeCreation: number | undefined;
+    department: string;
+    region: string;
+    deviation: number;
+    temperatureMean: number;
+    classeRecente: number;
+    anneeDeCreation: number;
 }
 
 const tableData = computed<TableRow[]>(() =>
