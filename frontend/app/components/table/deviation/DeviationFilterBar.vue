@@ -29,7 +29,7 @@ const filterFields: FilterField[] = [
     },
     { id: "classe", label: "Classe", type: "number-range" },
     {
-        id: "anneeDeCreation",
+        id: "date_de_creation",
         label: "Année de création",
         type: "number-range",
     },

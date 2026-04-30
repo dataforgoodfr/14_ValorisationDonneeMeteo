@@ -16,7 +16,7 @@ type DeviationTableFilters = {
     deviation?: RangeFilterValue;
     temperatureMean?: RangeFilterValue;
     classe?: RangeFilterValue;
-    anneeDeCreation?: RangeFilterValue;
+    date_de_creation?: RangeFilterValue;
 };
 
 const dates = useCustomDate();
@@ -90,7 +90,7 @@ export const useDeviationTableStore = defineStore("deviationTableStore", () => {
                 max: classeMax.value,
             };
         if (creationYearMin.value || creationYearMax.value)
-            result.anneeDeCreation = {
+            result.date_de_creation = {
                 type: "number-range",
                 min: creationYearMin.value,
                 max: creationYearMax.value,
@@ -116,7 +116,7 @@ export const useDeviationTableStore = defineStore("deviationTableStore", () => {
             } else if (id === "classe") {
                 classeMin.value = value.min;
                 classeMax.value = value.max;
-            } else if (id === "anneeDeCreation") {
+            } else if (id === "date_de_creation") {
                 creationYearMin.value = value.min;
                 creationYearMax.value = value.max;
             }
@@ -142,7 +142,7 @@ export const useDeviationTableStore = defineStore("deviationTableStore", () => {
         } else if (id === "classe") {
             classeMin.value = undefined;
             classeMax.value = undefined;
-        } else if (id === "anneeDeCreation") {
+        } else if (id === "date_de_creation") {
             creationYearMin.value = undefined;
             creationYearMax.value = undefined;
         }

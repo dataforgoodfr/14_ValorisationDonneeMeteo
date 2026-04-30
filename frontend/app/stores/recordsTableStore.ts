@@ -22,7 +22,7 @@ type RecordsFilters = {
     record?: RangeFilterValue;
     record_date?: DateFilterValue;
     classe?: RangeFilterValue;
-    anneeDeCreation?: RangeFilterValue;
+    date_de_creation?: RangeFilterValue;
     altitude?: RangeFilterValue;
 };
 
@@ -153,7 +153,7 @@ export const useRecordsTableStore = defineStore("recordsTableStore", () => {
             };
         }
         if (creationYearMin.value || creationYearMax.value) {
-            result.anneeDeCreation = {
+            result.date_de_creation = {
                 type: "number-range",
                 min: creationYearMin.value,
                 max: creationYearMax.value,
@@ -185,7 +185,7 @@ export const useRecordsTableStore = defineStore("recordsTableStore", () => {
             } else if (id === "classe") {
                 classeMin.value = value.min;
                 classeMax.value = value.max;
-            } else if (id === "anneeDeCreation") {
+            } else if (id === "date_de_creation") {
                 creationYearMin.value = value.min;
                 creationYearMax.value = value.max;
             } else if (id === "altitude") {
@@ -215,7 +215,7 @@ export const useRecordsTableStore = defineStore("recordsTableStore", () => {
         } else if (id === "classe") {
             classeMin.value = undefined;
             classeMax.value = undefined;
-        } else if (id === "anneeDeCreation") {
+        } else if (id === "date_de_creation") {
             creationYearMin.value = undefined;
             creationYearMax.value = undefined;
         } else if (id === "altitude") {

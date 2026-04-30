@@ -18,7 +18,7 @@ const filterFields: FilterField[] = [
     { id: "classe", label: "Classe", type: "number-range" },
     { id: "altitude", label: "Altitude", type: "number-range" },
     {
-        id: "anneeDeCreation",
+        id: "date_de_creation",
         label: "Année de création",
         type: "number-range",
     },

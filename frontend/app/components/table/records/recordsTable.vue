@@ -65,8 +65,8 @@ interface TableRow {
     departement: string;
     record: number;
     recordDate: string;
-    classeRecente: number;
-    anneeDeCreation: number;
+    classe_recente: number;
+    date_de_creation: number;
     alt: number;
 }
 
@@ -77,8 +77,8 @@ const sortedRecords = computed<TableRow[]>(() => {
         departement: s.department,
         record: s.record_value,
         recordDate: s.record_date,
-        classeRecente: s.classe_recente,
-        anneeDeCreation: new Date(s.date_de_creation).getFullYear(),
+        classe_recente: s.classe_recente,
+        date_de_creation: new Date(s.date_de_creation).getFullYear(),
         alt: s.alt,
     }));
     if (!ordering.value) return all;
@@ -136,8 +136,29 @@ const columns = [
         meta: CENTERED_COL,
         cellCustom: ({ row }) => h(() => `${row.getValue<number>("alt")} m`),
     }),
-    sortableCol("anneeDeCreation", "Année de création", {
+    sortableCol("date_de_creation", "Année de création", {
         meta: CENTERED_COL,
+        headerCustom: () =>
+            h(
+                UButton,
+                {
+                    variant: "ghost",
+                    trailingIcon: ordering.value.includes("date_de_creation")
+                        ? ordering.value.startsWith("-")
+                            ? "i-lucide-arrow-down"
+                            : "i-lucide-arrow-up"
+                        : "i-lucide-arrow-up-down",
+                    color: "neutral",
+                    class: TABLE_HEADER_BTN_MULTILINE_CLASS,
+                    onClick: () => setOrdering("date_de_creation"),
+                },
+                () =>
+                    h(
+                        "span",
+                        { class: "whitespace-pre-line" },
+                        "Année\nde création",
+                    ),
+            ),
     }),
 ];
 </script>

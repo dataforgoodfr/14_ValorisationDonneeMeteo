@@ -67,8 +67,8 @@ interface TableRow {
     region: string;
     deviation: number;
     temperatureMean: number;
-    classeRecente: number;
-    anneeDeCreation: number;
+    classe_recente: number;
+    date_de_creation: number;
 }
 
 const tableData = computed<TableRow[]>(() => {
@@ -127,9 +127,30 @@ const columns = [
         cellCustom: ({ row }) =>
             `${row.getValue<number>("temperatureMean").toFixed(1)} °C`,
     }),
-    sortableCol("classeRecente", "Classe", { meta: CENTERED_TD }),
-    sortableCol("anneeDeCreation", "Année de création", {
+    sortableCol("classe_recente", "Classe", { meta: CENTERED_TD }),
+    sortableCol("date_de_creation", "Année de création", {
         meta: CENTERED_TD,
+        headerCustom: () =>
+            h(
+                UButton,
+                {
+                    variant: "ghost",
+                    trailingIcon: ordering.value.includes("date_de_creation")
+                        ? ordering.value.startsWith("-")
+                            ? "i-lucide-arrow-down"
+                            : "i-lucide-arrow-up"
+                        : "i-lucide-arrow-up-down",
+                    color: "neutral",
+                    class: TABLE_HEADER_BTN_MULTILINE_CLASS,
+                    onClick: () => setOrdering("date_de_creation"),
+                },
+                () =>
+                    h(
+                        "span",
+                        { class: "whitespace-pre-line" },
+                        "Année\nde création",
+                    ),
+            ),
     }),
 ];
 </script>
