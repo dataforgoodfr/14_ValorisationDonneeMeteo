@@ -22,7 +22,7 @@ export function useApiClient() {
         });
     }
 
-    function useApiQuery<T, P>(
+    function createWatchedQuery<T, P>(
         endpoint: string,
         params: MaybeRef<P>,
         enabled?: MaybeRef<boolean>,
@@ -50,5 +50,5 @@ export function useApiClient() {
         return result;
     }
 
-    return { apiFetch, useApiFetch, useApiQuery, baseURL };
+    return { apiFetch, useApiFetch, createWatchedQuery, baseURL };
 }

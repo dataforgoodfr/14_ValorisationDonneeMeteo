@@ -7,11 +7,10 @@ export function useNationalIndicator(
     params: MaybeRef<NationalIndicatorParams>,
     enabled?: MaybeRef<boolean>,
 ) {
-    const { useApiQuery } = useApiClient();
+    const { createWatchedQuery } = useApiClient();
 
-    return useApiQuery<NationalIndicatorResponse, NationalIndicatorParams>(
-        "/temperature/national-indicator",
-        params,
-        enabled,
-    );
+    return createWatchedQuery<
+        NationalIndicatorResponse,
+        NationalIndicatorParams
+    >("/temperature/national-indicator", params, enabled);
 }
