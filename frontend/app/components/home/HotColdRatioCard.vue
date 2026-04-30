@@ -30,6 +30,7 @@ const hotPercent = computed(() =>
         :title="props.title"
         :tooltip-text="props.tooltipText"
         :with-border="props.withBorder"
+        class="h-fit max-w-96"
     >
         <template #kpi>
             <p class="font-semibold text-4xl mb-1 text-red-400">
