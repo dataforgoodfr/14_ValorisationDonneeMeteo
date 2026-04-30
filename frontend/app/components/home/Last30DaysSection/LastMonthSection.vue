@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import type { TemperatureRecordsGraphParams, TypeRecords } from "~/types/api";
-import ExtremeStationCard from "../ExtremeStationCard.vue";
 import GoToDataLink from "../GoToDataLink.vue";
+import MinMaxCard from "../MinMaxCard.vue";
 import Section from "../Section.vue";
 import TemperatureRecord from "../TemperatureRecord.vue";
 
@@ -17,6 +17,39 @@ function getLastYearLast30Days(yesterday: Date): Date {
     const lastYearLast30Days = yesterday;
     lastYearLast30Days.setDate(lastYearLast30Days.getDate() - 30);
     return lastYearLast30Days;
+}
+
+const { data: hotDeviationData, status: hotDeviationStatus } =
+    useTemperatureDeviation(
+        {
+            date_start: dateToStringYMD(yesterdayLess30Days.value),
+            date_end: dateToStringYMD(yesterday.value),
+            ordering: "-deviation",
+            limit: 1,
+        },
+        undefined,
+        false,
+    );
+const { data: coldDeviationData, status: coldDeviationStatus } =
+    useTemperatureDeviation(
+        {
+            date_start: dateToStringYMD(yesterdayLess30Days.value),
+            date_end: dateToStringYMD(yesterday.value),
+            ordering: "deviation",
+            limit: 1,
+        },
+        undefined,
+        false,
+    );
+const hotStation = computed(() => {
+    console.log(hotDeviationData.value?.stations[0] ?? null);
+    return hotDeviationData.value?.stations[0] ?? null;
+});
+const coldStation = computed(
+    () => coldDeviationData.value?.stations[0] ?? null,
+);
+function formatDeviation(d: number) {
+    return (d >= 0 ? "+" : "") + d.toFixed(1);
 }
 
 const hotTypeRecords = ref<TypeRecords>("hot");
@@ -106,8 +139,30 @@ const lastYearColdRecordsCount = computed(
                 ECART DE TEMPERATURE A LA NORMALE
             </h2>
             <div class="flex flex-col w-fit gap-2 mt-2">
-                <ExtremeStationCard type="hot" />
-                <ExtremeStationCard type="cold" />
+                <MinMaxCard
+                    hot-cold="hot"
+                    :loading="hotDeviationStatus === 'pending'"
+                    :temperature="
+                        hotStation
+                            ? formatDeviation(hotStation.deviation)
+                            : undefined
+                    "
+                    :city="hotStation?.station_name"
+                    :department-string="hotStation?.region"
+                    :department-number="hotStation?.department"
+                />
+                <MinMaxCard
+                    hot-cold="cold"
+                    :loading="coldDeviationStatus === 'pending'"
+                    :temperature="
+                        coldStation
+                            ? formatDeviation(coldStation.deviation)
+                            : undefined
+                    "
+                    :city="coldStation?.station_name"
+                    :department-string="coldStation?.region"
+                    :department-number="coldStation?.department"
+                />
             </div>
             <GoToDataLink :data-url="'/ecart-normale'" />
             <div class="border-b to-slate-200" />
