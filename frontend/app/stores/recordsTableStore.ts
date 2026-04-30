@@ -3,17 +3,17 @@ import { useTemperatureRecords } from "~/composables/useTemperature";
 import { departements } from "~/data/records/departements";
 import { dateToStringYMD } from "~/utils/date";
 import type {
-    TypeRecords,
     PeriodType,
     Season,
-    TemperatureRecordsParams,
     TemperatureRecordFlatEntry,
+    TemperatureRecordsParams,
+    TypeRecords,
 } from "~/types/api";
 import type {
-    StringFilterValue,
-    RangeFilterValue,
     DateFilterValue,
     FilterValue,
+    RangeFilterValue,
+    StringFilterValue,
 } from "~/components/ui/commons/filterBarTypes";
 
 type RecordsFilters = {
@@ -47,6 +47,24 @@ export const periodOptions = [
 ];
 
 const debounceDuration = 300;
+
+export function computeAbsoluteRecords(
+    rawRecords: TemperatureRecordFlatEntry[],
+    typeRecords: TypeRecords,
+) {
+    const stationMap = new Map<string, TemperatureRecordFlatEntry>();
+    for (const record of rawRecords) {
+        const currentRecord = stationMap.get(record.station_id)?.record_value;
+        if (
+            currentRecord === undefined ||
+            (typeRecords === "hot" && record.record_value > currentRecord) ||
+            (typeRecords === "cold" && record.record_value < currentRecord)
+        ) {
+            stationMap.set(record.station_id, record);
+        }
+    }
+    return Array.from(stationMap.values());
+}
 
 export const useRecordsTableStore = defineStore("recordsTableStore", () => {
     // Pagination
@@ -258,13 +276,11 @@ export const useRecordsTableStore = defineStore("recordsTableStore", () => {
         computed(() => ({ ...params.value, page_size: 9999 })),
     );
 
-    // Group flat list by station, keeping the last record per station (= absolute record)
     const absoluteRecords = computed<TemperatureRecordFlatEntry[]>(() => {
-        const stationMap = new Map<string, TemperatureRecordFlatEntry>();
-        for (const record of rawRecords.value?.results ?? []) {
-            stationMap.set(record.station_id, record);
-        }
-        return Array.from(stationMap.values());
+        return computeAbsoluteRecords(
+            rawRecords.value?.results ?? [],
+            typeRecords.value,
+        );
     });
 
     // Apply client-side filters (debounced to avoid filtering on every keystroke)
