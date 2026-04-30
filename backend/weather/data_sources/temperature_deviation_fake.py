@@ -305,12 +305,18 @@ class FakeTemperatureDeviationOverviewDataSource(
 
         if query.date_de_fermeture_min is not None:
             data = [
-                x for x in data if x.date_de_fermeture >= query.date_de_fermeture_min
+                x
+                for x in data
+                if x.date_de_fermeture is None
+                or x.date_de_fermeture >= query.date_de_fermeture_min
             ]
 
         if query.date_de_fermeture_max is not None:
             data = [
-                x for x in data if x.date_de_fermeture <= query.date_de_fermeture_max
+                x
+                for x in data
+                if x.date_de_fermeture is not None
+                and x.date_de_fermeture <= query.date_de_fermeture_max
             ]
 
         reverse = query.ordering.startswith("-")
