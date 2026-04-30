@@ -67,8 +67,8 @@ interface TableRow {
     region: string;
     deviation: number;
     temperatureMean: number;
-    classe_recente: number;
-    date_de_creation: number;
+    classeRecente: number;
+    anneeDeCreation: number;
 }
 
 const tableData = computed<TableRow[]>(() => {
@@ -127,8 +127,12 @@ const columns = [
         cellCustom: ({ row }) =>
             `${row.getValue<number>("temperatureMean").toFixed(1)} °C`,
     }),
-    sortableCol("classe_recente", "Classe", { meta: CENTERED_TD }),
-    sortableCol("date_de_creation", "Année de création", {
+    sortableCol("classeRecente", "Classe", {
+        sortKey: "classe_recente",
+        meta: CENTERED_TD,
+    }),
+    sortableCol("anneeDeCreation", "Année de création", {
+        sortKey: "date_de_creation",
         meta: CENTERED_TD,
         headerCustom: () =>
             h(
