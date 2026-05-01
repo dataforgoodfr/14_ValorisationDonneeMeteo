@@ -99,7 +99,9 @@ const infoPanelSections: InfoSection[] = [
             :description="heroData.description"
         />
 
-        <div class="flex flex-col gap-4 dark:bg-elevated rounded-lg p-14">
+        <div
+            class="flex flex-col gap-4 dark:bg-elevated rounded-lg p-14 overflow-auto"
+        >
             <div class="flex flex-col gap-2">
                 <div class="flex items-center gap-1">
                     <span class="text-sm font-medium"

@@ -82,7 +82,9 @@ const infoPanelSections: InfoSection[] = [
             :description="heroData.description"
         />
         <div class="flex gap-24 flex-col">
-            <div class="flex flex-col gap-4 dark:bg-elevated rounded-lg p-14">
+            <div
+                class="flex flex-col gap-4 dark:bg-elevated rounded-lg p-14 overflow-auto"
+            >
                 <div class="flex items-end gap-4">
                     <div class="flex flex-col gap-1">
                         <div class="flex items-center gap-1">
@@ -126,7 +128,9 @@ const infoPanelSections: InfoSection[] = [
 
                 <hr class="border-accented" />
 
-                <div class="flex flex-col md:flex-row items-start gap-8">
+                <div
+                    class="flex flex-col flex-wrap md:flex-row items-start gap-8"
+                >
                     <ClientOnly>
                         <RecordsMap />
                     </ClientOnly>
@@ -145,7 +149,7 @@ const infoPanelSections: InfoSection[] = [
                 </template>
                 <template #chart>
                     <div class="flex flex-col md:flex-row gap-4 px-3 py-2">
-                        <div class="flex flex-col gap-4 flex-1">
+                        <div class="flex flex-col gap-4 flex-1 min-w-2xl">
                             <UTabs
                                 v-model="selectBarAdapter.recordKind!.value"
                                 :items="[
