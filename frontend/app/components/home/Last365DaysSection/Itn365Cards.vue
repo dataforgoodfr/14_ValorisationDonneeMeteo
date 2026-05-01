@@ -78,7 +78,7 @@ const coldDiff = computed(() => {
                         1991-2020
                     </template>
                     <template #kpi-context-text>
-                        en moyenne les 365 derniers jours
+                        en moyenne ces 365 derniers jours
                     </template>
                     <template v-if="itnDiff != null" #variation>
                         <UIcon
@@ -118,7 +118,7 @@ const coldDiff = computed(() => {
             <div class="w-fit">
                 <Card
                     title="Nombre de jours anormalement chauds"
-                    tooltip-text="Nombre de jours parmi les 365 derniers jours, pour lesquels l'ITN est au-delà de l'écart-type de la période des normales 1991-2020"
+                    tooltip-text="Nombre de jours parmi ces 365 derniers jours, pour lesquels l'ITN est au-delà de l'écart-type de la période des normales 1991-2020"
                 >
                     >
                     <template #kpi>
@@ -153,7 +153,7 @@ const coldDiff = computed(() => {
             <div class="w-fit">
                 <Card
                     title="Nombre de jours anormalement froids"
-                    tooltip-text="Nombre de jours parmi les 365 derniers jours, pour lesquels l'ITN est en-deçà de l'écart-type de la période des normales 1991-2020"
+                    tooltip-text="Nombre de jours parmi ces 365 derniers jours, pour lesquels l'ITN est en-deçà de l'écart-type de la période des normales 1991-2020"
                 >
                     <template #kpi>
                         <p class="font-semibold text-4xl mb-1 text-blue-400">

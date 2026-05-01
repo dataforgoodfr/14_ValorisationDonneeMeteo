@@ -33,7 +33,7 @@
 
         <Card
             title="Nombre de jours anormalement chauds"
-            tooltip-text="Nombre de jours, sur la période sélectionnée, pour lesquels la température en France est supérieure aux normales."
+            tooltip-text="Nombre de jours, sur la période sélectionnée, pour lesquels la valeur de l'TTN est au-delà de l'écart-type de la période des normales."
         >
             <template #kpi>
                 <p class="font-semibold text-4xl mb-1 text-red-400">
@@ -61,7 +61,7 @@
 
         <Card
             title="Nombre de jours anormalement froids"
-            tooltip-text="Nombre de jours, sur la période sélectionnée, pour lesquels la température en France est inférieure aux normales."
+            tooltip-text="Nombre de jours, sur la période sélectionnée, pour lesquels la valeur de l'TTN est en-deçà de l'écart-type de la période des normales."
         >
             <template #kpi>
                 <p class="font-semibold text-4xl mb-1 text-blue-400">

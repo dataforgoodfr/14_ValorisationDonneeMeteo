@@ -68,8 +68,8 @@ const kpiColor = computed(() => {
 
 <template>
     <Card
-        title="Pic en cours"
-        tooltip-text="Nombre de jours consécutifs de pic de chaleur ou de froid jusqu'à hier (température au-delà d'un écart-type de la normale)"
+        title="Anomalie en cours"
+        tooltip-text="Nombre de jours consécutifs d'anomalie de chaleur ou de froid jusqu'à hier (température au-delà d'un écart-type de la normale)"
     >
         <template #kpi>
             <p class="font-semibold mb-1">
@@ -95,7 +95,7 @@ const kpiColor = computed(() => {
                 </span>
                 en moyenne depuis {{ currentStreak.count }} jours
             </template>
-            <template v-else>Aucune anomalie récente</template>
+            <template v-else>Pas d'anomalie hier</template>
         </template>
     </Card>
 </template>

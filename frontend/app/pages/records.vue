@@ -47,23 +47,24 @@ const infoPanelSections: InfoSection[] = [
                 text:
                     "Les records battus sont la liste des records qu'une station ou une région a connu" +
                     " au cours du temps. Chaque record battu fut un record absolu sur la période sélectionné" +
-                    " à sa date du record, mais il existe plusieurs records battus qui ne sont plusieurs des records" +
-                    " absolu: le record absolu d'une station ou d'une région est en fait le dernier record battu.",
+                    " à sa date du record, mais il existe plusieurs records battus qui ne sont plus des records" +
+                    " absolus: le record absolu d'une station ou d'une région est, en fait, le dernier record battu.",
             },
             {
                 title: "Période d'analyse",
                 text:
-                    "La période d'anlayse permet d'afficher les records battus ou absolus sur une partie de l'année seulement." +
-                    "Si la période d'anlayse est un mois, les records mensuels du mois sélectionné sont affichés," +
-                    " si la période d'anlayse est une saison, les records de saison sont affichés. Si la période est" +
-                    " 'Période complète' les records tous mois confondus sont affichés.",
+                    "La période d'anlayse permet d'afficher les records mensuels ou saisonniers (absolus ou battus) pour une" +
+                    " partie de l'année (un mois ou un saison) seulement:" +
+                    "\n- si la période d'anlayse est un mois, les records mensuels, du mois sélectionné, sont affichés." +
+                    "\n- si la période d'anlayse est une saison, les records saisonniers, de la saison sélectionnée, sont affichés." +
+                    "\n- si la période est 'Période complète' les records annuels (tous mois confondus) sont affichés.",
             },
         ],
     },
     {
         label: "Stations éligibles",
         content:
-            "Pour être pertinent un record ne peut être déclaré comme tel que si la station a au moins 50 dans de données et si" +
+            "Pour être pertinent un record ne peut être déclaré comme tel que si la station a au moins 50 annnées de données et si" +
             " sa classe de qualité de mesure de température définie par MéteoFrance est comprise entre 1 et 3.",
     },
     {
