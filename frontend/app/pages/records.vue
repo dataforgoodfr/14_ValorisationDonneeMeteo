@@ -73,6 +73,15 @@ const infoPanelSections: InfoSection[] = [
             "- Les données sont issues de mesures open source de Meteo France" +
             "\n- Classe des stations: https://www.data.gouv.fr/datasets/fiches-dinformations-sur-les-stations",
     },
+    {
+        label: "Nota Bene",
+        content:
+            "La définition des saisons utilisées est la définitation climatologique:" +
+            "\n- Printemps: du 1er mars au 31 mai" +
+            "\n- Été: du 1er juin au 31 août" +
+            "\n- Automne: du 1er septembre au 30 novembre" +
+            "\n- Hiver: du 1er décembre au 28 (ou 29) février",
+    },
 ];
 </script>
 

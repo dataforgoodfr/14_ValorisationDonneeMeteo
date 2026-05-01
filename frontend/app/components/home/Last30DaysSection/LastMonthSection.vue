@@ -103,7 +103,7 @@ const lastYearColdRecordsCount = computed(
             :title="`CES 30 DERNIERS JOURS -  ${formatDateLongForDisplay(yesterdayLess30Days)} au ${formatDateLongForDisplay(yesterday)}`"
         >
             <h2 class="text-blue-700 dark:text-primary pb-2">
-                ECART DE TEMPERATURE A LA NORMALE
+                ECART DE TEMPÉRATURE A LA NORMALE
             </h2>
             <div class="flex flex-col w-fit gap-2 mt-2">
                 <ExtremeStationCard type="hot" />
@@ -112,7 +112,7 @@ const lastYearColdRecordsCount = computed(
             <GoToDataLink :data-url="'/ecart-normale'" />
             <div class="border-b to-slate-200" />
             <h2 class="text-blue-700 dark:text-primary pb-2 pt-1">
-                RECORDS MENSUELS DE TEMPERATURE
+                RECORDS MENSUELS DE TEMPÉRATURE
             </h2>
             <div class="flex gap-2 md:flex-row flex-col">
                 <TemperatureRecord

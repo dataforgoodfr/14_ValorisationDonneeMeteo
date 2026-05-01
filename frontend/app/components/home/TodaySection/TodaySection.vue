@@ -79,7 +79,7 @@ const yesterdayColdRecordsCount = computed(
             <div class="border-b to-slate-200" />
 
             <h2 class="text-blue-700 dark:text-primary pb-2 pt-1">
-                RECORDS MENSUELS DE TEMPERATURE
+                RECORDS MENSUELS DE TEMPÉRATURE
             </h2>
             <div class="flex gap-2 md:flex-row flex-col">
                 <TemperatureRecord
