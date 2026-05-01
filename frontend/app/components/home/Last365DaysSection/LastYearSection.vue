@@ -3,7 +3,7 @@ import Section from "../Section.vue";
 import GoToDataLink from "../GoToDataLink.vue";
 import RecordsRatioCard from "./RecordsRatioCard.vue";
 import Itn365Cards from "./Itn365Cards.vue";
-import MinMaxCard from "../MinMaxCard.vue";
+import MinMaxCard from "../ExtremeCard.vue";
 
 const { yesterday, yesterdayLess365Days } = useCustomDate();
 </script>

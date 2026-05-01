@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import type { TemperatureRecordsGraphParams, TypeRecords } from "~/types/api";
 import GoToDataLink from "../GoToDataLink.vue";
-import MinMaxCard from "../MinMaxCard.vue";
+import MinMaxCard from "../ExtremeCard.vue";
 import Section from "../Section.vue";
 import TemperatureRecord from "../TemperatureRecord.vue";
 
@@ -42,7 +42,6 @@ const { data: coldDeviationData, status: coldDeviationStatus } =
         false,
     );
 const hotStation = computed(() => {
-    console.log(hotDeviationData.value?.stations[0] ?? null);
     return hotDeviationData.value?.stations[0] ?? null;
 });
 const coldStation = computed(

@@ -3,7 +3,7 @@ import type { TemperatureRecordsGraphParams, TypeRecords } from "~/types/api";
 import GoToDataLink from "../GoToDataLink.vue";
 import Section from "../Section.vue";
 import TemperatureRecord from "../TemperatureRecord.vue";
-import MinMaxCard from "../MinMaxCard.vue";
+import MinMaxCard from "../ExtremeCard.vue";
 
 const { today, yesterday } = useCustomDate();
 
