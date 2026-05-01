@@ -55,10 +55,10 @@ const infoPanelSections: InfoSection[] = [
             {
                 title: "Période d'analyse",
                 text:
-                    "La période d'anlayse permet d'afficher les records mensuels ou saisonniers (absolus ou battus) pour une" +
+                    "La période d'analyse permet d'afficher les records mensuels ou saisonniers (absolus ou battus) pour une" +
                     " partie de l'année (un mois ou un saison) seulement:" +
-                    "\n- si la période d'anlayse est un mois, les records mensuels, du mois sélectionné, sont affichés." +
-                    "\n- si la période d'anlayse est une saison, les records saisonniers, de la saison sélectionnée, sont affichés." +
+                    "\n- si la période d'analyse est un mois, les records mensuels, du mois sélectionné, sont affichés." +
+                    "\n- si la période d'analyse est une saison, les records saisonniers, de la saison sélectionnée, sont affichés." +
                     "\n- si la période est 'Période complète' les records annuels (tous mois confondus) sont affichés.",
             },
         ],
