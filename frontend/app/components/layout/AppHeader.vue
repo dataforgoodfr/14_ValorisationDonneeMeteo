@@ -10,6 +10,10 @@ const route = useRoute();
 
 const items = computed<NavigationMenuItem[]>(() => [
     {
+        label: "Accueil",
+        to: "/",
+    },
+    {
         label: "Températures",
         children: [
             {
@@ -45,46 +49,53 @@ const items = computed<NavigationMenuItem[]>(() => [
     <UHeader
         mode="slideover"
         title="DataClimat"
-        :ui="{ left: 'lg:flex-initial', title: 'lg:flex-initial' }"
+        :ui="{
+            left: 'flex-1 gap-7',
+            center: 'flex-1 justify-center',
+            right: 'flex items-center',
+        }"
     >
-        <template #title>
+        <template #left>
             <div class="flex gap-2 lg:mr-12">
                 <UIcon name="i-lucide-hexagon" class="size-7" />
-                <h1 class="font-title font-normal">DataClimat</h1>
+                <h1 class="font-title font-normal text-xl">DataClimat</h1>
             </div>
-        </template>
-        <template #default>
             <UNavigationMenu
+                variant="link"
                 content-orientation="vertical"
+                class="hidden lg:flex"
                 :items="items"
                 :ui="{
                     content: 'w-max',
-                    link: 'border rounded-md',
-                    linkLabel: 'overflow-visible',
+                    linkLabel: 'overflow-visible text-lg',
                     viewport: 'overflow-visible w-max',
                     viewportWrapper: 'overflow-visible w-max',
                     list: 'gap-2',
+                    childLink: 'text-lg',
+                    childList: 'dark:bg-dark-850',
                 }"
-            />
-        </template>
+        /></template>
+
+        <div class="flex justify-between">
+            <UButton
+                :ui="{ base: 'bg-slate-450 ring-1 ring-blue-350 text-white' }"
+                class="px-8 text-lg"
+                to="https://asso.infoclimat.fr/infos/formulaire.php"
+                target="_blank"
+                aria-label="infoclimat"
+            >
+                <span class="hidden lg:inline">Adhérer à InfoClimat</span>
+                <span class="lg:hidden">Adhérer à InfoClimat</span>
+            </UButton>
+        </div>
 
         <template #right>
-            <UTooltip text="Accedez au site Infoclimat.fr">
-                <UButton
-                    color="neutral"
-                    variant="outline"
-                    to="https://www.infoclimat.fr/"
-                    target="_blank"
-                    aria-label="infoclimat"
-                >
-                    <span class="hidden lg:inline">Site Infoclimat.fr</span>
-                    <span class="lg:hidden">Infoclimat.fr</span>
-                </UButton>
-            </UTooltip>
             <USwitch
                 unchecked-icon="i-lucide-sun"
                 checked-icon="i-lucide-moon"
                 aria-label="Basculer le thème"
+                size="xl"
+                class="hidden lg:flex"
                 :ui="{
                     base: 'dark:bg-transparent dark:ring-1 dark:ring-white/20',
                     thumb: 'dark:bg-black',
@@ -94,11 +105,46 @@ const items = computed<NavigationMenuItem[]>(() => [
         </template>
 
         <template #body>
-            <UNavigationMenu
-                :items="items"
-                orientation="vertical"
-                class="-mx-2.5"
-            />
+            <div class="flex flex-col gap-6">
+                <USwitch
+                    class="self-end"
+                    unchecked-icon="i-lucide-sun"
+                    checked-icon="i-lucide-moon"
+                    aria-label="Basculer le thème"
+                    size="xl"
+                    :ui="{
+                        base: 'dark:bg-transparent dark:ring-1 dark:ring-white/20',
+                        thumb: 'dark:bg-black',
+                    }"
+                    @update:model-value="toggleMode"
+                />
+                <UNavigationMenu
+                    :items="items"
+                    orientation="vertical"
+                    class="-mx-2.5"
+                    :ui="{
+                        content: 'w-max',
+                        linkLabel: 'overflow-visible text-lg',
+                        viewport: 'overflow-visible w-max',
+                        viewportWrapper: 'overflow-visible w-max',
+                        list: 'gap-2',
+                        childLink: 'text-lg',
+                        childList: 'dark:bg-dark-850',
+                    }"
+                />
+                <UButton
+                    :ui="{
+                        base: 'bg-slate-450 ring-1 ring-blue-350 text-white',
+                    }"
+                    class="self-center px-8 text-lg mt-8"
+                    to="https://asso.infoclimat.fr/infos/formulaire.php"
+                    target="_blank"
+                    aria-label="infoclimat"
+                >
+                    <span class="hidden lg:inline">Adhérer à InfoClimat</span>
+                    <span class="lg:hidden">Adhérer à InfoClimat</span>
+                </UButton>
+            </div>
         </template>
     </UHeader>
 </template>
