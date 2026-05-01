@@ -15,7 +15,7 @@ SELECT DISTINCT ON (s."id")
     s."alt" AS alt,
     s."postePublic" AS is_public,
     scr."classe" AS classe_recente,
-    scd."annee_de_creation" AS annee_de_creation,
+    EXTRACT(YEAR FROM scd."date_de_creation")::int  AS annee_de_creation,
     scd."annee_de_fermeture" AS annee_de_fermeture,
     ftd."first_temperature_date" AS first_temperature_date
 FROM public."Station" s
