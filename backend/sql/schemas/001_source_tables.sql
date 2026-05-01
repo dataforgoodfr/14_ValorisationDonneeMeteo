@@ -399,13 +399,13 @@ CREATE INDEX "Station_date_fin_idx" ON public."station_classe" USING btree (date
 DROP TABLE IF EXISTS "station_creation_date";
 CREATE TABLE "public"."station_creation_date" (
     "station_code" character(8) NOT NULL,
-    "annee_de_creation" integer NOT NULL,
+    "date_de_creation" timestamp(3) NOT NULL,
     "annee_de_fermeture" integer,
     CONSTRAINT "Station_creation_date_pkey" PRIMARY KEY ("station_code")
 )
 WITH (oids = false);
 
-CREATE INDEX "Station_annee_de_creation_idx" ON public."station_creation_date" USING btree (annee_de_creation);
+CREATE INDEX "Station_date_de_creation_idx" ON public."station_creation_date" USING btree (date_de_creation);
 
 CREATE INDEX "Station_annee_de_fermeture_idx" ON public."station_creation_date" USING btree (annee_de_fermeture);
 
