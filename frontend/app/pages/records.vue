@@ -23,7 +23,7 @@ const store = useRecordsTableStore();
 const heroData = {
     title: "Records",
     description:
-        "Les records de température correspondent aux valeurs extrêmes — maximales ou minimales — mesurées depuis la création d'une station disposant d'au moins 20 ans de données.",
+        "Les records de température correspondent aux valeurs extrêmes — maximales ou minimales — mesurées depuis la création d'une station disposant d'au moins 50 ans de données.",
 };
 
 const infoPanelSections: InfoSection[] = [
@@ -46,9 +46,11 @@ const infoPanelSections: InfoSection[] = [
                 title: "Records battus",
                 text:
                     "Les records battus sont la liste des records qu'une station ou une région a connu" +
-                    " au cours du temps. Chaque record battu fut un record absolu sur la période sélectionné" +
+                    " au cours du temps, après 50 années de mesures. Chaque record battu fut un record absolu" +
                     " à sa date du record, mais il existe plusieurs records battus qui ne sont plus des records" +
-                    " absolus: le record absolu d'une station ou d'une région est, en fait, le dernier record battu.",
+                    " absolus: le record absolu d'une station ou d'une région est, en fait, le dernier record battu." +
+                    "\nPour chaque station qui a plus de 50 années de données, le premier record battu de la liste est" +
+                    " défini comme le record absolu des 50 premières années de mesures.",
             },
             {
                 title: "Période d'analyse",
