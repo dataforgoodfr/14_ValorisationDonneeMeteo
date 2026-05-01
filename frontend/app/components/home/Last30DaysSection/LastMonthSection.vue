@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import type { TemperatureRecordsGraphParams, TypeRecords } from "~/types/api";
 import GoToDataLink from "../GoToDataLink.vue";
-import MinMaxCard from "../ExtremeCard.vue";
+import ExtremeCard from "../ExtremeCard.vue";
 import Section from "../Section.vue";
 import TemperatureRecord from "../TemperatureRecord.vue";
 
@@ -138,7 +138,7 @@ const lastYearColdRecordsCount = computed(
                 ECART DE TEMPERATURE A LA NORMALE
             </h2>
             <div class="flex flex-col w-fit gap-2 mt-2">
-                <MinMaxCard
+                <ExtremeCard
                     hot-cold="hot"
                     :loading="hotDeviationStatus === 'pending'"
                     :temperature="
@@ -150,7 +150,7 @@ const lastYearColdRecordsCount = computed(
                     :department-string="hotStation?.region"
                     :department-number="hotStation?.department"
                 />
-                <MinMaxCard
+                <ExtremeCard
                     hot-cold="cold"
                     :loading="coldDeviationStatus === 'pending'"
                     :temperature="

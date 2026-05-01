@@ -3,7 +3,7 @@ import Section from "../Section.vue";
 import GoToDataLink from "../GoToDataLink.vue";
 import RecordsRatioCard from "./RecordsRatioCard.vue";
 import Itn365Cards from "./Itn365Cards.vue";
-import MinMaxCard from "../ExtremeCard.vue";
+import ExtremeCard from "../ExtremeCard.vue";
 
 const { yesterday, yesterdayLess365Days } = useCustomDate();
 </script>
@@ -25,8 +25,8 @@ const { yesterday, yesterdayLess365Days } = useCustomDate();
             <div class="flex gap-6 justify-center items-center">
                 <RecordsRatioCard class="flex-1" />
                 <div class="flex flex-col gap-2 w-fit">
-                    <MinMaxCard hot-cold="hot" :disabled="true" />
-                    <MinMaxCard hot-cold="cold" :disabled="true" />
+                    <ExtremeCard hot-cold="hot" :disabled="true" />
+                    <ExtremeCard hot-cold="cold" :disabled="true" />
                 </div>
             </div>
             <GoToDataLink :data-url="'/records'" />
