@@ -45,46 +45,51 @@ const items = computed<NavigationMenuItem[]>(() => [
     <UHeader
         mode="slideover"
         title="DataClimat"
-        :ui="{ left: 'lg:flex-initial', title: 'lg:flex-initial' }"
+        :ui="{
+            left: 'flex-1 gap-7',
+            center: 'flex-1 justify-center',
+            right: 'flex items-center',
+        }"
     >
-        <template #title>
+        <template #left>
             <div class="flex gap-2 lg:mr-12">
                 <UIcon name="i-lucide-hexagon" class="size-7" />
-                <h1 class="font-title font-normal">DataClimat</h1>
+                <h1 class="font-title font-normal text-xl">DataClimat</h1>
             </div>
-        </template>
-        <template #default>
+            <ULink to="/" class="text-lg">Accueil</ULink>
             <UNavigationMenu
                 content-orientation="vertical"
                 :items="items"
                 :ui="{
                     content: 'w-max',
-                    link: 'border rounded-md',
-                    linkLabel: 'overflow-visible',
+                    linkLabel: 'overflow-visible text-lg',
                     viewport: 'overflow-visible w-max',
                     viewportWrapper: 'overflow-visible w-max',
                     list: 'gap-2',
+                    childLink: 'text-lg',
                 }"
-            />
-        </template>
+        /></template>
+
+        <div class="flex justify-between">
+            <UButton
+                color="primary"
+                variant="solid"
+                class="px-8 text-lg"
+                to="https://asso.infoclimat.fr/infos/formulaire.php"
+                target="_blank"
+                aria-label="infoclimat"
+            >
+                <span class="hidden lg:inline">Adhérer à InfoClimat</span>
+                <span class="lg:hidden">Adhérer à InfoClimat</span>
+            </UButton>
+        </div>
 
         <template #right>
-            <UTooltip text="Accedez au site Infoclimat.fr">
-                <UButton
-                    color="neutral"
-                    variant="outline"
-                    to="https://www.infoclimat.fr/"
-                    target="_blank"
-                    aria-label="infoclimat"
-                >
-                    <span class="hidden lg:inline">Site Infoclimat.fr</span>
-                    <span class="lg:hidden">Infoclimat.fr</span>
-                </UButton>
-            </UTooltip>
             <USwitch
                 unchecked-icon="i-lucide-sun"
                 checked-icon="i-lucide-moon"
                 aria-label="Basculer le thème"
+                size="xl"
                 :ui="{
                     base: 'dark:bg-transparent dark:ring-1 dark:ring-white/20',
                     thumb: 'dark:bg-black',
