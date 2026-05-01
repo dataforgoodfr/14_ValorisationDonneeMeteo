@@ -47,7 +47,7 @@ onMounted((): void => {
 </script>
 
 <template>
-    <div class="flex items-center gap-2">
+    <div class="flex items-center flex-col lg:flex-row gap-2">
         <USelect
             v-model="preset"
             :items="presetOptions"

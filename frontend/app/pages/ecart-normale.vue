@@ -99,9 +99,7 @@ const infoPanelSections: InfoSection[] = [
             :description="heroData.description"
         />
 
-        <div
-            class="flex flex-col gap-4 dark:bg-elevated rounded-lg p-14 overflow-auto"
-        >
+        <div class="flex flex-col gap-4 dark:bg-elevated rounded-lg px-3 py-2">
             <div class="flex flex-col gap-2">
                 <div class="flex items-center gap-1">
                     <span class="text-sm font-medium"
@@ -132,13 +130,12 @@ const infoPanelSections: InfoSection[] = [
 
             <hr class="border-accented" />
 
-            <div class="flex flex-col md:flex-row items-start gap-8">
+            <div class="flex lg:flex-row flex-col items-start gap-8">
                 <ClientOnly>
                     <MapD3 :date-start="mapDateStart" :date-end="mapDateEnd" />
                 </ClientOnly>
-                <div class="flex flex-col flex-1 min-w-0 gap-4">
-                    <DeviationTable :show-filters="false" />
-                </div>
+
+                <DeviationTable :show-filters="false" />
             </div>
         </div>
 

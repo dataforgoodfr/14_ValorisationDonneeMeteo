@@ -1,10 +1,6 @@
 <template>
     <div class="relative">
-        <div
-            ref="mapContainer"
-            class="w-full rounded-lg overflow-hidden"
-            style="height: 700px"
-        />
+        <div ref="mapContainer" class="w-full h-[700px]" />
         <div
             class="absolute bottom-4 left-1/2 -translate-x-1/2 flex flex-col items-center gap-1 pointer-events-none"
         >
@@ -46,8 +42,10 @@ import type {
 } from "~/types/api";
 import type { FranceTopology } from "~/types/map";
 import { useMapColors } from "~/constants/colors";
+import { breakpointsTailwind, useBreakpoints } from "@vueuse/core";
 
 const mapColors = useMapColors();
+const breakpoints = useBreakpoints(breakpointsTailwind);
 
 const props = defineProps<{
     stations: MappableStation[];
@@ -63,6 +61,7 @@ const legendGradient = computed(() =>
 const mapContainer = ref<HTMLDivElement | null>(null);
 let map: maplibregl.Map | null = null;
 const mapReady = ref(false);
+const isMobile = breakpoints.smaller("sm");
 
 const BLANK_STYLE: maplibregl.StyleSpecification = {
     version: 8,
@@ -188,10 +187,15 @@ onMounted(async () => {
         zoom: 4,
         minZoom: 3,
         maxZoom: 9,
-        maxBounds: [
-            [-7, 40],
-            [12, 53],
-        ],
+        maxBounds: isMobile.value
+            ? [
+                  [-15, 34],
+                  [20, 57],
+              ]
+            : [
+                  [-7, 40],
+                  [12, 53],
+              ],
         attributionControl: false,
         interactive: true,
     });

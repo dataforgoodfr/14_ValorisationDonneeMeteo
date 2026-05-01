@@ -7,7 +7,6 @@ import {
     makeSortableColFactory,
     REGION_META,
     STATION_META,
-    TABLE_HEADER_BTN_MULTILINE_CLASS,
     TEMPERATURE_BADGE_SIZE,
     temperatureBadgeClass,
     truncatedCell,
@@ -97,22 +96,6 @@ const columns = [
     }),
     sortableCol("department", "Département", {
         meta: CENTERED_TD,
-        headerCustom: () =>
-            h(
-                UButton,
-                {
-                    variant: "ghost",
-                    trailingIcon: ordering.value.includes("department")
-                        ? ordering.value.startsWith("-")
-                            ? "i-lucide-arrow-down"
-                            : "i-lucide-arrow-up"
-                        : "i-lucide-arrow-up-down",
-                    color: "neutral",
-                    class: TABLE_HEADER_BTN_MULTILINE_CLASS,
-                    onClick: () => setOrdering("department"),
-                },
-                () => h("span", { class: "whitespace-pre-line" }, "Dept."),
-            ),
     }),
     sortableCol("region", "Région", {
         meta: REGION_META,
@@ -120,27 +103,6 @@ const columns = [
     }),
     sortableCol("deviation", "Écart à la normale", {
         meta: CENTERED_TD,
-        headerCustom: () =>
-            h(
-                UButton,
-                {
-                    variant: "ghost",
-                    trailingIcon: ordering.value.includes("deviation")
-                        ? ordering.value.startsWith("-")
-                            ? "i-lucide-arrow-down"
-                            : "i-lucide-arrow-up"
-                        : "i-lucide-arrow-up-down",
-                    color: "neutral",
-                    class: TABLE_HEADER_BTN_MULTILINE_CLASS,
-                    onClick: () => setOrdering("deviation"),
-                },
-                () =>
-                    h(
-                        "span",
-                        { class: "whitespace-pre-line" },
-                        "Écart à la\nnormale",
-                    ),
-            ),
         cellCustom: ({ row }) =>
             h(
                 UBadge,
@@ -162,60 +124,18 @@ const columns = [
     sortableCol("temperatureMean", "Température Moyenne", {
         sortKey: "temperature_mean",
         meta: CENTERED_TD,
-        headerCustom: () =>
-            h(
-                UButton,
-                {
-                    variant: "ghost",
-                    trailingIcon: ordering.value.includes("temperature_mean")
-                        ? ordering.value.startsWith("-")
-                            ? "i-lucide-arrow-down"
-                            : "i-lucide-arrow-up"
-                        : "i-lucide-arrow-up-down",
-                    color: "neutral",
-                    class: TABLE_HEADER_BTN_MULTILINE_CLASS,
-                    onClick: () => setOrdering("temperature_mean"),
-                },
-                () =>
-                    h(
-                        "span",
-                        { class: "whitespace-pre-line" },
-                        "Température\nMoyenne",
-                    ),
-            ),
         cellCustom: ({ row }) =>
             `${row.getValue<number>("temperatureMean").toFixed(1)} °C`,
     }),
     sortableCol("classeRecente", "Classe", { meta: CENTERED_TD }),
     sortableCol("anneeDeCreation", "Année de création", {
         meta: CENTERED_TD,
-        headerCustom: () =>
-            h(
-                UButton,
-                {
-                    variant: "ghost",
-                    trailingIcon: ordering.value.includes("anneeDeCreation")
-                        ? ordering.value.startsWith("-")
-                            ? "i-lucide-arrow-down"
-                            : "i-lucide-arrow-up"
-                        : "i-lucide-arrow-up-down",
-                    color: "neutral",
-                    class: TABLE_HEADER_BTN_MULTILINE_CLASS,
-                    onClick: () => setOrdering("anneeDeCreation"),
-                },
-                () =>
-                    h(
-                        "span",
-                        { class: "whitespace-pre-line" },
-                        "Année\nde création",
-                    ),
-            ),
     }),
 ];
 </script>
 
 <template>
-    <div class="flex flex-col gap-4">
+    <div class="flex flex-col gap-4 w-full overflow-x-auto">
         <div class="flex items-end justify-between gap-4">
             <DayPicker
                 v-if="props.showFilters"

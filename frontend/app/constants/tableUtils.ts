@@ -70,19 +70,29 @@ export function makeSortableColFactory<T>(
             header: options.headerCustom
                 ? options.headerCustom
                 : () =>
-                      h(UButton, {
-                          variant: "ghost",
-                          label,
-                          title: label,
-                          trailingIcon: ordering.value.includes(sortKey)
-                              ? ordering.value.startsWith("-")
-                                  ? "i-lucide-arrow-down"
-                                  : "i-lucide-arrow-up"
-                              : "i-lucide-arrow-up-down",
-                          color: "neutral",
-                          class: TABLE_HEADER_BTN_CLASS,
-                          onClick: () => setOrdering(sortKey),
-                      }),
+                      h(
+                          UButton,
+                          {
+                              variant: "ghost",
+                              label,
+                              title: label,
+                              trailingIcon: ordering.value.includes(sortKey)
+                                  ? ordering.value.startsWith("-")
+                                      ? "i-lucide-arrow-down"
+                                      : "i-lucide-arrow-up"
+                                  : "i-lucide-arrow-up-down",
+                              color: "neutral",
+                              class: TABLE_HEADER_BTN_CLASS,
+                              onClick: () => setOrdering(sortKey),
+                          },
+                          () =>
+                              h(
+                                  "span",
+                                  { class: "whitespace-pre-line" },
+                                  label,
+                              ),
+                      ),
+
             cell: options.cellCustom ? options.cellCustom : undefined,
             ...(options.meta ? { meta: options.meta } : {}),
         };
