@@ -25,7 +25,7 @@
 
         <Card
             title="Jours au-dessus des normales"
-            tooltip-text="Nombre de jours sur la période sélectionnée où la température en France est supérieure aux normales."
+            tooltip-text="Nombre de jours, sur la période sélectionnée, pour lesquels l'écart à la normale en France est supérieur à 0."
         >
             <template #kpi>
                 <p class="font-semibold text-4xl mb-1 text-red-400">
@@ -39,7 +39,7 @@
 
         <Card
             title="Jours en-dessous des normales"
-            tooltip-text="Nombre de jours sur la période sélectionnée où la température en France est inférieure aux normales."
+            tooltip-text="Nombre de jours, sur la période sélectionnée, pour lesquels l'écart à la normale en France est inférieur à 0."
         >
             <template #kpi>
                 <p class="font-semibold text-4xl mb-1 text-blue-400">

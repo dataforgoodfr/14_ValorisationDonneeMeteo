@@ -61,8 +61,8 @@ const variation = computed(() =>
 
 <template>
     <HotColdRatioCard
-        title="Records de chaleur VS Records de froid"
-        tooltip-text="Ratio entre les records de chaleur et les records de froid battus en France Métropolitaine sur les 365 derniers jours."
+        title="Records mensuels de chaleur VS froid"
+        tooltip-text="Proportion du nombre de records mensuels de chaleur par rapport aux records mensuels de froid battus en France Métropolitaine au cours des 365 derniers jours."
         :hot-value="hotCount"
         :cold-value="coldCount"
         :variation="variation"

@@ -79,23 +79,23 @@ const yesterdayColdRecordsCount = computed(
             <div class="border-b to-slate-200" />
 
             <h2 class="text-blue-700 dark:text-primary pb-2 pt-1">
-                RECORDS DE TEMPERATURE
+                RECORDS MENSUELS DE TEMPÉRATURE
             </h2>
             <div class="flex gap-2 md:flex-row flex-col">
                 <TemperatureRecord
                     :records="hotRecordsCount"
                     :difference="hotRecordsCount - yesterdayHotRecordsCount"
                     type="hot"
-                    title="Records de chaleur"
-                    tooltip-text="Le nombre de records de chaleur battus aujourd'hui"
+                    title="Records mensuels de chaleur"
+                    tooltip-text="Nombre de stations ayant battu un record mensuel de chaleur aujourd'hui"
                     compare-to="hier"
                 />
                 <TemperatureRecord
                     :records="coldRecordsCount"
                     :difference="coldRecordsCount - yesterdayColdRecordsCount"
                     type="cold"
-                    title="Records de froid"
-                    tooltip-text="Le nombre de records de froid battus aujourd'hui"
+                    title="Records mensuels de froid"
+                    tooltip-text="Nombre de stations ayant battu un record mensuel de froid aujourd'hui"
                     compare-to="hier"
                 />
             </div>
