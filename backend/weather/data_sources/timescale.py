@@ -1668,7 +1668,7 @@ class TimescaleRecordsGraphDataSource(RecordsGraphDataSource):
                 else row["record_date"],
                 station_id=row["station_code"],
                 station_name=row["station_name"],
-                department=row["department"] or "",
+                department=row["department"],
                 type_records="hot" if row["record_type"] == "TX" else "cold",
                 valeur=float(row["record_value"]),
             )
