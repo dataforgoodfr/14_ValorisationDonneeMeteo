@@ -11,7 +11,6 @@ import {
     REGION_META,
     STATION_META,
     TEMPERATURE_BADGE_SIZE,
-    TABLE_HEADER_BTN_MULTILINE_CLASS,
     makeSortableColFactory,
     temperatureBadgeClass,
     truncatedCell,

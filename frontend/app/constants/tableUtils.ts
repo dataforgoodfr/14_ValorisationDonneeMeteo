@@ -23,9 +23,6 @@ export const REGION_META = {
 export const TABLE_HEADER_BTN_CLASS =
     "-mx-2.5 font-semibold text-highlighted w-full justify-center text-base";
 
-export const TABLE_HEADER_BTN_MULTILINE_CLASS =
-    "-mx-2.5 font-semibold text-highlighted w-full justify-center whitespace-normal leading-tight text-center text-base";
-
 export const EXPORT_BTN_UI = {
     base: "bg-slate-450 ring-1 ring-blue-350 text-white",
 };
