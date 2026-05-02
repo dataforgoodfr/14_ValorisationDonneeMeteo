@@ -451,6 +451,7 @@ const option = computed<ECOption>(() => {
             focus: "none",
             disabled: true, // disables all emphasis state changes on hover
         },
+        dataZoom: [{ xAxisIndex: [0], type: "inside", minSpan: 20 }],
         graphic: CHART_ATTRIBUTION_GRAPHIC,
     };
 });
