@@ -10,7 +10,7 @@ const isOpen = ref(false);
             @mouseenter="isOpen = true"
             @mouseleave="isOpen = false"
         >
-            <UIcon name="i-lucide-circle-help" class="size-full" />
+            <UIcon name="i-lucide-info" class="size-full" />
         </button>
         <template #content>
             <p class="p-3 text-sm max-w-64">{{ text }}</p>

@@ -22,6 +22,8 @@ const navLinks: InternalNavLink[] = [
     { label: "Indicateur Thermique National", to: "/itn" },
     { label: "Records de température", to: "/records" },
     { label: "Min & Max de température", to: "/min-max" },
+    { label: "Documentation", to: "/doc" },
+    { label: "FAQ", to: "/faq" },
 ];
 
 const infoclimatLinks: ExternalNavLink[] = [

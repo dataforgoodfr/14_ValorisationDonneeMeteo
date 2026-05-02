@@ -42,6 +42,23 @@ const items = computed<NavigationMenuItem[]>(() => [
             },
         ],
     },
+    {
+        label: "Doc & FAQ",
+        children: [
+            {
+                label: "Documentation",
+                to: "/doc",
+                icon: "i-lucide-book-open",
+                active: route.path.startsWith("/doc"),
+            },
+            {
+                label: "FAQ",
+                to: "/faq",
+                icon: "i-lucide-circle-help",
+                active: route.path.startsWith("/faq"),
+            },
+        ],
+    },
 ]);
 </script>
 

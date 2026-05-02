@@ -41,7 +41,7 @@ function toggle(i: number) {
         :aria-label="`Informations sur ${props.title}`"
         @click="isOpen = true"
     >
-        <UIcon name="i-lucide-circle-help" class="size-5" />
+        <UIcon name="i-lucide-info" class="size-5" />
     </button>
 
     <Teleport to="body">
