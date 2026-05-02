@@ -138,7 +138,16 @@ const infoPanelSections: InfoSection[] = [
 
             <hr class="border-accented" />
 
-            <div class="flex flex-col md:flex-row items-start gap-8">
+            <div
+                v-if="store.pending"
+                class="flex items-center justify-center min-h-32"
+            >
+                <UIcon
+                    name="i-lucide-loader-circle"
+                    class="animate-spin text-3xl text-muted"
+                />
+            </div>
+            <div v-else class="flex flex-col md:flex-row items-start gap-8">
                 <ClientOnly>
                     <RecordsMap />
                 </ClientOnly>
@@ -155,7 +164,16 @@ const infoPanelSections: InfoSection[] = [
                 <SearchByTerritoryType />
             </template>
             <template #chart>
-                <div class="flex flex-col md:flex-row gap-4 px-3 py-2">
+                <div
+                    v-if="selectBarAdapter.pending.value"
+                    class="flex items-center justify-center min-h-32"
+                >
+                    <UIcon
+                        name="i-lucide-loader-circle"
+                        class="animate-spin text-3xl text-muted"
+                    />
+                </div>
+                <div v-else class="flex flex-col md:flex-row gap-4 px-3 py-2">
                     <div class="flex flex-col gap-4 flex-1">
                         <UTabs
                             v-model="selectBarAdapter.recordKind!.value"
