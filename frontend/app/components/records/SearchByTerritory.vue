@@ -3,13 +3,13 @@ import { useRecordsChartStore } from "#imports";
 
 const store = useRecordsChartStore();
 const { territoriesFilter } = storeToRefs(store);
-const { setTerritoryFilter } = store;
+const { addTerritoryFilter } = store;
 
 function onSelectTerritory(
     _event: PointerEvent,
     territory: { code: string; name: string },
 ) {
-    setTerritoryFilter(territory);
+    addTerritoryFilter(territory);
 }
 
 const isTerritorySelected = computed(() => {

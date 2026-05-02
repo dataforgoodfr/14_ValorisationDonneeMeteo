@@ -44,14 +44,13 @@ export const useRecordsChartStore = defineStore("recordChartStore", () => {
     const periodType: Ref<PeriodType> = ref("all_time");
     const month = ref<number | undefined>(undefined);
     const season = ref<Season | undefined>(undefined);
+    const initialElement: SelectedItem = {
+        id: "FR",
+        value: "France Métropolitaine",
+        type: TerritoryFilterType.TERRITORY,
+    };
 
-    const selectedElements = ref<SelectedItem[]>([
-        {
-            id: "FR",
-            value: "France Métropolitaine",
-            type: TerritoryFilterType.TERRITORY,
-        },
-    ]);
+    const selectedElements = ref<SelectedItem[]>([initialElement]);
 
     const stationCodeFilter = computed(() =>
         selectedElements.value
@@ -176,71 +175,55 @@ export const useRecordsChartStore = defineStore("recordChartStore", () => {
         }
     };
 
-    function setDepartmentFilter(department: { code: string; name: string }) {
+    function addFilter(
+        type: TerritoryFilterType,
+        id: string,
+        value: string,
+    ): void {
         if (
             selectedElements.value.some(
-                (el) =>
-                    el.type === TerritoryFilterType.DEPARTMENT &&
-                    el.id === department.code,
+                (el) => el.type === type && el.id === id,
             )
-        )
+        ) {
             return;
-        selectedElements.value = [
-            ...selectedElements.value,
-            {
-                id: department.code,
-                value: `${department.name} (${department.code})`,
-                type: TerritoryFilterType.DEPARTMENT,
-            },
-        ];
+        }
+
+        selectedElements.value.push({
+            id,
+            value,
+            type,
+        });
     }
 
-    function setStationFilter(station: Station) {
-        if (
-            selectedElements.value.some(
-                (el) =>
-                    el.type === TerritoryFilterType.STATION &&
-                    el.id === station.code,
-            )
-        )
-            return;
-        selectedElements.value = [
-            ...selectedElements.value,
-            {
-                id: station.code,
-                value: `${station.nom} (${station.departement})`,
-                type: TerritoryFilterType.STATION,
-            },
-        ];
+    function addDepartmentFilter(department: {
+        code: string;
+        name: string;
+    }): void {
+        const value = `${department.name} (${department.code})`;
+
+        addFilter(TerritoryFilterType.DEPARTMENT, department.code, value);
     }
 
-    function setRegionFilter(region: { code: string; name: string }) {
-        if (
-            selectedElements.value.some(
-                (el) =>
-                    el.type === TerritoryFilterType.REGION &&
-                    el.id === region.code,
-            )
-        )
-            return;
-        selectedElements.value = [
-            ...selectedElements.value,
-            {
-                id: region.code,
-                value: region.name,
-                type: TerritoryFilterType.REGION,
-            },
-        ];
+    function addStationFilter(station: Station): void {
+        const id = station.code;
+        const value = `${station.nom} (${station.departement})`;
+
+        addFilter(TerritoryFilterType.STATION, id, value);
     }
 
-    function setTerritoryFilter(territory: { code: string; name: string }) {
-        selectedElements.value = [
-            {
-                id: territory.code,
-                value: territory.name,
-                type: TerritoryFilterType.TERRITORY,
-            },
-        ];
+    function addRegionFilter(region: { code: string; name: string }): void {
+        addFilter(TerritoryFilterType.REGION, region.code, region.name);
+    }
+
+    function addTerritoryFilter(territory: {
+        code: string;
+        name: string;
+    }): void {
+        addFilter(
+            TerritoryFilterType.TERRITORY,
+            territory.code,
+            territory.name,
+        );
     }
 
     function removeItemFromFilter(type: TerritoryFilterType, code: string) {
@@ -248,13 +231,7 @@ export const useRecordsChartStore = defineStore("recordChartStore", () => {
             (element) => !(element.type === type && element.id === code),
         );
         if (selectedElements.value.length === 0) {
-            selectedElements.value = [
-                {
-                    id: "FR",
-                    value: "France Métropolitaine",
-                    type: TerritoryFilterType.TERRITORY,
-                },
-            ];
+            selectedElements.value = [initialElement];
         }
     }
 
@@ -278,10 +255,10 @@ export const useRecordsChartStore = defineStore("recordChartStore", () => {
         setGranularity,
         setChartType,
         turnOffSliceType,
-        setDepartmentFilter,
-        setStationFilter,
-        setRegionFilter,
-        setTerritoryFilter,
+        addDepartmentFilter,
+        addStationFilter,
+        addRegionFilter,
+        addTerritoryFilter,
         removeItemFromFilter,
         recordsData,
         processedRecordsData,

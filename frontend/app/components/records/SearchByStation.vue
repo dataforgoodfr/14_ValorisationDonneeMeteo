@@ -12,7 +12,7 @@ const props = defineProps({
 });
 const store = useRecordsChartStore();
 const { stationCodeFilter } = storeToRefs(store);
-const { setStationFilter } = store;
+const { addStationFilter } = store;
 
 const searchQueryRef = toRef(props, "searchQuery");
 const debouncedSearch = refDebounced(searchQueryRef, 300);
@@ -26,7 +26,7 @@ const { allStations, onLoadMore, hasMore } =
     useStationsWithInfiniteScroll(params);
 
 function onSelectStation(_event: PointerEvent, station: Station) {
-    setStationFilter(station);
+    addStationFilter(station);
 }
 
 const unselectedFilteredStations = computed(() => {

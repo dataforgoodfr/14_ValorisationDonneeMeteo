@@ -14,13 +14,13 @@ const searchQueryRef = toRef(props, "searchQuery");
 
 const store = useRecordsChartStore();
 const { departmentsFilter } = storeToRefs(store);
-const { setDepartmentFilter } = store;
+const { addDepartmentFilter } = store;
 
 function onSelectDepartment(
     _event: PointerEvent,
     department: { code: string; name: string },
 ) {
-    setDepartmentFilter(department);
+    addDepartmentFilter(department);
 }
 
 const unselectedFilteredDepartments = computed(() => {
