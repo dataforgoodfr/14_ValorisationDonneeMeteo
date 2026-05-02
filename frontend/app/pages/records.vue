@@ -78,7 +78,7 @@ const infoPanelSections: InfoSection[] = [
     {
         label: "Nota Bene",
         content:
-            "La définition des saisons utilisées est la définitation climatologique:" +
+            "La définition des saisons utilisées est la définition climatologique:" +
             "\n- Printemps: du 1er mars au 31 mai" +
             "\n- Été: du 1er juin au 31 août" +
             "\n- Automne: du 1er septembre au 30 novembre" +
