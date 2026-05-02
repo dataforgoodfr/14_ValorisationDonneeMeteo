@@ -9,7 +9,11 @@
 </template>
 
 <script setup lang="ts">
-import type { DeviationMapParams, MappableStation } from "~/types/api";
+import type {
+    DeviationMapParams,
+    MappableStation,
+    MapTooltipFormatter,
+} from "~/types/api";
 import { DEVIATION_MAP_MONTHLY_COLORS } from "~/constants/colors";
 import { formatDeviationMapTooltip } from "~/components/map/tooltipFormatters/deviationMapTooltipFormatter";
 import StationMap from "~/components/map/StationMap.vue";
@@ -37,12 +41,8 @@ const mappableStations = computed<MappableStation[]>(
         })) ?? [],
 );
 
-const tooltipFormatter = (properties: {
-    station_name: string;
-    value: number;
-    record_date: string | null;
-    department: string | null;
-}) => formatDeviationMapTooltip(properties.station_name, properties.value);
+const tooltipFormatter: MapTooltipFormatter = (properties) =>
+    formatDeviationMapTooltip(properties.station_name, properties.value);
 
 onMounted(async () => {
     await fetchStations();

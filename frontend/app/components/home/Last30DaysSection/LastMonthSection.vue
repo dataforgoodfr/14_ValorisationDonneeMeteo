@@ -147,7 +147,7 @@ const lastYearColdRecordsCount = computed(
                 <HomeDeviationMap
                     :date-start="dateStart"
                     :date-end="dateEnd"
-                    class="w-full max-w-sm lg:w-72 lg:max-w-none lg:shrink-0"
+                    class="w-full max-w-sm lg:flex-1 lg:max-w-none"
                 />
                 <div class="flex flex-col gap-3 flex-1 min-w-0">
                     <p class="text-sm text-muted">

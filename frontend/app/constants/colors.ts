@@ -1,3 +1,5 @@
+import type { MapColorConfig } from "~/types/api";
+
 export const TEMPERATURE_COLORS = {
     cold: "#1976D2",
     hot: "#d32F2F",
@@ -25,22 +27,19 @@ export function useMapColors() {
     return computed(() => (cm.value === "dark" ? DARK_COLORS : LIGHT_COLORS));
 }
 
-function makeDeviationColors(min: number, max: number) {
-    return {
-        min,
-        max,
-        stops: [
-            [min, TEMPERATURE_COLORS.cold],
-            [min * 0.6, "hsl(210, 85%, 75%)"],
-            [min * 0.2, "hsl(180, 90%, 85%)"],
-            [min * 0.05, "hsl(160, 95%, 90%)"],
-            [0, "#ffffff"],
-            [max * 0.05, "hsl(50, 96%, 90%)"],
-            [max * 0.2, "hsl(30, 90%, 85%)"],
-            [max * 0.6, "hsl(0, 85%, 75%)"],
-            [max, TEMPERATURE_COLORS.hot],
-        ] as [number, string][],
-    };
+function makeDeviationColors(min: number, max: number): MapColorConfig {
+    const stops: [number, string][] = [
+        [min, TEMPERATURE_COLORS.cold],
+        [min * 0.6, "hsl(210, 85%, 75%)"],
+        [min * 0.2, "hsl(180, 90%, 85%)"],
+        [min * 0.05, "hsl(160, 95%, 90%)"],
+        [0, "#ffffff"],
+        [max * 0.05, "hsl(50, 96%, 90%)"],
+        [max * 0.2, "hsl(30, 90%, 85%)"],
+        [max * 0.6, "hsl(0, 85%, 75%)"],
+        [max, TEMPERATURE_COLORS.hot],
+    ];
+    return { min, max, stops };
 }
 
 export const DEVIATION_MAP_COLORS = makeDeviationColors(-5, 5);
