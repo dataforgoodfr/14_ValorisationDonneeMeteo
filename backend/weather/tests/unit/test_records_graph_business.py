@@ -52,6 +52,7 @@ def test_records_graph_business_returns_datasource_output():
                 station_name="Lyon",
                 type_records="hot",
                 valeur=42.5,
+                department="69",
             )
         ],
     )

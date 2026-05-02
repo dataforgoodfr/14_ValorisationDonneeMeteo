@@ -562,6 +562,7 @@ class RecordsGraphAPIView(APIView):
                         "date": r.date,
                         "station_id": r.station_id,
                         "station_name": r.station_name,
+                        "department": r.department,
                         "type_records": r.type_records,
                         "valeur": r.valeur,
                     }

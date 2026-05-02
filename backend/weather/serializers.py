@@ -812,6 +812,7 @@ class RecordsGraphRecordSerializer(serializers.Serializer):
     date = serializers.DateField()
     station_id = serializers.CharField()
     station_name = serializers.CharField()
+    department = serializers.CharField()
     type_records = serializers.ChoiceField(choices=["hot", "cold"])
     valeur = serializers.FloatField()
 

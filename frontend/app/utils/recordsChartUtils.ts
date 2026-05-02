@@ -1,6 +1,11 @@
-import type { TemperatureRecordsGraphResponse } from "~/types/api";
+import type {
+    TemperatureRecordsGraphRecord,
+    TemperatureRecordsGraphResponse,
+} from "~/types/api";
 import type { GranularityType } from "~/components/ui/commons/selectBar/types";
+import { regions } from "~/data/records/regions";
 import type { BarSeriesOption, ScatterSeriesOption } from "echarts/charts";
+import type { SelectedItem } from "~/stores/recordsChartStore";
 
 export function scatterSeries(
     opts: Partial<ScatterSeriesOption>,
@@ -75,29 +80,40 @@ export function countByPeriod(
     );
 }
 
+function getRegionsDepartments(regionCode: string): Set<string> {
+    return new Set(
+        regions.find((reg) => reg.code === regionCode)?.departements ?? [],
+    );
+}
+
 function recordsForTerritory(
-    territory: { type: string; id: string },
+    territory: SelectedItem,
     data: TemperatureRecordsGraphResponse,
 ): { hot: RecordEntry[]; cold: RecordEntry[] } {
-    if (territory.type !== "STATION") {
+    if (territory.type === "TERRITORY") {
         return { hot: flattenHotRecords(data), cold: flattenColdRecords(data) };
     }
+
+    let is_record_relevant: (r: TemperatureRecordsGraphRecord) => boolean;
+    if (territory.type === "STATION") {
+        is_record_relevant = (r) => r.station_id === territory.id;
+    } else if (territory.type === "DEPARTMENT") {
+        is_record_relevant = (r) => r.department === territory.id;
+    } else if (territory.type === "REGION") {
+        const depts = getRegionsDepartments(territory.id);
+        is_record_relevant = (r) => depts.has(r.department);
+    }
+
     return {
         hot: data.records
-            .filter(
-                (r) =>
-                    r.type_records === "hot" && r.station_id === territory.id,
-            )
+            .filter((r) => r.type_records === "hot" && is_record_relevant(r))
             .map((r) => ({
                 date: r.date,
                 value: r.valeur,
                 station: r.station_name,
             })),
         cold: data.records
-            .filter(
-                (r) =>
-                    r.type_records === "cold" && r.station_id === territory.id,
-            )
+            .filter((r) => r.type_records === "cold" && is_record_relevant(r))
             .map((r) => ({
                 date: r.date,
                 value: r.valeur,
@@ -107,7 +123,7 @@ function recordsForTerritory(
 }
 
 export function buildTerritoryPlots(
-    selectedTerritories: Array<{ type: string; id: string; value: string }>,
+    selectedTerritories: SelectedItem[],
     data: TemperatureRecordsGraphResponse,
 ): { name: string; hot: RecordEntry[]; cold: RecordEntry[] }[] {
     if (selectedTerritories.length === 0) {

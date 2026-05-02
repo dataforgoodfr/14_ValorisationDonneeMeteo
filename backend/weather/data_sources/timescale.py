@@ -35,6 +35,7 @@ from weather.services.national_indicator.types import (
 from weather.services.national_indicator.types import (
     ObservedPoint as NationalObservedPoint,
 )
+from weather.services.records.protocols import RecordsDataSource
 from weather.services.records.types import (
     Pagination as PaginationRecordType,
 )
@@ -84,6 +85,10 @@ from weather.services.temperature_records.types import (
 from weather.services.temperature_records.types import (
     Pagination as PaginationRecord,
 )
+
+
+def normalize_department(department: int) -> str:
+    return f"{department:02d}"
 
 
 def _float_or_none(value) -> float | None:
@@ -585,9 +590,13 @@ class TimescaleTemperatureDeviationDailyDataSource(
 
         with connection.cursor() as cur:
             cur.execute(count_sql, params)
+            print(count_sql)
+            print(params)
             total_count = cur.fetchone()[0]
 
             cur.execute(page_sql, params)
+            print(page_sql)
+            print(params)
             columns = [col[0] for col in cur.description]
             rows = [dict(zip(columns, row, strict=False)) for row in cur.fetchall()]
 
@@ -772,7 +781,7 @@ class TimescaleTemperatureRecordsDataSource:
             TemperatureRecordEntry(
                 station_id=row["NUM_POSTE"].strip(),
                 station_name=row["name"],
-                department=str(row["departement"]) if row["departement"] else "",
+                department=normalize_department(row["departement"]),
                 record_value=float(row[col]),
                 record_date=row["AAAAMMJJ"].date()
                 if isinstance(row["AAAAMMJJ"], dt.datetime)
@@ -994,9 +1003,7 @@ class MaterializedTemperatureRecordsDataSource:
             TemperatureRecordEntry(
                 station_id=row["station_code"].strip(),
                 station_name=row["station_name"],
-                department=str(row["department"])
-                if row["department"] is not None
-                else "",
+                department=normalize_department(row["department"]),
                 record_value=float(row["record_value"]),
                 record_date=row["record_date"].date()
                 if isinstance(row["record_date"], dt.datetime)
@@ -1259,9 +1266,7 @@ class HybridTemperatureRecordsDataSource(TemperatureRecordsDataSource):
             TemperatureRecordEntry(
                 station_id=row["NUM_POSTE"].strip(),
                 station_name=row["name"],
-                department=str(row["departement"])
-                if row["departement"] is not None
-                else "",
+                department=normalize_department(row["departement"]),
                 record_value=float(row[col]),
                 record_date=row["AAAAMMJJ"].date()
                 if isinstance(row["AAAAMMJJ"], dt.datetime)
@@ -1277,7 +1282,7 @@ class HybridTemperatureRecordsDataSource(TemperatureRecordsDataSource):
         ]
 
 
-class TimescaleRecordsDataSource:
+class TimescaleRecordsDataSource(RecordsDataSource):
     """
     Adaptateur qui implémente RecordsDataSource (nouvelle spec) en s'appuyant sur
     HybridTemperatureRecordsDataSource.
@@ -1297,7 +1302,7 @@ class TimescaleRecordsDataSource:
     def __init__(self) -> None:
         self._hybrid = HybridTemperatureRecordsDataSource()
 
-    def fetch_records(self, query: RecordsQuery) -> tuple[StationRecords, ...]:
+    def fetch_records(self, query: RecordsQuery) -> RecordsResult:
         period_type = self._SCOPE_TO_PERIOD[query.record_scope]
 
         types: list[str] = (
@@ -1631,7 +1636,7 @@ class TimescaleRecordsGraphDataSource(RecordsGraphDataSource):
         """
 
         sql_records = f"""
-            SELECT station_code, station_name, record_value, record_date, record_type
+            SELECT station_code, station_name, department, record_value, record_date, record_type
             FROM public.mv_records_battus
             WHERE {where}
             ORDER BY record_date
@@ -1668,6 +1673,7 @@ class TimescaleRecordsGraphDataSource(RecordsGraphDataSource):
                 else row["record_date"],
                 station_id=row["station_code"],
                 station_name=row["station_name"],
+                department=row["department"],
                 type_records="hot" if row["record_type"] == "TX" else "cold",
                 valeur=float(row["record_value"]),
             )

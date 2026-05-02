@@ -14,13 +14,13 @@ const searchQueryRef = toRef(props, "searchQuery");
 
 const store = useRecordsChartStore();
 const { regionsFilter } = storeToRefs(store);
-const { setRegionFilter } = store;
+const { addRegionFilter } = store;
 
 function onSelectRegion(
     _event: PointerEvent,
     region: { code: string; name: string },
 ) {
-    setRegionFilter(region);
+    addRegionFilter(region);
 }
 
 const unselectedFilteredRegions = computed(() => {

@@ -184,7 +184,7 @@ class FakeRecordsDataSource(RecordsDataSource):
     def __init__(self) -> None:
         self._seed = 123
 
-    def fetch_records(self, query: RecordsQuery) -> tuple[StationRecords, ...]:
+    def fetch_records(self, query: RecordsQuery) -> RecordsResult:
         station_ids = query.station_ids or _get_all_stations()
 
         if query.departments:
@@ -214,7 +214,7 @@ class FakeRecordsDataSource(RecordsDataSource):
         total_pages = (total_count + query.page_size - 1) // query.page_size
 
         return RecordsResult(
-            stations=tuple(paginated),
+            entries=paginated,
             pagination=Pagination(
                 total_count=total_count,
                 page=query.page,

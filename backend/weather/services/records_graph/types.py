@@ -28,6 +28,7 @@ class RecordsGraphRecord:
     date: dt.date
     station_id: str
     station_name: str
+    department: str
     type_records: str  # "hot" | "cold"
     valeur: float
 
