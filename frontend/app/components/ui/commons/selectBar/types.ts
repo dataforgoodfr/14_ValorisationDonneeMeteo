@@ -7,6 +7,7 @@ import type {
     TemperatureDeviationGraphResponse,
     TemperatureRecordsGraphResponse,
 } from "~/types/api";
+import type { SelectedItem } from "~/stores/recordsChartStore";
 
 export type GranularityType = "year" | "month" | "day";
 export type SliceType = "full" | "month_of_year" | "day_of_month";
@@ -55,7 +56,7 @@ export interface SelectBarAdapter<
     pending: Ref<boolean>;
 
     // Territory filters (optional, specific to records)
-    selectedElements?: Ref<{ value: string; id: string; type: string }[]>;
+    selectedElements?: Ref<SelectedItem[]>;
 
     // Records kind toggle (absolute = current record per station, historical = all beaten)
     recordKind?: Ref<"absolute" | "historical">;

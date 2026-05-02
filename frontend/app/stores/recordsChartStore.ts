@@ -23,7 +23,7 @@ export enum TerritoryFilterType {
     TERRITORY = "TERRITORY",
 }
 
-type SelectedItem = {
+export type SelectedItem = {
     value: string;
     id: string;
     type: TerritoryFilterType;
@@ -180,19 +180,19 @@ export const useRecordsChartStore = defineStore("recordChartStore", () => {
         id: string,
         value: string,
     ): void {
-        if (
-            selectedElements.value.some(
-                (el) => el.type === type && el.id === id,
-            )
-        ) {
-            return;
+        const isElementAlreadySelected = selectedElements.value.some(
+            (el) => el.type === type && el.id === id,
+        );
+        if (!isElementAlreadySelected) {
+            selectedElements.value = [
+                ...selectedElements.value,
+                {
+                    id,
+                    value,
+                    type,
+                },
+            ];
         }
-
-        selectedElements.value.push({
-            id,
-            value,
-            type,
-        });
     }
 
     function addDepartmentFilter(department: {
