@@ -1631,7 +1631,7 @@ class TimescaleRecordsGraphDataSource(RecordsGraphDataSource):
         """
 
         sql_records = f"""
-            SELECT station_code, station_name, record_value, record_date, record_type
+            SELECT station_code, station_name, department, record_value, record_date, record_type
             FROM public.mv_records_battus
             WHERE {where}
             ORDER BY record_date
@@ -1668,6 +1668,7 @@ class TimescaleRecordsGraphDataSource(RecordsGraphDataSource):
                 else row["record_date"],
                 station_id=row["station_code"],
                 station_name=row["station_name"],
+                department=row["department"] or "",
                 type_records="hot" if row["record_type"] == "TX" else "cold",
                 valeur=float(row["record_value"]),
             )

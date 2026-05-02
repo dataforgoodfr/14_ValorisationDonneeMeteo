@@ -69,6 +69,7 @@ class FakeRecordsGraphDataSource:
                 date=e.record_date,
                 station_id=e.station_id,
                 station_name=e.station_name,
+                department=e.department,
                 type_records="hot" if id(e) in hot_ids else "cold",
                 valeur=e.record_value,
             )
