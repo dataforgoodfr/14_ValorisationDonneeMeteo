@@ -56,10 +56,16 @@ const items = computed<NavigationMenuItem[]>(() => [
         }"
     >
         <template #left>
-            <div class="flex gap-2 lg:mr-12">
-                <UIcon name="i-lucide-hexagon" class="size-7" />
-                <h1 class="font-title font-normal text-xl">DataClimat</h1>
-            </div>
+            <ULink
+                to="/"
+                class="'shrink-0 font-bold text-xl text-highlighted flex items-end gap-1.5'"
+            >
+                <div class="flex gap-2 lg:mr-12">
+                    <UIcon name="i-lucide-hexagon" class="size-7" />
+                    <h1 class="font-title font-normal text-xl">DataClimat</h1>
+                </div>
+            </ULink>
+
             <UNavigationMenu
                 variant="link"
                 content-orientation="vertical"
@@ -84,8 +90,8 @@ const items = computed<NavigationMenuItem[]>(() => [
                 target="_blank"
                 aria-label="infoclimat"
             >
-                <span class="hidden lg:inline">Adhérer à InfoClimat</span>
-                <span class="lg:hidden">Adhérer à InfoClimat</span>
+                <span class="hidden lg:inline">Adhérer à Infoclimat</span>
+                <span class="lg:hidden">Adhérer à Infoclimat</span>
             </UButton>
         </div>
 
@@ -141,8 +147,8 @@ const items = computed<NavigationMenuItem[]>(() => [
                     target="_blank"
                     aria-label="infoclimat"
                 >
-                    <span class="hidden lg:inline">Adhérer à InfoClimat</span>
-                    <span class="lg:hidden">Adhérer à InfoClimat</span>
+                    <span class="hidden lg:inline">Adhérer à Infoclimat</span>
+                    <span class="lg:hidden">Adhérer à Infoclimat</span>
                 </UButton>
             </div>
         </template>
