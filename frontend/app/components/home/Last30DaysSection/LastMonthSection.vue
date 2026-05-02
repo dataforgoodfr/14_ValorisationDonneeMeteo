@@ -141,11 +141,13 @@ const lastYearColdRecordsCount = computed(
             <h2 class="text-blue-700 dark:text-primary pb-2">
                 ECART DE TEMPÉRATURE A LA NORMALE
             </h2>
-            <div class="flex gap-6 mt-2 mb-4 items-start">
+            <div
+                class="flex flex-col md:flex-row gap-6 mt-2 mb-4 md:items-start"
+            >
                 <HomeDeviationMap
                     :date-start="dateStart"
                     :date-end="dateEnd"
-                    class="w-91 shrink-0"
+                    class="w-full md:w-91 md:shrink-0"
                 />
                 <div class="flex flex-col gap-3">
                     <p class="text-sm text-muted">
