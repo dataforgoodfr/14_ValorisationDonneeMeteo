@@ -1,0 +1,7 @@
+db_data
+dev_scripts
+sql
+timescaledb-env
+.venv
+__pycache__
+.gitignore
