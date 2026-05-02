@@ -37,6 +37,7 @@ export interface SelectBarAdapter<
     sliceType?: Ref<SliceType>;
     sliceDatepickerDate?: Ref<Date>;
     sliceTypeSwitchLabel?: string;
+    analysisPeriodInfoText?: string;
 
     // Records-style period slice (season / month of year)
     periodType?: Ref<PeriodType>;

@@ -52,6 +52,8 @@ export const useItnSelectBarAdapter = (): SelectBarAdapter<
                 icon: "i-lucide-square-stack",
             },
         ],
+        analysisPeriodInfoText:
+            "Sélectionnez une période pour afficher les données moyennées sur un mois ou un jour spécifique.",
         setGranularity: store.setGranularity,
         setChartType: store.setChartType,
         turnOffSliceType: store.turnOffSliceType,

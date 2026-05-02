@@ -29,7 +29,9 @@ export const useRecordsSelectBarAdapter =
             pickedDateEnd,
             maxDate,
             sliceTypeSwitchEnabled,
-            sliceTypeSwitchLabel: "Période",
+            sliceTypeSwitchLabel: "Records mensuels/saisonniers",
+            analysisPeriodInfoText:
+                "Sélectionnez une période pour afficher les records mensuels ou saisonnier.",
             periodType,
             month,
             season,

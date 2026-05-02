@@ -59,7 +59,7 @@ const infoPanelSections: InfoSection[] = [
                     " partie de l'année (un mois ou un saison) seulement:" +
                     "\n- si la période d'analyse est un mois, les records mensuels, du mois sélectionné, sont affichés." +
                     "\n- si la période d'analyse est une saison, les records saisonniers, de la saison sélectionnée, sont affichés." +
-                    "\n- si la période est 'Période complète' les records annuels (tous mois confondus) sont affichés.",
+                    "\n- si la période est 'Année complète' les records annuels (tous mois confondus) sont affichés.",
             },
         ],
     },

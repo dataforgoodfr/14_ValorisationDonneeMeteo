@@ -5,7 +5,7 @@ import type { SelectBarAdapter } from "~/components/ui/commons/selectBar/types";
 const adapter = inject<SelectBarAdapter>("selectBarAdapter")!;
 
 const periodTypeOptions = [
-    { label: "Période complète", value: "all_time" },
+    { label: "Année complète", value: "all_time" },
     { label: "Saison", value: "season" },
     { label: "Mois", value: "month" },
 ];

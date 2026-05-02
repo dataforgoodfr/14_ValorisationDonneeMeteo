@@ -122,7 +122,8 @@ const granularityValues = computed(() => [
                             Paramètre d'analyse
                         </span>
                         <FieldInfo
-                            text="Sélectionnez une période pour afficher les records mensuels ou saisonnier ou sur toute l'année"
+                            v-if="adapter.analysisPeriodInfoText"
+                            :text="adapter.analysisPeriodInfoText"
                         />
                     </div>
                     <div class="flex gap-6 items-center">
@@ -160,7 +161,7 @@ const granularityValues = computed(() => [
                                     <template #label>
                                         {{
                                             adapter.sliceTypeSwitchLabel ??
-                                            "Moyenner par"
+                                            "Moyenner par mois/jour"
                                         }}
                                     </template>
                                 </USwitch>

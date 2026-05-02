@@ -32,6 +32,8 @@ export const useDeviationSelectBarAdapter =
             chartRef: deviationChartRef,
             data: deviationData,
             pending,
+            analysisPeriodInfoText:
+                "Sélectionnez une période pour afficher les données moyennées sur un mois ou un jour spécifique.",
             setGranularity: store.setGranularity,
             turnOffSliceType: store.turnOffSliceType,
             chartType,
