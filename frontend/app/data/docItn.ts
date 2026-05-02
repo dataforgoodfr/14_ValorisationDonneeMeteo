@@ -41,7 +41,7 @@ export const itnSections: InfoSection[] = [
         content:
             "La liste des 30 stations à considérer pour assurer un calcul pertinent et" +
             " robuste pour analyser l'évolution de l'indicateur sur plusieurs décennies" +
-            " a été définie par MeteoFrance." +
+            " a été définie par Météo-France." +
             "\nCette liste et la répartition géographique des stations est disponible sur" +
             " la page dataclimat.fr/itn",
     },

@@ -47,7 +47,7 @@ export const recordsSections: InfoSection[] = [
         label: "Stations éligibles",
         content:
             "Pour être pertinent un record ne peut être déclaré comme tel que si la station a au moins 50 annnées de données et si" +
-            " sa classe de qualité de mesure de température définie par MéteoFrance est comprise entre 1 et 3.",
+            " sa classe de qualité de mesure de température définie par Météo-France est comprise entre 1 et 3.",
     },
     {
         label: "Sources",

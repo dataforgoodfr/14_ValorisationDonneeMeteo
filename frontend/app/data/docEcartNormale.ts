@@ -51,7 +51,7 @@ export const ecartNormaleSections: InfoSection[] = [
             " supérieur à celui préconisé par la norme OMM (https://donneespubliques.meteofrance.fr/client/document/normales-methode_299.pdf)" +
             "\n\nAinsi, pour qu'une station soit éligible au calcul d'un écart à la normale et apparaisse sur le site dataclimat.fr," +
             " cette station doit avoir au moins 24 ans de données entre 1991-2020 (période des normales) et avoir une classe de qualité" +
-            " de mesure de température définie par MéteoFrance entre 1 et 4.",
+            " de mesure de température définie par Météo-France entre 1 et 4.",
     },
     {
         label: "Sources",
