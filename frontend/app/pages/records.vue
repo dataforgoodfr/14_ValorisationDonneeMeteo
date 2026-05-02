@@ -15,10 +15,6 @@ import {
     useRecordsTableStore,
     periodOptions,
 } from "~/stores/recordsTableStore";
-import {
-    HOT_ACTIVE_BTN_CLASS,
-    COLD_ACTIVE_BTN_CLASS,
-} from "~/constants/tableUtils";
 
 const selectBarAdapter = useRecordsSelectBarAdapter();
 
