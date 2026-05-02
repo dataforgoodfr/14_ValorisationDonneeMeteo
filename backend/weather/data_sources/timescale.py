@@ -1003,7 +1003,7 @@ class MaterializedTemperatureRecordsDataSource:
             TemperatureRecordEntry(
                 station_id=row["station_code"].strip(),
                 station_name=row["station_name"],
-                department=normalize_department(row["departement"]),
+                department=normalize_department(row["department"]),
                 record_value=float(row["record_value"]),
                 record_date=row["record_date"].date()
                 if isinstance(row["record_date"], dt.datetime)
