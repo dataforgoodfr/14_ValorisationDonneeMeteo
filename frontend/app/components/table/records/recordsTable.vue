@@ -10,6 +10,7 @@ import {
     EXPORT_BTN_UI,
     REGION_META,
     STATION_META,
+    TABLE_HEADER_BTN_MULTILINE_CLASS,
     TEMPERATURE_BADGE_SIZE,
     makeSortableColFactory,
     temperatureBadgeClass,

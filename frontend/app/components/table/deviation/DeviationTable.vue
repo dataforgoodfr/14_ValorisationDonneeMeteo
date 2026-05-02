@@ -7,6 +7,7 @@ import {
     makeSortableColFactory,
     REGION_META,
     STATION_META,
+    TABLE_HEADER_BTN_MULTILINE_CLASS,
     TEMPERATURE_BADGE_SIZE,
     temperatureBadgeClass,
     truncatedCell,
