@@ -30,7 +30,7 @@ export const EXPORT_BTN_UI = {
 export const TEMPERATURE_BADGE_SIZE = "lg";
 
 export const HOT_TEXT_CLASS = "text-rose-600";
-export const COLD_TEXT_CLASS = "text-blue-650 dark:text-blue-700";
+export const COLD_TEXT_CLASS = "text-blue-700";
 
 export const HOT_BG_CLASS = "bg-rose-200";
 export const COLD_BG_CLASS = "bg-blue-200";
