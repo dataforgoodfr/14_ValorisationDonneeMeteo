@@ -140,7 +140,7 @@ const barOption = computed<ECOption>(() => {
         },
         axisPointer: {
             link: [{ xAxisIndex: "all" }],
-            label: { backgroundColor: "#3a5080" },
+            label: { backgroundColor: mapColors.value.chartAccentColor },
         },
         legend: { top: 230 },
         tooltip: {
@@ -169,7 +169,7 @@ const barOption = computed<ECOption>(() => {
         :update-options="{ notMerge: true }"
         :init-options="initOptions"
         :loading="pending"
-        :loading-options="{ text: 'Chargement…', color: '#3b82f6' }"
+        :loading-options="{ text: 'Chargement…', color: LOADING_SPIN_COLOR }"
         autoresize
         class="mt-5"
     />

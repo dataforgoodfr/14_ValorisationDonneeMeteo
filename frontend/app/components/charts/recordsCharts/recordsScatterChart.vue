@@ -213,7 +213,7 @@ const option = computed<ECOption>(() => {
         })),
         axisPointer: {
             link: [{ xAxisIndex: "all" }],
-            label: { backgroundColor: "#3a5080" },
+            label: { backgroundColor: mapColors.value.chartAccentColor },
         },
         legend: {
             data: ["Records de chaleur", "Records de froid"],
@@ -246,7 +246,10 @@ const option = computed<ECOption>(() => {
         :option="option"
         :init-options="initOptions"
         :loading="adapter.pending.value"
-        :loading-options="{ text: 'Chargement…', color: '#3b82f6' }"
+        :loading-options="{
+            text: 'Chargement…',
+            color: mapColors.loadingSpinColor,
+        }"
         autoresize
     />
 </template>

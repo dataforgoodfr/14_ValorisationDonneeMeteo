@@ -5,24 +5,28 @@ export const TEMPERATURE_COLORS = {
     hot: "#d32F2F",
 };
 
-const DARK_COLORS = {
-    background: "#202d43",
-    foreground: "#6690a7",
-    transparent: "#202d4300",
-    cold: TEMPERATURE_COLORS.cold,
-    hot: TEMPERATURE_COLORS.hot,
-    splitLine: "rgba(255, 255, 255, 0.08)",
-};
-const LIGHT_COLORS = {
-    background: "#FFFFFF",
-    foreground: "#000000",
-    transparent: "#ffffff00",
-    cold: TEMPERATURE_COLORS.cold,
-    hot: TEMPERATURE_COLORS.hot,
-    splitLine: "rgba(0, 0, 0, 0.12)",
-};
-
 export function useMapColors() {
+    const DARK_COLORS = {
+        background: "#202d43",
+        foreground: "#6690a7",
+        transparent: "#202d4300",
+        cold: TEMPERATURE_COLORS.cold,
+        hot: TEMPERATURE_COLORS.hot,
+        splitLine: "rgba(255, 255, 255, 0.08)",
+        chartAccentColor: "#3a5080",
+        loadingSpinColor: "#3b82f6",
+    };
+    const LIGHT_COLORS = {
+        background: "#FFFFFF",
+        foreground: "#000000",
+        transparent: "#ffffff00",
+        cold: TEMPERATURE_COLORS.cold,
+        hot: TEMPERATURE_COLORS.hot,
+        splitLine: "rgba(0, 0, 0, 0.12)",
+        chartAccentColor: "#3a5080",
+        loadingSpinColor: "#3b82f6",
+    };
+
     const cm = useColorMode();
     return computed(() => (cm.value === "dark" ? DARK_COLORS : LIGHT_COLORS));
 }

@@ -161,7 +161,12 @@ const option = computed<ECOption>(() => {
                     fontWeight: "bold",
                 },
                 axisTick: { show: false },
-                axisLine: { lineStyle: { color: "#3a5080", width: 1 } },
+                axisLine: {
+                    lineStyle: {
+                        color: mapColors.value.chartAccentColor,
+                        width: 1,
+                    },
+                },
                 axisPointer: { type: "shadow" },
             }),
         ]),
@@ -219,7 +224,10 @@ const option = computed<ECOption>(() => {
         :option="option"
         :init-options="initOptions"
         :loading="adapter.pending.value"
-        :loading-options="{ text: 'Chargement…', color: '#3b82f6' }"
+        :loading-options="{
+            text: 'Chargement…',
+            color: mapColors.loadingSpinColor,
+        }"
         autoresize
     />
 </template>

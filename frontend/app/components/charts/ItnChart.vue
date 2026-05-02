@@ -463,7 +463,10 @@ const option = computed<ECOption>(() => {
         :option="option"
         :init-options="initOptions"
         :loading="adapter.pending.value"
-        :loading-options="{ text: 'Chargement…', color: '#3b82f6' }"
+        :loading-options="{
+            text: 'Chargement…',
+            color: mapColors.loadingSpinColor,
+        }"
         autoresize
     />
 </template>

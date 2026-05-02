@@ -232,7 +232,9 @@ export function useDeviationCalendarOption(
             data: xCategories,
             splitArea: { show: true },
             axisTick: { show: false },
-            axisLine: { lineStyle: { color: "#3a5080" } },
+            axisLine: {
+                lineStyle: { color: mapColors.value.chartAccentColor },
+            },
             axisLabel: {
                 color: "#000000",
                 fontSize: FONT_CHARTS.axis,
@@ -255,7 +257,9 @@ export function useDeviationCalendarOption(
             data: yCategories,
             splitArea: { show: true },
             axisTick: { show: false },
-            axisLine: { lineStyle: { color: "#3a5080" } },
+            axisLine: {
+                lineStyle: { color: mapColors.value.chartAccentColor },
+            },
             axisLabel: {
                 color: mapColors.value.foreground,
                 fontSize: FONT_CHARTS.axis,
@@ -309,7 +313,7 @@ export function useDeviationCalendarOption(
             color: [mapColors.value.cold, "#FFF", mapColors.value.hot],
         },
         textStyle: { color: mapColors.value.foreground },
-        handleStyle: { borderColor: "#3a5080" },
+        handleStyle: { borderColor: mapColors.value.chartAccentColor },
         seriesIndex: series.map((_, i) => i),
         text: ["+ chaud", "+ froid"],
         formatter: (val: unknown): string => {
