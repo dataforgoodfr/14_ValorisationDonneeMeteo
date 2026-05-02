@@ -33,7 +33,7 @@ const isOpen = ref(false);
                 </h1>
                 <UPopover v-model:open="isOpen">
                     <button
-                        class="text-blue-350 hover:text-blue-300 transition-colors cursor-pointer"
+                        class="text-blue-350 hover:text-blue-300 transition-colors cursor-pointer pl-2"
                         @mouseenter="isOpen = true"
                         @mouseleave="isOpen = false"
                     >
