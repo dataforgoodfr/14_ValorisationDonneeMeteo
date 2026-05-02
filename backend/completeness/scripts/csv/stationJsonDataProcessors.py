@@ -211,7 +211,7 @@ class StationDataProcessor:
             format="%d/%m/%Y",
             errors="coerce",
             dayfirst=True,
-        ).dt.year.astype("Int64")
+        )
 
         # Casting de station_code sous forme de string
         stations_creation_date_df["station_code"] = stations_creation_date_df[
