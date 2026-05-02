@@ -8,13 +8,21 @@ import {
 import { recordsHeroData, recordsSections } from "~/data/docRecords";
 import type { InfoSection } from "~/types/common";
 
+interface DocEntry {
+    title: string;
+    description: string;
+    sections: InfoSection[];
+    icon: string;
+    to: string;
+}
+
 const heroData = {
     title: "Documentation",
     description:
         "Retrouvez ici la documentation détaillée des métriques et indicateurs disponibles sur DataClimat : définitions, méthodes de calcul et sources.",
 };
 
-const docs = [
+const docs: DocEntry[] = [
     {
         ...itnHeroData,
         sections: itnSections,

@@ -56,14 +56,14 @@ export const itnSections: InfoSection[] = [
             "L'une des 30 stations de référence, celle de Reims, a dû changer entre 2012" +
             " et 2014 suite à la fermeture de la base aérienne 112 Reims-Champagne." +
             "\nL'ancienne station de Reims-Courcy a cessé ses mesures en 2014 tandis que la nouvelle station" +
-            " de Reims-Prunay a commencé ses relevés en 2012.Ces deux stations ont été en service" +
+            " de Reims-Prunay a commencé ses relevés en 2012. Ces deux stations ont été en service" +
             " simultanément du 08/05/2012 jusqu'au 24/04/2014, soit durant une période de 717 jours." +
             "\nAprès étude statistique des relevés de ces 2 stations, il apparaît que la température" +
             " TNTXM de la nouvelle station est en moyenne 0,29°C inférieure à celle de l'ancienne" +
             " station. Rapportée à la moyenne des 30 stations de référence, cette différence est" +
             " inférieure à 0,01°C, ce qui est négligeable par rapport à la précision de ±0,1°C de la" +
             " mesure de l'ITN.\nIl a donc été décidé, pour le calcul de l'ITN, concernant la station" +
-            "+ de Reims, d'utiliser la station de Reims-Courcy (code 51183001) jusqu'au 07/05/2012" +
+            " de Reims, d'utiliser la station de Reims-Courcy (code 51183001) jusqu'au 07/05/2012" +
             " inclus, puis celle de Reims-Prunay (code 51449002) à partir du 08/05/2012.",
     },
 ];

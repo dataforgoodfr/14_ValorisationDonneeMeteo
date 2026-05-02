@@ -20,7 +20,7 @@ export const recordsSections: InfoSection[] = [
                 title: "Records absolus",
                 text:
                     "Un records absolu est la (et l'unique) valeur de température la plus extrême jamais" +
-                    " mesurée sur la période d'anlyse sélectionnée",
+                    " mesurée sur la période d'analyse sélectionnée",
             },
             {
                 title: "Records battus",

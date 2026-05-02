@@ -40,7 +40,7 @@ export const ecartNormaleSections: InfoSection[] = [
                 title: "Écart à la normale mensuel/annuel ",
                 text:
                     "Les normales mensuelles/annuelles sont calculées en moyennant les normales" +
-                    " quotidennes pour chaque mois/année",
+                    " quotidiennes pour chaque mois/année",
             },
         ],
     },
