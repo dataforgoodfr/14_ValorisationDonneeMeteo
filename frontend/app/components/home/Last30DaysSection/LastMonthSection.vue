@@ -23,28 +23,25 @@ function getLastYearLast30Days(yesterday: Date): Date {
     return lastYearLast30Days;
 }
 
+const hotParameters = computed(() => ({
+    date_start: dateToStringYMD(yesterdayLess30Days.value),
+    date_end: dateToStringYMD(yesterday.value),
+    ordering: "-deviation",
+    limit: 1,
+}));
+
 const { data: hotDeviationData, status: hotDeviationStatus } =
-    useTemperatureDeviation(
-        {
-            date_start: dateToStringYMD(yesterdayLess30Days.value),
-            date_end: dateToStringYMD(yesterday.value),
-            ordering: "-deviation",
-            limit: 1,
-        },
-        undefined,
-        false,
-    );
+    useTemperatureDeviation(hotParameters, undefined, false);
+
+const coldParameters = computed(() => ({
+    date_start: dateToStringYMD(yesterdayLess30Days.value),
+    date_end: dateToStringYMD(yesterday.value),
+    ordering: "deviation",
+    limit: 1,
+}));
+
 const { data: coldDeviationData, status: coldDeviationStatus } =
-    useTemperatureDeviation(
-        {
-            date_start: dateToStringYMD(yesterdayLess30Days.value),
-            date_end: dateToStringYMD(yesterday.value),
-            ordering: "deviation",
-            limit: 1,
-        },
-        undefined,
-        false,
-    );
+    useTemperatureDeviation(coldParameters, undefined, false);
 const hotStation = computed(() => {
     return hotDeviationData.value?.stations[0] ?? null;
 });
@@ -60,24 +57,24 @@ const coldTypeRecords = ref<TypeRecords>("cold");
 const currentMonth = new Date().getMonth();
 
 // This month records
-const hotRecordsParams: TemperatureRecordsGraphParams = {
+const hotRecordsParams = computed<TemperatureRecordsGraphParams>(() => ({
     type_records: hotTypeRecords.value,
     granularity: "month",
     month: currentMonth,
     date_start: dateToStringYMD(yesterdayLess30Days.value),
     date_end: dateToStringYMD(yesterday.value),
     period_type: "month",
-};
+}));
 const { data: hotRecords } = useTemperatureRecordsGraph(hotRecordsParams);
 
-const coldRecordsParams: TemperatureRecordsGraphParams = {
+const coldRecordsParams = computed<TemperatureRecordsGraphParams>(() => ({
     type_records: coldTypeRecords.value,
     granularity: "month",
     month: currentMonth,
     date_start: dateToStringYMD(yesterdayLess30Days.value),
     date_end: dateToStringYMD(yesterday.value),
     period_type: "month",
-};
+}));
 const { data: coldRecords } = useTemperatureRecordsGraph(coldRecordsParams);
 const hotRecordsCount = computed(
     () =>
@@ -96,26 +93,30 @@ const coldRecordsCount = computed(
 const yesterdayLastYear = getYesterdayLastYear(yesterday.value);
 const lastYearLast30Days = getLastYearLast30Days(yesterdayLastYear);
 
-const lastYearHotRecordsParams: TemperatureRecordsGraphParams = {
-    type_records: hotTypeRecords.value,
-    granularity: "month",
-    month: currentMonth,
-    date_start: dateToStringYMD(lastYearLast30Days),
-    date_end: dateToStringYMD(yesterdayLastYear),
-    period_type: "month",
-};
+const lastYearHotRecordsParams = computed<TemperatureRecordsGraphParams>(
+    () => ({
+        type_records: hotTypeRecords.value,
+        granularity: "month",
+        month: currentMonth,
+        date_start: dateToStringYMD(lastYearLast30Days),
+        date_end: dateToStringYMD(yesterdayLastYear),
+        period_type: "month",
+    }),
+);
 const { data: lastYearHotRecords } = useTemperatureRecordsGraph(
     lastYearHotRecordsParams,
 );
 
-const lastYearColdRecordsParams: TemperatureRecordsGraphParams = {
-    type_records: coldTypeRecords.value,
-    granularity: "month",
-    month: currentMonth,
-    date_start: dateToStringYMD(lastYearLast30Days),
-    date_end: dateToStringYMD(yesterdayLastYear),
-    period_type: "month",
-};
+const lastYearColdRecordsParams = computed<TemperatureRecordsGraphParams>(
+    () => ({
+        type_records: coldTypeRecords.value,
+        granularity: "month",
+        month: currentMonth,
+        date_start: dateToStringYMD(lastYearLast30Days),
+        date_end: dateToStringYMD(yesterdayLastYear),
+        period_type: "month",
+    }),
+);
 const { data: lastYearColdRecords } = useTemperatureRecordsGraph(
     lastYearColdRecordsParams,
 );

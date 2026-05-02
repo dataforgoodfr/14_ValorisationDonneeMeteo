@@ -11,22 +11,22 @@ const hotTypeRecords = ref<TypeRecords>("hot");
 const coldTypeRecords = ref<TypeRecords>("cold");
 
 // Today records
-const hotRecordsParams: TemperatureRecordsGraphParams = {
+const hotRecordsParams = computed<TemperatureRecordsGraphParams>(() => ({
     type_records: hotTypeRecords.value,
     granularity: "day",
     date_start: dateToStringYMD(today.value),
     date_end: dateToStringYMD(today.value),
     period_type: "month",
-};
+}));
 const { data: hotRecords } = useTemperatureRecordsGraph(hotRecordsParams);
 
-const coldRecordsParams: TemperatureRecordsGraphParams = {
+const coldRecordsParams = computed<TemperatureRecordsGraphParams>(() => ({
     type_records: coldTypeRecords.value,
     granularity: "day",
     date_start: dateToStringYMD(today.value),
     date_end: dateToStringYMD(today.value),
     period_type: "month",
-};
+}));
 const { data: coldRecords } = useTemperatureRecordsGraph(coldRecordsParams);
 const hotRecordsCount = computed(
     () => hotRecords.value?.buckets[0]?.nb_records_battus ?? 0,
@@ -35,25 +35,29 @@ const coldRecordsCount = computed(
     () => coldRecords.value?.buckets[0]?.nb_records_battus ?? 0,
 );
 
-// Same day last year records
-const lastYearHotRecordsParams: TemperatureRecordsGraphParams = {
-    type_records: hotTypeRecords.value,
-    granularity: "day",
-    date_start: dateToStringYMD(lastYear.value),
-    date_end: dateToStringYMD(lastYear.value),
-    period_type: "month",
-};
+// Yesterday records
+const lastYearHotRecordsParams = computed<TemperatureRecordsGraphParams>(
+    () => ({
+        type_records: hotTypeRecords.value,
+        granularity: "day",
+        date_start: dateToStringYMD(lastYear.value),
+        date_end: dateToStringYMD(lastYear.value),
+        period_type: "month",
+    }),
+);
 const { data: lastYearHotRecords } = useTemperatureRecordsGraph(
     lastYearHotRecordsParams,
 );
 
-const lastYearColdRecordsParams: TemperatureRecordsGraphParams = {
-    type_records: coldTypeRecords.value,
-    granularity: "day",
-    date_start: dateToStringYMD(lastYear.value),
-    date_end: dateToStringYMD(lastYear.value),
-    period_type: "month",
-};
+const lastYearColdRecordsParams = computed<TemperatureRecordsGraphParams>(
+    () => ({
+        type_records: coldTypeRecords.value,
+        granularity: "day",
+        date_start: dateToStringYMD(lastYear.value),
+        date_end: dateToStringYMD(lastYear.value),
+        period_type: "month",
+    }),
+);
 const { data: lastYearColdRecords } = useTemperatureRecordsGraph(
     lastYearColdRecordsParams,
 );
