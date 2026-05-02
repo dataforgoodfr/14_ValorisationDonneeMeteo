@@ -134,77 +134,73 @@ const lastYearColdRecordsCount = computed(
 </script>
 
 <template>
-    <div>
-        <Section
-            :title="`CES 30 DERNIERS JOURS -  ${formatDateLongForDisplay(yesterdayLess30Days)} au ${formatDateLongForDisplay(yesterday)}`"
-        >
-            <h2 class="text-blue-700 dark:text-primary pb-2">
-                ECART DE TEMPÉRATURE A LA NORMALE
-            </h2>
-            <div
-                class="flex flex-col lg:flex-row gap-4 mt-2 mb-4 lg:items-start"
-            >
-                <HomeDeviationMap
-                    :date-start="dateStart"
-                    :date-end="dateEnd"
-                    class="w-full max-w-sm lg:flex-1 lg:max-w-none"
+    <Section
+        :title="`CES 30 DERNIERS JOURS -  ${formatDateLongForDisplay(yesterdayLess30Days)} au ${formatDateLongForDisplay(yesterday)}`"
+    >
+        <h2 class="text-blue-700 dark:text-primary pb-2">
+            ECART DE TEMPÉRATURE A LA NORMALE
+        </h2>
+        <div class="flex flex-col lg:flex-row gap-4 mt-2 mb-4 lg:items-start">
+            <HomeDeviationMap
+                :date-start="dateStart"
+                :date-end="dateEnd"
+                class="w-full max-w-sm lg:flex-1 lg:max-w-none"
+            />
+            <div class="flex flex-col gap-3 flex-1 min-w-0">
+                <p class="text-sm text-muted">
+                    Stations avec écart le plus important
+                </p>
+                <ExtremeCard
+                    hot-cold="hot"
+                    :loading="hotDeviationStatus === 'pending'"
+                    :temperature="
+                        hotStation
+                            ? formatDeviation(hotStation.deviation)
+                            : undefined
+                    "
+                    :city="hotStation?.station_name"
+                    :department-string="hotStation?.region"
+                    :department-number="hotStation?.department"
                 />
-                <div class="flex flex-col gap-3 flex-1 min-w-0">
-                    <p class="text-sm text-muted">
-                        Stations avec écart le plus important
-                    </p>
-                    <ExtremeCard
-                        hot-cold="hot"
-                        :loading="hotDeviationStatus === 'pending'"
-                        :temperature="
-                            hotStation
-                                ? formatDeviation(hotStation.deviation)
-                                : undefined
-                        "
-                        :city="hotStation?.station_name"
-                        :department-string="hotStation?.region"
-                        :department-number="hotStation?.department"
-                    />
-                    <ExtremeCard
-                        hot-cold="cold"
-                        :loading="coldDeviationStatus === 'pending'"
-                        :temperature="
-                            coldStation
-                                ? formatDeviation(coldStation.deviation)
-                                : undefined
-                        "
-                        :city="coldStation?.station_name"
-                        :department-string="coldStation?.region"
-                        :department-number="coldStation?.department"
-                    />
-                    <GoToDataLink :data-url="'/ecart-normale'" />
-                </div>
+                <ExtremeCard
+                    hot-cold="cold"
+                    :loading="coldDeviationStatus === 'pending'"
+                    :temperature="
+                        coldStation
+                            ? formatDeviation(coldStation.deviation)
+                            : undefined
+                    "
+                    :city="coldStation?.station_name"
+                    :department-string="coldStation?.region"
+                    :department-number="coldStation?.department"
+                />
+                <GoToDataLink :data-url="'/ecart-normale'" />
             </div>
-            <div class="border-b to-slate-200" />
-            <h2 class="text-blue-700 dark:text-primary pb-2 pt-1">
-                RECORDS DE TEMPÉRATURE MENSUELS
-            </h2>
-            <div class="flex gap-2 md:flex-row flex-col">
-                <TemperatureRecord
-                    :records="hotRecordsCount"
-                    :difference="hotRecordsCount - lastYearHotRecordsCount"
-                    type="hot"
-                    period="ces 30 derniers jours"
-                    title="Records de chaleur mensuels"
-                    tooltip-text="Nombre de stations ayant battu un record de chaleur mensuel au cours des 30 derniers jours"
-                    compare-to="année dernière"
-                />
-                <TemperatureRecord
-                    :records="coldRecordsCount"
-                    :difference="coldRecordsCount - lastYearColdRecordsCount"
-                    type="cold"
-                    period="les 30 derniers jours"
-                    title="Records de froid mensuels"
-                    tooltip-text="Nombre de stations ayant battu un record de froid mensuel au cours des 30 derniers jours"
-                    compare-to="année dernière"
-                />
-            </div>
-            <GoToDataLink :data-url="'/records'" />
-        </Section>
-    </div>
+        </div>
+        <div class="border-b to-slate-200" />
+        <h2 class="text-blue-700 dark:text-primary pb-2 pt-1">
+            RECORDS DE TEMPÉRATURE MENSUELS
+        </h2>
+        <div class="flex gap-2 md:flex-row flex-col">
+            <TemperatureRecord
+                :records="hotRecordsCount"
+                :difference="hotRecordsCount - lastYearHotRecordsCount"
+                type="hot"
+                period="ces 30 derniers jours"
+                title="Records de chaleur mensuels"
+                tooltip-text="Nombre de stations ayant battu un record de chaleur mensuel au cours des 30 derniers jours"
+                compare-to="année dernière"
+            />
+            <TemperatureRecord
+                :records="coldRecordsCount"
+                :difference="coldRecordsCount - lastYearColdRecordsCount"
+                type="cold"
+                period="les 30 derniers jours"
+                title="Records de froid mensuels"
+                tooltip-text="Nombre de stations ayant battu un record de froid mensuel au cours des 30 derniers jours"
+                compare-to="année dernière"
+            />
+        </div>
+        <GoToDataLink :data-url="'/records'" />
+    </Section>
 </template>

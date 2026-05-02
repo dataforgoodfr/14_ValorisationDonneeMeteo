@@ -6,6 +6,7 @@ import Last2YearsDeviationChart from "./Last2YearsDeviationChart.vue";
 import OngoingPeakCard from "./OngoingPeakCard.vue";
 </script>
 <template>
+<<<<<<< HEAD
     <div class="h-full">
         <Section :title="'LES INFORMATIONS À RETENIR'">
             <div class="flex flex-col gap-5 md:flex-row">
@@ -18,4 +19,16 @@ import OngoingPeakCard from "./OngoingPeakCard.vue";
             </div>
         </Section>
     </div>
+=======
+    <Section :title="'LES INFORMATIONS À RETENIR'">
+        <div class="flex flex-col gap-5 md:flex-row">
+            <ITNCard />
+            <ItnDayRankCard />
+            <OngoingPeakCard />
+        </div>
+        <div class="flex flex-col gap-5 md:flex-row">
+            <Last2YearsDeviationChart />
+        </div>
+    </Section>
+>>>>>>> 979c8cc (chore: remove unnecessary div)
 </template>
