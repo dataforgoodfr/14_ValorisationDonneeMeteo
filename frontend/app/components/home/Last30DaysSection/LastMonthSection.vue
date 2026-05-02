@@ -142,14 +142,14 @@ const lastYearColdRecordsCount = computed(
                 ECART DE TEMPÉRATURE A LA NORMALE
             </h2>
             <div
-                class="flex flex-col md:flex-row gap-6 mt-2 mb-4 md:items-start"
+                class="flex flex-col lg:flex-row gap-4 mt-2 mb-4 lg:items-start"
             >
                 <HomeDeviationMap
                     :date-start="dateStart"
                     :date-end="dateEnd"
-                    class="w-full md:w-91 md:shrink-0"
+                    class="w-full max-w-sm lg:w-72 lg:max-w-none lg:shrink-0"
                 />
-                <div class="flex flex-col gap-3">
+                <div class="flex flex-col gap-3 flex-1 min-w-0">
                     <p class="text-sm text-muted">
                         Stations avec écart le plus important
                     </p>

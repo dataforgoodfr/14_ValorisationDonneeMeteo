@@ -4,8 +4,7 @@
         :color-config="DEVIATION_MAP_MONTHLY_COLORS"
         :tooltip-formatter="tooltipFormatter"
         legend-label="Température (°C)"
-        height="380px"
-        :show-controls="false"
+        aspect-ratio="1"
     />
 </template>
 

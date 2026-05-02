@@ -3,7 +3,7 @@
         <div
             ref="mapContainer"
             class="w-full rounded-lg overflow-hidden"
-            :style="{ height }"
+            :style="aspectRatio ? { aspectRatio } : { height }"
         />
         <div class="flex flex-col items-center gap-1">
             <span class="text-xs" :style="{ color: mapColors.foreground }">{{
@@ -56,9 +56,10 @@ const props = withDefaults(
         tooltipFormatter: MapTooltipFormatter;
         legendLabel: string;
         height?: string;
+        aspectRatio?: string;
         showControls?: boolean;
     }>(),
-    { height: "700px", showControls: true },
+    { height: "700px", aspectRatio: undefined, showControls: true },
 );
 
 const legendGradient = computed(() =>
