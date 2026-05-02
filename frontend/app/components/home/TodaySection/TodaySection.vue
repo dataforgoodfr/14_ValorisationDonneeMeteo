@@ -3,7 +3,7 @@ import type { TemperatureRecordsGraphParams, TypeRecords } from "~/types/api";
 import GoToDataLink from "../GoToDataLink.vue";
 import Section from "../Section.vue";
 import TemperatureRecord from "../TemperatureRecord.vue";
-import ExtremeCard from "../ExtremeCard.vue";
+// import ExtremeCard from "../ExtremeCard.vue";
 
 const { today, lastYear } = useCustomDate();
 
@@ -65,9 +65,10 @@ const lastYearColdRecordsCount = computed(
 );
 </script>
 <template>
-    <div>
+    <div class="h-full">
         <Section :title="`AUJOURD'HUI - ${formatDateLongForDisplay(today)}`">
-            <h2 class="text-blue-700 pb-2 dark:text-primary">
+            <!-- Commenter jusqu'à ce que ca soit dispo -->
+            <!-- <h2 class="text-blue-700 pb-2 dark:text-primary">
                 MIN-MAX DU JOUR
             </h2>
             <div class="flex flex-col gap-2">
@@ -76,7 +77,7 @@ const lastYearColdRecordsCount = computed(
             </div>
             <GoToDataLink :data-url="'/itn'" />
 
-            <div class="border-b to-slate-200" />
+            <div class="border-b to-slate-200" /> -->
 
             <h2 class="text-blue-700 dark:text-primary pb-2 pt-1">
                 RECORDS DE TEMPÉRATURE MENSUELS

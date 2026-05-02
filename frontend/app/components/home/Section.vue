@@ -5,13 +5,15 @@ interface Props {
 const props = defineProps<Props>();
 </script>
 <template>
-    <div class="flex flex-col min-h-5 pb-20">
+    <div class="flex flex-col min-h-5 pb-20 h-full">
         <h3
             class="flex items-center gap-2 text-blue-700 dark:text-blue-350 font-bold"
         >
             {{ props.title }}
         </h3>
-        <div class="wrapper py-8 px-4 rounded-xl bg-blue-50 dark:bg-dark-850">
+        <div
+            class="wrapper py-8 px-4 rounded-xl bg-blue-50 dark:bg-dark-850 flex-1"
+        >
             <slot name="default" />
         </div>
     </div>
