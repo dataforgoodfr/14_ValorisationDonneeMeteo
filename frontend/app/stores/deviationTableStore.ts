@@ -16,7 +16,7 @@ type DeviationTableFilters = {
     deviation?: RangeFilterValue;
     temperatureMean?: RangeFilterValue;
     classe?: RangeFilterValue;
-    date_de_creation?: RangeFilterValue;
+    anneeDeCreation?: RangeFilterValue;
 };
 
 const dates = useCustomDate();
