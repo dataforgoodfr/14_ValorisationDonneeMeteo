@@ -29,10 +29,17 @@ export const EXPORT_BTN_UI = {
 
 export const TEMPERATURE_BADGE_SIZE = "lg";
 
-export const HOT_BADGE_CLASS =
-    "bg-rose-200 ring-1 ring-red-450/25 text-rose-600";
-export const COLD_BADGE_CLASS =
-    "bg-slate-200 ring-1 ring-blue-350/25 text-blue-650 dark:text-blue-700";
+export const HOT_TEXT_CLASS = "text-rose-600";
+export const COLD_TEXT_CLASS = "text-blue-650 dark:text-blue-700";
+
+export const HOT_BG_CLASS = "bg-rose-200";
+export const COLD_BG_CLASS = "bg-blue-200";
+
+export const HOT_BADGE_CLASS = `${HOT_BG_CLASS} ring-1 ring-red-450/25 ${HOT_TEXT_CLASS}`;
+export const COLD_BADGE_CLASS = `bg-slate-200 ring-1 ring-blue-350/25 ${COLD_TEXT_CLASS}`;
+
+export const HOT_ACTIVE_BTN_CLASS = `${HOT_BG_CLASS} ring-1 ring-rose-300 pointer-events-none ${HOT_TEXT_CLASS}`;
+export const COLD_ACTIVE_BTN_CLASS = `${COLD_BG_CLASS} text-blue-650! dark:text-blue-700! ring-1 ring-blue-300 pointer-events-none`;
 
 export const HOT_BORDER_CLASS = "border-red-450/20";
 export const COLD_BORDER_CLASS = "border-blue-350/20";

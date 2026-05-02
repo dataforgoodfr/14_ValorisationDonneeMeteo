@@ -1,5 +1,7 @@
 <script setup lang="ts">
 import Card from "./Card.vue";
+import { HOT_TEXT_CLASS, COLD_TEXT_CLASS } from "~/constants/tableUtils";
+
 interface Props {
     period?: string;
     title: string;
@@ -19,13 +21,13 @@ const props = defineProps<Props>();
                 <span
                     class="text-4xl font-semibold"
                     :class="
-                        props.type === 'hot' ? 'text-red-400' : 'text-blue-600'
+                        props.type === 'hot' ? HOT_TEXT_CLASS : COLD_TEXT_CLASS
                     "
                     >{{ props.records }}</span
                 >
                 <span
                     :class="
-                        props.type === 'hot' ? 'text-red-400' : 'text-blue-600'
+                        props.type === 'hot' ? HOT_TEXT_CLASS : COLD_TEXT_CLASS
                     "
                 >
                     records</span
