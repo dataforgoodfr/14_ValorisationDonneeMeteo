@@ -1,5 +1,6 @@
 import type { TemperatureRecordsGraphResponse } from "~/types/api";
 import type { GranularityType } from "~/components/ui/commons/selectBar/types";
+import { regions } from "~/data/records/regions";
 import type { BarSeriesOption, ScatterSeriesOption } from "echarts/charts";
 
 export function scatterSeries(
@@ -79,25 +80,32 @@ function recordsForTerritory(
     territory: { type: string; id: string },
     data: TemperatureRecordsGraphResponse,
 ): { hot: RecordEntry[]; cold: RecordEntry[] } {
-    if (territory.type !== "STATION") {
+    let predicate: (r: (typeof data.records)[number]) => boolean;
+
+    if (territory.type === "STATION") {
+        predicate = (r) => r.station_id === territory.id;
+    } else if (territory.type === "DEPARTMENT") {
+        predicate = (r) => r.department === territory.id;
+    } else if (territory.type === "REGION") {
+        const depts = new Set(
+            regions.find((reg) => reg.code === territory.id)?.departements ??
+                [],
+        );
+        predicate = (r) => depts.has(r.department);
+    } else {
         return { hot: flattenHotRecords(data), cold: flattenColdRecords(data) };
     }
+
     return {
         hot: data.records
-            .filter(
-                (r) =>
-                    r.type_records === "hot" && r.station_id === territory.id,
-            )
+            .filter((r) => r.type_records === "hot" && predicate(r))
             .map((r) => ({
                 date: r.date,
                 value: r.valeur,
                 station: r.station_name,
             })),
         cold: data.records
-            .filter(
-                (r) =>
-                    r.type_records === "cold" && r.station_id === territory.id,
-            )
+            .filter((r) => r.type_records === "cold" && predicate(r))
             .map((r) => ({
                 date: r.date,
                 value: r.valeur,

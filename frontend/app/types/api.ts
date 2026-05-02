@@ -394,6 +394,7 @@ export interface TemperatureRecordsGraphRecord {
     date: string;
     station_id: string;
     station_name: string;
+    department: string;
     type_records: "hot" | "cold";
     valeur: number;
 }

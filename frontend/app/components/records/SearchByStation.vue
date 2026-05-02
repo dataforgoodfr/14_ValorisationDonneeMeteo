@@ -19,7 +19,7 @@ const debouncedSearch = refDebounced(searchQueryRef, 300);
 
 const params = computed(() => ({
     search: debouncedSearch.value,
-    first_temperature_year_max: new Date().getFullYear() - 50,
+    // first_temperature_year_max: new Date().getFullYear() - 50,
 }));
 
 const { allStations, onLoadMore, hasMore } =

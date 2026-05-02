@@ -177,7 +177,16 @@ export const useRecordsChartStore = defineStore("recordChartStore", () => {
     };
 
     function setDepartmentFilter(department: { code: string; name: string }) {
+        if (
+            selectedElements.value.some(
+                (el) =>
+                    el.type === TerritoryFilterType.DEPARTMENT &&
+                    el.id === department.code,
+            )
+        )
+            return;
         selectedElements.value = [
+            ...selectedElements.value,
             {
                 id: department.code,
                 value: `${department.name} (${department.code})`,
@@ -206,7 +215,16 @@ export const useRecordsChartStore = defineStore("recordChartStore", () => {
     }
 
     function setRegionFilter(region: { code: string; name: string }) {
+        if (
+            selectedElements.value.some(
+                (el) =>
+                    el.type === TerritoryFilterType.REGION &&
+                    el.id === region.code,
+            )
+        )
+            return;
         selectedElements.value = [
+            ...selectedElements.value,
             {
                 id: region.code,
                 value: region.name,
