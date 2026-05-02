@@ -10,7 +10,7 @@ const debouncedSearch = refDebounced(searchQuery, 300);
 
 const params = computed(() => ({
     search: debouncedSearch.value,
-    // first_temperature_year_max: 1997,
+    first_temperature_year_max: 1997,
 }));
 const { allStations, onLoadMore, hasMore } =
     useStationsWithInfiniteScroll(params);
