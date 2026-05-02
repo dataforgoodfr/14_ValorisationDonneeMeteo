@@ -166,7 +166,7 @@ const lastYearColdRecordsCount = computed(
             <GoToDataLink :data-url="'/ecart-normale'" />
             <div class="border-b to-slate-200" />
             <h2 class="text-blue-700 dark:text-primary pb-2 pt-1">
-                RECORDS MENSUELS DE TEMPÉRATURE
+                RECORDS DE TEMPÉRATURE MENSUELS
             </h2>
             <div class="flex gap-2 md:flex-row flex-col">
                 <TemperatureRecord
@@ -174,8 +174,8 @@ const lastYearColdRecordsCount = computed(
                     :difference="hotRecordsCount - lastYearHotRecordsCount"
                     type="hot"
                     period="ces 30 derniers jours"
-                    title="Records mensuels de chaleur"
-                    tooltip-text="Nombre de stations ayant battu un record mensuel de chaleur au cours des 30 derniers jours"
+                    title="Records de chaleur mensuels"
+                    tooltip-text="Nombre de stations ayant battu un record de chaleur mensuel au cours des 30 derniers jours"
                     compare-to="année dernière"
                 />
                 <TemperatureRecord
@@ -183,8 +183,8 @@ const lastYearColdRecordsCount = computed(
                     :difference="coldRecordsCount - lastYearColdRecordsCount"
                     type="cold"
                     period="les 30 derniers jours"
-                    title="Records mensuels de froid"
-                    tooltip-text="Nombre de stations ayant battu un record mensuel de froid au cours des 30 derniers jours"
+                    title="Records de froid mensuels"
+                    tooltip-text="Nombre de stations ayant battu un record de froid mensuel au cours des 30 derniers jours"
                     compare-to="année dernière"
                 />
             </div>
