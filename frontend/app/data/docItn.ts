@@ -12,7 +12,7 @@ export const itnSections: InfoSection[] = [
         content:
             "L'Indicateur Thermique National (ITN) permet de mesurer l'évolution de la" +
             " température moyenne en France métropolitaine. L'ITN est calculé à partir" +
-            " des données de 30 stations définies par MétéoFrance qui existent depuis au" +
+            " des données de 30 stations définies par Météo-France qui existent depuis au" +
             " moins 1945 et qui sont considérées comme suffisamment fiables. Ces stations" +
             " sont réparties dans des zones de plaines et à l'abri des microclimats locaux" +
             " qui pourraient biaiser la valeur de cet indicateur national.",
@@ -48,7 +48,7 @@ export const itnSections: InfoSection[] = [
     {
         label: "Sources",
         content:
-            "Les données sont issues de mesures open source de Meteo France",
+            "Les données sont issues de mesures open source de Météo-France",
     },
     {
         label: "Nota Bene",

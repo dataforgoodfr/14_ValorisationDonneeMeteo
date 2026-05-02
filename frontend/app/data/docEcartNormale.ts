@@ -56,7 +56,7 @@ export const ecartNormaleSections: InfoSection[] = [
     {
         label: "Sources",
         content:
-            "- Les données sont issues de mesures open source de Meteo France" +
+            "- Les données sont issues de mesures open source de Météo-France" +
             "\n- Informations sur les normales climatiques: https://donneespubliques.meteofrance.fr/client/document/normales-methode_299.pdf)" +
             " https://meteofrance.com/, https://fr.wikipedia.org/wiki/Normale_climatique)" +
             "\n- Classe des stations: https://www.data.gouv.fr/datasets/fiches-dinformations-sur-les-stations",

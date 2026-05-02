@@ -17,7 +17,7 @@ const faqItems: AccordionItem[] = [
     {
         label: "D'où proviennent les données ?",
         content:
-            "Les données sont issues des mesures open source de MétéoFrance. Elles couvrent un réseau de stations météorologiques réparties sur l'ensemble du territoire français.",
+            "Les données sont issues des mesures open source de Météo-France. Elles couvrent un réseau de stations météorologiques réparties sur l'ensemble du territoire français.",
     },
     {
         label: "À quelle fréquence les données sont-elles mises à jour ?",
@@ -37,12 +37,12 @@ const faqItems: AccordionItem[] = [
     {
         label: "Qu'est-ce que l'Indicateur Thermique National (ITN) ?",
         content:
-            "L'ITN est la température moyenne quotidienne de la France métropolitaine, calculée à partir de 30 stations de référence définies par MétéoFrance. Ces stations existent depuis au moins 1945 et sont situées en plaine, à l'abri des microclimats locaux, pour garantir une mesure représentative à l'échelle nationale.",
+            "L'ITN est la température moyenne quotidienne de la France métropolitaine, calculée à partir de 30 stations de référence définies par Météo-France. Ces stations existent depuis au moins 1945 et sont situées en plaine, à l'abri des microclimats locaux, pour garantir une mesure représentative à l'échelle nationale.",
     },
     {
         label: "Pourquoi certaines stations ne disposent-elles pas de normale calculée ?",
         content:
-            "Pour qu'une station soit éligible au calcul d'un écart à la normale, elle doit remplir deux conditions : avoir au moins 24 années de données sur la période 1991–2020, et avoir une classe de qualité de mesure de température comprise entre 1 et 4 selon la classification de MétéoFrance.",
+            "Pour qu'une station soit éligible au calcul d'un écart à la normale, elle doit remplir deux conditions : avoir au moins 24 années de données sur la période 1991–2020, et avoir une classe de qualité de mesure de température comprise entre 1 et 4 selon la classification de Météo-France.",
     },
     {
         label: "Qu'est-ce qu'un record de température ?",

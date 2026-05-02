@@ -8,7 +8,7 @@ const { yesterday, yesterdayLastYear } = useCustomDate();
 <template>
     <Card
         :title="`ITN Hier -  ${yesterday?.toLocaleDateString('fr-FR', { dateStyle: 'long' })}`"
-        :tooltip-text="'L\'Indicateur Thermique National correspond à la température moyenne mesurée en France Métropolitaine à partir de 30 stations définies par MétéoFrance.'"
+        :tooltip-text="'L\'Indicateur Thermique National correspond à la température moyenne mesurée en France Métropolitaine à partir de 30 stations définies par Météo-France.'"
     >
         <template #kpi>
             <p
