@@ -5,7 +5,7 @@ import Section from "../Section.vue";
 import TemperatureRecord from "../TemperatureRecord.vue";
 import ExtremeCard from "../ExtremeCard.vue";
 
-const { today, yesterday } = useCustomDate();
+const { today, lastYear } = useCustomDate();
 
 const hotTypeRecords = ref<TypeRecords>("hot");
 const coldTypeRecords = ref<TypeRecords>("cold");
@@ -35,33 +35,33 @@ const coldRecordsCount = computed(
     () => coldRecords.value?.buckets[0]?.nb_records_battus ?? 0,
 );
 
-// Yesterday records
-const yesterdayHotRecordsParams: TemperatureRecordsGraphParams = {
+// Same day last year records
+const lastYearHotRecordsParams: TemperatureRecordsGraphParams = {
     type_records: hotTypeRecords.value,
     granularity: "day",
-    date_start: dateToStringYMD(yesterday.value),
-    date_end: dateToStringYMD(yesterday.value),
+    date_start: dateToStringYMD(lastYear.value),
+    date_end: dateToStringYMD(lastYear.value),
     period_type: "month",
 };
-const { data: yesterdayHotRecords } = useTemperatureRecordsGraph(
-    yesterdayHotRecordsParams,
+const { data: lastYearHotRecords } = useTemperatureRecordsGraph(
+    lastYearHotRecordsParams,
 );
 
-const yesterdayColdRecordsParams: TemperatureRecordsGraphParams = {
+const lastYearColdRecordsParams: TemperatureRecordsGraphParams = {
     type_records: coldTypeRecords.value,
     granularity: "day",
-    date_start: dateToStringYMD(yesterday.value),
-    date_end: dateToStringYMD(yesterday.value),
+    date_start: dateToStringYMD(lastYear.value),
+    date_end: dateToStringYMD(lastYear.value),
     period_type: "month",
 };
-const { data: yesterdayColdRecords } = useTemperatureRecordsGraph(
-    yesterdayColdRecordsParams,
+const { data: lastYearColdRecords } = useTemperatureRecordsGraph(
+    lastYearColdRecordsParams,
 );
-const yesterdayHotRecordsCount = computed(
-    () => yesterdayHotRecords.value?.buckets[0]?.nb_records_battus ?? 0,
+const lastYearHotRecordsCount = computed(
+    () => lastYearHotRecords.value?.buckets[0]?.nb_records_battus ?? 0,
 );
-const yesterdayColdRecordsCount = computed(
-    () => yesterdayColdRecords.value?.buckets[0]?.nb_records_battus ?? 0,
+const lastYearColdRecordsCount = computed(
+    () => lastYearColdRecords.value?.buckets[0]?.nb_records_battus ?? 0,
 );
 </script>
 <template>
@@ -84,19 +84,19 @@ const yesterdayColdRecordsCount = computed(
             <div class="flex gap-2 md:flex-row flex-col">
                 <TemperatureRecord
                     :records="hotRecordsCount"
-                    :difference="hotRecordsCount - yesterdayHotRecordsCount"
+                    :difference="hotRecordsCount - lastYearHotRecordsCount"
                     type="hot"
                     title="Records mensuels de chaleur"
                     tooltip-text="Nombre de stations ayant battu un record mensuel de chaleur aujourd'hui"
-                    compare-to="hier"
+                    compare-to="même jour l'an dernier"
                 />
                 <TemperatureRecord
                     :records="coldRecordsCount"
-                    :difference="coldRecordsCount - yesterdayColdRecordsCount"
+                    :difference="coldRecordsCount - lastYearColdRecordsCount"
                     type="cold"
                     title="Records mensuels de froid"
                     tooltip-text="Nombre de stations ayant battu un record mensuel de froid aujourd'hui"
-                    compare-to="hier"
+                    compare-to="même jour l'an dernier"
                 />
             </div>
             <GoToDataLink :data-url="'/records'" />
