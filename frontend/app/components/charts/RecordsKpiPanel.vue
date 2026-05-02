@@ -5,7 +5,7 @@
             :tooltip-text="`Nombre de records de chaleur ${kindLabel.toLowerCase()} en France entre le ${formattedStart} et le ${formattedEnd}.`"
         >
             <template #kpi>
-                <p class="font-semibold text-4xl mb-1" :class="HOT_TEXT_CLASS">
+                <p class="font-semibold text-4xl mb-1 text-rose-600">
                     {{ hotCount }}
                 </p>
             </template>
@@ -19,7 +19,7 @@
             :tooltip-text="`Nombre de records de froid ${kindLabel.toLowerCase()} en France entre le ${formattedStart} et le ${formattedEnd}.`"
         >
             <template #kpi>
-                <p class="font-semibold text-4xl mb-1" :class="COLD_TEXT_CLASS">
+                <p class="font-semibold text-4xl mb-1 text-blue-700">
                     {{ coldCount }}
                 </p>
             </template>
@@ -32,7 +32,6 @@
 
 <script setup lang="ts">
 import Card from "~/components/home/Card.vue";
-import { HOT_TEXT_CLASS, COLD_TEXT_CLASS } from "~/constants/tableUtils";
 import type { SelectBarAdapter } from "~/components/ui/commons/selectBar/types";
 import type { TemperatureRecordsGraphResponse } from "~/types/api";
 
