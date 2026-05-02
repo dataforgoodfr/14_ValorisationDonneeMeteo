@@ -131,7 +131,7 @@ const infoPanelSections: InfoSection[] = [
             <hr class="border-accented" />
 
             <div
-                v-if="tableStore.pending"
+                v-if="tableStore.isDatePending"
                 class="flex items-center justify-center min-h-32"
             >
                 <UIcon
