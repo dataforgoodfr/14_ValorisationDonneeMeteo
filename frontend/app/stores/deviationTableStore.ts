@@ -234,6 +234,14 @@ export const useDeviationTableStore = defineStore("deviationTableStore", () => {
         error,
     } = useTemperatureDeviation(params, undefined, false);
 
+    const isDatePending = ref(false);
+    watch([dateStart, dateEnd], () => {
+        isDatePending.value = true;
+    });
+    watch(pending, (val) => {
+        if (!val) isDatePending.value = false;
+    });
+
     const exportParams = computed<TemperatureDeviationParams>(() => {
         const { limit: _limit, offset: _offset, ...rest } = params.value;
         return rest;
@@ -249,6 +257,7 @@ export const useDeviationTableStore = defineStore("deviationTableStore", () => {
         deviationData,
         exportParams,
         pending,
+        isDatePending,
         error,
         dateStart,
         dateEnd,

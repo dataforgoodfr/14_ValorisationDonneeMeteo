@@ -26,6 +26,7 @@ const {
     filteredRecords,
     filteredCount,
     pending,
+    isDatePending,
     error,
 } = storeToRefs(store);
 
@@ -185,7 +186,7 @@ const columns = [
         <UTable
             :data="tableData"
             :columns="columns"
-            :loading="pending"
+            :loading="isDatePending"
             class="flex-1"
         />
 

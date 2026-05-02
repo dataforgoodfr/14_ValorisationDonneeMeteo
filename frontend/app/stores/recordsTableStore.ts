@@ -276,6 +276,14 @@ export const useRecordsTableStore = defineStore("recordsTableStore", () => {
         computed(() => ({ ...params.value, page_size: 9999 })),
     );
 
+    const isDatePending = ref(false);
+    watch([typeRecords, periodSelection], () => {
+        isDatePending.value = true;
+    });
+    watch(pending, (val) => {
+        if (!val) isDatePending.value = false;
+    });
+
     const absoluteRecords = computed<TemperatureRecordFlatEntry[]>(() => {
         return computeAbsoluteRecords(
             rawRecords.value?.results ?? [],
@@ -368,6 +376,7 @@ export const useRecordsTableStore = defineStore("recordsTableStore", () => {
         filteredRecords,
         filteredCount,
         pending,
+        isDatePending,
         error,
     };
 });

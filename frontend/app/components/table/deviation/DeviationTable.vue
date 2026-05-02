@@ -34,6 +34,7 @@ const {
     deviationData,
     exportParams,
     pending,
+    isDatePending,
     error,
     dateStart,
     dateEnd,
@@ -188,7 +189,7 @@ const columns = [
         <UTable
             :data="tableData"
             :columns="columns"
-            :loading="pending"
+            :loading="isDatePending"
             class="flex-1"
         />
 
