@@ -65,10 +65,9 @@ const lastYearColdRecordsCount = computed(
 );
 </script>
 <template>
-    <div class="h-full">
-        <Section :title="`AUJOURD'HUI - ${formatDateLongForDisplay(today)}`">
-            <!-- Commenter jusqu'à ce que ca soit dispo -->
-            <!-- <h2 class="text-blue-700 pb-2 dark:text-primary">
+    <Section :title="`AUJOURD'HUI - ${formatDateLongForDisplay(today)}`">
+        <!-- Commenter jusqu'à ce que ca soit dispo -->
+        <!-- <h2 class="text-blue-700 pb-2 dark:text-primary">
                 MIN-MAX DU JOUR
             </h2>
             <div class="flex flex-col gap-2">
@@ -79,29 +78,28 @@ const lastYearColdRecordsCount = computed(
 
             <div class="border-b to-slate-200" /> -->
 
-            <h2 class="text-blue-700 dark:text-primary pb-2 pt-1">
-                RECORDS DE TEMPÉRATURE MENSUELS
-            </h2>
-            <div class="flex gap-2 md:flex-row flex-col">
-                <TemperatureRecord
-                    :records="hotRecordsCount"
-                    :difference="hotRecordsCount - lastYearHotRecordsCount"
-                    type="hot"
-                    title="Records de chaleur mensuels"
-                    tooltip-text="Nombre de stations ayant battu un record mensuel de chaleur aujourd'hui"
-                    compare-to="même jour l'an dernier"
-                />
-                <TemperatureRecord
-                    :records="coldRecordsCount"
-                    :difference="coldRecordsCount - lastYearColdRecordsCount"
-                    type="cold"
-                    title="Records de froid mensuels"
-                    tooltip-text="Nombre de stations ayant battu un record mensuel de froid aujourd'hui"
-                    compare-to="même jour l'an dernier"
-                />
-            </div>
-            <GoToDataLink :data-url="'/records'" />
-        </Section>
-    </div>
+        <h2 class="text-blue-700 dark:text-primary pb-2 pt-1">
+            RECORDS DE TEMPÉRATURE MENSUELS
+        </h2>
+        <div class="flex gap-2 md:flex-row flex-col">
+            <TemperatureRecord
+                :records="hotRecordsCount"
+                :difference="hotRecordsCount - lastYearHotRecordsCount"
+                type="hot"
+                title="Records de chaleur mensuels"
+                tooltip-text="Nombre de stations ayant battu un record mensuel de chaleur aujourd'hui"
+                compare-to="même jour l'an dernier"
+            />
+            <TemperatureRecord
+                :records="coldRecordsCount"
+                :difference="coldRecordsCount - lastYearColdRecordsCount"
+                type="cold"
+                title="Records de froid mensuels"
+                tooltip-text="Nombre de stations ayant battu un record mensuel de froid aujourd'hui"
+                compare-to="même jour l'an dernier"
+            />
+        </div>
+        <GoToDataLink :data-url="'/records'" />
+    </Section>
 </template>
 <style lang="css" scoped></style>

@@ -42,7 +42,7 @@ const renderer = ref<"svg" | "canvas">("canvas");
 const initOptions = computed(() => ({
     height: 250,
     locale: "FR",
-    width: 600,
+    width: "auto",
     renderer: renderer.value,
 }));
 provide(INIT_OPTIONS_KEY, initOptions);
@@ -169,7 +169,10 @@ const barOption = computed<ECOption>(() => {
         :update-options="{ notMerge: true }"
         :init-options="initOptions"
         :loading="pending"
-        :loading-options="{ text: 'Chargement…', color: LOADING_SPIN_COLOR }"
+        :loading-options="{
+            text: 'Chargement…',
+            color: mapColors.loadingSpinColor,
+        }"
         autoresize
         class="mt-5"
     />
