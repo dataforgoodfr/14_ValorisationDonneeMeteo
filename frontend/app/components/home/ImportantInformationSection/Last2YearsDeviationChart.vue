@@ -40,8 +40,9 @@ const mapColors = useMapColors();
 const renderer = ref<"svg" | "canvas">("canvas");
 
 const initOptions = computed(() => ({
-    height: 600,
+    height: 250,
     locale: "FR",
+    width: 600,
     renderer: renderer.value,
 }));
 provide(INIT_OPTIONS_KEY, initOptions);
@@ -69,11 +70,9 @@ const barOption = computed<ECOption>(() => {
     if (!data) return {};
 
     const nationalData = data.national.data;
-    console.log("nationalData", nationalData);
-    const plotAmountToDisplay = 1;
 
     const option: ECOption = {
-        dataset: nationalData.map(() => ({
+        dataset: {
             dimensions: [
                 "date",
                 "deviation_positive",
@@ -87,32 +86,24 @@ const barOption = computed<ECOption>(() => {
                     deviation_negative: p.deviation < 0 ? p.deviation : null,
                     station_id: "national",
                 })) ?? [],
-        })),
-        grid: nationalData.map((_, index) => ({
-            top: `${index * (100 / plotAmountToDisplay) + 3}%`,
-            height: `${100 / plotAmountToDisplay - 10}%`,
+        },
+        grid: {
+            top: 3,
+            height: "90%",
             left: 30,
             right: 10,
             containLabel: true,
-        })),
-        xAxis: nationalData.map((_, index) => ({
+        },
+        xAxis: {
             type: "time",
-            gridIndex: index,
             axisTick: { show: false },
             nameLocation: "middle",
-            nameGap: 25,
-            nameTextStyle: {
-                fontSize: FONT_CHARTS.axisName,
-                fontWeight: "bold",
-            },
             axisPointer: { type: "line", label: { show: false } },
-        })),
-        yAxis: nationalData.map((_, index) => ({
+        },
+        yAxis: {
             type: "value",
-            gridIndex: index,
             splitNumber: 3,
             name: "Écart à la normale (°C)",
-            nameRotate: 90,
             nameLocation: "middle",
             nameGap: 40,
             nameTextStyle: {
@@ -123,41 +114,35 @@ const barOption = computed<ECOption>(() => {
             splitLine: {
                 lineStyle: { type: "dashed", color: mapColors.value.splitLine },
             },
-        })),
-        series: nationalData.flatMap((_, index) => [
+        },
+        series: [
             {
                 name: "Écart positif",
                 type: "bar",
-                stack: `deviation-${index}`,
-                datasetIndex: index,
+                stack: "deviation",
                 encode: { x: "date", y: "deviation_positive" },
                 color: mapColors.value.hot,
                 tooltip: { show: true },
-                xAxisIndex: index,
-                yAxisIndex: index,
             },
             {
                 name: "Écart négatif",
                 type: "bar",
-                stack: `deviation-${index}`,
-                datasetIndex: index,
+                stack: "deviation",
                 encode: { x: "date", y: "deviation_negative" },
                 color: mapColors.value.cold,
                 tooltip: { show: true },
-                xAxisIndex: index,
-                yAxisIndex: index,
             },
-        ]),
+        ],
         title: {
             text: "France Métropolitaine",
             right: "right",
-            top: `0%`,
+            top: -6,
         },
         axisPointer: {
             link: [{ xAxisIndex: "all" }],
             label: { backgroundColor: "#3a5080" },
         },
-        legend: { bottom: 0 },
+        legend: { top: 230 },
         tooltip: {
             trigger: "axis",
             axisPointer: { type: "line" },
