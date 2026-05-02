@@ -130,7 +130,16 @@ const infoPanelSections: InfoSection[] = [
 
             <hr class="border-accented" />
 
-            <div class="flex lg:flex-row flex-col items-start gap-8">
+            <div
+                v-if="tableStore.pending"
+                class="flex items-center justify-center min-h-32"
+            >
+                <UIcon
+                    name="i-lucide-loader-circle"
+                    class="animate-spin text-3xl text-muted"
+                />
+            </div>
+            <div v-else class="flex lg:flex-row flex-col items-start gap-8">
                 <ClientOnly>
                     <MapD3 :date-start="mapDateStart" :date-end="mapDateEnd" />
                 </ClientOnly>
@@ -147,7 +156,16 @@ const infoPanelSections: InfoSection[] = [
                 <SearchStation />
             </template>
             <template #chart>
-                <ClientOnly>
+                <div
+                    v-if="selectBarAdapter.pending.value"
+                    class="flex items-center justify-center min-h-32"
+                >
+                    <UIcon
+                        name="i-lucide-loader-circle"
+                        class="animate-spin text-3xl text-muted"
+                    />
+                </div>
+                <ClientOnly v-else>
                     <div class="flex flex-col md:flex-row gap-4">
                         <DeviationChart
                             :adapter="selectBarAdapter"
