@@ -1,5 +1,5 @@
 <template>
-    <div class="flex flex-col gap-2 w-[700px] flex-shrink-0">
+    <div class="flex flex-col gap-2 lg:w-[700px] w-full flex-shrink-0">
         <Card
             class="w-fit mx-auto"
             :with-border="false"

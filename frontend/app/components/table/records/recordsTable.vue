@@ -111,29 +111,8 @@ const columns = [
         meta: REGION_META,
         cellCustom: ({ row }) => truncatedCell(row.getValue("departement")),
     }),
-    sortableCol("record", "Record", {
+    sortableCol("record", "Température record", {
         meta: CENTERED_COL,
-        headerCustom: () =>
-            h(
-                UButton,
-                {
-                    variant: "ghost",
-                    trailingIcon: ordering.value.includes("record")
-                        ? ordering.value.startsWith("-")
-                            ? "i-lucide-arrow-down"
-                            : "i-lucide-arrow-up"
-                        : "i-lucide-arrow-up-down",
-                    color: "neutral",
-                    class: TABLE_HEADER_BTN_MULTILINE_CLASS,
-                    onClick: () => setOrdering("record"),
-                },
-                () =>
-                    h(
-                        "span",
-                        { class: "whitespace-pre-line" },
-                        "Température\nrecord",
-                    ),
-            ),
         cellCustom: ({ row }) =>
             h(
                 UBadge,
@@ -152,79 +131,21 @@ const columns = [
     }),
     sortableCol("recordDate", "Date du record", {
         meta: CENTERED_COL,
-        headerCustom: () =>
-            h(
-                UButton,
-                {
-                    variant: "ghost",
-                    trailingIcon: ordering.value.includes("recordDate")
-                        ? ordering.value.startsWith("-")
-                            ? "i-lucide-arrow-down"
-                            : "i-lucide-arrow-up"
-                        : "i-lucide-arrow-up-down",
-                    color: "neutral",
-                    class: TABLE_HEADER_BTN_MULTILINE_CLASS,
-                    onClick: () => setOrdering("recordDate"),
-                },
-                () =>
-                    h(
-                        "span",
-                        { class: "whitespace-pre-line" },
-                        "Date du\nrecord",
-                    ),
-            ),
     }),
     sortableCol("classeRecente", "Classe", { meta: CENTERED_COL }),
-    sortableCol("alt", "Altitude (m)", {
+    sortableCol("alt", "Alt.", {
         meta: CENTERED_COL,
-        headerCustom: () =>
-            h(
-                UButton,
-                {
-                    variant: "ghost",
-                    trailingIcon: ordering.value.includes("alt")
-                        ? ordering.value.startsWith("-")
-                            ? "i-lucide-arrow-down"
-                            : "i-lucide-arrow-up"
-                        : "i-lucide-arrow-up-down",
-                    color: "neutral",
-                    class: TABLE_HEADER_BTN_MULTILINE_CLASS,
-                    onClick: () => setOrdering("alt"),
-                },
-                () => h("span", { class: "whitespace-pre-line" }, "Alt."),
-            ),
         cellCustom: ({ row }) => h(() => `${row.getValue<number>("alt")} m`),
     }),
     sortableCol("anneeDeCreation", "Année de création", {
         meta: CENTERED_COL,
-        headerCustom: () =>
-            h(
-                UButton,
-                {
-                    variant: "ghost",
-                    trailingIcon: ordering.value.includes("anneeDeCreation")
-                        ? ordering.value.startsWith("-")
-                            ? "i-lucide-arrow-down"
-                            : "i-lucide-arrow-up"
-                        : "i-lucide-arrow-up-down",
-                    color: "neutral",
-                    class: TABLE_HEADER_BTN_MULTILINE_CLASS,
-                    onClick: () => setOrdering("anneeDeCreation"),
-                },
-                () =>
-                    h(
-                        "span",
-                        { class: "whitespace-pre-line" },
-                        "Année\nde création",
-                    ),
-            ),
     }),
 ];
 </script>
 
 <template>
-    <div class="flex flex-col gap-4">
-        <div class="flex items-center gap-4">
+    <div class="flex flex-col gap-4 w-full overflow-x-auto">
+        <div class="flex flex-col lg:flex-row items-end justify-between gap-4">
             <RecordsFilterBar />
             <UButton
                 label="Exporter CSV"
