@@ -1,3 +1,5 @@
+--Cette vue sert de base pour le calcul du completeness.
+--Elle prend en compte le concept de rétroactivité des stations dans la définition de leur date de début de classement.
 CREATE OR REPLACE VIEW public.v_station_classe_retroactive AS
 WITH premieres_dates_de_classements_des_stations AS (
     SELECT
