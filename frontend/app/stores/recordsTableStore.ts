@@ -276,13 +276,20 @@ export const useRecordsTableStore = defineStore("recordsTableStore", () => {
         computed(() => ({ ...params.value, page_size: 9999 })),
     );
 
-    const isDatePending = ref(false);
-    watch([typeRecords, periodSelection], () => {
-        isDatePending.value = true;
-    });
+    const fetchedTypeRecords = ref(typeRecords.value);
+    const fetchedPeriodSelection = ref(periodSelection.value);
     watch(pending, (val) => {
-        if (!val) isDatePending.value = false;
+        if (!val) {
+            fetchedTypeRecords.value = typeRecords.value;
+            fetchedPeriodSelection.value = periodSelection.value;
+        }
     });
+    const isDatePending = computed(
+        () =>
+            pending.value &&
+            (typeRecords.value !== fetchedTypeRecords.value ||
+                periodSelection.value !== fetchedPeriodSelection.value),
+    );
 
     const absoluteRecords = computed<TemperatureRecordFlatEntry[]>(() => {
         return computeAbsoluteRecords(
