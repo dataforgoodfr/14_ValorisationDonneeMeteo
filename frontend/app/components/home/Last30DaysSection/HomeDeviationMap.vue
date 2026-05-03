@@ -5,6 +5,7 @@
         :tooltip-formatter="tooltipFormatter"
         legend-label="Température (°C)"
         aspect-ratio="1"
+        :fit-padding="{ top: 10, right: 10, bottom: 10, left: 10 }"
     />
 </template>
 

@@ -58,8 +58,19 @@ const props = withDefaults(
         height?: string;
         aspectRatio?: string;
         showControls?: boolean;
+        fitPadding?: {
+            top: number;
+            right: number;
+            bottom: number;
+            left: number;
+        };
     }>(),
-    { height: "700px", aspectRatio: undefined, showControls: true },
+    {
+        height: "700px",
+        aspectRatio: undefined,
+        showControls: true,
+        fitPadding: () => ({ top: -10, right: 50, bottom: 50, left: 40 }),
+    },
 );
 
 const legendGradient = computed(() =>
@@ -257,7 +268,7 @@ onMounted(async () => {
                 [9.6, 51.1],
             ],
             {
-                padding: { top: -10, right: 50, bottom: 50, left: 40 },
+                padding: props.fitPadding,
                 duration: 0,
             },
         );
