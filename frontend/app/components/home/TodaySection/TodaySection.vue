@@ -10,7 +10,6 @@ const { today, lastYear } = useCustomDate();
 const hotTypeRecords = ref<TypeRecords>("hot");
 const coldTypeRecords = ref<TypeRecords>("cold");
 
-// Today records
 const hotRecordsParams = computed<TemperatureRecordsGraphParams>(() => ({
     type_records: hotTypeRecords.value,
     granularity: "day",
@@ -35,7 +34,6 @@ const coldRecordsCount = computed(
     () => coldRecords.value?.buckets[0]?.nb_records_battus ?? 0,
 );
 
-// Yesterday records
 const lastYearHotRecordsParams = computed<TemperatureRecordsGraphParams>(
     () => ({
         type_records: hotTypeRecords.value,

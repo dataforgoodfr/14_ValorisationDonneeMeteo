@@ -4,7 +4,6 @@ import Card from "../Card.vue";
 
 const { yesterday, yesterdayLastYear } = useCustomDate();
 
-// Yesterday data
 const yesterdayParams = computed<NationalIndicatorParams>(() => ({
     date_start: dateToStringYMD(yesterday.value),
     date_end: dateToStringYMD(yesterday.value),
@@ -22,7 +21,6 @@ const gap = computed(() => {
     return result ? result.temperature - result.baseline_mean : undefined;
 });
 
-// Yesterday last year data
 const yesterdayLastYearParams = computed<NationalIndicatorParams>(() => ({
     date_start: dateToStringYMD(yesterdayLastYear.value),
     date_end: dateToStringYMD(yesterdayLastYear.value),
@@ -39,16 +37,10 @@ const yesterdayLastYearTemperature = computed(
     () => yesterdayLastYearData.value?.time_series[0]?.temperature,
 );
 const temperatureChangeYearOverYear = computed<number | undefined>(() => {
-    if (
-        typeof yesterdayTemperature.value !== "number" ||
-        typeof yesterdayLastYearTemperature.value !== "number"
-    ) {
+    if (!yesterdayTemperature.value || !yesterdayLastYearTemperature.value) {
         return undefined;
     }
-    console.log(
-        "yesterdayLastYearTemperature.value - yesterdayTemperature.value",
-        yesterdayLastYearTemperature.value - yesterdayTemperature.value,
-    );
+
     return yesterdayLastYearTemperature.value - yesterdayTemperature.value;
 });
 </script>
@@ -73,7 +65,7 @@ const temperatureChangeYearOverYear = computed<number | undefined>(() => {
         <template v-if="gap" #kpi-context-box>
             {{ gap?.toFixed(1) }}°C vs normale 1991-2020
         </template>
-        <template v-if="temperatureChangeYearOverYear !== 0" #variation>
+        <template #variation>
             <UIcon
                 v-if="(temperatureChangeYearOverYear ?? 0) < 0"
                 name="i-lucide-arrow-down-right font-semibold"
