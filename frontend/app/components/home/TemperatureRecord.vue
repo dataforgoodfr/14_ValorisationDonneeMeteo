@@ -35,10 +35,7 @@ const props = defineProps<Props>();
             <template v-if="props.period" #kpi-context-text>
                 {{ props.period }}
             </template>
-            <template
-                v-if="props.difference !== undefined && props.difference !== 0"
-                #variation
-            >
+            <template v-if="props.difference !== undefined" #variation>
                 <UIcon
                     v-if="props.difference > 0"
                     :name="'i-lucide-arrow-up-right'"
