@@ -70,15 +70,17 @@ function toggle(i: number) {
         >
             <div
                 v-if="isOpen && !isMobile"
-                class="fixed right-0 top-0 h-full w-200 z-50 bg-dark-900 border-l border-dark-700 overflow-y-auto"
+                class="fixed right-0 top-0 h-full w-200 z-50 bg-white dark:bg-dark-900 border-l border-slate-200 dark:border-dark-700 overflow-y-auto"
             >
                 <div class="p-6 flex flex-col gap-1">
                     <div class="flex items-center justify-between mb-4">
-                        <h2 class="text-base font-semibold text-dark-200">
+                        <h2
+                            class="text-base font-semibold text-blue-700 dark:text-dark-200"
+                        >
                             {{ props.title }}
                         </h2>
                         <button
-                            class="text-dark-400 hover:text-dark-200 transition-colors cursor-pointer"
+                            class="text-blue-700 hover:text-blue-900 dark:text-dark-400 dark:hover:text-dark-200 transition-colors cursor-pointer"
                             aria-label="Fermer"
                             @click="isOpen = false"
                         >
@@ -89,10 +91,10 @@ function toggle(i: number) {
                     <div
                         v-for="(section, i) in props.sections"
                         :key="section.label"
-                        class="border-b border-dark-700 last:border-0"
+                        class="border-b border-slate-200 dark:border-dark-700 last:border-0"
                     >
                         <button
-                            class="w-full flex items-center justify-between py-3 text-sm font-semibold text-dark-200 hover:text-white transition-colors cursor-pointer"
+                            class="w-full flex items-center justify-between py-3 text-sm font-semibold text-blue-700 hover:text-blue-900 dark:text-dark-200 dark:hover:text-white transition-colors cursor-pointer"
                             @click="toggle(i)"
                         >
                             {{ section.label }}
@@ -107,7 +109,7 @@ function toggle(i: number) {
                         </button>
                         <div
                             v-show="openSections.has(i)"
-                            class="pb-4 flex flex-col gap-3 text-sm text-dark-300"
+                            class="pb-4 flex flex-col gap-3 text-sm text-blue-700 dark:text-dark-300"
                         >
                             <template v-if="Array.isArray(section.content)">
                                 <div
@@ -117,7 +119,7 @@ function toggle(i: number) {
                                 >
                                     <p
                                         v-if="para.title"
-                                        class="font-semibold text-dark-200"
+                                        class="font-semibold text-blue-700 dark:text-dark-200"
                                     >
                                         {{ para.title }}
                                     </p>
