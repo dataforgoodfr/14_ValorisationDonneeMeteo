@@ -13,8 +13,12 @@ import type { PaginatedResponse, Station, StationFilters } from "~/types/api";
 const filterFields: FilterField[] = [
     { id: "name", label: "Station", type: "string-async" },
     { id: "departement", label: "Département", type: "string" },
-    { id: "record", label: "Température record", type: "number-range" },
-    { id: "record_date", label: "Date du record", type: "date-range" },
+    {
+        id: "record",
+        label: "Température du record absolu",
+        type: "number-range",
+    },
+    { id: "record_date", label: "Date du record absolu", type: "date-range" },
     { id: "classe", label: "Classe", type: "number-range" },
     { id: "altitude", label: "Altitude", type: "number-range" },
     {

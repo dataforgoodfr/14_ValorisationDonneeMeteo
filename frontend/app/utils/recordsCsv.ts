@@ -4,7 +4,7 @@ import { escapeCsvValue } from "./string";
 const HEADERS = [
     "Station",
     "Département",
-    "Record (°C)",
+    "Record absolu(°C)",
     "Date du record",
 ].join(",");
 

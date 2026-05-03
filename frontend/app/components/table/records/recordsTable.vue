@@ -111,7 +111,7 @@ const columns = [
         meta: REGION_META,
         cellCustom: ({ row }) => truncatedCell(row.getValue("departement")),
     }),
-    sortableCol("record", "Température record", {
+    sortableCol("record", "Température du record absolu", {
         meta: CENTERED_COL,
         cellCustom: ({ row }) =>
             h(
@@ -129,7 +129,7 @@ const columns = [
                 () => `${row.getValue<number>("record").toFixed(1)} °C`,
             ),
     }),
-    sortableCol("recordDate", "Date du record", {
+    sortableCol("recordDate", "Date du record absolu", {
         meta: CENTERED_COL,
     }),
     sortableCol("classeRecente", "Classe", { meta: CENTERED_COL }),

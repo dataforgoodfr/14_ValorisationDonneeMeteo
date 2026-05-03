@@ -19,13 +19,15 @@ const makeRecord = (
 describe("buildRecordsCsv", () => {
     test("tableau vide retourne uniquement les en-têtes", () => {
         const result = buildRecordsCsv([]);
-        expect(result).toBe("Station,Département,Record (°C),Date du record\n");
+        expect(result).toBe(
+            "Station,Département,Record absolu(°C),Date du record\n",
+        );
     });
 
     test("une ligne simple", () => {
         const result = buildRecordsCsv([makeRecord()]);
         expect(result).toBe(
-            "Station,Département,Record (°C),Date du record\nParis-Montsouris,75,42.6,2019-06-28",
+            "Station,Département,Record absolu(°C),Date du record\nParis-Montsouris,75,42.6,2019-06-28",
         );
     });
 

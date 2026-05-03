@@ -3,7 +3,7 @@
         <Card
             class="w-fit mx-auto"
             :with-border="false"
-            :title="`Record ${store.typeRecords === 'hot' ? 'chaud' : 'froid'} le plus extrême`"
+            :title="`Record absolu le plus extrême`"
             tooltip-text="Station avec le record absolu sur la période sélectionnée"
         >
             <template #kpi>
