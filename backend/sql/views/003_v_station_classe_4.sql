@@ -10,8 +10,8 @@ SELECT
   s.alt,
   s.is_public,
   s.classe_recente,
-  s.annee_de_creation,
-  s.annee_de_fermeture,
+  s.date_de_creation,
+  s.date_de_fermeture,
   s.first_temperature_date
 FROM public.v_station s
 WHERE s.classe_recente <= 4
