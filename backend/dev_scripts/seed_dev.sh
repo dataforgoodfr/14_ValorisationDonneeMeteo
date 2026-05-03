@@ -93,6 +93,7 @@ echo "== Sanity checks =="
 "${psql_base[@]}" -c 'SELECT COUNT(*) AS station_classe_count FROM public.station_classe;'
 "${psql_base[@]}" -c 'SELECT COUNT(*) AS station_creation_date_count FROM public.station_creation_date;'
 "${psql_base[@]}" -c 'SELECT COUNT(*) AS v_station_count FROM public.v_station;'
+"${psql_base[@]}" -c 'SELECT COUNT(*) AS v_station_classe_retroactive_count FROM public.v_station_classe_retroactive;'
 "${psql_base[@]}" -c 'SELECT COUNT(*) AS v_quotidienne_itn_count FROM public.v_quotidienne_itn;'
 "${psql_base[@]}" -c 'SELECT MIN(date), MAX(date) FROM public.v_quotidienne_itn;'
 "${psql_base[@]}" -c 'SELECT COUNT(*) AS baseline_station_daily_mean_1991_2020_count FROM public.baseline_station_daily_mean_1991_2020;'
