@@ -242,12 +242,7 @@ onMounted(async () => {
                                 [9.6, 51.1],
                             ],
                             {
-                                padding: {
-                                    top: 50,
-                                    right: 50,
-                                    bottom: 50,
-                                    left: 40,
-                                },
+                                padding: props.fitPadding,
                                 duration: 500,
                             },
                         );
