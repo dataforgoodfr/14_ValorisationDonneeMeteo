@@ -49,6 +49,7 @@ done
 echo "Sanity checks:"
 psql -h "$DB_HOST" -p "$DB_PORT" -U "$DB_USER" -d "$DB_NAME" <<'SQL'
 SELECT COUNT(*) AS v_station_count FROM public.v_station;
+SELECT COUNT(*) AS v_station_classe_retroactive_count FROM public.v_station_classe_retroactive;
 SELECT COUNT(*) AS v_quotidienne_itn_count FROM public.v_quotidienne_itn;
 SQL
 
