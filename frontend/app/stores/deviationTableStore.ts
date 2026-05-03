@@ -177,8 +177,8 @@ export const useDeviationTableStore = defineStore("deviationTableStore", () => {
         debounceDuration,
     );
 
-    const dateStart = ref(dates.lastMonth.value);
-    const dateEnd = ref(dates.today.value);
+    const dateStart = ref(dates.yesterdayLess30Days.value);
+    const dateEnd = ref(dates.yesterday.value);
     const ordering = ref<string>("-deviation");
 
     const params = computed<TemperatureDeviationParams>(() => {
