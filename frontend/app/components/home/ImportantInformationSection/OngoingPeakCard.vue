@@ -84,7 +84,7 @@ const kpiColor = computed(() => {
         </template>
 
         <template v-if="currentStreak" #kpi-context-box>
-            consécutifs de pics de
+            consécutifs d'anomalie de
             {{ currentStreak.type === "hot" ? "chaleur" : "froid" }}
         </template>
 
