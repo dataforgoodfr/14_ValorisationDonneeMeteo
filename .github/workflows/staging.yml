@@ -82,7 +82,16 @@ jobs:
       - name: Clean up & Deploy
         run: |
           ssh -o StrictHostKeyChecking=no ${{ secrets.CI_USER }}@${{ secrets.CI_TAILSCALE_HOST }} << 'EOF'
+            sudo docker image prune -a -f --filter "until=24h"
             sudo docker compose -f /opt/dataclimat-staging/docker-compose.yml pull
-            sudo docker compose -f /opt/dataclimat-staging/docker-compose.yml up -d --remove-orphans
-            sudo docker image prune -f
+            sudo docker compose -f /opt/dataclimat-staging/docker-compose.yml up -d --remove-orphans --wait
           EOF
+
+      - name: Smoke Test
+        run: |
+          sleep 5
+          STATUS=$(curl -o /dev/null -s -w "%{http_code}" https://staging.dataclimat.fr)
+          if [ $STATUS -ne 200 ]; then
+            echo "The site returned an error $STATUS"
+            exit 1
+          fi
