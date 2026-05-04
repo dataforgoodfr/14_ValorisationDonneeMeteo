@@ -57,8 +57,8 @@ const yesterdayLabel = computed(() =>
 
 <template>
     <Card
-        title="Rang"
-        tooltip-text="Rang de la valeur ITN d'hier parmi tous les mêmes jours enregistrés depuis 1946"
+        :title="`Rang Hier -  ${yesterday?.toLocaleDateString('fr-FR', { dateStyle: 'long' })}`"
+        :tooltip-text="'Rang de la valeur ITN d\'hier parmi tous les mêmes jours enregistrés depuis 1946'"
     >
         <template #kpi>
             <p v-if="rank !== null" class="font-semibold mb-1">
@@ -76,7 +76,7 @@ const yesterdayLabel = computed(() =>
         </template>
         <template #kpi-context-text>
             <template v-if="recordEntry">
-                Record absolu :
+                Record un {{ yesterdayLabel }} :
                 {{
                     recordEntry.temperature.toLocaleString("fr-FR", {
                         minimumFractionDigits: 1,
