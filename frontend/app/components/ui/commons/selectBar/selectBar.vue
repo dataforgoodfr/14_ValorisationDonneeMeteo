@@ -4,6 +4,7 @@ import YearPicker from "./yearPicker.vue";
 import StackedYearPicker from "./stackedYearPicker.vue";
 import DayPicker from "./dayPicker.vue";
 import SliceType from "./sliceType.vue";
+import CalendarSliceType from "./calendarSliceType.vue";
 import RecordsPeriodSlice from "./recordsPeriodSlice.vue";
 import ExportMenu from "~/components/ui/commons/exportMenu.vue";
 import type {
@@ -218,7 +219,7 @@ const granularityValues = computed(() => [
                                 }}
                             </template>
                         </USwitch>
-                        <SliceType
+                        <CalendarSliceType
                             v-if="adapter.calendarAverageEnabled?.value"
                         />
                     </div>
