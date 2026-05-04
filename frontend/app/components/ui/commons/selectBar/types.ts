@@ -63,6 +63,13 @@ export interface SelectBarAdapter<
     // Year multi-select (optional, stacked mode)
     selectedYears?: Ref<number[]>;
 
+    // Calendar-specific averaging
+    calendarAverageEnabled?: Ref<boolean>;
+    calendarSliceMode?: Ref<"all" | "specific">;
+    calendarDatepickerDate?: Ref<Date>;
+    isCalendarHeatmap?: Ref<boolean>;
+    setCalendarAverageEnabled?: (value: boolean) => void;
+
     // Methods
     setGranularity: (value: GranularityType) => void;
     setChartType?: (value: ChartType) => void;

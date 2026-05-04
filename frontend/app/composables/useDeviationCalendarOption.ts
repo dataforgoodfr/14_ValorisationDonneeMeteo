@@ -161,10 +161,29 @@ function dateToXY(
     return dateToXYMonthMode(year, month, day, xCategories);
 }
 
+function getXIndexFromDate(
+    isoDate: string,
+    granularity: GranularityType,
+    xCategories: string[],
+): number | null {
+    const [year, month] = splitIsoDate(isoDate);
+
+    if (granularity === "year") {
+        const xIndex = xCategories.indexOf(year);
+        return xIndex === -1 ? null : xIndex;
+    }
+
+    const monthIndex = getMonthIndex(month);
+    const xLabel = buildMonthLabel(year, monthIndex);
+    const xIndex = xCategories.indexOf(xLabel);
+    return xIndex === -1 ? null : xIndex;
+}
+
 export function useDeviationCalendarOption(
     data: TemperatureDeviationGraphResponse,
     granularity: GranularityType,
     stationsIdAndNames: DeviationStationIdAndName[],
+    vertical = false,
 ): EChartsOption {
     const deviationStore = useDeviationStore();
     const mapColors = useMapColors();
@@ -206,18 +225,33 @@ export function useDeviationCalendarOption(
             stationOrNational.station_id,
         )?.station_name;
 
-        const heatmapData = (stationOrNational?.data ?? [])
-            .map((point: TemperatureDeviationGraphDataPoint) => {
-                const coordinates = dateToXY(
-                    point.date,
-                    granularity,
-                    xCategories,
-                );
-                if (!coordinates) return null;
-
-                return [...coordinates, point.deviation];
-            })
-            .filter((coords): coords is number[] => coords !== null);
+        const heatmapData = vertical
+            ? (stationOrNational?.data ?? []).flatMap(
+                  (point: TemperatureDeviationGraphDataPoint) => {
+                      const xIndex = getXIndexFromDate(
+                          point.date,
+                          granularity,
+                          xCategories,
+                      );
+                      if (xIndex === null) return [];
+                      return yCategories.map((_, yIndex) => [
+                          xIndex,
+                          yIndex,
+                          point.deviation,
+                      ]);
+                  },
+              )
+            : (stationOrNational?.data ?? [])
+                  .map((point: TemperatureDeviationGraphDataPoint) => {
+                      const coordinates = dateToXY(
+                          point.date,
+                          granularity,
+                          xCategories,
+                      );
+                      if (!coordinates) return null;
+                      return [...coordinates, point.deviation];
+                  })
+                  .filter((coords): coords is number[] => coords !== null);
 
         grids.push({
             top: `${top}%`,
@@ -255,16 +289,18 @@ export function useDeviationCalendarOption(
             type: "category",
             gridIndex: index,
             data: yCategories,
+            inverse: true,
             splitArea: { show: true },
             axisTick: { show: false },
             axisLine: {
                 lineStyle: { color: mapColors.value.chartAccentColor },
             },
             axisLabel: {
+                show: !vertical,
                 color: mapColors.value.foreground,
                 fontSize: FONT_CHARTS.axis,
             },
-            name: yAxisName,
+            name: vertical ? "" : yAxisName,
             nameLocation: "middle",
             nameGap: 35,
             nameTextStyle: {

@@ -19,6 +19,10 @@ export const useDeviationSelectBarAdapter =
             pending,
             chartTypeSwitchEnabled,
             chartType,
+            calendarAverageEnabled,
+            calendarSliceMode,
+            calendarDatepickerDate,
+            isCalendarHeatmap,
         } = storeToRefs(store);
 
         return {
@@ -39,6 +43,11 @@ export const useDeviationSelectBarAdapter =
             chartType,
             chartTypeSwitchEnabled,
             setChartType: store.setChartType,
+            calendarAverageEnabled,
+            calendarSliceMode,
+            calendarDatepickerDate,
+            isCalendarHeatmap,
+            setCalendarAverageEnabled: store.setCalendarAverageEnabled,
             features: {
                 hasSliceType: true,
                 hasRecordsPeriodSlice: false,

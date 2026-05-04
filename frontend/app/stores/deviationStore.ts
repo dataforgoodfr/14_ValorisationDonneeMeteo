@@ -36,6 +36,26 @@ export const useDeviationStore = defineStore("deviationStore", () => {
     const chartTypeSwitchEnabled = ref(false);
     const chartType: Ref<ChartType> = ref<ChartType>(`bar`);
 
+    const calendarAverageEnabled = ref(false);
+    const calendarSliceMode: Ref<"all" | "specific"> = ref("all");
+    const calendarDatepickerDate = ref(new Date(2006, 0, 1));
+
+    const calendarSelectedMonth = computed<number | null>(() =>
+        calendarAverageEnabled.value &&
+        calendarSliceMode.value === "specific" &&
+        granularity.value === "year"
+            ? calendarDatepickerDate.value.getMonth() + 1
+            : null,
+    );
+
+    const calendarSelectedDay = computed<number | null>(() =>
+        calendarAverageEnabled.value &&
+        calendarSliceMode.value === "specific" &&
+        granularity.value === "month"
+            ? calendarDatepickerDate.value.getDate()
+            : null,
+    );
+
     const stationIds = ref<string[]>([]);
     const selectedStations = ref<Station[]>([]);
     const includeNational = ref<boolean>(true);
@@ -51,6 +71,35 @@ export const useDeviationStore = defineStore("deviationStore", () => {
             ? sliceDatepickerDate.value.getDate()
             : undefined,
     );
+
+    const calendarEffectiveGranularity = computed<GranularityType>(() => {
+        if (!calendarAverageEnabled.value) return granularity.value;
+        if (granularity.value === "year") {
+            return calendarSelectedMonth.value === null ? "month" : "year";
+        }
+        return calendarSelectedDay.value === null ? "day" : "month";
+    });
+
+    const calendarEffectiveSliceType = computed<SliceType>(() => {
+        if (!calendarAverageEnabled.value) return "full";
+        if (
+            granularity.value === "year" &&
+            calendarSelectedMonth.value !== null
+        )
+            return "month_of_year";
+        if (granularity.value === "month" && calendarSelectedDay.value !== null)
+            return "day_of_month";
+        return "full";
+    });
+
+    const isCalendarHeatmap = computed(() => {
+        if (chartType.value !== "calendar") return false;
+        if (granularity.value === "day") return false;
+        if (!calendarAverageEnabled.value) return false;
+        if (granularity.value === "year")
+            return calendarSelectedMonth.value === null;
+        return calendarSelectedDay.value === null;
+    });
 
     const selectedStationsAndNational = computed<DeviationStationIdAndName[]>(
         () => {
@@ -96,15 +145,26 @@ export const useDeviationStore = defineStore("deviationStore", () => {
         date_end: dateToStringYMD(effectiveDateEnd.value),
         granularity:
             chartType.value === "calendar"
-                ? granularity.value === "month"
-                    ? "day" // calendrier mois → données journalières (y-axis = jours)
-                    : "month" // calendrier année → données mensuelles (y-axis = mois)
+                ? calendarEffectiveGranularity.value
                 : granularity.value,
         station_ids: stationIds.value.join(","),
         include_national: includeNational.value,
-        slice_type: sliceType.value,
-        month_of_year: month_of_year.value,
-        day_of_month: day_of_month.value,
+        slice_type:
+            chartType.value === "calendar"
+                ? calendarEffectiveSliceType.value
+                : sliceType.value,
+        month_of_year:
+            chartType.value === "calendar"
+                ? calendarEffectiveSliceType.value === "month_of_year"
+                    ? calendarSelectedMonth.value!
+                    : undefined
+                : month_of_year.value,
+        day_of_month:
+            chartType.value === "calendar"
+                ? calendarEffectiveSliceType.value === "day_of_month"
+                    ? calendarSelectedDay.value!
+                    : undefined
+                : day_of_month.value,
     }));
 
     const {
@@ -118,6 +178,8 @@ export const useDeviationStore = defineStore("deviationStore", () => {
         granularity.value = value;
         pickedDateEnd.value = dates.yesterday.value;
         maxDate.value = dates.yesterday.value;
+        calendarAverageEnabled.value = false;
+        calendarSliceMode.value = "all";
         if (value === "day") {
             sliceTypeSwitchEnabled.value = false;
             pickedDateStart.value = dates.lastYear.value;
@@ -140,6 +202,14 @@ export const useDeviationStore = defineStore("deviationStore", () => {
 
     const setChartType = (value: ChartType) => {
         chartType.value = value;
+        calendarAverageEnabled.value = false;
+        calendarSliceMode.value = "all";
+    };
+
+    const setCalendarAverageEnabled = (value: boolean) => {
+        if (!value) {
+            calendarSliceMode.value = "all";
+        }
     };
 
     const setStations = (stations: Station[]) => {
@@ -179,10 +249,15 @@ export const useDeviationStore = defineStore("deviationStore", () => {
         sliceDatepickerDate,
         chartTypeSwitchEnabled,
         chartType,
+        calendarAverageEnabled,
+        calendarSliceMode,
+        calendarDatepickerDate,
+        isCalendarHeatmap,
         setGranularity,
         turnOffSliceType,
         setIncludeNational,
         setChartType,
+        setCalendarAverageEnabled,
         setStations,
         stationsAndNationalFormatted,
         stationIds,

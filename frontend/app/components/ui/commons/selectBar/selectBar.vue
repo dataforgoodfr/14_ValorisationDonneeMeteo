@@ -4,6 +4,7 @@ import YearPicker from "./yearPicker.vue";
 import StackedYearPicker from "./stackedYearPicker.vue";
 import DayPicker from "./dayPicker.vue";
 import SliceType from "./sliceType.vue";
+import CalendarSliceType from "./calendarSliceType.vue";
 import RecordsPeriodSlice from "./recordsPeriodSlice.vue";
 import ExportMenu from "~/components/ui/commons/exportMenu.vue";
 import type {
@@ -183,6 +184,48 @@ const granularityValues = computed(() => [
                     </div>
                 </div>
             </template>
+            <template
+                v-if="
+                    adapter.features.hasSliceType &&
+                    adapter.chartType?.value === 'calendar' &&
+                    adapter.granularity.value !== 'day'
+                "
+            >
+                <div class="flex flex-col gap-1">
+                    <div class="flex items-center gap-1">
+                        <span class="font-medium text-default">
+                            Paramètre d'analyse
+                        </span>
+                    </div>
+                    <div class="flex gap-6 items-center">
+                        <USwitch
+                            v-model="adapter.calendarAverageEnabled!.value"
+                            color="neutral"
+                            unchecked-icon="i-lucide-x"
+                            checked-icon="i-lucide-check"
+                            :ui="{
+                                root: 'flex-col-reverse items-center gap-1',
+                                container: 'my-auto',
+                            }"
+                            @update:model-value="
+                                adapter.setCalendarAverageEnabled
+                            "
+                        >
+                            <template #label>
+                                {{
+                                    adapter.granularity.value === "year"
+                                        ? "Moyenner par mois"
+                                        : "Moyenner par jour"
+                                }}
+                            </template>
+                        </USwitch>
+                        <CalendarSliceType
+                            v-if="adapter.calendarAverageEnabled?.value"
+                        />
+                    </div>
+                </div>
+            </template>
+
             <ExportMenu v-if="adapter.features.hasExport" class="ml-auto" />
         </div>
     </div>
