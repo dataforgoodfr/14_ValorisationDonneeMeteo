@@ -82,6 +82,7 @@ export const useRecordsTableStore = defineStore("recordsTableStore", () => {
     const temperatureMax = ref<string | undefined>(undefined);
     const dateStart = ref<Date | undefined>(undefined);
     const dateEnd = ref<Date | undefined>(undefined);
+    const ordering = ref("");
     const classeMin = ref<string | undefined>(undefined);
     const classeMax = ref<string | undefined>(undefined);
     const creationYearMin = ref<string | undefined>(undefined);
@@ -369,5 +370,8 @@ export const useRecordsTableStore = defineStore("recordsTableStore", () => {
         filteredCount,
         pending,
         error,
+        dateStart,
+        dateEnd,
+        ordering,
     };
 });

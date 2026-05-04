@@ -101,7 +101,7 @@ const lastYearColdRecordsCount = computed(
                 compare-to="même jour l'an dernier"
             />
         </div>
-        <GoToDataLink :data-url="'/records'" />
+        <GoToDataLink :data-url="'/records?preset=today'" />
     </Section>
 </template>
 <style lang="css" scoped></style>
