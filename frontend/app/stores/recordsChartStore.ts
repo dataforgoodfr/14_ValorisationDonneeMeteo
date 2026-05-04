@@ -1,4 +1,10 @@
-import { dateToStringYMD } from "~/utils/date";
+import {
+    dateToStringYMD,
+    getFirstDayOfMonth,
+    getFirstDayOfYearInLocal,
+    getLastAvailableDayOfMonth,
+    getLastAvailableDayOfYearInLocal,
+} from "~/utils/date";
 import type {
     PeriodType,
     Season,
@@ -94,9 +100,25 @@ export const useRecordsChartStore = defineStore("recordChartStore", () => {
         return only.id;
     });
 
+    const effectiveDateStart = computed(() => {
+        if (granularity.value === "year")
+            return getFirstDayOfYearInLocal(pickedDateStart.value);
+        if (granularity.value === "month")
+            return getFirstDayOfMonth(pickedDateStart.value);
+        return pickedDateStart.value;
+    });
+
+    const effectiveDateEnd = computed(() => {
+        if (granularity.value === "year")
+            return getLastAvailableDayOfYearInLocal(pickedDateEnd.value);
+        if (granularity.value === "month")
+            return getLastAvailableDayOfMonth(pickedDateEnd.value);
+        return pickedDateEnd.value;
+    });
+
     const params = computed<TemperatureRecordsGraphParams>(() => ({
-        date_start: dateToStringYMD(pickedDateStart.value),
-        date_end: dateToStringYMD(pickedDateEnd.value),
+        date_start: dateToStringYMD(effectiveDateStart.value),
+        date_end: dateToStringYMD(effectiveDateEnd.value),
         granularity: granularity.value,
         type_records: typeRecords.value,
         period_type: periodType.value,

@@ -11,7 +11,9 @@ import type {
 } from "~/components/ui/commons/selectBar/types";
 import type { DeviationStationIdAndName } from "~/types/common";
 import {
+    getFirstDayOfMonth,
     getFirstDayOfYearInLocal,
+    getLastAvailableDayOfMonth,
     getLastAvailableDayOfYearInLocal,
 } from "~/utils/date";
 import { useCustomDate } from "#imports";
@@ -37,10 +39,6 @@ export const useDeviationStore = defineStore("deviationStore", () => {
     const stationIds = ref<string[]>([]);
     const selectedStations = ref<Station[]>([]);
     const includeNational = ref<boolean>(true);
-
-    const isGranularityYear = computed<boolean>(
-        () => granularity.value === "year",
-    );
 
     const month_of_year = computed<undefined | number>(() =>
         granularity.value === "year" && sliceType.value !== "full"
@@ -77,9 +75,25 @@ export const useDeviationStore = defineStore("deviationStore", () => {
         },
     );
 
+    const effectiveDateStart = computed(() => {
+        if (granularity.value === "year")
+            return getFirstDayOfYearInLocal(pickedDateStart.value);
+        if (granularity.value === "month")
+            return getFirstDayOfMonth(pickedDateStart.value);
+        return pickedDateStart.value;
+    });
+
+    const effectiveDateEnd = computed(() => {
+        if (granularity.value === "year")
+            return getLastAvailableDayOfYearInLocal(pickedDateEnd.value);
+        if (granularity.value === "month")
+            return getLastAvailableDayOfMonth(pickedDateEnd.value);
+        return pickedDateEnd.value;
+    });
+
     const params = computed<TemperatureDeviationGraphParams>(() => ({
-        date_start: dateToStringYMD(pickedDateStart.value),
-        date_end: dateToStringYMD(pickedDateEnd.value),
+        date_start: dateToStringYMD(effectiveDateStart.value),
+        date_end: dateToStringYMD(effectiveDateEnd.value),
         granularity:
             chartType.value === "calendar"
                 ? granularity.value === "month"
@@ -152,17 +166,6 @@ export const useDeviationStore = defineStore("deviationStore", () => {
               ]
             : chartData.stations;
     };
-
-    watch(isGranularityYear, (isGranularityYear) => {
-        if (isGranularityYear) {
-            pickedDateStart.value = getFirstDayOfYearInLocal(
-                pickedDateStart.value,
-            );
-            pickedDateEnd.value = getLastAvailableDayOfYearInLocal(
-                pickedDateEnd.value,
-            );
-        }
-    });
 
     return {
         deviationChartRef,

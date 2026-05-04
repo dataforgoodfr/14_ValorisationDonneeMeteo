@@ -9,6 +9,12 @@ import type {
 } from "~/components/ui/commons/selectBar/types";
 import { fetchStackedData } from "~/utils/itn/nationalIndicatorFetcher";
 import { fetchNationalIndicatorForYear } from "~/utils/itn/nationalIndicatorFetcher.real";
+import {
+    getFirstDayOfMonth,
+    getFirstDayOfYearInLocal,
+    getLastAvailableDayOfMonth,
+    getLastAvailableDayOfYearInLocal,
+} from "~/utils/date";
 
 const dates = useCustomDate();
 
@@ -117,9 +123,25 @@ export const useItnStore = defineStore("itnStore", () => {
         }
     };
 
+    const effectiveDateStart = computed(() => {
+        if (granularity.value === "year")
+            return getFirstDayOfYearInLocal(pickedDateStart.value);
+        if (granularity.value === "month")
+            return getFirstDayOfMonth(pickedDateStart.value);
+        return pickedDateStart.value;
+    });
+
+    const effectiveDateEnd = computed(() => {
+        if (granularity.value === "year")
+            return getLastAvailableDayOfYearInLocal(pickedDateEnd.value);
+        if (granularity.value === "month")
+            return getLastAvailableDayOfMonth(pickedDateEnd.value);
+        return pickedDateEnd.value;
+    });
+
     const params = computed<NationalIndicatorParams>(() => ({
-        date_start: dateToStringYMD(pickedDateStart.value),
-        date_end: dateToStringYMD(pickedDateEnd.value),
+        date_start: dateToStringYMD(effectiveDateStart.value),
+        date_end: dateToStringYMD(effectiveDateEnd.value),
         granularity: granularity.value,
         slice_type: sliceType.value,
         month_of_year: month_of_year.value,
