@@ -75,16 +75,7 @@ const infoPanelSections = recordsSections;
 
             <hr class="border-accented" />
 
-            <div
-                v-if="store.pending"
-                class="flex items-center justify-center min-h-32"
-            >
-                <UIcon
-                    name="i-lucide-loader-circle"
-                    class="animate-spin text-3xl text-muted"
-                />
-            </div>
-            <div v-else class="flex flex-col md:flex-row items-start gap-8">
+            <div class="flex flex-col md:flex-row items-start gap-8">
                 <ClientOnly>
                     <RecordsMap />
                 </ClientOnly>
