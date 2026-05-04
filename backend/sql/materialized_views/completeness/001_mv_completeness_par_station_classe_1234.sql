@@ -4,7 +4,7 @@ CREATE MATERIALIZED VIEW public.mv_completeness_par_station_classe_1234 AS
 WITH params AS (
     SELECT
         DATE '1806-01-01' AS date_debut,
-        DATE '2026-12-31' AS date_fin
+        CURRENT_DATE AS date_fin
 )
 SELECT
     sc.station_code,
