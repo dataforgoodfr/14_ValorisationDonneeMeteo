@@ -35,8 +35,8 @@ psql -h "${DB_HOST}" -p "${DB_PORT}" -U "${DB_USER}" -d "${DB_NAME}" \
 
 echo "Sanity checks:"
 psql -h "${DB_HOST}" -p "${DB_PORT}" -U "${DB_USER}" -d "${DB_NAME}" <<'SQL'
-SELECT COUNT(*) AS station_completeness_count FROM mv_completeness_par_station_classe_4_1806_2026;
-SELECT COUNT(*) AS station_completeness_count FROM mv_completeness_par_station_classe_1806_2026;
+SELECT COUNT(*) AS station_completeness_count FROM mv_completeness_par_station_classe_1234;
+SELECT COUNT(*) AS station_completeness_count FROM mv_completeness_par_station_classe;
 SQL
 
 echo "mv completeness created."
