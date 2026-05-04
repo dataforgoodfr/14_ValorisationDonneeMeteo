@@ -19,7 +19,7 @@ export const recordsSections: InfoSection[] = [
             {
                 title: "Records absolus",
                 text:
-                    "Un records absolu est la (et l'unique) valeur de température la plus extrême jamais" +
+                    "Un record absolu est la (et l'unique) valeur de température la plus extrême jamais" +
                     " mesurée sur la période d'analyse sélectionnée",
             },
             {
@@ -36,7 +36,7 @@ export const recordsSections: InfoSection[] = [
                 title: "Période d'analyse",
                 text:
                     "La période d'analyse permet d'afficher les records mensuels ou saisonniers (absolus ou battus) pour une" +
-                    " partie de l'année (un mois ou un saison) seulement:" +
+                    " partie de l'année (un mois ou une saison) seulement:" +
                     "\n- si la période d'analyse est un mois, les records mensuels, du mois sélectionné, sont affichés." +
                     "\n- si la période d'analyse est une saison, les records saisonniers, de la saison sélectionnée, sont affichés." +
                     "\n- si la période est 'Année complète' les records annuels (tous mois confondus) sont affichés.",

@@ -3,7 +3,7 @@ import type { InfoSection } from "~/types/common";
 export const ecartNormaleHeroData = {
     title: "Écart à la normale",
     description:
-        "L'écart de température à la normale est définit comme la différence de la température moyenne sur une période donnée et la température moyenne de référence calculée sur la période 1991–2020 pour une durée équivalente",
+        "L'écart de température à la normale est défini comme la différence de la température moyenne sur une période donnée et la température moyenne de référence calculée sur la période 1991–2020 pour une durée équivalente",
 };
 
 export const ecartNormaleSections: InfoSection[] = [
@@ -57,8 +57,8 @@ export const ecartNormaleSections: InfoSection[] = [
         label: "Sources",
         content:
             "- Les données sont issues de mesures open source de Météo-France" +
-            "\n- Informations sur les normales climatiques: https://donneespubliques.meteofrance.fr/client/document/normales-methode_299.pdf)" +
-            " https://meteofrance.com/, https://fr.wikipedia.org/wiki/Normale_climatique)" +
+            "\n- Informations sur les normales climatiques: https://donneespubliques.meteofrance.fr/client/document/normales-methode_299.pdf" +
+            " https://meteofrance.com/, https://fr.wikipedia.org/wiki/Normale_climatique" +
             "\n- Classe des stations: https://www.data.gouv.fr/datasets/fiches-dinformations-sur-les-stations",
     },
 ];
