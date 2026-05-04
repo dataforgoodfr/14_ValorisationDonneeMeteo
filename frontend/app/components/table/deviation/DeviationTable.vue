@@ -188,8 +188,22 @@ const columns = [
             :data="tableData"
             :columns="columns"
             :loading="pending"
+            loading-color="primary"
+            loading-animation="carousel"
             class="flex-1"
-        />
+        >
+            <template #loading>
+                <tr v-for="i in 10" :key="i">
+                    <td
+                        v-for="(_, colIndex) in columns"
+                        :key="colIndex"
+                        class="px-4 py-3"
+                    >
+                        <USkeleton class="h-4 w-full" />
+                    </td>
+                </tr>
+            </template>
+        </UTable>
 
         <div class="flex justify-center border-t border-accented pt-4">
             <UPagination
