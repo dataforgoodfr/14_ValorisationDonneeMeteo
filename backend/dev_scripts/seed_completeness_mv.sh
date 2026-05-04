@@ -12,9 +12,9 @@ ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 export PGPASSWORD="${DB_PASSWORD}"
 
 
-MV_SQL_COMPLETNESS_PAR_STATION="${ROOT_DIR}/sql/materialized_views/completeness/001_mv_completeness_par_station_classe_4_1806_2026.sql"
+MV_SQL_COMPLETNESS_PAR_STATION="${ROOT_DIR}/sql/materialized_views/completeness/001_mv_completeness_par_station_classe_1234.sql"
 
-MV_SQL_COMPLETNESS_PAR_STATION_ET_CLASSE="${ROOT_DIR}/sql/materialized_views/completeness/002_mv_completeness_par_station_et_classe_1806_2026.sql"
+MV_SQL_COMPLETNESS_PAR_STATION_ET_CLASSE="${ROOT_DIR}/sql/materialized_views/completeness/002_mv_completeness_par_station_et_classe.sql"
 
 [[ -f "${MV_SQL_COMPLETNESS_PAR_STATION}" ]] ||
 { echo "Missing file: ${MV_SQL_COMPLETNESS_PAR_STATION}" >&2; exit 1; }
