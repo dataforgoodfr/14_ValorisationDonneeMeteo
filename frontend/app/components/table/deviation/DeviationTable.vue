@@ -162,14 +162,15 @@ const columns = [
 
 <template>
     <div class="flex flex-col gap-4 w-full overflow-x-auto">
-        <div class="flex items-end justify-between gap-4">
-            <DayPicker
-                v-if="props.showFilters"
-                v-model:start-date="dateStart"
-                v-model:end-date="dateEnd"
-                :min-date="dates.absoluteMinDataDate.value"
-                :max-date="dates.yesterday.value"
-            />
+        <DayPicker
+            v-if="props.showFilters"
+            v-model:start-date="dateStart"
+            v-model:end-date="dateEnd"
+            :min-date="dates.absoluteMinDataDate.value"
+            :max-date="dates.yesterday.value"
+        />
+        <div class="flex flex-col lg:flex-row items-end justify-between gap-4">
+            <DeviationFilterBar />
             <UButton
                 label="Exporter CSV"
                 icon="i-lucide-download"
@@ -178,8 +179,6 @@ const columns = [
                 @click="exportCSV"
             />
         </div>
-
-        <DeviationFilterBar />
 
         <div v-if="error" class="px-4 py-3 bg-error/10 text-error rounded">
             Erreur de chargement : {{ error }}
