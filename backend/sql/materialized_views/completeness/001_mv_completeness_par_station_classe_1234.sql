@@ -1,6 +1,6 @@
-DROP MATERIALIZED VIEW IF EXISTS public.mv_completeness_par_station_classe_4_1806_2026;
+DROP MATERIALIZED VIEW IF EXISTS public.mv_completeness_par_station_classe_1234;
 
-CREATE MATERIALIZED VIEW public.mv_completeness_par_station_classe_4_1806_2026 AS
+CREATE MATERIALIZED VIEW public.mv_completeness_par_station_classe_1234 AS
 WITH params AS (
     SELECT
         DATE '1806-01-01' AS date_debut,
