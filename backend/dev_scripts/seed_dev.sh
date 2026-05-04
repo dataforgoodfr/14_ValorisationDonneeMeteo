@@ -107,9 +107,9 @@ echo "== Sanity checks =="
 "${psql_base[@]}" -c 'SELECT * FROM public.mv_itn_baseline_monthly_1991_2020 ORDER BY month LIMIT 5;'
 "${psql_base[@]}" -c 'SELECT * FROM public.mv_itn_baseline_yearly_1991_2020;'
 "${psql_base[@]}" -c 'SELECT period_type, record_type, COUNT(*) FROM public.mv_records_battus GROUP BY period_type, record_type ORDER BY period_type, record_type;'
-"${psql_base[@]}" -c 'SELECT COUNT(*) AS station_completeness_count FROM public.mv_completeness_par_station_classe_4_1806_2026;'
-"${psql_base[@]}" -c 'SELECT * FROM public.mv_completeness_par_station_classe_4_1806_2026 LIMIT 5;'
-"${psql_base[@]}" -c 'SELECT COUNT(*) AS station_classe_completeness_count FROM public.mv_completeness_par_station_classe_1806_2026;'
-"${psql_base[@]}" -c 'SELECT * FROM public.mv_completeness_par_station_classe_1806_2026 LIMIT 5;'
+"${psql_base[@]}" -c 'SELECT COUNT(*) AS station_completeness_count FROM public.mv_completeness_par_station_classe_1234;'
+"${psql_base[@]}" -c 'SELECT * FROM public.mv_completeness_par_station_classe_1234 LIMIT 5;'
+"${psql_base[@]}" -c 'SELECT COUNT(*) AS station_classe_completeness_count FROM public.mv_completeness_par_station_classe;'
+"${psql_base[@]}" -c 'SELECT * FROM public.mv_completeness_par_station_classe LIMIT 5;'
 
 echo "Seed done."
