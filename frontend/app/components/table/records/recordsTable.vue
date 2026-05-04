@@ -27,6 +27,7 @@ const {
     filteredCount,
     pending,
     error,
+    ordering,
 } = storeToRefs(store);
 
 function exportCSV() {
@@ -53,7 +54,6 @@ const temperatureBadgeColor = computed(() =>
     displayedTypeRecords.value === "hot" ? "error" : "info",
 );
 
-const ordering = ref("");
 function setOrdering(key: string) {
     page.value = 1;
     if (ordering.value === key) ordering.value = `-${key}`;

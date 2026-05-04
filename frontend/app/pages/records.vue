@@ -19,6 +19,29 @@ import { recordsHeroData, recordsSections } from "~/data/docRecords";
 const selectBarAdapter = useRecordsSelectBarAdapter();
 
 const store = useRecordsTableStore();
+const route = useRoute();
+
+const { today, yesterday, yesterdayLess30Days } = useCustomDate();
+
+onMounted(() => {
+    const preset = route.query.preset;
+    if (!preset) return;
+
+    store.ordering = "-recordDate";
+
+    if (preset === "today") {
+        store.dateStart = today.value;
+        store.dateEnd = today.value;
+    } else if (preset === "30d") {
+        store.dateStart = yesterdayLess30Days.value;
+        store.dateEnd = yesterday.value;
+    } else if (preset === "365d") {
+        const start = new Date(yesterday.value);
+        start.setFullYear(start.getFullYear() - 1);
+        store.dateStart = start;
+        store.dateEnd = yesterday.value;
+    }
+});
 
 const heroData = recordsHeroData;
 const infoPanelSections = recordsSections;

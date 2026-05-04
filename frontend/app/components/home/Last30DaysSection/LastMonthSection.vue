@@ -175,7 +175,7 @@ const lastYearColdRecordsCount = computed(
                     :department-string="coldStation?.region"
                     :department-number="coldStation?.department"
                 />
-                <GoToDataLink :data-url="'/ecart-normale'" />
+                <GoToDataLink :data-url="'/ecart-normale?preset=30d'" />
             </div>
         </div>
         <div class="border-b to-slate-200" />
@@ -202,6 +202,6 @@ const lastYearColdRecordsCount = computed(
                 compare-to="année dernière"
             />
         </div>
-        <GoToDataLink :data-url="'/records'" />
+        <GoToDataLink :data-url="'/records?preset=30d'" />
     </Section>
 </template>
