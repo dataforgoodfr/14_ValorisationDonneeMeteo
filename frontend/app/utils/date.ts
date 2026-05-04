@@ -73,14 +73,20 @@ export function getLastDayOfMonth(date: Date): Date {
     return new Date(date.getFullYear(), date.getMonth() + 1, 0);
 }
 
+function isCurrentMonth(date: Date, today: Date = new Date()): boolean {
+    return (
+        date.getFullYear() === today.getFullYear() &&
+        date.getMonth() === today.getMonth()
+    );
+}
+
 export function getLastAvailableDayOfMonth(
     date: Date,
     today: Date = new Date(),
 ): Date {
-    const sameMonth =
-        date.getFullYear() === today.getFullYear() &&
-        date.getMonth() === today.getMonth();
-    return sameMonth ? getOneDayBeforeDate(today) : getLastDayOfMonth(date);
+    return isCurrentMonth(date, today)
+        ? getOneDayBeforeDate(today)
+        : getLastDayOfMonth(date);
 }
 
 export function getOneDayBeforeDate(date: Date): Date {
