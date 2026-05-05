@@ -58,6 +58,19 @@ const initOptions = computed(() => ({
 }));
 provide(INIT_OPTIONS_KEY, initOptions);
 
+// Palette sans bleu ni rouge (conflictuels avec les bandes chaud/froid)
+const YEAR_COLORS_PRIMARY = [
+    "#E91E63", // magenta
+    "#2E7D32", // vert forêt
+    "#00838F", // teal
+    "#6A1B9A", // violet
+    "#F57C00", // orange
+    "#4E342E", // brun
+    "#558B2F", // vert olive
+    "#00695C", // teal sombre
+    "#4A148C", // violet profond
+];
+
 const itnColors = useItnColors();
 const mapColors = useMapColors();
 const colorMode = useColorMode();
@@ -94,6 +107,7 @@ function buildStackedOption(
         byYear.get(year)!.set(k, p.temperature);
     }
     const years = [...byYear.keys()].sort();
+    const yearColors = YEAR_COLORS_PRIMARY;
 
     const baselineSource = allPositions.map((pos) => {
         const p = baselineByPos.get(pos)!;
@@ -160,7 +174,7 @@ function buildStackedOption(
         },
     ];
 
-    const yearSeries: ECOption["series"] = years.map((year) => ({
+    const yearSeries: ECOption["series"] = years.map((year, index) => ({
         name: String(year),
         type: "line",
         data: allPositions.map((pos) => [
@@ -168,6 +182,7 @@ function buildStackedOption(
             byYear.get(year)?.get(pos) ?? null,
         ]),
         symbol: "none",
+        color: yearColors[index % yearColors.length],
         lineStyle: { width: 1.5 },
         connectNulls: false,
         z: 10,
