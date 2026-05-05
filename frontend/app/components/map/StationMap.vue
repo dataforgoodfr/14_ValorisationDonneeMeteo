@@ -34,7 +34,6 @@
 
 <script setup lang="ts">
 import maplibregl from "maplibre-gl";
-import "maplibre-gl/dist/maplibre-gl.css";
 import * as topojson from "topojson-client";
 import type { FeatureCollection, Geometry, Point } from "geojson";
 import type {
@@ -157,6 +156,7 @@ function initLayers() {
         closeButton: false,
         closeOnClick: false,
         offset: 8,
+        className: "station-map-popup",
     });
 
     map.on("mouseenter", "stations-circles", (e) => {
@@ -332,4 +332,16 @@ watch(mapColors, (colors) => {
     map.setPaintProperty("france-dep-border", "line-color", colors.foreground);
     map.setPaintProperty("france-reg-border", "line-color", colors.foreground);
 });
+
+const tooltipBg = computed(() => mapColors.value.background);
 </script>
+
+<style scoped>
+:deep(.station-map-popup .maplibregl-popup-content) {
+    background: v-bind(tooltipBg);
+}
+
+:deep(.station-map-popup .maplibregl-popup-tip) {
+    display: none;
+}
+</style>

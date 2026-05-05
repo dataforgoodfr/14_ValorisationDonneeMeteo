@@ -10,11 +10,11 @@
 
 <script setup lang="ts">
 import maplibregl from "maplibre-gl";
-import "maplibre-gl/dist/maplibre-gl.css";
 import * as topojson from "topojson-client";
 import type { FeatureCollection, Geometry } from "geojson";
 import type { ItnStation } from "~/types/api";
 import type { FranceTopology } from "~/types/map";
+import { useMapColors } from "~/constants/colors";
 
 const props = defineProps<{
     stations: ItnStation[];
@@ -29,11 +29,14 @@ const mapContainer = ref<HTMLDivElement | null>(null);
 let map: maplibregl.Map | null = null;
 const mapReady = ref(false);
 
+const mapColors = useMapColors();
+const tooltipBg = computed(() => mapColors.value.background);
+
 const popup = new maplibregl.Popup({
     closeButton: false,
     closeOnClick: false,
     offset: 10,
-    className: "bg-transparent",
+    className: "itn-map-popup",
 });
 
 const BLANK_STYLE: maplibregl.StyleSpecification = {
@@ -222,16 +225,17 @@ watch(
 );
 </script>
 
-<style>
-.maplibregl-popup-content {
-    background: transparent;
-    box-shadow: none;
-    padding: 0;
+<style scoped>
+:deep(.itn-map-popup .maplibregl-popup-content) {
+    background: v-bind(tooltipBg);
+    overflow: hidden;
 }
-.maplibregl-popup-tip {
+
+:deep(.itn-map-popup .maplibregl-popup-tip) {
     display: none;
 }
-.itn-popup-label {
+
+:deep(.itn-popup-label) {
     color: var(--color-blue-450);
     font-weight: 600;
     font-size: var(--text-s);
