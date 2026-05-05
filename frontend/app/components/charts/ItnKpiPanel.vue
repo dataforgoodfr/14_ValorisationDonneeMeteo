@@ -41,7 +41,7 @@
         </Card>
 
         <Card
-            title="Nombre de jours anormalement chauds"
+            title="Nombre de jours excessivement chauds"
             tooltip-text="Nombre de jours, sur la période sélectionnée, pour lesquels la valeur de l'ITN est au-delà de l'écart-type de la période des normales."
         >
             <template #kpi>
@@ -80,7 +80,7 @@
         </Card>
 
         <Card
-            title="Nombre de jours anormalement froids"
+            title="Nombre de jours excessivement froids"
             tooltip-text="Nombre de jours, sur la période sélectionnée, pour lesquels la valeur de l'ITN est en-deçà de l'écart-type de la période des normales."
         >
             <template #kpi>
