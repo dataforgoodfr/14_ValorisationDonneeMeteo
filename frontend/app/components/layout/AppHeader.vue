@@ -102,25 +102,23 @@ const items = computed<NavigationMenuItem[]>(() => [
         <div class="flex justify-between">
             <!-- Commenter le temps de la beta (jusqu'au 22/05/2026) -->
             <!-- :ui="{ base: 'bg-slate-450 ring-1 ring-blue-350 text-white' }" to="https://asso.infoclimat.fr/infos/formulaire.php" target="_blank" -->
-            <!-- :ui="{
-                    base: 'bg-orange-500 ring-1 ring-orange-350 text-white',
-                }" -->
+
             <UButton
-                :ui="{ base: 'bg-slate-450 ring-1 ring-blue-350 text-white' }"
-                to="https://asso.infoclimat.fr/infos/formulaire.php"
-                target="_blank"
+                :ui="{
+                    base: 'bg-orange-500 ring-1 ring-orange-350 text-white',
+                }"
                 class="px-8 text-lg"
                 aria-label="infoclimat"
             >
                 <!-- Commenter le temps de la beta (jusqu'au 22/05/2026) -->
-                <span class="hidden lg:inline">Adhérer à Infoclimat</span>
-                <span class="lg:hidden">Adhérer à Infoclimat</span>
-                <!-- <span class="hidden lg:inline"
+                <!-- <span class="hidden lg:inline">Adhérer à Infoclimat</span>
+                <span class="lg:hidden">Adhérer à Infoclimat</span> -->
+                <span class="hidden lg:inline"
                     >Version Beta: certaines données sont inexactes</span
                 >
                 <span class="lg:hidden"
                     >Version Beta: certaines données sont inexactes</span
-                > -->
+                >
             </UButton>
         </div>
 
@@ -168,28 +166,28 @@ const items = computed<NavigationMenuItem[]>(() => [
                     }"
                 />
                 <!-- Commenter le temps de la beta (jusqu'au 22/05/2026) -->
-                <!-- :ui="{base: 'bg-slate-450 ring-1 ring-blue-350 text-white'}" to="https://asso.infoclimat.fr/infos/formulaire.php" target="_blank" -->
                 <!-- :ui="{
-                        base: 'bg-orange-600 ring-1 ring-orange-350 text-white',
-                    }" -->
-                <UButton
-                    :ui="{
                         base: 'bg-slate-450 ring-1 ring-blue-350 text-white',
                     }"
                     to="https://asso.infoclimat.fr/infos/formulaire.php"
-                    target="_blank"
+                    target="_blank" -->
+
+                <UButton
+                    :ui="{
+                        base: 'bg-orange-600 ring-1 ring-orange-350 text-white',
+                    }"
                     class="self-center px-8 text-lg mt-8"
                     aria-label="infoclimat"
                 >
                     <!-- Commenter le temps de la beta (jusqu'au 22/05/2026) -->
-                    <span class="hidden lg:inline">Adhérer à Infoclimat</span>
-                    <span class="lg:hidden">Adhérer à Infoclimat</span>
-                    <!-- <span class="hidden lg:inline"
+                    <!-- <span class="hidden lg:inline">Adhérer à Infoclimat</span>
+                    <span class="lg:hidden">Adhérer à Infoclimat</span> -->
+                    <span class="hidden lg:inline"
                         >Version Beta: certaines données sont inexactes</span
                     >
                     <span class="lg:hidden"
                         >Version Beta: certaines données sont inexactes</span
-                    > -->
+                    >
                 </UButton>
             </div>
         </template>
