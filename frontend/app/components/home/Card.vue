@@ -60,16 +60,16 @@ const isOpen = ref(false);
                 </span>
             </div>
             <div v-if="$slots['kpi-context-text']" class="mt-2">
-                <span
-                    class="kpi-context-text text-xs text-slate-600 dark:text-slate-300 leading-none"
+                <div
+                    class="kpi-context-text text-xs text-slate-600 dark:text-slate-300 leading-none w-full"
                 >
                     <slot name="kpi-context-text" />
-                </span>
+                </div>
             </div>
             <div v-if="$slots['variation']" class="flex items-center mt-2">
-                <span class="text-xs text-blue-700 dark:text-blue-350">
+                <div class="text-xs text-blue-700 dark:text-blue-350 w-full">
                     <slot name="variation" />
-                </span>
+                </div>
             </div>
         </template>
     </UCard>
