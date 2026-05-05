@@ -10,6 +10,7 @@ interface Props {
     city?: string;
     departmentString?: string;
     departmentNumber?: string | number;
+    tagContent?: string;
     disabled?: boolean;
 }
 
@@ -39,7 +40,9 @@ const tagData = computed(() => {
             :class="`${tagData.class} text-[13px] mb-2 self-start flex gap-1 items-center rounded-lg p-1 font-semibold`"
         >
             <UIcon :name="tagData.icon" class="text-[15px]" />
-            <span>{{ tagData.text }}</span>
+            <span>{{
+                tagContent ? tagContent.toUpperCase() : tagData.text
+            }}</span>
         </div>
         <div
             v-if="loading"
