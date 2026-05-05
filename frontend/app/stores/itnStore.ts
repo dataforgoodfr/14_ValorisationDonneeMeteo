@@ -97,7 +97,7 @@ export const useItnStore = defineStore("itnStore", () => {
             maxDate.value = dates.yesterday.value;
         }
         if (value === "month") {
-            pickedDateStart.value = dates.last10Year.value;
+            pickedDateStart.value = dates.lastYear.value;
             pickedDateEnd.value = dates.lastMonth.value;
             maxDate.value = dates.lastMonth.value;
         }
