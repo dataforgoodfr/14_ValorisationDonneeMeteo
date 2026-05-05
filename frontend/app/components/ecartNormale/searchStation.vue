@@ -1,6 +1,8 @@
 <script setup lang="ts">
 import { refDebounced, useIntersectionObserver } from "@vueuse/core";
 import type { Station } from "~/types/api";
+import { MAX_GRAPH_TERRITORIES } from "~/constants/graphSelection";
+import MaxTerritoriesReachedTooltip from "~/components/ui/commons/MaxTerritoriesReachedTooltip.vue";
 
 const deviationStore = useDeviationStore();
 const { includeNational, selectedStations } = storeToRefs(deviationStore);
@@ -28,6 +30,12 @@ function onUnselectStation(_event: PointerEvent, station: Station) {
 
 const isStationSelected = (station: Station) =>
     selectedStations.value.some((s) => s.code === station.code);
+
+const isAtLimit = computed(
+    () =>
+        selectedStations.value.length + (includeNational.value ? 1 : 0) >=
+        MAX_GRAPH_TERRITORIES,
+);
 
 const unselectedFilteredStations = computed(() =>
     selectedStations.value.length === 0
@@ -86,37 +94,39 @@ useIntersectionObserver(sentinel, ([entry]) => {
 
         <USeparator v-if="selectedStations.length > 0 || includeNational" />
 
-        <div class="overflow-y-auto">
-            <ul>
-                <li
-                    v-if="!includeNational"
-                    class="cursor-pointer pr-2 py-1 text-sm flex items-center justify-between"
-                    :title="'France Métropolitaine'"
-                    @click="deviationStore.setIncludeNational(true)"
-                >
-                    <span>France Métropolitaine</span>
-                    <UIcon :name="'i-lucide-plus'" class="shrink-0" />
-                </li>
-                <li
-                    v-for="station in unselectedFilteredStations"
-                    :key="`filtered-${station.code}`"
-                    :title="`${station.nom} (${station.departement})`"
-                    class="cursor-pointer pr-2 py-1 text-sm flex items-center justify-between"
-                    @click="onSelectStation($event, station)"
-                >
-                    <span class="truncate"
-                        >{{ station.nom }} ({{ station.departement }})</span
+        <MaxTerritoriesReachedTooltip :is-at-limit="isAtLimit">
+            <div class="overflow-y-auto">
+                <ul>
+                    <li
+                        v-if="!includeNational"
+                        class="cursor-pointer pr-2 py-1 text-sm flex items-center justify-between"
+                        :title="'France Métropolitaine'"
+                        @click="deviationStore.setIncludeNational(true)"
                     >
-                    <UIcon name="i-lucide-plus" class="shrink-0" />
-                </li>
-                <li
-                    v-if="hasMore"
-                    ref="sentinel"
-                    class="py-1 text-center text-xs text-gray-400"
-                >
-                    <span>Chargement...</span>
-                </li>
-            </ul>
-        </div>
+                        <span>France Métropolitaine</span>
+                        <UIcon :name="'i-lucide-plus'" class="shrink-0" />
+                    </li>
+                    <li
+                        v-for="station in unselectedFilteredStations"
+                        :key="`filtered-${station.code}`"
+                        :title="`${station.nom} (${station.departement})`"
+                        class="cursor-pointer pr-2 py-1 text-sm flex items-center justify-between"
+                        @click="onSelectStation($event, station)"
+                    >
+                        <span class="truncate"
+                            >{{ station.nom }} ({{ station.departement }})</span
+                        >
+                        <UIcon name="i-lucide-plus" class="shrink-0" />
+                    </li>
+                    <li
+                        v-if="hasMore"
+                        ref="sentinel"
+                        class="py-1 text-center text-xs text-gray-400"
+                    >
+                        <span>Chargement...</span>
+                    </li>
+                </ul>
+            </div>
+        </MaxTerritoriesReachedTooltip>
     </div>
 </template>
