@@ -32,6 +32,6 @@ const { yesterday, yesterdayLess365Days } = useCustomDate();
                 <ExtremeCard hot-cold="cold" :disabled="true" />
             </div> -->
         </div>
-        <GoToDataLink :data-url="'/records'" />
+        <GoToDataLink :data-url="'/records?preset=365d'" />
     </Section>
 </template>
