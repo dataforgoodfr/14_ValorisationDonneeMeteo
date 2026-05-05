@@ -1,5 +1,5 @@
 <template>
-    <div class="flex flex-col gap-2 lg:w-[700px] w-full flex-shrink-0">
+    <div class="flex flex-col gap-0 lg:w-155 w-full flex-shrink-0">
         <Card
             class="w-fit mx-auto"
             :with-border="false"
@@ -36,6 +36,7 @@
             </template>
         </Card>
         <StationMap
+            class="-mt-20"
             :stations="mappableStations"
             :color-config="RECORDS_MAP_COLORS"
             :tooltip-formatter="tooltipFormatter"
