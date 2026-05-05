@@ -50,7 +50,7 @@ export function useTemperatureDeviation(
             if (enabled && hasParams) {
                 result.execute();
             } else if (!hasParams) {
-                result.data.value = undefined;
+                result.clear();
             }
         },
         { immediate: true, deep: true },
@@ -92,7 +92,7 @@ export function useTemperatureDeviationGraph(
             if (enabled && hasParams) {
                 result.execute();
             } else if (!hasParams) {
-                result.data.value = undefined;
+                result.clear();
             }
         },
         { immediate: true },
@@ -146,31 +146,28 @@ export function useTemperatureRecords(
 ) {
     const { useApiFetch } = useApiClient();
 
-    if (enabled === undefined) {
-        return useApiFetch<TemperatureRecordsPaginatedResponse>(
-            "/temperature/records",
-            {
-                query: params,
-            },
-        );
-    }
-
-    const isEnabled = toRef(enabled);
+    const isEnabled = computed(() =>
+        enabled !== undefined ? toValue(enabled) : true,
+    );
 
     const result = useApiFetch<TemperatureRecordsPaginatedResponse>(
         "/temperature/records",
         {
             query: params,
-            immediate: isEnabled.value,
+            immediate: false,
             watch: false,
         },
     );
 
-    watch([isEnabled, params], () => {
-        if (isEnabled.value) {
-            result.execute();
-        }
-    });
+    watch(
+        [isEnabled, params],
+        ([enabled]) => {
+            if (enabled) {
+                result.execute();
+            }
+        },
+        { immediate: true },
+    );
 
     return result;
 }
