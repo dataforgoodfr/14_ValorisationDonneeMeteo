@@ -20,6 +20,7 @@ const isOpen = ref(false);
             props.withBorder && 'border border-blue-350',
             props.transparent && 'bg-transparent shadow-none ring-0',
         ]"
+        :ui="{ body: props.transparent ? 'p-0' : '' }"
     >
         <template #default>
             <div
@@ -65,7 +66,7 @@ const isOpen = ref(false);
                     <slot name="kpi-context-text" />
                 </span>
             </div>
-            <div v-if="$slots['variation']" class="flex items-center mt-1">
+            <div v-if="$slots['variation']" class="flex items-center mt-2">
                 <span class="text-xs text-blue-700 dark:text-blue-350">
                     <slot name="variation" />
                 </span>

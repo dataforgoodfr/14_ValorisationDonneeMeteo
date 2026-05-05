@@ -54,8 +54,8 @@ const coldDiff = computed(() => {
 </script>
 
 <template>
-    <div class="flex items-center flex-col gap-2">
-        <div class="flex gap-40 items-start">
+    <div class="flex items-center flex-col gap-4">
+        <div class="flex gap-2 items-start flex-col md:flex-row md:gap-40">
             <div class="w-fit">
                 <Card title="" tooltip-text="" :show-title="false" transparent>
                     <template #kpi>
@@ -82,6 +82,7 @@ const coldDiff = computed(() => {
                     </template>
                     <template v-if="itnDiff != null" #variation>
                         <UIcon
+                            v-if="itnDiff.toFixed(1) !== '0.0'"
                             :name="
                                 itnDiff < 0
                                     ? 'i-lucide-arrow-down-right'
@@ -98,8 +99,7 @@ const coldDiff = computed(() => {
                                 itnDiff < 0 ? 'text-blue-400' : 'text-red-400'
                             "
                         >
-                            {{ itnDiff >= 0 ? "+" : ""
-                            }}{{ itnDiff.toFixed(1) }}°C
+                            {{ itnDiff.toFixed(1) }}°C
                         </span>
                         vs. 365 jours précédents
                     </template>
@@ -114,7 +114,7 @@ const coldDiff = computed(() => {
             </p>
         </div>
 
-        <div class="flex gap-6">
+        <div class="flex gap-6 flex-col md:flex-row">
             <div class="w-fit">
                 <Card
                     title="Nombre de jours anormalement chauds"
@@ -135,6 +135,7 @@ const coldDiff = computed(() => {
                     </template>
                     <template v-if="hotDiff != null" #variation>
                         <UIcon
+                            v-if="hotDiff.toFixed(1) !== '0.0'"
                             :name="
                                 hotDiff < 0
                                     ? 'i-lucide-arrow-down-right'
@@ -143,7 +144,7 @@ const coldDiff = computed(() => {
                             class="text-red-400 font-semibold"
                         />
                         <span class="text-sm font-semibold text-red-400">
-                            {{ hotDiff >= 0 ? "+" : "" }}{{ hotDiff }} jours
+                            {{ hotDiff }} jours
                         </span>
                         vs. 365 jours précédents
                     </template>
@@ -169,6 +170,7 @@ const coldDiff = computed(() => {
                     </template>
                     <template v-if="coldDiff != null" #variation>
                         <UIcon
+                            v-if="coldDiff !== 0"
                             :name="
                                 coldDiff < 0
                                     ? 'i-lucide-arrow-down-right'
@@ -177,7 +179,7 @@ const coldDiff = computed(() => {
                             class="text-blue-400 font-semibold"
                         />
                         <span class="text-sm font-semibold text-blue-400">
-                            {{ coldDiff >= 0 ? "+" : "" }}{{ coldDiff }} jours
+                            {{ coldDiff }} jours
                         </span>
                         vs. 365 jours précédents
                     </template>

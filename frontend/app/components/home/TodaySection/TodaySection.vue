@@ -104,4 +104,3 @@ const lastYearColdRecordsCount = computed(
         <GoToDataLink :data-url="'/records?preset=today'" />
     </Section>
 </template>
-<style lang="css" scoped></style>

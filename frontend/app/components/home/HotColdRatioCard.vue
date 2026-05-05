@@ -51,6 +51,7 @@ const hotPercent = computed(() =>
         </template>
         <template v-if="props.variation !== undefined" #variation>
             <UIcon
+                v-if="props.variation !== 0"
                 :name="
                     props.variation <= 0
                         ? 'i-lucide-arrow-down-right'

@@ -22,7 +22,9 @@ const { yesterday, yesterdayLess365Days } = useCustomDate();
         <h2 class="text-blue-700 dark:text-primary pb-2 pt-1">
             RECORDS DE TEMPERATURE
         </h2>
-        <div class="flex gap-6 justify-center items-center">
+        <div
+            class="flex gap-6 justify-center items-center flex-col md:flex-row"
+        >
             <RecordsRatioCard class="flex-1" />
             <!-- commenter en attendant l'implémentation -->
             <!-- <div class="flex flex-col gap-2 w-fit">
