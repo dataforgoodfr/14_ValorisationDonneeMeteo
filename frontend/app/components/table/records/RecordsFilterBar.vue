@@ -19,7 +19,7 @@ const filterFields: FilterField[] = [
         type: "number-range",
     },
     { id: "record_date", label: "Date du record absolu", type: "date-range" },
-    { id: "classe", label: "Classe", type: "number-range" },
+    { id: "classe", label: "Classe", type: "string" },
     { id: "altitude", label: "Altitude", type: "number-range" },
     {
         id: "date_de_creation",

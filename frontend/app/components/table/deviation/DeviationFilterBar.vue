@@ -27,7 +27,7 @@ const filterFields: FilterField[] = [
         type: "number-range",
         unit: "°C",
     },
-    { id: "classe", label: "Classe", type: "number-range" },
+    { id: "classe", label: "Classe", type: "string" },
     {
         id: "anneeDeCreation",
         label: "Année de création",
