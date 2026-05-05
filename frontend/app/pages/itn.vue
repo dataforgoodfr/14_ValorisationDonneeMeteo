@@ -26,7 +26,7 @@ const infoPanelSections = itnSections;
                 <SelectBar :adapter="selectBarAdapter" />
             </template>
             <template #chart>
-                <div class="flex gap-4">
+                <div class="flex flex-col md:flex-row gap-4">
                     <div class="flex-1 min-w-0">
                         <ItnChart :adapter="selectBarAdapter" />
                     </div>
