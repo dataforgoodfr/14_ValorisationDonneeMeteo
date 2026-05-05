@@ -162,6 +162,7 @@ const lastYearColdRecordsCount = computed(
                     :city="hotStation?.station_name"
                     :department-string="hotStation?.region"
                     :department-number="hotStation?.department"
+                    tag-content="Ecart max"
                 />
                 <ExtremeCard
                     hot-cold="cold"
@@ -174,6 +175,7 @@ const lastYearColdRecordsCount = computed(
                     :city="coldStation?.station_name"
                     :department-string="coldStation?.region"
                     :department-number="coldStation?.department"
+                    tag-content="Ecart min"
                 />
                 <GoToDataLink :data-url="'/ecart-normale?preset=30d'" />
             </div>
