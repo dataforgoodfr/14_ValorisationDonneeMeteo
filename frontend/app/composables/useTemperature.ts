@@ -31,9 +31,7 @@ export function useTemperatureDeviation(
         );
     });
 
-    const isEnabled = computed(() =>
-        enabled !== undefined ? toValue(enabled) : true,
-    );
+    const isEnabled = computed(() => toValue(enabled) ?? true);
 
     const result = useApiFetch<TemperatureDeviationResponse>(
         "/temperature/deviation",
@@ -73,9 +71,7 @@ export function useTemperatureDeviationGraph(
         );
     });
 
-    const isEnabled = computed(() =>
-        enabled !== undefined ? toValue(enabled) : true,
-    );
+    const isEnabled = computed(() => toValue(enabled) ?? true);
 
     const result = useApiFetch<TemperatureDeviationGraphResponse>(
         "/temperature/deviation/graph",
@@ -107,9 +103,7 @@ export function useTemperatureRecordsGraph(
 ) {
     const { useApiFetch } = useApiClient();
 
-    const isEnabled = computed(() =>
-        enabled !== undefined ? toValue(enabled) : true,
-    );
+    const isEnabled = computed(() => toValue(enabled) ?? true);
 
     const result = useApiFetch<TemperatureRecordsGraphResponse>(
         "/temperature/records/graph",
@@ -146,9 +140,7 @@ export function useTemperatureRecords(
 ) {
     const { useApiFetch } = useApiClient();
 
-    const isEnabled = computed(() =>
-        enabled !== undefined ? toValue(enabled) : true,
-    );
+    const isEnabled = computed(() => toValue(enabled) ?? true);
 
     const result = useApiFetch<TemperatureRecordsPaginatedResponse>(
         "/temperature/records",
