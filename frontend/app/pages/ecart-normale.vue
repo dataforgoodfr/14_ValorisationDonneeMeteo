@@ -25,14 +25,11 @@ const chartType = computed<ChartType>(
 const tableStore = useDeviationTableStore();
 const { dateStart, dateEnd } = storeToRefs(tableStore);
 
-const route = useRoute();
 const { yesterday, yesterdayLess30Days } = useCustomDate();
 
 onMounted(() => {
-    if (route.query.preset === "30d") {
-        tableStore.dateStart = yesterdayLess30Days.value;
-        tableStore.dateEnd = yesterday.value;
-    }
+    tableStore.dateStart = yesterdayLess30Days.value;
+    tableStore.dateEnd = yesterday.value;
 });
 
 const isPeriodInfoOpen = ref(false);

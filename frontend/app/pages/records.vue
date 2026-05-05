@@ -25,7 +25,12 @@ const { today, yesterday, yesterdayLess30Days } = useCustomDate();
 
 onMounted(() => {
     const preset = route.query.preset;
-    if (!preset) return;
+    if (!preset) {
+        store.dateStart = undefined;
+        store.dateEnd = undefined;
+        store.ordering = "";
+        return;
+    }
 
     store.ordering = "-recordDate";
 
