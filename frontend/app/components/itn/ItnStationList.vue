@@ -1,10 +1,10 @@
 <template>
     <div class="flex items-center">
-        <ul class="flex flex-wrap">
+        <ul class="grid grid-cols-1 md:grid-cols-3">
             <li
                 v-for="station in sortedStations"
                 :key="station.code"
-                class="flex justify-start items-center gap-3 px-3 py-1.5 h-12 basis-full md:basis-1/3 rounded transition-colors cursor-default select-none"
+                class="flex justify-start items-center gap-3 px-3 py-1.5 h-12 rounded transition-colors cursor-default select-none"
                 @mouseenter="emit('update:hoveredCode', station.code)"
                 @mouseleave="emit('update:hoveredCode', null)"
             >
