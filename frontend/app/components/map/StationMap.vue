@@ -1,11 +1,11 @@
 <template>
-    <div class="flex flex-col gap-2">
+    <div class="flex flex-col gap-0 -mt-15">
         <div
             ref="mapContainer"
             class="w-full rounded-lg overflow-hidden"
             :style="aspectRatio ? { aspectRatio } : { height }"
         />
-        <div class="flex flex-col items-center gap-1">
+        <div class="flex flex-col items-center gap-1 -mt-15">
             <span class="text-xs" :style="{ color: mapColors.foreground }">{{
                 legendLabel
             }}</span>
@@ -65,7 +65,7 @@ const props = withDefaults(
         };
     }>(),
     {
-        height: "700px",
+        height: "800px",
         aspectRatio: undefined,
         showControls: true,
         fitPadding: () => ({ top: -10, right: 50, bottom: 50, left: 40 }),

@@ -1,5 +1,5 @@
 <template>
-    <div class="flex flex-col gap-2 lg:w-175 w-full shrink-0">
+    <div class="flex flex-col gap-0 lg:w-155 w-full shrink-0">
         <Card
             class="w-fit mx-auto"
             :with-border="false"
@@ -28,6 +28,7 @@
         </Card>
 
         <StationMap
+            class="-mt-20"
             :stations="mappableStations"
             :color-config="DEVIATION_MAP_COLORS"
             :tooltip-formatter="tooltipFormatter"
