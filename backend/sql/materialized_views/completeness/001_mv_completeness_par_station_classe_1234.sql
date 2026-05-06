@@ -21,5 +21,5 @@ SELECT
 FROM public.v_station_classe_retroactive sc
 CROSS JOIN params p
 WHERE sc.date_debut <= p.date_fin
-AND (sc.date_fin IS NULL OR sc.date_fin >= p.date_debut) AND sc.classe < 5
+AND (sc.date_fin IS NULL OR sc.date_fin >= p.date_debut) AND sc.classe <= 4
 GROUP BY sc.station_code;
