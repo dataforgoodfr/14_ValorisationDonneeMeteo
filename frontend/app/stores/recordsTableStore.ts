@@ -2,6 +2,7 @@ import { refDebounced } from "@vueuse/core";
 import { useTemperatureRecords } from "~/composables/useTemperature";
 import { departements } from "~/data/records/departements";
 import { dateToStringYMD } from "~/utils/date";
+import { expandClasseRange } from "~/utils/classeFilter";
 import type {
     PeriodType,
     Season,
@@ -174,18 +175,7 @@ export const useRecordsTableStore = defineStore("recordsTableStore", () => {
             } else if (id === "departement") {
                 departments.value = value.values;
             } else if (id === "classe") {
-                const nums = value.values.map(Number).sort((a, b) => a - b);
-                if (nums.length <= 1) {
-                    classeFilter.value = nums.map(String);
-                } else {
-                    // Sélectionne toutes les valeurs entre min et max sélectionnées
-                    const min = nums[0]!;
-                    const max = nums[nums.length - 1]!;
-                    classeFilter.value = Array.from(
-                        { length: max - min + 1 },
-                        (_, i) => String(min + i),
-                    );
-                }
+                classeFilter.value = expandClasseRange(value.values);
             }
         } else if (value.type === "number-range") {
             if (id === "record") {

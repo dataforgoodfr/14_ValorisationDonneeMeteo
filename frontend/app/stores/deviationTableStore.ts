@@ -7,6 +7,7 @@ import type {
 } from "~/components/ui/commons/filterBarTypes";
 import { departements } from "~/data/records/departements";
 import { regions } from "~/data/records/regions";
+import { expandClasseRange } from "~/utils/classeFilter";
 
 type DeviationTableFilters = {
     name?: StringFilterValue;
@@ -100,18 +101,7 @@ export const useDeviationTableStore = defineStore("deviationTableStore", () => {
             if (id === "departement") departmentsFilter.value = value.values;
             if (id === "region") regionsFilter.value = value.values;
             if (id === "classe") {
-                const nums = value.values.map(Number).sort((a, b) => a - b);
-                if (nums.length <= 1) {
-                    classeFilter.value = nums.map(String);
-                } else {
-                    // Sélectionne toutes les valeurs entre min et max sélectionnées
-                    const min = nums[0]!;
-                    const max = nums[nums.length - 1]!;
-                    classeFilter.value = Array.from(
-                        { length: max - min + 1 },
-                        (_, i) => String(min + i),
-                    );
-                }
+                classeFilter.value = expandClasseRange(value.values);
             }
         } else if (value.type === "number-range") {
             // if (id === "altitude") {
