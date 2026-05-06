@@ -6,8 +6,11 @@
         >
             <template #kpi>
                 <p class="font-semibold text-4xl mb-1 text-red-400">
-                    <USkeleton v-if="pending" class="size-12 rounded-full" />
-
+                    <UIcon
+                        v-if="pending"
+                        name="i-lucide-loader-circle"
+                        class="animate-spin text-5xl text-muted"
+                    />
                     <span v-else-if="kpi != null"
                         >{{ kpi.itn_mean?.toFixed(1) }} °C</span
                     >
@@ -46,7 +49,11 @@
         >
             <template #kpi>
                 <p class="font-semibold text-4xl mb-1 text-red-400">
-                    <USkeleton v-if="pending" class="size-12 rounded-full" />
+                    <UIcon
+                        v-if="pending"
+                        name="i-lucide-loader-circle"
+                        class="animate-spin text-5xl text-muted"
+                    />
 
                     <span v-else-if="kpi != null">{{
                         kpi.hot_peak_count
@@ -85,7 +92,11 @@
         >
             <template #kpi>
                 <p class="font-semibold text-4xl mb-1 text-blue-400">
-                    <USkeleton v-if="pending" class="size-12 rounded-full" />
+                    <UIcon
+                        v-if="pending"
+                        name="i-lucide-loader-circle"
+                        class="animate-spin text-5xl text-muted"
+                    />
                     <span v-else-if="kpi != null">{{
                         kpi.cold_peak_count
                     }}</span>
