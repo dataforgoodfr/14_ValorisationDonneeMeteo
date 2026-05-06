@@ -1,5 +1,5 @@
 <template>
-    <div class="flex flex-col gap-0 -mt-15">
+    <div class="flex flex-col gap-4">
         <div
             ref="mapContainer"
             class="w-full rounded-lg overflow-hidden"
