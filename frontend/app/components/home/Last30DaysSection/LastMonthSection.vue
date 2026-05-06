@@ -138,7 +138,7 @@ const lastYearColdRecordsCount = computed(
     <Section
         :title="`CES 30 DERNIERS JOURS -  ${formatDateLongForDisplay(yesterdayLess30Days)} au ${formatDateLongForDisplay(yesterday)}`"
     >
-        <h2 class="text-blue-700 dark:text-primary pb-2">
+        <h2 class="text-blue-700 dark:text-primary pb-4">
             ECART DE TEMPÉRATURE A LA NORMALE
         </h2>
         <div class="flex flex-col lg:flex-row gap-4 mt-2 mb-4 lg:items-start">

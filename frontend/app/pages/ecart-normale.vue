@@ -85,7 +85,9 @@ const infoPanelSections = ecartNormaleSections;
                     <MapD3 :date-start="mapDateStart" :date-end="mapDateEnd" />
                 </ClientOnly>
 
-                <DeviationTable :show-filters="false" />
+                <div class="w-full overflow-x-auto">
+                    <DeviationTable :show-filters="false" />
+                </div>
             </div>
         </div>
 
