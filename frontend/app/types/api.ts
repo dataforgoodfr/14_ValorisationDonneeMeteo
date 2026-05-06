@@ -357,7 +357,7 @@ export interface ItnStation {
     lon: number;
     alt: number;
     nom: string;
-    classe: number | null;
+    classe: number;
     annee_creation: string;
 }
 
