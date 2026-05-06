@@ -1,9 +1,8 @@
 <template>
-    <div class="flex justify-center relative shrink-0">
+    <div class="flex justify-center relative w-full max-w-[600px]">
         <div
             ref="mapContainer"
-            class="rounded-lg overflow-hidden"
-            style="width: 600px; height: 600px"
+            class="rounded-lg overflow-hidden w-full aspect-square"
         />
     </div>
 </template>

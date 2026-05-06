@@ -1,6 +1,6 @@
 <template>
     <div class="flex items-center">
-        <ul class="list-grid">
+        <ul class="grid grid-cols-1 md:grid-cols-3">
             <li
                 v-for="station in sortedStations"
                 :key="station.code"
@@ -40,10 +40,3 @@ const sortedStations = computed(() =>
     [...props.stations].sort((a, b) => a.nom.localeCompare(b.nom, "fr")),
 );
 </script>
-
-<style>
-.list-grid {
-    display: grid;
-    grid-template-columns: 1fr 1fr 1fr;
-}
-</style>
