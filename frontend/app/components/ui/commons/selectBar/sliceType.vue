@@ -3,13 +3,29 @@ import MonthOfYearPicker from "./monthOfYearPicker.vue";
 import type { SelectBarAdapter } from "~/components/ui/commons/selectBar/types";
 
 const adapter = inject<SelectBarAdapter>("selectBarAdapter")!;
-// Slice Type Selection values
+
+const isCalendarMode = computed(() => adapter.calendarSliceMode !== undefined);
+
+// Calendar mode options
+const calendarSliceOptions = computed(() => {
+    if (adapter.granularity.value === "year") {
+        return [
+            { label: "Tous les mois", value: "all" },
+            { label: "Mois spécifique", value: "specific" },
+        ];
+    }
+    return [
+        { label: "Tous les jours", value: "all" },
+        { label: "Jour spécifique", value: "specific" },
+    ];
+});
+
+// Standard mode options
 const allSliceTypeValues = [
     { label: "Période complète", value: "full" },
     { label: "Jour spécifique", value: "day_of_month" },
     { label: "Mois spécifique", value: "month_of_year" },
 ];
-// Conditional Slice Type values display
 const displayedSlicedTypeValues = computed(() => {
     if (adapter.granularity.value === "year") {
         return allSliceTypeValues;
@@ -98,35 +114,42 @@ const ptDayMonthOfYear = {
     tableHeaderCell: {},
 };
 
-const showDayOfMonthPicker = computed(() => {
-    if (
+// Standard mode pickers
+const showDayOfMonthPicker = computed(
+    () =>
+        !isCalendarMode.value &&
         adapter.granularity.value === "month" &&
-        adapter.sliceType?.value === "day_of_month"
-    ) {
-        return true;
-    }
-    return false;
-});
+        adapter.sliceType?.value === "day_of_month",
+);
 
-const showMonthOfYearPicker = computed(() => {
-    if (
+const showMonthOfYearPicker = computed(
+    () =>
+        !isCalendarMode.value &&
         adapter.granularity.value === "year" &&
-        adapter.sliceType?.value === "month_of_year"
-    ) {
-        return true;
-    }
-    return false;
-});
+        adapter.sliceType?.value === "month_of_year",
+);
 
-const showDayMonthOfYearPicker = computed(() => {
-    if (
+const showDayMonthOfYearPicker = computed(
+    () =>
+        !isCalendarMode.value &&
         adapter.granularity.value === "year" &&
-        adapter.sliceType?.value === "day_of_month"
-    ) {
-        return true;
-    }
-    return false;
-});
+        adapter.sliceType?.value === "day_of_month",
+);
+
+// Calendar mode pickers
+const showCalendarDayPicker = computed(
+    () =>
+        isCalendarMode.value &&
+        adapter.granularity.value === "month" &&
+        adapter.calendarSliceMode?.value === "specific",
+);
+
+const showCalendarMonthPicker = computed(
+    () =>
+        isCalendarMode.value &&
+        adapter.granularity.value === "year" &&
+        adapter.calendarSliceMode?.value === "specific",
+);
 </script>
 
 <template>
@@ -134,6 +157,13 @@ const showDayMonthOfYearPicker = computed(() => {
         <div class="flex flex-col text-center gap-1">
             <p class="text-sm text-default">Période</p>
             <USelect
+                v-if="isCalendarMode"
+                v-model="adapter.calendarSliceMode!.value"
+                :items="calendarSliceOptions"
+                default-value="all"
+            />
+            <USelect
+                v-else
                 v-model="adapter.sliceType!.value"
                 placeholder="Période"
                 :items="displayedSlicedTypeValues"
@@ -177,6 +207,31 @@ const showDayMonthOfYearPicker = computed(() => {
                 show-icon
                 icon-display="input"
                 :show-other-months="false"
+            />
+        </div>
+        <div
+            v-if="showCalendarDayPicker"
+            class="flex flex-col text-center gap-1"
+        >
+            <p class="text-sm text-default">Jour</p>
+            <DatePicker
+                v-model="adapter.calendarDatepickerDate!.value"
+                date-format="dd"
+                :pt="pt"
+                unstyled
+                append-to="self"
+                show-icon
+                icon-display="input"
+                :show-other-months="false"
+            />
+        </div>
+        <div
+            v-if="showCalendarMonthPicker"
+            class="flex flex-col text-center gap-1"
+        >
+            <p class="text-sm text-default">Mois</p>
+            <MonthOfYearPicker
+                v-model="adapter.calendarDatepickerDate!.value"
             />
         </div>
     </div>

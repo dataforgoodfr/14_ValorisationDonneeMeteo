@@ -270,7 +270,7 @@ export function useDeviationCalendarOption(
                 lineStyle: { color: mapColors.value.chartAccentColor },
             },
             axisLabel: {
-                color: "#000000",
+                color: mapColors.value.foreground,
                 fontSize: FONT_CHARTS.axis,
                 interval: labelInterval,
                 rotate: labelRotate,
