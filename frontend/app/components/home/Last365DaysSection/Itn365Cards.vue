@@ -73,9 +73,18 @@ const coldDiff = computed(() => {
                         v-if="deviationFromNormal != null"
                         #kpi-context-box
                     >
-                        {{ deviationFromNormal >= 0 ? "+" : ""
-                        }}{{ deviationFromNormal.toFixed(1) }}°C vs normale
-                        1991-2020
+                        {{
+                            deviationFromNormal.toFixed(1) === "0.0"
+                                ? "= "
+                                : deviationFromNormal > 0
+                                  ? "+"
+                                  : ""
+                        }}
+                        {{
+                            deviationFromNormal.toFixed(1) === "0.0"
+                                ? ""
+                                : deviationFromNormal.toFixed(1) + "°C "
+                        }}vs normale 1991-2020
                     </template>
                     <template #kpi-context-text>
                         en moyenne ces 365 derniers jours
@@ -98,8 +107,13 @@ const coldDiff = computed(() => {
                             :class="
                                 itnDiff < 0 ? 'text-blue-400' : 'text-red-400'
                             "
-                        >
-                            {{ itnDiff.toFixed(1) }}°C
+                            >{{
+                                itnDiff.toFixed(1) !== "0.0"
+                                    ? (itnDiff > 0 ? "+" : "") +
+                                      itnDiff.toFixed(1) +
+                                      "°C"
+                                    : "="
+                            }}
                         </span>
                         vs. 365 jours précédents
                     </template>
@@ -143,9 +157,15 @@ const coldDiff = computed(() => {
                             "
                             class="text-red-400 font-semibold"
                         />
-                        <span class="text-sm font-semibold text-red-400">
-                            {{ hotDiff }} jours
+                        <span
+                            v-if="hotDiff !== 0"
+                            class="text-sm font-semibold text-red-400"
+                        >
+                            {{ hotDiff > 0 ? "+" : "" }}{{ hotDiff }} jours
                         </span>
+                        <span v-else class="text-sm font-semibold text-red-400"
+                            >=</span
+                        >
                         vs. 365 jours précédents
                     </template>
                 </Card>
@@ -178,9 +198,15 @@ const coldDiff = computed(() => {
                             "
                             class="text-blue-400 font-semibold"
                         />
-                        <span class="text-sm font-semibold text-blue-400">
-                            {{ coldDiff }} jours
+                        <span
+                            v-if="coldDiff !== 0"
+                            class="text-sm font-semibold text-blue-400"
+                        >
+                            {{ coldDiff > 0 ? "+" : "" }}{{ coldDiff }} jours
                         </span>
+                        <span v-else class="text-sm font-semibold text-blue-400"
+                            >=</span
+                        >
                         vs. 365 jours précédents
                     </template>
                 </Card>
