@@ -99,16 +99,17 @@ def test_daily_absolute_extremes_incomplete_day_excluded(
     seed_itn_day: Callable[..., None],
 ):
     """
-    Un jour avec seulement 29 stations ne doit pas être inclus dans le calcul.
+    Un jour avec moins de 29 stations ne doit pas être inclus dans le calcul.
+    29 stations est désormais accepté (HAVING COUNT >= 29) ; il faut donc
+    insérer seulement 28 stations pour vérifier l'exclusion.
     """
-    # Jour valide
+    # Jour valide (30 stations)
     seed_itn_day(dt.date(2022, 5, 1), always_val=10.0)
-    # Jour incomplet : on insère uniquement les mesures sans Reims
-    # => 29 stations seulement => HAVING COUNT(DISTINCT station_code) != 30 => exclu
+    # Jour incomplet : on insère seulement 28 stations fixes (pas Reims, pas une des fixes)
+    # => 28 stations => HAVING COUNT(DISTINCT station_code) = 28 < 29 => exclu
     day_incomplete = dt.date(2023, 5, 1)
-    for code in ITN_ALWAYS_STATION_CODES:
+    for code in list(ITN_ALWAYS_STATION_CODES)[:-1]:  # 28 stations
         insert_quotidienne(day_incomplete, code, 999.0)
-    # (Reims absente => HAVING COUNT = 29 != 30 => exclu)
 
     ds = TimescaleNationalIndicatorAbsoluteExtremesDataSource()
     result = ds.fetch_daily_absolute_extremes({(5, 1)})

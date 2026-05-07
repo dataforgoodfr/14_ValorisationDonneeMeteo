@@ -251,7 +251,7 @@ class TimescaleNationalIndicatorBaselineDataSource(NationalIndicatorBaselineData
 
 # SQL CTE commun : calcul de l'ITN journalier depuis v_quotidienne_itn.
 # Applique la règle Reims (exclusion de la station inactive selon la date)
-# et impose que les 30 stations soient toutes présentes (HAVING COUNT = 30).
+# et accepte les jours avec au moins 29 stations sur 30 (HAVING COUNT >= 29).
 _ITN_DAILY_CTE = """
     WITH daily_itn AS (
         SELECT
@@ -267,7 +267,7 @@ _ITN_DAILY_CTE = """
                 ELSE %(reims_courcy)s
               END
         GROUP BY date::date, EXTRACT(MONTH FROM date)::int, EXTRACT(DAY FROM date)::int, EXTRACT(YEAR FROM date)::int
-        HAVING COUNT(DISTINCT station_code) = 30
+        HAVING COUNT(DISTINCT station_code) >= 29
     )
 """
 
