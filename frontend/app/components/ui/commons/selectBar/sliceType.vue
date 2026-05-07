@@ -7,6 +7,10 @@ import type {
 
 const adapter = inject<SelectBarAdapter>("selectBarAdapter")!;
 
+function isSliceType(val: unknown): val is SliceType {
+    return val === "full" || val === "month_of_year" || val === "day_of_month";
+}
+
 const isCalendarMode = computed(
     () =>
         adapter.calendarSliceMode !== undefined &&
@@ -192,8 +196,8 @@ const showCalendarMonthPicker = computed(
                 :items="averagingOptions"
                 @update:model-value="
                     (val) => {
-                        if (adapter.sliceType)
-                            adapter.sliceType.value = val as SliceType;
+                        if (adapter.sliceType && isSliceType(val))
+                            adapter.sliceType.value = val;
                     }
                 "
             />
