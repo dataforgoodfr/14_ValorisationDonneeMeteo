@@ -149,9 +149,9 @@ def compute_minmax_overview(
                 "alt": s.alt,
                 "department": s.department,
                 "region": s.region,
-                "classe": s.classe,
-                "annee_de_creation": s.annee_de_creation,
-                "annee_de_fermeture": s.annee_de_fermeture,
+                "classe_recente": s.classe_recente,
+                "date_de_creation": s.date_de_creation,
+                "date_de_fermeture": s.date_de_fermeture,
             }
             for s in result.stations
         ],

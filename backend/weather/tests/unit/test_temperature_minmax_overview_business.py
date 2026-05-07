@@ -29,9 +29,9 @@ class DummyDataSource:
                     alt=42.0,
                     department="75",
                     region="Île-de-France",
-                    classe=1,
-                    annee_de_creation=1948,
-                    annee_de_fermeture=None,
+                    classe_recente=1,
+                    date_de_creation=dt.date(1948, 1, 1),
+                    date_de_fermeture=None,
                 ),
                 MinMaxOverviewStation(
                     station_id="07157",
@@ -44,9 +44,9 @@ class DummyDataSource:
                     alt=15.0,
                     department="13",
                     region="Provence-Alpes-Côte d'Azur",
-                    classe=2,
-                    annee_de_creation=2000,
-                    annee_de_fermeture=2020,
+                    classe_recente=2,
+                    date_de_creation=dt.date(2000, 1, 1),
+                    date_de_fermeture=dt.date(2020, 12, 31),
                 ),
             ],
         )
@@ -106,9 +106,9 @@ def test_compute_overview_returns_all_station_fields():
     assert s["alt"] == 42.0
     assert s["department"] == "75"
     assert s["region"] == "Île-de-France"
-    assert s["classe"] == 1
-    assert s["annee_de_creation"] == 1948
-    assert s["annee_de_fermeture"] is None
+    assert s["classe_recente"] == 1
+    assert s["date_de_creation"] == dt.date(1948, 1, 1)
+    assert s["date_de_fermeture"] is None
 
 
 def test_compute_overview_passes_query_to_datasource():

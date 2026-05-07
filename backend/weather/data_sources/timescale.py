@@ -1836,7 +1836,7 @@ _MINMAX_OVERVIEW_ORDERING_MAP = {
 _MINMAX_OVERVIEW_BASE_CTE = """
     WITH station_agg AS (
         SELECT
-            q."NUM_POSTE" AS station_id,
+            TRIM(q."NUM_POSTE") AS station_id,
             AVG(q."TN")::double precision AS tmin_mean,
             AVG(q."TX")::double precision AS tmax_mean,
             ((AVG(q."TN") + AVG(q."TX")) / 2.0)::double precision AS tmean_mean
@@ -1844,17 +1844,17 @@ _MINMAX_OVERVIEW_BASE_CTE = """
         WHERE q."AAAAMMJJ" BETWEEN %(date_start)s AND %(date_end)s
           AND q."TN" IS NOT NULL
           AND q."TX" IS NOT NULL
-        GROUP BY q."NUM_POSTE"
+        GROUP BY TRIM(q."NUM_POSTE")
     ),
     station_enriched AS (
         SELECT
-            TRIM(a.station_id) AS station_id,
-            COALESCE(s.name, TRIM(a.station_id)) AS station_name,
+            a.station_id,
+            s.name AS station_name,
             s.lat AS lat,
             s.lon AS lon,
             s.alt AS alt,
             s.departement AS department,
-            COALESCE(r.region, 'Autre') AS region,
+            r.region AS region,
             s.classe_recente AS classe,
             s.annee_de_creation AS annee_de_creation,
             s.annee_de_fermeture AS annee_de_fermeture,
@@ -1864,8 +1864,8 @@ _MINMAX_OVERVIEW_BASE_CTE = """
             CASE WHEN %(type)s = 'tmin' THEN a.tmin_mean ELSE a.tmax_mean END
                 AS textreme_mean
         FROM station_agg a
-            LEFT JOIN public.v_station s
-                ON s.station_code = TRIM(a.station_id)
+            INNER JOIN public.v_station s
+                ON s.station_code = a.station_id
             LEFT JOIN public.ref_department_region r
                 ON r.departement = s.departement
     )
@@ -1976,9 +1976,9 @@ def _row_to_minmax_overview_station(row: dict) -> MinMaxOverviewStation:
         alt=_float_or_none(row["alt"]),
         department=str(row["department"]) if row["department"] is not None else None,
         region=row["region"],
-        classe=row["classe"],
-        annee_de_creation=row["annee_de_creation"],
-        annee_de_fermeture=row["annee_de_fermeture"],
+        classe_recente=row["classe"],
+        date_de_creation=_date_de_creation(row["annee_de_creation"]),
+        date_de_fermeture=_date_de_fermeture(row["annee_de_fermeture"]),
     )
 
 

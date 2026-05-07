@@ -965,9 +965,9 @@ class TemperatureMinMaxOverviewStationSerializer(serializers.Serializer):
     alt = serializers.FloatField(allow_null=True)
     department = serializers.CharField(allow_null=True)
     region = serializers.CharField(allow_null=True)
-    classe = serializers.IntegerField(allow_null=True)
-    annee_de_creation = serializers.IntegerField(allow_null=True)
-    annee_de_fermeture = serializers.IntegerField(allow_null=True)
+    classe_recente = serializers.IntegerField(allow_null=True)
+    date_de_creation = serializers.DateField()
+    date_de_fermeture = serializers.DateField(allow_null=True)
 
 
 class TemperatureMinMaxOverviewMetadataSerializer(serializers.Serializer):

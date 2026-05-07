@@ -804,9 +804,9 @@ paths:
                         alt: 31.0
                         department: "83"
                         region: "Provence-Alpes-Côte d'Azur"
-                        classe: 1
-                        annee_de_creation: 1997
-                        annee_de_fermeture: null
+                        classe_recente: 1
+                        date_de_creation: "1997-01-01"
+                        date_de_fermeture: null
         "400":
           $ref: "#/components/responses/BadRequest"
 
@@ -2120,6 +2120,7 @@ components:
         - tmax_mean
         - tmin_mean
         - tmean_mean
+        - date_de_creation
       properties:
         station_id:
           type: string
@@ -2160,18 +2161,19 @@ components:
           type: string
           nullable: true
           description: Nom de la région.
-        classe:
+        classe_recente:
           type: integer
           nullable: true
           description: Classe de la station (1 = référence nationale, 5 = usage local).
-        annee_de_creation:
-          type: integer
+        date_de_creation:
+          type: string
+          format: date
+          description: Date de création de la station (approximée au 1er janvier de l'année).
+        date_de_fermeture:
+          type: string
+          format: date
           nullable: true
-          description: Année de création de la station.
-        annee_de_fermeture:
-          type: integer
-          nullable: true
-          description: Année de fermeture de la station (null si toujours active).
+          description: Date de fermeture de la station (null si toujours active).
 
     Error:
       type: object

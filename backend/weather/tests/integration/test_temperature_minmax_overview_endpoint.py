@@ -70,9 +70,9 @@ def test_station_fields_present(client: APIClient):
     assert "alt" in s
     assert "department" in s
     assert "region" in s
-    assert "classe" in s
-    assert "annee_de_creation" in s
-    assert "annee_de_fermeture" in s
+    assert "classe_recente" in s
+    assert "date_de_creation" in s
+    assert "date_de_fermeture" in s
 
 
 def test_returns_400_missing_date_start(client: APIClient):

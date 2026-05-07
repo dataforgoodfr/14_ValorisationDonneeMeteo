@@ -99,9 +99,9 @@ class MinMaxOverviewStation:
     alt: float | None
     department: str | None
     region: str | None
-    classe: int | None
-    annee_de_creation: int | None
-    annee_de_fermeture: int | None
+    classe_recente: int | None
+    date_de_creation: dt.date
+    date_de_fermeture: dt.date | None
 
 
 @dataclass(frozen=True)

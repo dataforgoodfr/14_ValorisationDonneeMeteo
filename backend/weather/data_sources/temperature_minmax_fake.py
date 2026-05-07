@@ -94,9 +94,9 @@ _FAKE_OVERVIEW_STATIONS = [
         alt=36.0,
         department="13",
         region="Provence-Alpes-Côte d'Azur",
-        classe=1,
-        annee_de_creation=1922,
-        annee_de_fermeture=None,
+        classe_recente=1,
+        date_de_creation=dt.date(1922, 1, 1),
+        date_de_fermeture=None,
     ),
     MinMaxOverviewStation(
         station_id="07222",
@@ -109,9 +109,9 @@ _FAKE_OVERVIEW_STATIONS = [
         alt=200.0,
         department="69",
         region="Auvergne-Rhône-Alpes",
-        classe=1,
-        annee_de_creation=1921,
-        annee_de_fermeture=None,
+        classe_recente=1,
+        date_de_creation=dt.date(1921, 1, 1),
+        date_de_fermeture=None,
     ),
     MinMaxOverviewStation(
         station_id="07156",
@@ -124,9 +124,9 @@ _FAKE_OVERVIEW_STATIONS = [
         alt=75.0,
         department="75",
         region="Île-de-France",
-        classe=1,
-        annee_de_creation=1872,
-        annee_de_fermeture=None,
+        classe_recente=1,
+        date_de_creation=dt.date(1872, 1, 1),
+        date_de_fermeture=None,
     ),
 ]
 
