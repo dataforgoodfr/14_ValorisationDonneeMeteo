@@ -74,7 +74,7 @@ def test_fetch_station_overview_filters_by_department():
 
 
 @pytest.mark.django_db
-def test_fetch_station_overview_filters_by_textreme_min():
+def test_fetch_station_overview_filters_by_tmax_min():
     s1, s2 = "07149001", "07500001"
     insert_station(s1, "A", departement=69)
     insert_station(s2, "B", departement=75)
@@ -82,7 +82,7 @@ def test_fetch_station_overview_filters_by_textreme_min():
     insert_quotidienne(dt.date(2024, 1, 1), s2, tn=0.0, tx=30.0)
 
     ds = TimescaleTemperatureMinMaxOverviewDataSource()
-    result = ds.fetch_station_overview(_query(type="tmax", textreme_min=20.0))
+    result = ds.fetch_station_overview(_query(tmax_min=20.0))
 
     assert result.pagination.total_count == 1
     assert result.stations[0].station_id == s2

@@ -66,11 +66,18 @@ def test_rejects_missing_date_end():
     assert "date_end" in s.errors
 
 
-def test_rejects_textreme_min_greater_than_max():
-    s = _valid(textreme_min=30, textreme_max=20)
+def test_rejects_tmax_min_greater_than_max():
+    s = _valid(tmax_min=30, tmax_max=20)
 
     assert not s.is_valid()
-    assert "textreme_max" in s.errors
+    assert "tmax_max" in s.errors
+
+
+def test_rejects_tmin_min_greater_than_max():
+    s = _valid(tmin_min=30, tmin_max=20)
+
+    assert not s.is_valid()
+    assert "tmin_max" in s.errors
 
 
 def test_rejects_tmean_min_greater_than_max():
@@ -180,8 +187,10 @@ def test_all_optional_filters_accepted():
         station_search="lyon",
         tmean_min=10.0,
         tmean_max=20.0,
-        textreme_min=15.0,
-        textreme_max=30.0,
+        tmax_min=15.0,
+        tmax_max=30.0,
+        tmin_min=5.0,
+        tmin_max=20.0,
         alt_min=100.0,
         alt_max=500.0,
         departments="69",
@@ -196,8 +205,10 @@ def test_all_optional_filters_accepted():
     assert d["type"] == "tmin"
     assert d["tmean_min"] == 10.0
     assert d["tmean_max"] == 20.0
-    assert d["textreme_min"] == 15.0
-    assert d["textreme_max"] == 30.0
+    assert d["tmax_min"] == 15.0
+    assert d["tmax_max"] == 30.0
+    assert d["tmin_min"] == 5.0
+    assert d["tmin_max"] == 20.0
     assert d["alt_min"] == 100.0
     assert d["alt_max"] == 500.0
     assert d["limit"] == 25

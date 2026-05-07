@@ -118,7 +118,7 @@ def test_compute_overview_passes_query_to_datasource():
         type="tmin",
         station_ids=("07149", "07255"),
         departments=("75",),
-        textreme_min=10.0,
+        tmax_min=10.0,
         ordering="station_name",
         limit=25,
         offset=50,

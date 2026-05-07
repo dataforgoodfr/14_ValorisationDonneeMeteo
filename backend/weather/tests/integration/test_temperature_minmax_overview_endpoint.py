@@ -106,19 +106,19 @@ def test_returns_400_invalid_type(client: APIClient):
     assert "type" in resp.json()["error"]["details"]
 
 
-def test_returns_400_textreme_min_greater_than_max(client: APIClient):
+def test_returns_400_tmax_min_greater_than_max(client: APIClient):
     resp = client.get(
         URL,
         {
             "date_start": "2024-01-01",
             "date_end": "2024-12-31",
-            "textreme_min": 30,
-            "textreme_max": 20,
+            "tmax_min": 30,
+            "tmax_max": 20,
         },
     )
 
     assert resp.status_code == 400
-    assert "textreme_max" in resp.json()["error"]["details"]
+    assert "tmax_max" in resp.json()["error"]["details"]
 
 
 def test_returns_400_negative_offset(client: APIClient):
@@ -168,7 +168,7 @@ def test_filters_echoed_in_metadata(client: APIClient):
             "date_end": "2024-12-31",
             "station_ids": "07149,07222",
             "departments": "69,75",
-            "textreme_min": 20,
+            "tmax_min": 20,
         },
     )
 
@@ -177,7 +177,7 @@ def test_filters_echoed_in_metadata(client: APIClient):
 
     assert filters["station_ids"] == ["07149", "07222"]
     assert filters["departments"] == ["69", "75"]
-    assert filters["textreme_min"] == 20.0
+    assert filters["tmax_min"] == 20.0
 
 
 def test_ordering_echoed_in_metadata(client: APIClient):

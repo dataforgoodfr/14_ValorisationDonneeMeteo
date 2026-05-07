@@ -829,8 +829,10 @@ class TemperatureMinMaxOverviewQuerySerializer(serializers.Serializer):
     tmean_min = serializers.FloatField(required=False, allow_null=True)
     tmean_max = serializers.FloatField(required=False, allow_null=True)
 
-    textreme_min = serializers.FloatField(required=False, allow_null=True)
-    textreme_max = serializers.FloatField(required=False, allow_null=True)
+    tmax_min = serializers.FloatField(required=False, allow_null=True)
+    tmax_max = serializers.FloatField(required=False, allow_null=True)
+    tmin_min = serializers.FloatField(required=False, allow_null=True)
+    tmin_max = serializers.FloatField(required=False, allow_null=True)
 
     alt_min = serializers.FloatField(required=False, allow_null=True)
     alt_max = serializers.FloatField(required=False, allow_null=True)
@@ -888,15 +890,18 @@ class TemperatureMinMaxOverviewQuerySerializer(serializers.Serializer):
                 {"tmean_max": "tmean_max doit être >= tmean_min."}
             )
 
-        textreme_min = attrs.get("textreme_min")
-        textreme_max = attrs.get("textreme_max")
-        if (
-            textreme_min is not None
-            and textreme_max is not None
-            and textreme_min > textreme_max
-        ):
+        tmax_min = attrs.get("tmax_min")
+        tmax_max = attrs.get("tmax_max")
+        if tmax_min is not None and tmax_max is not None and tmax_min > tmax_max:
             raise serializers.ValidationError(
-                {"textreme_max": "textreme_max doit être >= textreme_min."}
+                {"tmax_max": "tmax_max doit être >= tmax_min."}
+            )
+
+        tmin_min = attrs.get("tmin_min")
+        tmin_max = attrs.get("tmin_max")
+        if tmin_min is not None and tmin_max is not None and tmin_min > tmin_max:
+            raise serializers.ValidationError(
+                {"tmin_max": "tmin_max doit être >= tmin_min."}
             )
 
         alt_min = attrs.get("alt_min")
@@ -912,8 +917,10 @@ class TemperatureMinMaxOverviewQuerySerializer(serializers.Serializer):
         attrs["regions"] = attrs.get("regions", ())
         attrs["tmean_min"] = tmean_min if "tmean_min" in attrs else None
         attrs["tmean_max"] = tmean_max if "tmean_max" in attrs else None
-        attrs["textreme_min"] = textreme_min if "textreme_min" in attrs else None
-        attrs["textreme_max"] = textreme_max if "textreme_max" in attrs else None
+        attrs["tmax_min"] = tmax_min if "tmax_min" in attrs else None
+        attrs["tmax_max"] = tmax_max if "tmax_max" in attrs else None
+        attrs["tmin_min"] = tmin_min if "tmin_min" in attrs else None
+        attrs["tmin_max"] = tmin_max if "tmin_max" in attrs else None
         attrs["alt_min"] = alt_min if "alt_min" in attrs else None
         attrs["alt_max"] = alt_max if "alt_max" in attrs else None
 

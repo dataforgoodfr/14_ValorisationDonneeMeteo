@@ -593,23 +593,41 @@ paths:
           description: Filtre textuel sur le nom de la station.
           example: "Lyon"
 
-        - name: textreme_min
+        - name: tmax_min
           in: query
           required: false
           schema:
             type: number
             format: float
-          description: Valeur minimale incluse de la température extrême moyenne (°C).
+          description: Valeur minimale incluse de la moyenne de Tmax sur la période (°C).
           example: 25.0
 
-        - name: textreme_max
+        - name: tmax_max
           in: query
           required: false
           schema:
             type: number
             format: float
-          description: Valeur maximale incluse de la température extrême moyenne (°C).
+          description: Valeur maximale incluse de la moyenne de Tmax sur la période (°C).
           example: 40.0
+
+        - name: tmin_min
+          in: query
+          required: false
+          schema:
+            type: number
+            format: float
+          description: Valeur minimale incluse de la moyenne de Tmin sur la période (°C).
+          example: 0.0
+
+        - name: tmin_max
+          in: query
+          required: false
+          schema:
+            type: number
+            format: float
+          description: Valeur maximale incluse de la moyenne de Tmin sur la période (°C).
+          example: 15.0
 
         - name: tmean_min
           in: query
@@ -774,8 +792,10 @@ paths:
                       filters:
                         station_search: null
                         station_ids: []
-                        textreme_min: null
-                        textreme_max: null
+                        tmax_min: null
+                        tmax_max: null
+                        tmin_min: null
+                        tmin_max: null
                         tmean_min: null
                         tmean_max: null
                         alt_min: null
@@ -2083,10 +2103,16 @@ components:
             station_search:
               type: string
               nullable: true
-            textreme_min:
+            tmax_min:
               type: number
               nullable: true
-            textreme_max:
+            tmax_max:
+              type: number
+              nullable: true
+            tmin_min:
+              type: number
+              nullable: true
+            tmin_max:
               type: number
               nullable: true
             tmean_min:

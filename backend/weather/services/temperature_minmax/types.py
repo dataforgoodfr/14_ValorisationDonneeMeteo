@@ -70,8 +70,10 @@ class MinMaxOverviewQuery:
     station_search: str | None = None
     tmean_min: float | None = None
     tmean_max: float | None = None
-    textreme_min: float | None = None
-    textreme_max: float | None = None
+    tmax_min: float | None = None
+    tmax_max: float | None = None
+    tmin_min: float | None = None
+    tmin_max: float | None = None
     alt_min: float | None = None
     alt_max: float | None = None
     classe_recente_min: int | None = None

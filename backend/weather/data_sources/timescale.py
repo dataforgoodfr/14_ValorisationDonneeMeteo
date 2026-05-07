@@ -1898,13 +1898,21 @@ def _build_minmax_overview_where(
         clauses.append("tmean_mean <= %(tmean_max)s")
         params["tmean_max"] = query.tmean_max
 
-    if query.textreme_min is not None:
-        clauses.append("textreme_mean >= %(textreme_min)s")
-        params["textreme_min"] = query.textreme_min
+    if query.tmax_min is not None:
+        clauses.append("tmax_mean >= %(tmax_min)s")
+        params["tmax_min"] = query.tmax_min
 
-    if query.textreme_max is not None:
-        clauses.append("textreme_mean <= %(textreme_max)s")
-        params["textreme_max"] = query.textreme_max
+    if query.tmax_max is not None:
+        clauses.append("tmax_mean <= %(tmax_max)s")
+        params["tmax_max"] = query.tmax_max
+
+    if query.tmin_min is not None:
+        clauses.append("tmin_mean >= %(tmin_min)s")
+        params["tmin_min"] = query.tmin_min
+
+    if query.tmin_max is not None:
+        clauses.append("tmin_mean <= %(tmin_max)s")
+        params["tmin_max"] = query.tmin_max
 
     if query.alt_min is not None:
         clauses.append("alt >= %(alt_min)s")
