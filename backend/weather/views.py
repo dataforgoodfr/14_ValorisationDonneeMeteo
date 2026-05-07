@@ -116,6 +116,7 @@ class NationalIndicatorAPIView(APIView):
         data = get_national_indicator(
             observed_data_source=deps.observed_data_source,
             baseline_data_source=deps.baseline_data_source,
+            absolute_extremes_data_source=deps.absolute_extremes_data_source,
             **params,
         )
         metadata = {

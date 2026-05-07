@@ -20,6 +20,12 @@ class BaselinePoint:
 
 
 @dataclass(frozen=True)
+class AbsoluteExtremes:
+    absolute_min: float
+    absolute_max: float
+
+
+@dataclass(frozen=True)
 class OutputPoint:
     date: dt.date
     temperature: float
@@ -30,6 +36,8 @@ class OutputPoint:
     baseline_min: float
     is_hot_peak: bool
     is_cold_peak: bool
+    absolute_min: float
+    absolute_max: float
 
 
 @dataclass(frozen=True)

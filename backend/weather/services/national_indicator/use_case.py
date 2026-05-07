@@ -1,6 +1,7 @@
 import datetime as dt
 
 from weather.services.national_indicator.protocols import (
+    NationalIndicatorAbsoluteExtremesDataSource,
     NationalIndicatorBaselineDataSource,
     NationalIndicatorObservedDataSource,
 )
@@ -11,6 +12,7 @@ def get_national_indicator(
     *,
     observed_data_source: NationalIndicatorObservedDataSource,
     baseline_data_source: NationalIndicatorBaselineDataSource,
+    absolute_extremes_data_source: NationalIndicatorAbsoluteExtremesDataSource,
     date_start: dt.date,
     date_end: dt.date,
     granularity: str,
@@ -21,6 +23,7 @@ def get_national_indicator(
     return compute_national_indicator(
         observed_data_source=observed_data_source,
         baseline_data_source=baseline_data_source,
+        absolute_extremes_data_source=absolute_extremes_data_source,
         date_start=date_start,
         date_end=date_end,
         granularity=granularity,

@@ -6,6 +6,7 @@ from dataclasses import dataclass
 from django.conf import settings
 
 from weather.services.national_indicator.protocols import (
+    NationalIndicatorAbsoluteExtremesDataSource,
     NationalIndicatorBaselineDataSource,
     NationalIndicatorObservedDataSource,
 )
@@ -15,13 +16,16 @@ from weather.services.national_indicator.protocols import (
 class ITNDependencies:
     observed_data_source: NationalIndicatorObservedDataSource
     baseline_data_source: NationalIndicatorBaselineDataSource
+    absolute_extremes_data_source: NationalIndicatorAbsoluteExtremesDataSource
 
 
 def _default_builder() -> ITNDependencies:
     from weather.data_sources.national_indicator_fake import (
+        FakeNationalIndicatorAbsoluteExtremesDataSource,
         FakeNationalIndicatorDataSource,
     )
     from weather.data_sources.timescale import (
+        TimescaleNationalIndicatorAbsoluteExtremesDataSource,
         TimescaleNationalIndicatorBaselineDataSource,
         TimescaleNationalIndicatorObservedDataSource,
     )
@@ -31,11 +35,13 @@ def _default_builder() -> ITNDependencies:
         return ITNDependencies(
             observed_data_source=fake,
             baseline_data_source=fake,
+            absolute_extremes_data_source=FakeNationalIndicatorAbsoluteExtremesDataSource(),
         )
 
     return ITNDependencies(
         observed_data_source=TimescaleNationalIndicatorObservedDataSource(),
         baseline_data_source=TimescaleNationalIndicatorBaselineDataSource(),
+        absolute_extremes_data_source=TimescaleNationalIndicatorAbsoluteExtremesDataSource(),
     )
 
 
