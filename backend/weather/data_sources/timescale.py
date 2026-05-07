@@ -255,18 +255,17 @@ class TimescaleNationalIndicatorBaselineDataSource(NationalIndicatorBaselineData
 _ITN_DAILY_CTE = """
     WITH daily_itn AS (
         SELECT
-            date::date                               AS day,
-            EXTRACT(MONTH FROM date)::int            AS month,
-            EXTRACT(DAY   FROM date)::int            AS day_of_month,
-            EXTRACT(YEAR  FROM date)::int            AS year,
-            AVG(tntxm)                               AS itn
+            EXTRACT(MONTH FROM date)::int AS month,
+            EXTRACT(DAY   FROM date)::int AS day_of_month,
+            EXTRACT(YEAR  FROM date)::int AS year,
+            AVG(tntxm)                    AS itn
         FROM v_quotidienne_itn
         WHERE station_code = ANY(%(station_codes)s)
           AND station_code != CASE
                 WHEN date < '2012-05-08' THEN %(reims_prunay)s
                 ELSE %(reims_courcy)s
               END
-        GROUP BY date::date, EXTRACT(MONTH FROM date)::int, EXTRACT(DAY FROM date)::int, EXTRACT(YEAR FROM date)::int
+        GROUP BY month, day_of_month, year
         HAVING COUNT(DISTINCT station_code) >= 29
     )
 """
