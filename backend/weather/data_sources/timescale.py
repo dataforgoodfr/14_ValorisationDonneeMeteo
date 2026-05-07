@@ -10,6 +10,9 @@ from django.db.models.functions import ExtractDay, ExtractMonth
 
 from weather.models import (
     BaselineStationDailyMean19912020,
+    ITNAbsoluteExtremesDaily,
+    ITNAbsoluteExtremesMonthly,
+    ITNAbsoluteExtremesYearly,
     ITNBaselineDaily19912020,
     ITNBaselineMonthly19912020,
     ITNBaselineYearly19912020,
@@ -249,40 +252,13 @@ class TimescaleNationalIndicatorBaselineDataSource(NationalIndicatorBaselineData
         )
 
 
-# SQL CTE commun : calcul de l'ITN journalier depuis v_quotidienne_itn.
-# Applique la règle Reims (exclusion de la station inactive selon la date)
-# et accepte les jours avec au moins 29 stations sur 30 (HAVING COUNT >= 29).
-_ITN_DAILY_CTE = """
-    WITH daily_itn AS (
-        SELECT
-            EXTRACT(MONTH FROM date)::int AS month,
-            EXTRACT(DAY   FROM date)::int AS day_of_month,
-            EXTRACT(YEAR  FROM date)::int AS year,
-            AVG(tntxm)                    AS itn
-        FROM v_quotidienne_itn
-        WHERE station_code = ANY(%(station_codes)s)
-          AND station_code != CASE
-                WHEN date < '2012-05-08' THEN %(reims_prunay)s
-                ELSE %(reims_courcy)s
-              END
-        GROUP BY month, day_of_month, year
-        HAVING COUNT(DISTINCT station_code) >= 29
-    )
-"""
-
-_ITN_DAILY_PARAMS: dict[str, Any] = {
-    "station_codes": list(ITN_STATION_CODES_FOR_QUERY),
-    "reims_prunay": REIMS_PRUNAY,
-    "reims_courcy": REIMS_COURCY,
-}
-
-
 class TimescaleNationalIndicatorAbsoluteExtremesDataSource(
     NationalIndicatorAbsoluteExtremesDataSource
 ):
     """
-    Calcule les extremes absolus historiques de l'ITN (toutes années disponibles)
-    directement en SQL, sans passer par des vues matérialisées.
+    Lit les extremes absolus historiques de l'ITN depuis les vues matérialisées
+    mv_itn_absolute_extremes_daily/monthly/yearly.
+    Ces MV sont rafraîchies via pg_cron toutes les 6 min (même job que mv_quotidienne_realtime).
     """
 
     def fetch_daily_absolute_extremes(
@@ -291,29 +267,15 @@ class TimescaleNationalIndicatorAbsoluteExtremesDataSource(
     ) -> dict[tuple[int, int], AbsoluteExtremes]:
         if not month_day_pairs:
             return {}
-
-        sql = (
-            _ITN_DAILY_CTE
-            + """
-            SELECT month, day_of_month, MIN(itn) AS absolute_min, MAX(itn) AS absolute_max
-            FROM daily_itn
-            GROUP BY month, day_of_month
-            """
-        )
-
-        with connection.cursor() as cur:
-            cur.execute(sql, _ITN_DAILY_PARAMS)
-            cols = [col[0] for col in cur.description]
-            rows = [dict(zip(cols, row, strict=False)) for row in cur.fetchall()]
-
-        all_extremes = {
-            (row["month"], row["day_of_month"]): AbsoluteExtremes(
-                absolute_min=float(row["absolute_min"]),
-                absolute_max=float(row["absolute_max"]),
+        rows = ITNAbsoluteExtremesDaily.objects.all()
+        return {
+            (r.month, r.day_of_month): AbsoluteExtremes(
+                absolute_min=float(r.absolute_min),
+                absolute_max=float(r.absolute_max),
             )
-            for row in rows
+            for r in rows
+            if (r.month, r.day_of_month) in month_day_pairs
         }
-        return {k: v for k, v in all_extremes.items() if k in month_day_pairs}
 
     def fetch_monthly_absolute_extremes(
         self,
@@ -321,69 +283,24 @@ class TimescaleNationalIndicatorAbsoluteExtremesDataSource(
     ) -> dict[int, AbsoluteExtremes]:
         if not months:
             return {}
-
-        sql = (
-            _ITN_DAILY_CTE
-            + """
-            , monthly_itn AS (
-                SELECT year, month, AVG(itn) AS monthly_mean
-                FROM daily_itn
-                GROUP BY year, month
-            )
-            SELECT month, MIN(monthly_mean) AS absolute_min, MAX(monthly_mean) AS absolute_max
-            FROM monthly_itn
-            WHERE month = ANY(%(months)s)
-            GROUP BY month
-            """
-        )
-        params = {**_ITN_DAILY_PARAMS, "months": list(months)}
-
-        with connection.cursor() as cur:
-            cur.execute(sql, params)
-            cols = [col[0] for col in cur.description]
-            rows = [dict(zip(cols, row, strict=False)) for row in cur.fetchall()]
-
+        rows = ITNAbsoluteExtremesMonthly.objects.filter(month__in=months)
         return {
-            row["month"]: AbsoluteExtremes(
-                absolute_min=float(row["absolute_min"]),
-                absolute_max=float(row["absolute_max"]),
+            r.month: AbsoluteExtremes(
+                absolute_min=float(r.absolute_min),
+                absolute_max=float(r.absolute_max),
             )
-            for row in rows
+            for r in rows
         }
 
     def fetch_yearly_absolute_extremes(self) -> AbsoluteExtremes:
-        sql = (
-            _ITN_DAILY_CTE
-            + """
-            , yearly_itn AS (
-                SELECT year, AVG(itn) AS yearly_mean
-                FROM daily_itn
-                GROUP BY year
-            )
-            SELECT MIN(yearly_mean) AS absolute_min, MAX(yearly_mean) AS absolute_max
-            FROM yearly_itn
-            """
-        )
-
-        with connection.cursor() as cur:
-            cur.execute(sql, _ITN_DAILY_PARAMS)
-            cols = [col[0] for col in cur.description]
-            raw = cur.fetchone()
-
-        if raw is None:
+        row = ITNAbsoluteExtremesYearly.objects.first()
+        if row is None:
             raise ValueError(
                 "Aucune donnée historique ITN pour calculer les extremes annuels"
             )
-
-        row = dict(zip(cols, raw, strict=False))
-        if row["absolute_min"] is None:
-            raise ValueError(
-                "Aucune donnée historique ITN pour calculer les extremes annuels"
-            )
-
         return AbsoluteExtremes(
-            absolute_min=float(row["absolute_min"]),
-            absolute_max=float(row["absolute_max"]),
+            absolute_min=float(row.absolute_min),
+            absolute_max=float(row.absolute_max),
         )
 
 
