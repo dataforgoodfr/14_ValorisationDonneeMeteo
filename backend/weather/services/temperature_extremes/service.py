@@ -9,19 +9,19 @@ from weather.utils.date_range import (
     period_start,
 )
 
-from .protocols import MinMaxGraphDataSource, MinMaxOverviewDataSource
+from .protocols import ExtremesGraphDataSource, ExtremesOverviewDataSource
 from .types import (
-    DailyMinMaxPoint,
-    MinMaxGraphPoint,
-    MinMaxGraphQuery,
-    MinMaxGraphResult,
-    MinMaxOverviewQuery,
-    NationalMinMaxSeries,
-    StationMinMaxSeries,
+    DailyExtremesPoint,
+    ExtremesGraphPoint,
+    ExtremesGraphQuery,
+    ExtremesGraphResult,
+    ExtremesOverviewQuery,
+    NationalExtremesSeries,
+    StationExtremesSeries,
 )
 
 
-def _bucket_starts(query: MinMaxGraphQuery) -> set:
+def _bucket_starts(query: ExtremesGraphQuery) -> set:
     if query.granularity == "day":
         return set(iter_days_intersecting(query.date_start, query.date_end))
     if query.granularity == "month":
@@ -31,7 +31,9 @@ def _bucket_starts(query: MinMaxGraphQuery) -> set:
     raise ValueError(f"Granularité non supportée : {query.granularity}")
 
 
-def _bucket_points_by_period(points: list[DailyMinMaxPoint], granularity: str) -> dict:
+def _bucket_points_by_period(
+    points: list[DailyExtremesPoint], granularity: str
+) -> dict:
     buckets: dict = defaultdict(lambda: {"tmin": [], "tmax": []})
     for p in points:
         if p.tmin is None and p.tmax is None:
@@ -44,7 +46,7 @@ def _bucket_points_by_period(points: list[DailyMinMaxPoint], granularity: str) -
     return buckets
 
 
-def _average_buckets(buckets: dict, valid_starts: set) -> list[MinMaxGraphPoint]:
+def _average_buckets(buckets: dict, valid_starts: set) -> list[ExtremesGraphPoint]:
     result = []
     for start_date in sorted(buckets.keys()):
         if start_date not in valid_starts:
@@ -54,7 +56,7 @@ def _average_buckets(buckets: dict, valid_starts: set) -> list[MinMaxGraphPoint]
         if not tmin_vals or not tmax_vals:
             continue
         result.append(
-            MinMaxGraphPoint(
+            ExtremesGraphPoint(
                 date=start_date,
                 tmin_mean=round(sum(tmin_vals) / len(tmin_vals), 2),
                 tmax_mean=round(sum(tmax_vals) / len(tmax_vals), 2),
@@ -64,17 +66,17 @@ def _average_buckets(buckets: dict, valid_starts: set) -> list[MinMaxGraphPoint]
 
 
 def _aggregate(
-    points: list[DailyMinMaxPoint],
-    query: MinMaxGraphQuery,
-) -> list[MinMaxGraphPoint]:
+    points: list[DailyExtremesPoint],
+    query: ExtremesGraphQuery,
+) -> list[ExtremesGraphPoint]:
     buckets = _bucket_points_by_period(points, query.granularity)
     return _average_buckets(buckets, _bucket_starts(query))
 
 
-def compute_minmax_graph(
+def compute_extremes_graph(
     *,
-    data_source: MinMaxGraphDataSource,
-    query: MinMaxGraphQuery,
+    data_source: ExtremesGraphDataSource,
+    query: ExtremesGraphQuery,
 ) -> dict:
     national = None
     stations = []
@@ -82,7 +84,7 @@ def compute_minmax_graph(
     if query.has_station_filter:
         station_series = data_source.fetch_daily_series(query)
         stations = [
-            StationMinMaxSeries(
+            StationExtremesSeries(
                 station_id=s.station_id,
                 station_name=s.station_name,
                 data=_aggregate(s.points, query),
@@ -92,12 +94,12 @@ def compute_minmax_graph(
     elif query.has_territory_filter:
         station_series = data_source.fetch_daily_series(query)
         all_points = [p for s in station_series for p in s.points]
-        national = NationalMinMaxSeries(data=_aggregate(all_points, query))
+        national = NationalExtremesSeries(data=_aggregate(all_points, query))
     else:
         national_points = data_source.fetch_national_daily_series(query)
-        national = NationalMinMaxSeries(data=_aggregate(national_points, query))
+        national = NationalExtremesSeries(data=_aggregate(national_points, query))
 
-    result = MinMaxGraphResult(national=national, stations=stations)
+    result = ExtremesGraphResult(national=national, stations=stations)
 
     payload: dict = {
         "stations": [
@@ -124,10 +126,10 @@ def compute_minmax_graph(
     return payload
 
 
-def compute_minmax_overview(
+def compute_extremes_overview(
     *,
-    data_source: MinMaxOverviewDataSource,
-    query: MinMaxOverviewQuery,
+    data_source: ExtremesOverviewDataSource,
+    query: ExtremesOverviewQuery,
 ) -> dict:
     result = data_source.fetch_station_overview(query)
 

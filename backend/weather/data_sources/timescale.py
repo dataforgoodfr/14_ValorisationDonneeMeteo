@@ -80,20 +80,20 @@ from weather.services.temperature_deviation.types import (
     TemperatureDeviationOverviewStation,
     YearlyBaselinePoint,
 )
-from weather.services.temperature_minmax.protocols import (
-    MinMaxGraphDataSource,
-    MinMaxOverviewDataSource,
+from weather.services.temperature_extremes.protocols import (
+    ExtremesGraphDataSource,
+    ExtremesOverviewDataSource,
 )
-from weather.services.temperature_minmax.types import (
-    DailyMinMaxPoint,
-    MinMaxGraphQuery,
-    MinMaxOverviewQuery,
-    MinMaxOverviewResult,
-    MinMaxOverviewStation,
-    StationDailyMinMaxSeries,
+from weather.services.temperature_extremes.types import (
+    DailyExtremesPoint,
+    ExtremesGraphQuery,
+    ExtremesOverviewQuery,
+    ExtremesOverviewResult,
+    ExtremesOverviewStation,
+    StationDailyExtremesSeries,
 )
-from weather.services.temperature_minmax.types import (
-    Pagination as MinMaxPagination,
+from weather.services.temperature_extremes.types import (
+    Pagination as ExtremesPagination,
 )
 from weather.services.temperature_records.protocols import (
     TemperatureAbsoluteRecordsDataSource,
@@ -1699,10 +1699,10 @@ class TimescaleRecordsDataSource(RecordsDataSource):
         )
 
 
-class TimescaleTemperatureMinMaxDataSource(MinMaxGraphDataSource):
+class TimescaleTemperatureExtremesDataSource(ExtremesGraphDataSource):
     def fetch_daily_series(
-        self, query: MinMaxGraphQuery
-    ) -> list[StationDailyMinMaxSeries]:
+        self, query: ExtremesGraphQuery
+    ) -> list[StationDailyExtremesSeries]:
         where_clauses = [
             'q."AAAAMMJJ" BETWEEN %(date_start)s AND %(date_end)s',
             '(q."TN" IS NOT NULL OR q."TX" IS NOT NULL)',
@@ -1744,14 +1744,14 @@ class TimescaleTemperatureMinMaxDataSource(MinMaxGraphDataSource):
             cols = [c.name for c in cur.description]
             rows = [dict(zip(cols, row, strict=False)) for row in cur.fetchall()]
 
-        grouped: dict[str, list[DailyMinMaxPoint]] = defaultdict(list)
+        grouped: dict[str, list[DailyExtremesPoint]] = defaultdict(list)
         station_names: dict[str, str] = {}
 
         for row in rows:
             sid = row["station_id"].strip()
             station_names[sid] = row["station_name"]
             grouped[sid].append(
-                DailyMinMaxPoint(
+                DailyExtremesPoint(
                     date=row["date"].date()
                     if isinstance(row["date"], dt.datetime)
                     else row["date"],
@@ -1761,7 +1761,7 @@ class TimescaleTemperatureMinMaxDataSource(MinMaxGraphDataSource):
             )
 
         return [
-            StationDailyMinMaxSeries(
+            StationDailyExtremesSeries(
                 station_id=sid,
                 station_name=station_names[sid],
                 points=grouped[sid],
@@ -1770,8 +1770,8 @@ class TimescaleTemperatureMinMaxDataSource(MinMaxGraphDataSource):
         ]
 
     def fetch_national_daily_series(
-        self, query: MinMaxGraphQuery
-    ) -> list[DailyMinMaxPoint]:
+        self, query: ExtremesGraphQuery
+    ) -> list[DailyExtremesPoint]:
         sql = """
             SELECT
                 q."AAAAMMJJ"    AS date,
@@ -1793,7 +1793,7 @@ class TimescaleTemperatureMinMaxDataSource(MinMaxGraphDataSource):
             rows = [dict(zip(cols, row, strict=False)) for row in cur.fetchall()]
 
         return [
-            DailyMinMaxPoint(
+            DailyExtremesPoint(
                 date=row["date"].date()
                 if isinstance(row["date"], dt.datetime)
                 else row["date"],
@@ -1816,7 +1816,7 @@ def _date_de_fermeture(annee: int | None) -> dt.date | None:
     return dt.date(annee, 12, 31)
 
 
-_MINMAX_OVERVIEW_ORDERING_MAP = {
+_EXTREMES_OVERVIEW_ORDERING_MAP = {
     "station_name": "station_name ASC, station_id ASC",
     "-station_name": "station_name DESC, station_id ASC",
     "tmax_mean": "tmax_mean ASC, station_id ASC",
@@ -1833,7 +1833,7 @@ _MINMAX_OVERVIEW_ORDERING_MAP = {
     "-alt": "alt DESC NULLS LAST, station_id ASC",
 }
 
-_MINMAX_OVERVIEW_BASE_CTE = """
+_EXTREMES_OVERVIEW_BASE_CTE = """
     WITH station_agg AS (
         SELECT
             TRIM(q."NUM_POSTE") AS station_id,
@@ -1872,8 +1872,8 @@ _MINMAX_OVERVIEW_BASE_CTE = """
 """
 
 
-def _build_minmax_overview_where(
-    query: MinMaxOverviewQuery,
+def _build_extremes_overview_where(
+    query: ExtremesOverviewQuery,
 ) -> tuple[str, dict]:
     clauses: list[str] = []
     params: dict = {
@@ -1972,8 +1972,8 @@ def _build_minmax_overview_where(
     return where_sql, params
 
 
-def _row_to_minmax_overview_station(row: dict) -> MinMaxOverviewStation:
-    return MinMaxOverviewStation(
+def _row_to_extremes_overview_station(row: dict) -> ExtremesOverviewStation:
+    return ExtremesOverviewStation(
         station_id=row["station_id"],
         station_name=row["station_name"],
         tmax_mean=float(row["tmax_mean"]),
@@ -1990,21 +1990,21 @@ def _row_to_minmax_overview_station(row: dict) -> MinMaxOverviewStation:
     )
 
 
-class TimescaleTemperatureMinMaxOverviewDataSource(MinMaxOverviewDataSource):
+class TimescaleTemperatureExtremesOverviewDataSource(ExtremesOverviewDataSource):
     def fetch_station_overview(
-        self, query: MinMaxOverviewQuery
-    ) -> MinMaxOverviewResult:
-        order_sql = _MINMAX_OVERVIEW_ORDERING_MAP[query.ordering]
-        where_sql, params = _build_minmax_overview_where(query)
+        self, query: ExtremesOverviewQuery
+    ) -> ExtremesOverviewResult:
+        order_sql = _EXTREMES_OVERVIEW_ORDERING_MAP[query.ordering]
+        where_sql, params = _build_extremes_overview_where(query)
 
         count_sql = f"""
-            {_MINMAX_OVERVIEW_BASE_CTE}
+            {_EXTREMES_OVERVIEW_BASE_CTE}
             SELECT COUNT(*) FROM station_enriched
             {where_sql}
         """
 
         page_sql = f"""
-            {_MINMAX_OVERVIEW_BASE_CTE}
+            {_EXTREMES_OVERVIEW_BASE_CTE}
             SELECT
                 station_id, station_name, lat, lon, alt,
                 department, region, classe,
@@ -2025,13 +2025,13 @@ class TimescaleTemperatureMinMaxOverviewDataSource(MinMaxOverviewDataSource):
             cols = [c.name for c in cur.description]
             rows = [dict(zip(cols, row, strict=False)) for row in cur.fetchall()]
 
-        return MinMaxOverviewResult(
-            pagination=MinMaxPagination(
+        return ExtremesOverviewResult(
+            pagination=ExtremesPagination(
                 total_count=total_count,
                 limit=query.limit,
                 offset=query.offset,
             ),
-            stations=[_row_to_minmax_overview_station(row) for row in rows],
+            stations=[_row_to_extremes_overview_station(row) for row in rows],
         )
 
 

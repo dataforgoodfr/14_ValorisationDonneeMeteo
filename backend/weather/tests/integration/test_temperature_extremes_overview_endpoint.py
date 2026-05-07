@@ -1,11 +1,11 @@
 import pytest
 from rest_framework.test import APIClient
 
-from weather.bootstrap_temperature_minmax import (
-    TemperatureMinMaxOverviewDependencyProvider,
+from weather.bootstrap_temperature_extremes import (
+    TemperatureExtremesOverviewDependencyProvider,
 )
-from weather.data_sources.temperature_minmax_fake import (
-    FakeTemperatureMinMaxOverviewDataSource,
+from weather.data_sources.temperature_extremes_fake import (
+    FakeTemperatureExtremesOverviewDataSource,
 )
 
 URL = "/api/v1/temperature/extremes"
@@ -13,11 +13,11 @@ URL = "/api/v1/temperature/extremes"
 
 @pytest.fixture(autouse=True)
 def use_fake_datasource():
-    TemperatureMinMaxOverviewDependencyProvider.set_builder(
-        lambda: FakeTemperatureMinMaxOverviewDataSource()
+    TemperatureExtremesOverviewDependencyProvider.set_builder(
+        lambda: FakeTemperatureExtremesOverviewDataSource()
     )
     yield
-    TemperatureMinMaxOverviewDependencyProvider.reset()
+    TemperatureExtremesOverviewDependencyProvider.reset()
 
 
 @pytest.fixture

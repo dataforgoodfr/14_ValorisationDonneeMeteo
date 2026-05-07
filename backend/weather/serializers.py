@@ -815,7 +815,7 @@ class RecordsGraphQuerySerializer(serializers.Serializer):
         return attrs
 
 
-class TemperatureMinMaxOverviewQuerySerializer(serializers.Serializer):
+class TemperatureExtremesOverviewQuerySerializer(serializers.Serializer):
     date_start = serializers.DateField(required=True)
     date_end = serializers.DateField(required=True)
 
@@ -961,7 +961,7 @@ class TemperatureMinMaxOverviewQuerySerializer(serializers.Serializer):
         return attrs
 
 
-class TemperatureMinMaxOverviewStationSerializer(serializers.Serializer):
+class TemperatureExtremesOverviewStationSerializer(serializers.Serializer):
     station_id = serializers.CharField()
     station_name = serializers.CharField()
     tmax_mean = serializers.FloatField()
@@ -977,7 +977,7 @@ class TemperatureMinMaxOverviewStationSerializer(serializers.Serializer):
     date_de_fermeture = serializers.DateField(allow_null=True)
 
 
-class TemperatureMinMaxOverviewMetadataSerializer(serializers.Serializer):
+class TemperatureExtremesOverviewMetadataSerializer(serializers.Serializer):
     date_start = serializers.DateField()
     date_end = serializers.DateField()
     type = serializers.ChoiceField(choices=["tmin", "tmax"])
@@ -985,10 +985,10 @@ class TemperatureMinMaxOverviewMetadataSerializer(serializers.Serializer):
     ordering = serializers.CharField()
 
 
-class TemperatureMinMaxOverviewResponseSerializer(serializers.Serializer):
-    metadata = TemperatureMinMaxOverviewMetadataSerializer()
+class TemperatureExtremesOverviewResponseSerializer(serializers.Serializer):
+    metadata = TemperatureExtremesOverviewMetadataSerializer()
     pagination = PaginationMetadataSerializer()
-    stations = TemperatureMinMaxOverviewStationSerializer(many=True)
+    stations = TemperatureExtremesOverviewStationSerializer(many=True)
 
 
 class RecordsGraphBucketSerializer(serializers.Serializer):
@@ -1020,7 +1020,7 @@ class AbsoluteRecordsGraphResponseSerializer(serializers.Serializer):
     records = RecordsGraphRecordSerializer(many=True)
 
 
-class TemperatureMinMaxGraphQuerySerializer(serializers.Serializer):
+class TemperatureExtremesGraphQuerySerializer(serializers.Serializer):
     date_start = serializers.DateField(required=True)
     date_end = serializers.DateField(required=True)
 
@@ -1047,29 +1047,29 @@ class TemperatureMinMaxGraphQuerySerializer(serializers.Serializer):
         return attrs
 
 
-class TemperatureMinMaxGraphPointSerializer(serializers.Serializer):
+class TemperatureExtremesGraphPointSerializer(serializers.Serializer):
     date = serializers.DateField()
     tmin_mean = serializers.FloatField()
     tmax_mean = serializers.FloatField()
 
 
-class TemperatureMinMaxGraphNationalSerializer(serializers.Serializer):
-    data = TemperatureMinMaxGraphPointSerializer(many=True)
+class TemperatureExtremesGraphNationalSerializer(serializers.Serializer):
+    data = TemperatureExtremesGraphPointSerializer(many=True)
 
 
-class TemperatureMinMaxGraphStationSerializer(serializers.Serializer):
+class TemperatureExtremesGraphStationSerializer(serializers.Serializer):
     station_id = serializers.CharField()
     station_name = serializers.CharField()
-    data = TemperatureMinMaxGraphPointSerializer(many=True)
+    data = TemperatureExtremesGraphPointSerializer(many=True)
 
 
-class TemperatureMinMaxGraphMetadataSerializer(serializers.Serializer):
+class TemperatureExtremesGraphMetadataSerializer(serializers.Serializer):
     date_start = serializers.DateField()
     date_end = serializers.DateField()
     granularity = serializers.ChoiceField(choices=["day", "month", "year"])
 
 
-class TemperatureMinMaxGraphResponseSerializer(serializers.Serializer):
-    metadata = TemperatureMinMaxGraphMetadataSerializer()
-    national = TemperatureMinMaxGraphNationalSerializer(required=False)
-    stations = TemperatureMinMaxGraphStationSerializer(many=True)
+class TemperatureExtremesGraphResponseSerializer(serializers.Serializer):
+    metadata = TemperatureExtremesGraphMetadataSerializer()
+    national = TemperatureExtremesGraphNationalSerializer(required=False)
+    stations = TemperatureExtremesGraphStationSerializer(many=True)

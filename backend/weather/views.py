@@ -16,9 +16,9 @@ from weather.bootstrap_temperature_deviation import (
     TemperatureDeviationDependencyProvider,
     TemperatureDeviationOverviewDependencyProvider,
 )
-from weather.bootstrap_temperature_minmax import (
-    TemperatureMinMaxDependencyProvider,
-    TemperatureMinMaxOverviewDependencyProvider,
+from weather.bootstrap_temperature_extremes import (
+    TemperatureExtremesDependencyProvider,
+    TemperatureExtremesOverviewDependencyProvider,
 )
 from weather.bootstrap_temperature_records import TemperatureRecordsDependencyProvider
 from weather.services.national_indicator.kpi_use_case import get_national_indicator_kpi
@@ -32,9 +32,9 @@ from weather.services.temperature_deviation.use_case import (
     get_temperature_deviation,
     get_temperature_deviation_overview,
 )
-from weather.services.temperature_minmax.service import compute_minmax_overview
-from weather.services.temperature_minmax.types import MinMaxOverviewQuery
-from weather.services.temperature_minmax.use_case import get_minmax_graph
+from weather.services.temperature_extremes.service import compute_extremes_overview
+from weather.services.temperature_extremes.types import ExtremesOverviewQuery
+from weather.services.temperature_extremes.use_case import get_extremes_graph
 from weather.services.temperature_records.types import TemperatureRecordsRequest
 from weather.services.temperature_records.use_case import (
     get_temperature_absolute_records,
@@ -61,10 +61,10 @@ from .serializers import (
     TemperatureDeviationOverviewQuerySerializer,
     TemperatureDeviationOverviewResponseSerializer,
     TemperatureDeviationResponseSerializer,
-    TemperatureMinMaxGraphQuerySerializer,
-    TemperatureMinMaxGraphResponseSerializer,
-    TemperatureMinMaxOverviewQuerySerializer,
-    TemperatureMinMaxOverviewResponseSerializer,
+    TemperatureExtremesGraphQuerySerializer,
+    TemperatureExtremesGraphResponseSerializer,
+    TemperatureExtremesOverviewQuerySerializer,
+    TemperatureExtremesOverviewResponseSerializer,
     TemperatureRecordsQuerySerializer,
     TemperatureRecordsResponseSerializer,
 )
@@ -489,7 +489,7 @@ class TemperatureAbsoluteRecordsAPIView(APIView):
         return Response(out.data, status=status.HTTP_200_OK)
 
 
-class TemperatureMinMaxGraphAPIView(APIView):
+class TemperatureExtremesGraphAPIView(APIView):
     """
     GET /api/v1/temperature/extremes/graph
     Retourne la moyenne de Tmin et Tmax sur une période,
@@ -520,7 +520,7 @@ class TemperatureMinMaxGraphAPIView(APIView):
         ]
     )
     def get(self, request):
-        q = TemperatureMinMaxGraphQuerySerializer(data=request.query_params)
+        q = TemperatureExtremesGraphQuerySerializer(data=request.query_params)
         if not q.is_valid():
             return Response(
                 ErrorSerializer.build(
@@ -532,8 +532,8 @@ class TemperatureMinMaxGraphAPIView(APIView):
             )
 
         params = q.validated_data
-        ds = TemperatureMinMaxDependencyProvider.get_dep()
-        data = get_minmax_graph(data_source=ds, **params)
+        ds = TemperatureExtremesDependencyProvider.get_dep()
+        data = get_extremes_graph(data_source=ds, **params)
 
         full_payload = {
             "metadata": {
@@ -544,7 +544,7 @@ class TemperatureMinMaxGraphAPIView(APIView):
             **data,
         }
 
-        out = TemperatureMinMaxGraphResponseSerializer(data=full_payload)
+        out = TemperatureExtremesGraphResponseSerializer(data=full_payload)
         out.is_valid(raise_exception=True)
 
         return Response(out.data, status=status.HTTP_200_OK)
@@ -613,8 +613,8 @@ class TemperatureDeviationOverviewAPIView(APIView):
         return Response(out.data, status=status.HTTP_200_OK)
 
 
-def _make_minmax_overview_query(params: dict) -> MinMaxOverviewQuery:
-    return MinMaxOverviewQuery(
+def _make_extremes_overview_query(params: dict) -> ExtremesOverviewQuery:
+    return ExtremesOverviewQuery(
         date_start=params["date_start"],
         date_end=params["date_end"],
         type=params["type"],
@@ -642,7 +642,7 @@ def _make_minmax_overview_query(params: dict) -> MinMaxOverviewQuery:
     )
 
 
-class TemperatureMinMaxOverviewAPIView(APIView):
+class TemperatureExtremesOverviewAPIView(APIView):
     """
     GET /api/v1/temperature/extremes
     """
@@ -651,7 +651,7 @@ class TemperatureMinMaxOverviewAPIView(APIView):
     permission_classes = []
 
     def get(self, request):
-        q = TemperatureMinMaxOverviewQuerySerializer(data=request.query_params)
+        q = TemperatureExtremesOverviewQuerySerializer(data=request.query_params)
         if not q.is_valid():
             return Response(
                 ErrorSerializer.build(
@@ -664,11 +664,11 @@ class TemperatureMinMaxOverviewAPIView(APIView):
 
         params = q.validated_data
 
-        ds = TemperatureMinMaxOverviewDependencyProvider.get_dep()
+        ds = TemperatureExtremesOverviewDependencyProvider.get_dep()
 
-        data = compute_minmax_overview(
+        data = compute_extremes_overview(
             data_source=ds,
-            query=_make_minmax_overview_query(params),
+            query=_make_extremes_overview_query(params),
         )
 
         full_payload = {
@@ -701,7 +701,7 @@ class TemperatureMinMaxOverviewAPIView(APIView):
             **data,
         }
 
-        out = TemperatureMinMaxOverviewResponseSerializer(data=full_payload)
+        out = TemperatureExtremesOverviewResponseSerializer(data=full_payload)
         out.is_valid(raise_exception=True)
 
         return Response(out.data, status=status.HTTP_200_OK)

@@ -5,7 +5,7 @@ from dataclasses import dataclass
 
 
 @dataclass(frozen=True)
-class MinMaxGraphQuery:
+class ExtremesGraphQuery:
     date_start: dt.date
     date_end: dt.date
     granularity: str
@@ -23,46 +23,46 @@ class MinMaxGraphQuery:
 
 
 @dataclass(frozen=True)
-class DailyMinMaxPoint:
+class DailyExtremesPoint:
     date: dt.date
     tmin: float | None
     tmax: float | None
 
 
 @dataclass(frozen=True)
-class StationDailyMinMaxSeries:
+class StationDailyExtremesSeries:
     station_id: str
     station_name: str
-    points: list[DailyMinMaxPoint]
+    points: list[DailyExtremesPoint]
 
 
 @dataclass(frozen=True)
-class MinMaxGraphPoint:
+class ExtremesGraphPoint:
     date: dt.date
     tmin_mean: float
     tmax_mean: float
 
 
 @dataclass(frozen=True)
-class NationalMinMaxSeries:
-    data: list[MinMaxGraphPoint]
+class NationalExtremesSeries:
+    data: list[ExtremesGraphPoint]
 
 
 @dataclass(frozen=True)
-class StationMinMaxSeries:
+class StationExtremesSeries:
     station_id: str
     station_name: str
-    data: list[MinMaxGraphPoint]
+    data: list[ExtremesGraphPoint]
 
 
 @dataclass(frozen=True)
-class MinMaxGraphResult:
-    national: NationalMinMaxSeries | None
-    stations: list[StationMinMaxSeries]
+class ExtremesGraphResult:
+    national: NationalExtremesSeries | None
+    stations: list[StationExtremesSeries]
 
 
 @dataclass(frozen=True)
-class MinMaxOverviewQuery:
+class ExtremesOverviewQuery:
     date_start: dt.date
     date_end: dt.date
     type: str = "tmax"
@@ -90,7 +90,7 @@ class MinMaxOverviewQuery:
 
 
 @dataclass(frozen=True)
-class MinMaxOverviewStation:
+class ExtremesOverviewStation:
     station_id: str
     station_name: str
     tmax_mean: float
@@ -114,6 +114,6 @@ class Pagination:
 
 
 @dataclass(frozen=True)
-class MinMaxOverviewResult:
+class ExtremesOverviewResult:
     pagination: Pagination
-    stations: list[MinMaxOverviewStation]
+    stations: list[ExtremesOverviewStation]

@@ -1,12 +1,12 @@
 import datetime as dt
 
-from weather.serializers import TemperatureMinMaxOverviewQuerySerializer
+from weather.serializers import TemperatureExtremesOverviewQuerySerializer
 
 
 def _valid(**overrides):
     params = {"date_start": "2024-01-01", "date_end": "2024-12-31"}
     params.update(overrides)
-    return TemperatureMinMaxOverviewQuerySerializer(data=params)
+    return TemperatureExtremesOverviewQuerySerializer(data=params)
 
 
 def test_happy_path_minimal():
@@ -53,14 +53,14 @@ def test_same_date_start_and_date_end_is_valid():
 
 
 def test_rejects_missing_date_start():
-    s = TemperatureMinMaxOverviewQuerySerializer(data={"date_end": "2024-12-31"})
+    s = TemperatureExtremesOverviewQuerySerializer(data={"date_end": "2024-12-31"})
 
     assert not s.is_valid()
     assert "date_start" in s.errors
 
 
 def test_rejects_missing_date_end():
-    s = TemperatureMinMaxOverviewQuerySerializer(data={"date_start": "2024-01-01"})
+    s = TemperatureExtremesOverviewQuerySerializer(data={"date_start": "2024-01-01"})
 
     assert not s.is_valid()
     assert "date_end" in s.errors

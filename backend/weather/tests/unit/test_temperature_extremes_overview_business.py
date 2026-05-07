@@ -1,10 +1,10 @@
 import datetime as dt
 
-from weather.services.temperature_minmax.service import compute_minmax_overview
-from weather.services.temperature_minmax.types import (
-    MinMaxOverviewQuery,
-    MinMaxOverviewResult,
-    MinMaxOverviewStation,
+from weather.services.temperature_extremes.service import compute_extremes_overview
+from weather.services.temperature_extremes.types import (
+    ExtremesOverviewQuery,
+    ExtremesOverviewResult,
+    ExtremesOverviewStation,
     Pagination,
 )
 
@@ -15,10 +15,10 @@ class DummyDataSource:
 
     def fetch_station_overview(self, query):
         self.query_received = query
-        return MinMaxOverviewResult(
+        return ExtremesOverviewResult(
             pagination=Pagination(total_count=2, limit=50, offset=0),
             stations=[
-                MinMaxOverviewStation(
+                ExtremesOverviewStation(
                     station_id="07156",
                     station_name="Station A",
                     tmax_mean=25.1234,
@@ -33,7 +33,7 @@ class DummyDataSource:
                     date_de_creation=dt.date(1948, 1, 1),
                     date_de_fermeture=None,
                 ),
-                MinMaxOverviewStation(
+                ExtremesOverviewStation(
                     station_id="07157",
                     station_name="Station B",
                     tmax_mean=30.9876,
@@ -52,19 +52,19 @@ class DummyDataSource:
         )
 
 
-def _default_query(**overrides) -> MinMaxOverviewQuery:
+def _default_query(**overrides) -> ExtremesOverviewQuery:
     params = {
         "date_start": dt.date(2024, 1, 1),
         "date_end": dt.date(2024, 12, 31),
     }
     params.update(overrides)
-    return MinMaxOverviewQuery(**params)
+    return ExtremesOverviewQuery(**params)
 
 
 def test_compute_overview_happy_path():
     ds = DummyDataSource()
 
-    out = compute_minmax_overview(data_source=ds, query=_default_query())
+    out = compute_extremes_overview(data_source=ds, query=_default_query())
 
     assert "pagination" in out
     assert "stations" in out
@@ -74,7 +74,7 @@ def test_compute_overview_happy_path():
 def test_compute_overview_rounds_floats_to_two_decimals():
     ds = DummyDataSource()
 
-    out = compute_minmax_overview(data_source=ds, query=_default_query())
+    out = compute_extremes_overview(data_source=ds, query=_default_query())
 
     s = out["stations"][0]
     assert s["tmax_mean"] == 25.12
@@ -85,7 +85,7 @@ def test_compute_overview_rounds_floats_to_two_decimals():
 def test_compute_overview_propagates_pagination():
     ds = DummyDataSource()
 
-    out = compute_minmax_overview(data_source=ds, query=_default_query())
+    out = compute_extremes_overview(data_source=ds, query=_default_query())
 
     p = out["pagination"]
     assert p["total_count"] == 2
@@ -96,7 +96,7 @@ def test_compute_overview_propagates_pagination():
 def test_compute_overview_returns_all_station_fields():
     ds = DummyDataSource()
 
-    out = compute_minmax_overview(data_source=ds, query=_default_query())
+    out = compute_extremes_overview(data_source=ds, query=_default_query())
 
     s = out["stations"][0]
     assert s["station_id"] == "07156"
@@ -124,6 +124,6 @@ def test_compute_overview_passes_query_to_datasource():
         offset=50,
     )
 
-    compute_minmax_overview(data_source=ds, query=query)
+    compute_extremes_overview(data_source=ds, query=query)
 
     assert ds.query_received is query

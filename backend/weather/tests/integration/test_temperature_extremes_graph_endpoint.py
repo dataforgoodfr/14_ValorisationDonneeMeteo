@@ -1,21 +1,23 @@
 import pytest
 from rest_framework.test import APIClient
 
-from weather.bootstrap_temperature_minmax import TemperatureMinMaxDependencyProvider
-from weather.data_sources.temperature_minmax_fake import FakeTemperatureMinMaxDataSource
+from weather.bootstrap_temperature_extremes import TemperatureExtremesDependencyProvider
+from weather.data_sources.temperature_extremes_fake import (
+    FakeTemperatureExtremesDataSource,
+)
 
 URL = "/api/v1/temperature/extremes/graph"
 
 
 @pytest.fixture
-def fake_minmax_dep():
-    TemperatureMinMaxDependencyProvider.set_builder(
-        lambda: FakeTemperatureMinMaxDataSource()
+def fake_extremes_dep():
+    TemperatureExtremesDependencyProvider.set_builder(
+        lambda: FakeTemperatureExtremesDataSource()
     )
     try:
         yield
     finally:
-        TemperatureMinMaxDependencyProvider.reset()
+        TemperatureExtremesDependencyProvider.reset()
 
 
 def test_returns_400_when_no_params(client: APIClient):
@@ -58,7 +60,7 @@ def test_returns_400_on_invalid_granularity(client: APIClient):
     assert resp.status_code == 400
 
 
-@pytest.mark.usefixtures("fake_minmax_dep")
+@pytest.mark.usefixtures("fake_extremes_dep")
 def test_france_returns_national_series(client: APIClient):
     resp = client.get(
         URL,
@@ -86,7 +88,7 @@ def test_france_returns_national_series(client: APIClient):
     assert "tmax_mean" in data[0]
 
 
-@pytest.mark.usefixtures("fake_minmax_dep")
+@pytest.mark.usefixtures("fake_extremes_dep")
 def test_station_filter_returns_station_series(client: APIClient):
     resp = client.get(
         URL,
@@ -112,7 +114,7 @@ def test_station_filter_returns_station_series(client: APIClient):
     assert "tmax_mean" in data[0]
 
 
-@pytest.mark.usefixtures("fake_minmax_dep")
+@pytest.mark.usefixtures("fake_extremes_dep")
 def test_department_filter_returns_aggregated_series(client: APIClient):
     resp = client.get(
         URL,
@@ -136,7 +138,7 @@ def test_department_filter_returns_aggregated_series(client: APIClient):
     assert "tmax_mean" in data[0]
 
 
-@pytest.mark.usefixtures("fake_minmax_dep")
+@pytest.mark.usefixtures("fake_extremes_dep")
 @pytest.mark.parametrize("granularity", ["day", "month", "year"])
 def test_all_granularities_return_200(client: APIClient, granularity: str):
     resp = client.get(
