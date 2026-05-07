@@ -62,7 +62,8 @@ def test_station_fields_present(client: APIClient):
 
     assert "station_id" in s
     assert "station_name" in s
-    assert "textreme_mean" in s
+    assert "tmax_mean" in s
+    assert "tmin_mean" in s
     assert "tmean_mean" in s
     assert "lat" in s
     assert "lon" in s

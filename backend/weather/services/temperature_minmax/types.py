@@ -82,7 +82,7 @@ class MinMaxOverviewQuery:
     date_de_fermeture_max: dt.date | None = None
     departments: tuple[str, ...] = ()
     regions: tuple[str, ...] = ()
-    ordering: str = "-textreme_mean"
+    ordering: str = "-tmax_mean"
     limit: int = 50
     offset: int = 0
 
@@ -91,7 +91,8 @@ class MinMaxOverviewQuery:
 class MinMaxOverviewStation:
     station_id: str
     station_name: str
-    textreme_mean: float
+    tmax_mean: float
+    tmin_mean: float
     tmean_mean: float
     lat: float | None
     lon: float | None

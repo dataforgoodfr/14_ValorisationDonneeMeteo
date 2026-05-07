@@ -141,7 +141,8 @@ def compute_minmax_overview(
             {
                 "station_id": s.station_id,
                 "station_name": s.station_name,
-                "textreme_mean": round(s.textreme_mean, 2),
+                "tmax_mean": round(s.tmax_mean, 2),
+                "tmin_mean": round(s.tmin_mean, 2),
                 "tmean_mean": round(s.tmean_mean, 2),
                 "lat": s.lat,
                 "lon": s.lon,

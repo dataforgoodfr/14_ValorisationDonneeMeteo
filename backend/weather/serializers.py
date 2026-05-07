@@ -853,8 +853,10 @@ class TemperatureMinMaxOverviewQuerySerializer(serializers.Serializer):
         choices=[
             "station_name",
             "-station_name",
-            "textreme_mean",
-            "-textreme_mean",
+            "tmax_mean",
+            "-tmax_mean",
+            "tmin_mean",
+            "-tmin_mean",
             "tmean_mean",
             "-tmean_mean",
             "department",
@@ -865,7 +867,7 @@ class TemperatureMinMaxOverviewQuerySerializer(serializers.Serializer):
             "-alt",
         ],
         required=False,
-        default="-textreme_mean",
+        default="-tmax_mean",
     )
 
     limit = serializers.IntegerField(required=False, min_value=1, default=50)
@@ -955,7 +957,8 @@ class TemperatureMinMaxOverviewQuerySerializer(serializers.Serializer):
 class TemperatureMinMaxOverviewStationSerializer(serializers.Serializer):
     station_id = serializers.CharField()
     station_name = serializers.CharField()
-    textreme_mean = serializers.FloatField()
+    tmax_mean = serializers.FloatField()
+    tmin_mean = serializers.FloatField()
     tmean_mean = serializers.FloatField()
     lat = serializers.FloatField(allow_null=True)
     lon = serializers.FloatField(allow_null=True)

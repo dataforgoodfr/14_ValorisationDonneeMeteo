@@ -16,7 +16,7 @@ def test_happy_path_minimal():
     assert s.validated_data["date_start"] == dt.date(2024, 1, 1)
     assert s.validated_data["date_end"] == dt.date(2024, 12, 31)
     assert s.validated_data["type"] == "tmax"
-    assert s.validated_data["ordering"] == "-textreme_mean"
+    assert s.validated_data["ordering"] == "-tmax_mean"
     assert s.validated_data["limit"] == 50
     assert s.validated_data["offset"] == 0
     assert s.validated_data["station_ids"] == ()
@@ -147,8 +147,10 @@ def test_ordering_choices_accepted():
     valid_orderings = [
         "station_name",
         "-station_name",
-        "textreme_mean",
-        "-textreme_mean",
+        "tmax_mean",
+        "-tmax_mean",
+        "tmin_mean",
+        "-tmin_mean",
         "tmean_mean",
         "-tmean_mean",
         "department",

@@ -86,7 +86,8 @@ _FAKE_OVERVIEW_STATIONS = [
     MinMaxOverviewStation(
         station_id="07149",
         station_name="Marseille-Marignane",
-        textreme_mean=29.8,
+        tmax_mean=29.8,
+        tmin_mean=2.6,
         tmean_mean=16.2,
         lat=43.44,
         lon=5.22,
@@ -100,7 +101,8 @@ _FAKE_OVERVIEW_STATIONS = [
     MinMaxOverviewStation(
         station_id="07222",
         station_name="Lyon-Bron",
-        textreme_mean=26.3,
+        tmax_mean=26.3,
+        tmin_mean=1.3,
         tmean_mean=13.8,
         lat=45.73,
         lon=5.08,
@@ -114,7 +116,8 @@ _FAKE_OVERVIEW_STATIONS = [
     MinMaxOverviewStation(
         station_id="07156",
         station_name="Paris-Montsouris",
-        textreme_mean=23.1,
+        tmax_mean=23.1,
+        tmin_mean=1.9,
         tmean_mean=12.5,
         lat=48.82,
         lon=2.34,

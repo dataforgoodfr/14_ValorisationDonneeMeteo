@@ -722,8 +722,10 @@ paths:
             enum:
               - station_name
               - -station_name
-              - textreme_mean
-              - -textreme_mean
+              - tmax_mean
+              - -tmax_mean
+              - tmin_mean
+              - -tmin_mean
               - tmean_mean
               - -tmean_mean
               - department
@@ -732,7 +734,7 @@ paths:
               - -region
               - alt
               - -alt
-            default: -textreme_mean
+            default: -tmax_mean
           description: >
             Champ de tri du tableau. Le préfixe '-' indique un tri décroissant.
 
@@ -786,7 +788,7 @@ paths:
                         date_de_fermeture_max: null
                         departments: []
                         regions: []
-                      ordering: "-textreme_mean"
+                      ordering: "-tmax_mean"
                     pagination:
                       total_count: 2158
                       limit: 50
@@ -794,7 +796,8 @@ paths:
                     stations:
                       - station_id: "83042001"
                         station_name: "COGOLIN_SAPC"
-                        textreme_mean: 35.32
+                        tmax_mean: 35.32
+                        tmin_mean: 8.41
                         tmean_mean: 26.75
                         lat: 43.26
                         lon: 6.51
@@ -2114,7 +2117,8 @@ components:
       required:
         - station_id
         - station_name
-        - textreme_mean
+        - tmax_mean
+        - tmin_mean
         - tmean_mean
       properties:
         station_id:
@@ -2123,10 +2127,14 @@ components:
         station_name:
           type: string
           description: Nom de la station.
-        textreme_mean:
+        tmax_mean:
           type: number
           format: float
-          description: Moyenne de la température extrême (Tmax ou Tmin selon `type`) sur la période.
+          description: Moyenne de Tmax sur la période.
+        tmin_mean:
+          type: number
+          format: float
+          description: Moyenne de Tmin sur la période.
         tmean_mean:
           type: number
           format: float

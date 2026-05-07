@@ -1819,8 +1819,10 @@ def _date_de_fermeture(annee: int | None) -> dt.date | None:
 _MINMAX_OVERVIEW_ORDERING_MAP = {
     "station_name": "station_name ASC, station_id ASC",
     "-station_name": "station_name DESC, station_id ASC",
-    "textreme_mean": "textreme_mean ASC, station_id ASC",
-    "-textreme_mean": "textreme_mean DESC, station_id ASC",
+    "tmax_mean": "tmax_mean ASC, station_id ASC",
+    "-tmax_mean": "tmax_mean DESC, station_id ASC",
+    "tmin_mean": "tmin_mean ASC, station_id ASC",
+    "-tmin_mean": "tmin_mean DESC, station_id ASC",
     "tmean_mean": "tmean_mean ASC, station_id ASC",
     "-tmean_mean": "tmean_mean DESC, station_id ASC",
     "department": "department ASC NULLS LAST, station_id ASC",
@@ -1966,7 +1968,8 @@ def _row_to_minmax_overview_station(row: dict) -> MinMaxOverviewStation:
     return MinMaxOverviewStation(
         station_id=row["station_id"],
         station_name=row["station_name"],
-        textreme_mean=float(row["textreme_mean"]),
+        tmax_mean=float(row["tmax_mean"]),
+        tmin_mean=float(row["tmin_mean"]),
         tmean_mean=float(row["tmean_mean"]),
         lat=_float_or_none(row["lat"]),
         lon=_float_or_none(row["lon"]),
@@ -1998,7 +2001,7 @@ class TimescaleTemperatureMinMaxOverviewDataSource(MinMaxOverviewDataSource):
                 station_id, station_name, lat, lon, alt,
                 department, region, classe,
                 annee_de_creation, annee_de_fermeture,
-                textreme_mean, tmean_mean
+                tmax_mean, tmin_mean, tmean_mean
             FROM station_enriched
             {where_sql}
             ORDER BY {order_sql}

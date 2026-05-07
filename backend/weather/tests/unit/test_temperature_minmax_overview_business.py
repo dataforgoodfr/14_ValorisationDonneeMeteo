@@ -21,7 +21,8 @@ class DummyDataSource:
                 MinMaxOverviewStation(
                     station_id="07156",
                     station_name="Station A",
-                    textreme_mean=25.1234,
+                    tmax_mean=25.1234,
+                    tmin_mean=12.0122,
                     tmean_mean=18.5678,
                     lat=48.8,
                     lon=2.3,
@@ -35,7 +36,8 @@ class DummyDataSource:
                 MinMaxOverviewStation(
                     station_id="07157",
                     station_name="Station B",
-                    textreme_mean=30.9876,
+                    tmax_mean=30.9876,
+                    tmin_mean=13.9012,
                     tmean_mean=22.4444,
                     lat=43.3,
                     lon=5.4,
@@ -75,7 +77,8 @@ def test_compute_overview_rounds_floats_to_two_decimals():
     out = compute_minmax_overview(data_source=ds, query=_default_query())
 
     s = out["stations"][0]
-    assert s["textreme_mean"] == 25.12
+    assert s["tmax_mean"] == 25.12
+    assert s["tmin_mean"] == 12.01
     assert s["tmean_mean"] == 18.57
 
 

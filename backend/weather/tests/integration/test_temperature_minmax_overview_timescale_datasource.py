@@ -37,7 +37,8 @@ def test_fetch_station_overview_happy_path():
     s = result.stations[0]
     assert s.station_id == code
     assert s.station_name == "Station Lyon"
-    assert s.textreme_mean == pytest.approx(11.0)
+    assert s.tmax_mean == pytest.approx(11.0)
+    assert s.tmin_mean == pytest.approx(1.0)
     assert s.tmean_mean == pytest.approx(6.0)
     assert s.alt == pytest.approx(200.0)
     assert s.department == "69"
@@ -53,7 +54,8 @@ def test_fetch_station_overview_type_tmin_uses_tmin_as_textreme():
     ds = TimescaleTemperatureMinMaxOverviewDataSource()
     result = ds.fetch_station_overview(_query(type="tmin"))
 
-    assert result.stations[0].textreme_mean == pytest.approx(1.0)
+    assert result.stations[0].tmin_mean == pytest.approx(1.0)
+    assert result.stations[0].tmax_mean == pytest.approx(11.0)
 
 
 @pytest.mark.django_db
@@ -95,7 +97,7 @@ def test_fetch_station_overview_orders_by_textreme_desc():
     insert_quotidienne(dt.date(2024, 1, 1), s2, tn=0.0, tx=30.0)
 
     ds = TimescaleTemperatureMinMaxOverviewDataSource()
-    result = ds.fetch_station_overview(_query(type="tmax", ordering="-textreme_mean"))
+    result = ds.fetch_station_overview(_query(type="tmax", ordering="-tmax_mean"))
 
     assert [s.station_id for s in result.stations] == [s2, s1]
 
