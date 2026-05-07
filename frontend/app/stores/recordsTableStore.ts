@@ -1,4 +1,5 @@
 import { refDebounced } from "@vueuse/core";
+import { MONTH_LONG } from "~/constants/months";
 import { useTemperatureRecords } from "~/composables/useTemperature";
 import { departements } from "~/data/records/departements";
 import { dateToStringYMD } from "~/utils/date";
@@ -33,18 +34,7 @@ export const periodOptions = [
     { value: "season_summer", label: "Été" },
     { value: "season_autumn", label: "Automne" },
     { value: "season_winter", label: "Hiver" },
-    { value: "month_1", label: "Janvier" },
-    { value: "month_2", label: "Février" },
-    { value: "month_3", label: "Mars" },
-    { value: "month_4", label: "Avril" },
-    { value: "month_5", label: "Mai" },
-    { value: "month_6", label: "Juin" },
-    { value: "month_7", label: "Juillet" },
-    { value: "month_8", label: "Août" },
-    { value: "month_9", label: "Septembre" },
-    { value: "month_10", label: "Octobre" },
-    { value: "month_11", label: "Novembre" },
-    { value: "month_12", label: "Décembre" },
+    ...MONTH_LONG.map((label, i) => ({ value: `month_${i + 1}`, label })),
 ];
 
 const debounceDuration = 300;

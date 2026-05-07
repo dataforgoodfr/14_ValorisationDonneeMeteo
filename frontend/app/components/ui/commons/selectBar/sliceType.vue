@@ -1,10 +1,17 @@
 <script setup lang="ts">
 import MonthOfYearPicker from "./monthOfYearPicker.vue";
-import type { SelectBarAdapter } from "~/components/ui/commons/selectBar/types";
+import type {
+    SliceType,
+    SelectBarAdapter,
+} from "~/components/ui/commons/selectBar/types";
 
 const adapter = inject<SelectBarAdapter>("selectBarAdapter")!;
 
-const isCalendarMode = computed(() => adapter.calendarSliceMode !== undefined);
+const isCalendarMode = computed(
+    () =>
+        adapter.calendarSliceMode !== undefined &&
+        adapter.chartType?.value === "calendar",
+);
 
 // Calendar mode options
 const calendarSliceOptions = computed(() => {
@@ -20,24 +27,34 @@ const calendarSliceOptions = computed(() => {
     ];
 });
 
-// Standard mode options
-const allSliceTypeValues = [
-    { label: "Période complète", value: "full" },
-    { label: "Jour spécifique", value: "day_of_month" },
-    { label: "Mois spécifique", value: "month_of_year" },
-];
-const displayedSlicedTypeValues = computed(() => {
+// Standard mode options — depends on granularity
+const averagingOptions = computed(() => {
     if (adapter.granularity.value === "year") {
-        return allSliceTypeValues;
+        return [
+            { label: "Année", value: "full" },
+            { label: "Mois", value: "month_of_year" },
+            { label: "Jour", value: "day_of_month" },
+        ];
     }
     if (adapter.granularity.value === "month") {
-        return allSliceTypeValues.filter(
-            (value) => value.value !== "month_of_year",
-        );
+        return [
+            { label: "Mois", value: "full" },
+            { label: "Jour", value: "day_of_month" },
+        ];
     }
-    return allSliceTypeValues.filter((value) => value.value === "full");
+    return [{ label: "Jour", value: "day_of_month" }];
 });
-// Date picker styling (day/day+month pickers only)
+
+// Disabled only when granularity = day (except calendar mode, always enabled)
+const isAveragingDisabled = computed(() => {
+    if (isCalendarMode.value) return false;
+    return adapter.granularity.value === "day";
+});
+
+// Informational value shown when disabled (granularity = day)
+const lockedAveragingValue = computed<SliceType>(() => "day_of_month");
+
+// Date picker styling
 const pt = {
     root: { class: "relative w-36" },
     pcInputText: {
@@ -155,7 +172,9 @@ const showCalendarMonthPicker = computed(
 <template>
     <div class="flex gap-6">
         <div class="flex flex-col text-center gap-1">
-            <p class="text-sm text-default">Période</p>
+            <p class="text-sm text-default">
+                {{ isCalendarMode ? "Période" : "Moyenner par" }}
+            </p>
             <USelect
                 v-if="isCalendarMode"
                 v-model="adapter.calendarSliceMode!.value"
@@ -164,17 +183,26 @@ const showCalendarMonthPicker = computed(
             />
             <USelect
                 v-else
-                v-model="adapter.sliceType!.value"
-                placeholder="Période"
-                :items="displayedSlicedTypeValues"
-                default-value="full"
+                :model-value="
+                    isAveragingDisabled
+                        ? lockedAveragingValue
+                        : (adapter.sliceType?.value ?? 'full')
+                "
+                :disabled="isAveragingDisabled"
+                :items="averagingOptions"
+                @update:model-value="
+                    (val) => {
+                        if (adapter.sliceType)
+                            adapter.sliceType.value = val as SliceType;
+                    }
+                "
             />
         </div>
         <div
             v-if="showDayOfMonthPicker"
             class="flex flex-col text-center gap-1"
         >
-            <p class="text-sm text-default">Jour</p>
+            <p class="text-sm text-default">Numéro du jour du mois</p>
             <DatePicker
                 v-model="adapter.sliceDatepickerDate!.value"
                 date-format="dd"
@@ -197,7 +225,7 @@ const showCalendarMonthPicker = computed(
             v-if="showDayMonthOfYearPicker"
             class="flex flex-col text-center gap-1"
         >
-            <p class="text-sm text-default">Jour/Mois</p>
+            <p class="text-sm text-default">Jour de l'année</p>
             <DatePicker
                 v-model="adapter.sliceDatepickerDate!.value"
                 date-format="dd/mm"
@@ -213,7 +241,7 @@ const showCalendarMonthPicker = computed(
             v-if="showCalendarDayPicker"
             class="flex flex-col text-center gap-1"
         >
-            <p class="text-sm text-default">Jour</p>
+            <p class="text-sm text-default">Numéro du jour du mois</p>
             <DatePicker
                 v-model="adapter.calendarDatepickerDate!.value"
                 date-format="dd"

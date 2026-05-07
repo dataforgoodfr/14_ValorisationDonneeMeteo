@@ -176,17 +176,9 @@ export const useRecordsChartStore = defineStore("recordChartStore", () => {
         chartType.value = value;
     };
 
-    watch(periodType, (value) => {
-        if (value === "season") {
-            season.value = "spring";
-            month.value = undefined;
-        } else if (value === "month") {
-            month.value = 1;
-            season.value = undefined;
-        } else {
-            season.value = undefined;
-            month.value = undefined;
-        }
+    watch(periodType, () => {
+        season.value = undefined;
+        month.value = undefined;
     });
 
     const turnOffSliceType = (value: boolean) => {

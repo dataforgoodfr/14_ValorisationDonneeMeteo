@@ -35,6 +35,20 @@ const granularityValues = computed(() => [
         disabled: props.adapter.chartType?.value === "stacked",
     },
 ]);
+
+// Calendar averaging options
+const calendarAveragingOptions = computed(() => {
+    if (props.adapter.granularity.value === "year") {
+        return [
+            { label: "Année", value: "no" },
+            { label: "Mois", value: "yes" },
+        ];
+    }
+    return [
+        { label: "Mois", value: "no" },
+        { label: "Jour", value: "yes" },
+    ];
+});
 </script>
 
 <template>
@@ -127,58 +141,9 @@ const granularityValues = computed(() => [
                         />
                     </div>
                     <div class="flex gap-6 items-center">
-                        <UTooltip
-                            :disabled="adapter.granularity.value !== 'day'"
-                            :disable-closing-trigger="true"
-                            :arrow="true"
-                            :delay-duration="0"
-                            text="Changez la Granularité pour activer cette option."
-                            :content="{
-                                align: 'center',
-                                side: 'top',
-                                sideOffset: 8,
-                            }"
-                        >
-                            <span class="flex">
-                                <USwitch
-                                    v-model="
-                                        adapter.sliceTypeSwitchEnabled!.value
-                                    "
-                                    color="neutral"
-                                    :disabled="
-                                        adapter.granularity.value === 'day'
-                                    "
-                                    unchecked-icon="i-lucide-x"
-                                    checked-icon="i-lucide-check"
-                                    :ui="{
-                                        root: 'flex-col-reverse items-center gap-1',
-                                        container: 'my-auto',
-                                    }"
-                                    @update:model-value="
-                                        adapter.turnOffSliceType
-                                    "
-                                >
-                                    <template #label>
-                                        {{
-                                            adapter.sliceTypeSwitchLabel ??
-                                            "Moyenner par mois/jour"
-                                        }}
-                                    </template>
-                                </USwitch>
-                            </span>
-                        </UTooltip>
-
-                        <SliceType
-                            v-if="
-                                adapter.sliceTypeSwitchEnabled?.value &&
-                                adapter.features.hasSliceType
-                            "
-                        />
+                        <SliceType v-if="adapter.features.hasSliceType" />
                         <RecordsPeriodSlice
-                            v-if="
-                                adapter.sliceTypeSwitchEnabled?.value &&
-                                adapter.features.hasRecordsPeriodSlice
-                            "
+                            v-if="adapter.features.hasRecordsPeriodSlice"
                         />
                     </div>
                 </div>
@@ -197,27 +162,26 @@ const granularityValues = computed(() => [
                         </span>
                     </div>
                     <div class="flex gap-6 items-center">
-                        <USwitch
-                            v-model="adapter.calendarAverageEnabled!.value"
-                            color="neutral"
-                            unchecked-icon="i-lucide-x"
-                            checked-icon="i-lucide-check"
-                            :ui="{
-                                root: 'flex-col-reverse items-center gap-1',
-                                container: 'my-auto',
-                            }"
-                            @update:model-value="
-                                adapter.setCalendarAverageEnabled
-                            "
-                        >
-                            <template #label>
-                                {{
-                                    adapter.granularity.value === "year"
-                                        ? "Moyenner par mois"
-                                        : "Moyenner par jour"
-                                }}
-                            </template>
-                        </USwitch>
+                        <div class="flex flex-col text-center gap-1">
+                            <p class="text-sm text-default">Moyenner par</p>
+                            <USelect
+                                :model-value="
+                                    adapter.calendarAverageEnabled?.value
+                                        ? 'yes'
+                                        : 'no'
+                                "
+                                :items="calendarAveragingOptions"
+                                @update:model-value="
+                                    (val) => {
+                                        adapter.calendarAverageEnabled!.value =
+                                            val === 'yes';
+                                        adapter.setCalendarAverageEnabled?.(
+                                            val === 'yes',
+                                        );
+                                    }
+                                "
+                            />
+                        </div>
                         <SliceType
                             v-if="adapter.calendarAverageEnabled?.value"
                         />
