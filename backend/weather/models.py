@@ -132,3 +132,45 @@ class ITNBaselineYearly19912020(models.Model):
 
     def __str__(self) -> str:
         return f"sample_size={self.sample_size}"
+
+
+class ITNAbsoluteExtremesDaily(models.Model):
+    pk = models.CompositePrimaryKey("month", "day_of_month")
+    month = models.IntegerField()
+    day_of_month = models.IntegerField()
+    absolute_min = models.FloatField()
+    absolute_max = models.FloatField()
+
+    class Meta:
+        managed = False
+        db_table = "mv_itn_absolute_extremes_daily"
+        unique_together = ("month", "day_of_month")
+
+    def __str__(self) -> str:
+        return f"{self.month:02d}-{self.day_of_month:02d}"
+
+
+class ITNAbsoluteExtremesMonthly(models.Model):
+    month = models.IntegerField(primary_key=True)
+    absolute_min = models.FloatField()
+    absolute_max = models.FloatField()
+
+    class Meta:
+        managed = False
+        db_table = "mv_itn_absolute_extremes_monthly"
+
+    def __str__(self) -> str:
+        return f"month={self.month:02d}"
+
+
+class ITNAbsoluteExtremesYearly(models.Model):
+    # Table à ligne unique — absolute_min sert de PK de façon conventionnelle
+    absolute_min = models.FloatField(primary_key=True)
+    absolute_max = models.FloatField()
+
+    class Meta:
+        managed = False
+        db_table = "mv_itn_absolute_extremes_yearly"
+
+    def __str__(self) -> str:
+        return f"min={self.absolute_min} max={self.absolute_max}"
