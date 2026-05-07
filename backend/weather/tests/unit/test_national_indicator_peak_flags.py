@@ -12,6 +12,7 @@ from weather.services.national_indicator.types import (
     DailySeriesQuery,
     ObservedPoint,
 )
+from weather.tests.helpers.itn_absolute_extremes import stub_absolute_extremes
 from weather.utils.date_range import iter_days_intersecting
 
 # baseline_mean=10, std_dev=2 => upper=12, lower=8
@@ -57,6 +58,7 @@ def _run(temps: dict[dt.date, float]) -> list[dict]:
     res = compute_national_indicator(
         observed_data_source=ds,
         baseline_data_source=ds,
+        absolute_extremes_data_source=stub_absolute_extremes,
         date_start=date_start,
         date_end=date_end,
         granularity="day",
