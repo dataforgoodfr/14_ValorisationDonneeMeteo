@@ -18,6 +18,7 @@ from weather.models import (
 )
 from weather.regions import departments_for_region
 from weather.services.national_indicator.protocols import (
+    NationalIndicatorAbsoluteExtremesDataSource,
     NationalIndicatorBaselineDataSource,
     NationalIndicatorObservedDataSource,
 )
@@ -29,6 +30,7 @@ from weather.services.national_indicator.stations import (
     expected_station_codes,
 )
 from weather.services.national_indicator.types import (
+    AbsoluteExtremes,
     BaselinePoint,
     DailySeriesQuery,
 )
@@ -244,6 +246,145 @@ class TimescaleNationalIndicatorBaselineDataSource(NationalIndicatorBaselineData
             baseline_std_dev_lower=float(mean - std),
             baseline_max=0.0,  # TODO MV future
             baseline_min=0.0,  # TODO MV future
+        )
+
+
+# SQL CTE commun : calcul de l'ITN journalier depuis v_quotidienne_itn.
+# Applique la règle Reims (exclusion de la station inactive selon la date)
+# et impose que les 30 stations soient toutes présentes (HAVING COUNT = 30).
+_ITN_DAILY_CTE = """
+    WITH daily_itn AS (
+        SELECT
+            date::date                               AS day,
+            EXTRACT(MONTH FROM date)::int            AS month,
+            EXTRACT(DAY   FROM date)::int            AS day_of_month,
+            EXTRACT(YEAR  FROM date)::int            AS year,
+            AVG(tntxm)                               AS itn
+        FROM v_quotidienne_itn
+        WHERE station_code = ANY(%(station_codes)s)
+          AND station_code != CASE
+                WHEN date < '2012-05-08' THEN %(reims_prunay)s
+                ELSE %(reims_courcy)s
+              END
+        GROUP BY date::date, EXTRACT(MONTH FROM date)::int, EXTRACT(DAY FROM date)::int, EXTRACT(YEAR FROM date)::int
+        HAVING COUNT(DISTINCT station_code) = 30
+    )
+"""
+
+_ITN_DAILY_PARAMS: dict[str, Any] = {
+    "station_codes": list(ITN_STATION_CODES_FOR_QUERY),
+    "reims_prunay": REIMS_PRUNAY,
+    "reims_courcy": REIMS_COURCY,
+}
+
+
+class TimescaleNationalIndicatorAbsoluteExtremesDataSource(
+    NationalIndicatorAbsoluteExtremesDataSource
+):
+    """
+    Calcule les extremes absolus historiques de l'ITN (toutes années disponibles)
+    directement en SQL, sans passer par des vues matérialisées.
+    """
+
+    def fetch_daily_absolute_extremes(
+        self,
+        month_day_pairs: set[tuple[int, int]],
+    ) -> dict[tuple[int, int], AbsoluteExtremes]:
+        if not month_day_pairs:
+            return {}
+
+        sql = (
+            _ITN_DAILY_CTE
+            + """
+            SELECT month, day_of_month, MIN(itn) AS absolute_min, MAX(itn) AS absolute_max
+            FROM daily_itn
+            GROUP BY month, day_of_month
+            """
+        )
+
+        with connection.cursor() as cur:
+            cur.execute(sql, _ITN_DAILY_PARAMS)
+            cols = [col[0] for col in cur.description]
+            rows = [dict(zip(cols, row, strict=False)) for row in cur.fetchall()]
+
+        all_extremes = {
+            (row["month"], row["day_of_month"]): AbsoluteExtremes(
+                absolute_min=float(row["absolute_min"]),
+                absolute_max=float(row["absolute_max"]),
+            )
+            for row in rows
+        }
+        return {k: v for k, v in all_extremes.items() if k in month_day_pairs}
+
+    def fetch_monthly_absolute_extremes(
+        self,
+        months: set[int],
+    ) -> dict[int, AbsoluteExtremes]:
+        if not months:
+            return {}
+
+        sql = (
+            _ITN_DAILY_CTE
+            + """
+            , monthly_itn AS (
+                SELECT year, month, AVG(itn) AS monthly_mean
+                FROM daily_itn
+                GROUP BY year, month
+            )
+            SELECT month, MIN(monthly_mean) AS absolute_min, MAX(monthly_mean) AS absolute_max
+            FROM monthly_itn
+            WHERE month = ANY(%(months)s)
+            GROUP BY month
+            """
+        )
+        params = {**_ITN_DAILY_PARAMS, "months": list(months)}
+
+        with connection.cursor() as cur:
+            cur.execute(sql, params)
+            cols = [col[0] for col in cur.description]
+            rows = [dict(zip(cols, row, strict=False)) for row in cur.fetchall()]
+
+        return {
+            row["month"]: AbsoluteExtremes(
+                absolute_min=float(row["absolute_min"]),
+                absolute_max=float(row["absolute_max"]),
+            )
+            for row in rows
+        }
+
+    def fetch_yearly_absolute_extremes(self) -> AbsoluteExtremes:
+        sql = (
+            _ITN_DAILY_CTE
+            + """
+            , yearly_itn AS (
+                SELECT year, AVG(itn) AS yearly_mean
+                FROM daily_itn
+                GROUP BY year
+            )
+            SELECT MIN(yearly_mean) AS absolute_min, MAX(yearly_mean) AS absolute_max
+            FROM yearly_itn
+            """
+        )
+
+        with connection.cursor() as cur:
+            cur.execute(sql, _ITN_DAILY_PARAMS)
+            cols = [col[0] for col in cur.description]
+            raw = cur.fetchone()
+
+        if raw is None:
+            raise ValueError(
+                "Aucune donnée historique ITN pour calculer les extremes annuels"
+            )
+
+        row = dict(zip(cols, raw, strict=False))
+        if row["absolute_min"] is None:
+            raise ValueError(
+                "Aucune donnée historique ITN pour calculer les extremes annuels"
+            )
+
+        return AbsoluteExtremes(
+            absolute_min=float(row["absolute_min"]),
+            absolute_max=float(row["absolute_max"]),
         )
 
 
