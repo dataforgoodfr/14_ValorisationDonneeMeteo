@@ -230,9 +230,10 @@ function buildStackedOption(
         series: [...baselineSeries, ...yearSeries],
         legend: {
             data: [
-                ITN_SERIES.extremes,
-                ITN_SERIES.baseline,
                 ITN_SERIES.temperature,
+                ITN_SERIES.baseline,
+                ITN_SERIES.stdDev,
+                ITN_SERIES.extremes,
                 ...years.map(String),
             ],
             bottom: 85,
