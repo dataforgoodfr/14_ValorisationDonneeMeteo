@@ -33,7 +33,7 @@
                     >
                         <span class="flex items-center gap-1">
                             <UIcon
-                                :name="classeIcon(station.classe)"
+                                name="i-lucide-award"
                                 class="size-4 shrink-0 opacity-40"
                             />
                             Cl. {{ station.classe }}
@@ -71,11 +71,4 @@ const emit = defineEmits<{
 const sortedStations = computed(() =>
     [...props.stations].sort((a, b) => a.nom.localeCompare(b.nom, "fr")),
 );
-
-function classeIcon(classe: number): string {
-    if (classe <= 1) return "i-lucide-wifi";
-    if (classe === 2) return "i-lucide-wifi-high";
-    if (classe === 3) return "i-lucide-wifi-low";
-    return "i-lucide-wifi-low";
-}
 </script>
