@@ -9,6 +9,7 @@ import type {
     FilterValue,
 } from "~/components/ui/commons/FilterBar.vue";
 import type { PaginatedResponse, Station, StationFilters } from "~/types/api";
+import DatePresetPicker from "~/components/ui/commons/DatePresetPicker.vue";
 
 const filterFields: FilterField[] = [
     { id: "name", label: "Station", type: "string-async" },
@@ -152,5 +153,12 @@ const filterOptions = computed(() => {
         @clear="clearFilter"
         @search="onSearch"
         @load-more="onLoadMore"
-    />
+    >
+        <template #extra-fields>
+            <DatePresetPicker
+                v-model:start-date="store.dateStart"
+                v-model:end-date="store.dateEnd"
+            />
+        </template>
+    </FilterBar>
 </template>

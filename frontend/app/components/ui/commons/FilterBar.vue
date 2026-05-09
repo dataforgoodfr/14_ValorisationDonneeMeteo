@@ -5,7 +5,6 @@ import FilterDropdownString from "./FilterDropdownString.vue";
 import FilterDropdownRange from "./FilterDropdownRange.vue";
 import FilterDropdownDateRange from "./FilterDropdownDateRange.vue";
 import FilterActiveChips from "./FilterActiveChips.vue";
-import DatePresetPicker from "./DatePresetPicker.vue";
 export type {
     FilterType,
     FilterField,
@@ -34,9 +33,6 @@ const emit = defineEmits<{
     search: [id: string, query: string];
     "load-more": [id: string];
 }>();
-
-const tableStore = useDeviationTableStore();
-const { dateStart, dateEnd } = storeToRefs(tableStore);
 
 // Only one dropdown can be open at a time — single refs suffice for all local state.
 const openField = ref<FilterField | null>(null);
@@ -142,13 +138,11 @@ const hasAnyFilter = computed(() => Object.keys(props.filters).length > 0);
 </script>
 
 <template>
-    <div ref="containerRef" class="flex flex-col gap-3 lg:px-4 py-3.5">
+    <div ref="containerRef" class="flex flex-col gap-3 py-3.5">
         <!-- Filter buttons row -->
+
         <div class="flex items-center gap-2 flex-wrap">
-            <DatePresetPicker
-                v-model:start-date="dateStart"
-                v-model:end-date="dateEnd"
-            />
+            <slot name="extra-fields" />
             <div v-for="field in fields" :key="field.id" class="relative">
                 <button
                     class="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium rounded-md border transition-colors cursor-pointer"

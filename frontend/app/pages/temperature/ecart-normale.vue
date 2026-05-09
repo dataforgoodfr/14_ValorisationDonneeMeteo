@@ -130,16 +130,18 @@ async function exportCSV() {
                 </div>
 
                 <div
-                    class="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-4"
+                    class="flex flex-col lg:flex-row items-start lg:items-start justify-between gap-2"
                 >
                     <DeviationFilterBar />
-                    <UButton
-                        label="Exporter CSV"
-                        icon="i-lucide-download"
-                        :ui="EXPORT_BTN_UI"
-                        :disabled="pending"
-                        @click="exportCSV"
-                    />
+                    <div class="mt-3.5">
+                        <UButton
+                            label="Exporter CSV"
+                            icon="i-lucide-download"
+                            :ui="EXPORT_BTN_UI"
+                            :disabled="pending"
+                            @click="exportCSV"
+                        />
+                    </div>
                 </div>
             </div>
 

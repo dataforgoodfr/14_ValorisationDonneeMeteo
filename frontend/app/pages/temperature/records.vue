@@ -10,11 +10,10 @@ import RecordsChart from "~/components/charts/recordsChart.vue";
 import RecordsKpiPanel from "~/components/charts/RecordsKpiPanel.vue";
 import SelectBar from "~/components/ui/commons/selectBar/selectBar.vue";
 import RecordsMap from "~/components/map/RecordsMap.vue";
-import {
-    useRecordsTableStore,
-    periodOptions,
-} from "~/stores/recordsTableStore";
+import { useRecordsTableStore } from "~/stores/recordsTableStore";
 import { recordsHeroData, recordsSections } from "~/data/docRecords";
+import RecordsFilterBar from "~/components/table/records/RecordsFilterBar.vue";
+import { EXPORT_BTN_UI } from "~/constants/tableUtils";
 
 const selectBarAdapter = useRecordsSelectBarAdapter();
 
@@ -50,6 +49,19 @@ onMounted(() => {
 
 const heroData = recordsHeroData;
 const infoPanelSections = recordsSections;
+
+function exportCSV() {
+    if (!import.meta.client) return;
+
+    downloadCSV(
+        buildRecordsCsv(store.filteredRecords),
+        useFormatFileName(
+            `tableau-records-${store.typeRecords}`,
+            store.periodSelection,
+            "csv",
+        ),
+    );
+}
 </script>
 
 <template>
@@ -111,37 +123,19 @@ const infoPanelSections = recordsSections;
             </div>
 
             <div class="flex items-end gap-4">
-                <USelect
-                    v-model="store.periodSelection"
-                    :items="periodOptions"
-                />
-
-                <UFieldGroup>
-                    <UButton
-                        :ui="{
-                            base:
-                                store.typeRecords === 'hot'
-                                    ? 'bg-rose-200 text-rose-600 ring-1 ring-rose-300 pointer-events-none'
-                                    : '',
-                        }"
-                        color="neutral"
-                        variant="outline"
-                        label="Chaud"
-                        @click="store.typeRecords = 'hot'"
-                    />
-                    <UButton
-                        :ui="{
-                            base:
-                                store.typeRecords === 'cold'
-                                    ? 'bg-blue-200 text-blue-650! dark:text-blue-700! ring-1 ring-blue-300 pointer-events-none'
-                                    : '',
-                        }"
-                        color="neutral"
-                        variant="outline"
-                        label="Froid"
-                        @click="store.typeRecords = 'cold'"
-                    />
-                </UFieldGroup>
+                <div class="flex flex-col md:flex-row gap-4">
+                    <RecordsFilterBar />
+                    <div class="mt-3.5">
+                        <UButton
+                            label="Exporter CSV"
+                            icon="i-lucide-download"
+                            class="ml-auto"
+                            :ui="EXPORT_BTN_UI"
+                            :disabled="store.pending"
+                            @click="exportCSV"
+                        />
+                    </div>
+                </div>
             </div>
 
             <hr class="border-accented" />

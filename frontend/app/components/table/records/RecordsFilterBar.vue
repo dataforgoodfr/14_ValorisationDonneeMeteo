@@ -157,5 +157,36 @@ const filterOptions = computed(() => {
         @clear="clearFilter"
         @search="onSearch"
         @load-more="onLoadMore"
-    />
+    >
+        <template #extra-fields>
+            <USelect v-model="store.periodSelection" :items="periodOptions" />
+
+            <UFieldGroup>
+                <UButton
+                    :ui="{
+                        base:
+                            store.typeRecords === 'hot'
+                                ? 'bg-rose-200 text-rose-600 ring-1 ring-rose-300 pointer-events-none'
+                                : '',
+                    }"
+                    color="neutral"
+                    variant="outline"
+                    label="Chaud"
+                    @click="store.typeRecords = 'hot'"
+                />
+                <UButton
+                    :ui="{
+                        base:
+                            store.typeRecords === 'cold'
+                                ? 'bg-blue-200 text-blue-650! dark:text-blue-700! ring-1 ring-blue-300 pointer-events-none'
+                                : '',
+                    }"
+                    color="neutral"
+                    variant="outline"
+                    label="Froid"
+                    @click="store.typeRecords = 'cold'"
+                />
+            </UFieldGroup>
+        </template>
+    </FilterBar>
 </template>
