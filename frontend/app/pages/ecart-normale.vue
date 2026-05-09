@@ -79,7 +79,10 @@ const infoPanelSections = ecartNormaleSections;
             </template>
         </ChartLayout>
 
-        <div class="flex flex-col gap-4 dark:bg-elevated rounded-lg px-3 py-2">
+        <div
+            id="table"
+            class="flex flex-col gap-4 dark:bg-elevated rounded-lg px-3 py-2"
+        >
             <div class="flex flex-col gap-2">
                 <div class="flex items-center gap-1">
                     <p class="text-sm font-medium">
