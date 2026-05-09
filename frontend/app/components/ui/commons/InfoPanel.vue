@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import { useBreakpoints, breakpointsTailwind } from "@vueuse/core";
-import type { InfoSection } from "~/types/common";
 
 interface InfoParagraph {
     title?: string;
@@ -24,6 +23,8 @@ const breakpoints = useBreakpoints(breakpointsTailwind);
 const isMobile = breakpoints.smaller("md");
 
 const openSections = ref(new Set([0]));
+const showHint = ref(false);
+const isBouncing = ref(false);
 
 function toggle(i: number) {
     if (openSections.value.has(i)) {
@@ -33,13 +34,78 @@ function toggle(i: number) {
     }
     openSections.value = new Set(openSections.value);
 }
+
+function dismissHint() {
+    showHint.value = false;
+    isBouncing.value = false;
+    sessionStorage.setItem("info-hint-dismissed", "1");
+}
+
+function openPanel() {
+    dismissHint();
+    isOpen.value = true;
+}
+
+onMounted(() => {
+    if (sessionStorage.getItem("info-hint-dismissed")) return;
+
+    const t1 = setTimeout(() => {
+        isBouncing.value = true;
+        showHint.value = true;
+    }, 10_000);
+    const t2 = setTimeout(() => {
+        isBouncing.value = false;
+    }, 13_000);
+    const t3 = setTimeout(() => {
+        showHint.value = false;
+    }, 16_000);
+
+    onUnmounted(() => {
+        clearTimeout(t1);
+        clearTimeout(t2);
+        clearTimeout(t3);
+    });
+});
 </script>
 
 <template>
+    <Transition
+        enter-active-class="transition-all duration-300 ease-out"
+        enter-from-class="opacity-0 translate-y-1"
+        enter-to-class="opacity-100 translate-y-0"
+        leave-active-class="transition-all duration-200 ease-in"
+        leave-from-class="opacity-100 translate-y-0"
+        leave-to-class="opacity-0 translate-y-1"
+    >
+        <div
+            v-if="showHint"
+            class="fixed bottom-[4.5rem] right-6 z-30 w-44 rounded-lg bg-white dark:bg-dark-800 border border-slate-200 dark:border-dark-700 shadow-lg px-3 py-2"
+        >
+            <div class="flex items-start justify-between gap-2">
+                <p class="text-xs text-slate-700 dark:text-dark-200">
+                    Besoin d'informations ? Cliquez ici pour en savoir plus.
+                </p>
+                <button
+                    class="shrink-0 text-slate-400 hover:text-slate-600 dark:text-dark-400 dark:hover:text-dark-200 transition-colors cursor-pointer"
+                    aria-label="Fermer"
+                    @click="dismissHint"
+                >
+                    <UIcon name="i-lucide-x" class="size-3" />
+                </button>
+            </div>
+            <div
+                class="absolute -bottom-1.5 right-3.5 size-3 rotate-45 bg-white dark:bg-dark-800 border-r border-b border-slate-200 dark:border-dark-700"
+            />
+        </div>
+    </Transition>
+
     <button
-        class="fixed bottom-6 right-6 z-30 flex items-center justify-center size-10 rounded-full bg-blue-500 text-white shadow-lg hover:bg-blue-450 transition-colors cursor-pointer"
+        :class="[
+            'fixed bottom-6 right-6 z-30 flex items-center justify-center size-10 rounded-full bg-blue-500 text-white shadow-lg hover:bg-blue-450 transition-colors cursor-pointer',
+            isBouncing && 'animate-bounce',
+        ]"
         :aria-label="`Informations sur ${props.title}`"
-        @click="isOpen = true"
+        @click="openPanel"
     >
         <UIcon name="i-lucide-info" class="size-5" />
     </button>
