@@ -3,7 +3,6 @@ import { h } from "vue";
 import { UBadge, UButton } from "#components";
 import {
     CENTERED_TD,
-    EXPORT_BTN_UI,
     makeSortableColFactory,
     REGION_META,
     STATION_META,
@@ -14,11 +13,9 @@ import {
 } from "~/constants/tableUtils";
 import { storeToRefs } from "pinia";
 import { useDeviationTableStore } from "~/stores/deviationTableStore";
-import DeviationFilterBar from "~/components/table/deviation/DeviationFilterBar.vue";
 import DayPicker from "~/components/ui/commons/selectBar/dayPicker.vue";
 import { useCustomDate } from "~/composables/useCustomDate";
 import type { TemperatureDeviationResponse } from "~/types/api";
-import { buildDeviationCsv } from "~/utils/deviationCsv";
 
 const props = withDefaults(defineProps<{ showFilters?: boolean }>(), {
     showFilters: true,
@@ -32,34 +29,13 @@ const {
     page,
     pageSize,
     deviationData,
-    exportParams,
-    pending,
     error,
     dateStart,
     dateEnd,
     ordering,
+    pending,
 } = storeToRefs(store);
 
-const { apiFetch } = useApiClient();
-
-async function exportCSV() {
-    if (!import.meta.client) return;
-    const data = await apiFetch<TemperatureDeviationResponse>(
-        "/temperature/deviation",
-        { query: exportParams.value },
-    );
-
-    downloadCSV(
-        buildDeviationCsv(data.stations),
-        useFormatFileName(
-            "tableau-ecart-normale",
-            "", // non utile pour deviation
-            "csv",
-            dateStart.value,
-            dateEnd.value,
-        ),
-    );
-}
 const { setOrdering } = store;
 
 interface TableRow {
@@ -169,16 +145,6 @@ const columns = [
             :min-date="dates.absoluteMinDataDate.value"
             :max-date="dates.yesterday.value"
         />
-        <div class="flex flex-col lg:flex-row items-end justify-between gap-4">
-            <DeviationFilterBar />
-            <UButton
-                label="Exporter CSV"
-                icon="i-lucide-download"
-                :ui="EXPORT_BTN_UI"
-                :disabled="pending"
-                @click="exportCSV"
-            />
-        </div>
 
         <div v-if="error" class="px-4 py-3 bg-error/10 text-error rounded">
             Erreur de chargement : {{ error }}
