@@ -18,12 +18,15 @@ interface SocialLink {
 const navLinks: InternalNavLink[] = [
     { label: "Le Projet", to: "/" },
     { label: "Le Dashboard", to: "/" },
-    { label: "Écart de température à la normale", to: "/ecart-normale" },
-    { label: "Indicateur Thermique National", to: "/itn" },
-    { label: "Records de température", to: "/records" },
+    {
+        label: "Écart de température à la normale",
+        to: "/temperature/ecart-normale",
+    },
+    { label: "Indicateur Thermique National", to: "/temperature/itn" },
+    { label: "Records de température", to: "/temperature/records" },
     /*  { label: "Extrêmes de température", to: "/extremes" }, */
-    { label: "Documentation", to: "/doc" },
-    { label: "FAQ", to: "/faq" },
+    { label: "Documentation", to: "/doc_et_faq/doc" },
+    { label: "FAQ", to: "/doc_et_faq/faq" },
 ];
 
 const infoclimatLinks: ExternalNavLink[] = [
