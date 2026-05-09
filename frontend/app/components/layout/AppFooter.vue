@@ -16,8 +16,7 @@ interface SocialLink {
 }
 
 const navLinks: InternalNavLink[] = [
-    { label: "Le Projet", to: "/" },
-    { label: "Le Dashboard", to: "/" },
+    { label: "Le dashboard", to: "/" },
     {
         label: "Écart de température à la normale",
         to: "/temperature/ecart-normale",
@@ -27,6 +26,8 @@ const navLinks: InternalNavLink[] = [
     /*  { label: "Extrêmes de température", to: "/extremes" }, */
     { label: "Documentation", to: "/doc_et_faq/doc" },
     { label: "FAQ", to: "/doc_et_faq/faq" },
+    { label: "Le projet", to: "/a-propos/le-projet" },
+    { label: "Qui sommes nous ?", to: "/a-propos/qui-sommes-nous" },
 ];
 
 const infoclimatLinks: ExternalNavLink[] = [
