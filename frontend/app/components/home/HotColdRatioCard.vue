@@ -61,11 +61,13 @@ const hotPercent = computed(() =>
                 class="font-semibold"
             />
             <span
+                v-if="props.variation !== 0"
                 class="text-sm font-semibold"
-                :class="props.variation <= 0 ? 'text-blue-600' : 'text-red-450'"
+                :class="props.variation < 0 ? 'text-blue-600' : 'text-red-450'"
             >
                 {{ props.variation > 0 ? "+" : "" }}{{ props.variation }} points
             </span>
+            <span v-else class="text-sm font-semibold text-blue-600"> = </span>
             vs. période précédente
         </template>
         <template #kpi-context-text>

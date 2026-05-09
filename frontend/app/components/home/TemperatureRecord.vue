@@ -46,8 +46,13 @@ const props = defineProps<Props>();
                     :name="'i-lucide-arrow-down-right'"
                     class="text-blue-600"
                 />
-                <span class="text-sm font-semibold text-blue-600">
-                    {{ props.difference }}
+                <span
+                    class="text-sm font-semibold"
+                    :class="
+                        props.type === 'hot' ? 'text-rose-600' : 'text-blue-600'
+                    "
+                >
+                    {{ props.difference !== 0 ? props.difference : "=" }}
                 </span>
                 <span class="text-sm"> vs {{ props.compareTo }} </span>
             </template>

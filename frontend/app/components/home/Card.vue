@@ -59,7 +59,7 @@ const isOpen = ref(false);
                     <slot name="kpi-context-box" />
                 </span>
             </div>
-            <div v-if="$slots['kpi-context-text']" class="mt-2">
+            <div v-if="$slots['kpi-context-text']" class="mt-3">
                 <div
                     class="kpi-context-text text-xs text-slate-600 dark:text-slate-300 leading-none w-full"
                 >
@@ -67,7 +67,9 @@ const isOpen = ref(false);
                 </div>
             </div>
             <div v-if="$slots['variation']" class="flex items-center mt-2">
-                <div class="text-xs text-blue-700 dark:text-blue-350 w-full">
+                <div
+                    class="text-xs text-blue-700 dark:text-blue-350 leading-none w-full"
+                >
                     <slot name="variation" />
                 </div>
             </div>
