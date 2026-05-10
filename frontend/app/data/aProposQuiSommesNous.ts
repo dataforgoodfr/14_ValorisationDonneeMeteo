@@ -42,6 +42,6 @@ export const dataforgoodSection: AssociationSection = {
     paragraphs: [
         "Créée en 2014, Data For Good est une association qui mobilise plus de 8000 bénévoles avec des compétences liées à l'analyse de données — data scientists, ingénieurs, designers, développeurs — pour les mettre au service de projets d'intérêt général portés par des associations, ONG ou organismes publics.",
         "Les projets Data For Good réunissent des dizaines de bénévoles autour de causes variées - santé, environnement, éducation, solidarité ... - dans le but de créer et livrer un outil, un plaidoyer ou un site web à l'association afin qu'elle puisse l'utiliser et le faire évoluer si besoin.",
-        "Data For Good croit que la technologie et les données peuvent être des leviers puissants pour le bien commun, tout en luttant contre les schémas de pensée qui l'ont engendré : DataClimat est l'un des projets nés de cette conviction.",
+        "Data For Good croit que la technologie et les données peuvent être des leviers puissants pour le bien commun, tout en luttant contre une vision hégémonique de la Tech : DataClimat est l'un des projets nés de cette conviction.",
     ],
 };
