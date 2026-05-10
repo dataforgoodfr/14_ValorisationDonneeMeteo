@@ -21,7 +21,7 @@ export const leProjetGenesis: TextSection = {
     title: "Pourquoi DataClimat ?",
     paragraphs: [
         "Les données météorologiques sont abondantes, mais leur accessibilité reste un défi. Elles sont souvent difficiles à extraire ou à comparer rapidement.",
-        "DataClimat est né d'un constat simple : Infoclimat dispose d'une richesse de données historiques exceptionnelle — des décennies de mesures sur des milliers de stations — mais cet donnée climatique restait largement inexploité par ceux qui en auraient le plus besoin : journalistes, prévisionnistes, enseignants, citoyens curieux.",
+        "DataClimat est né d'un constat simple : Infoclimat dispose d'une richesse de données historiques exceptionnelle — des décennies de mesures sur des milliers de stations — mais ces données climatiques restaient largement inexploitées par ceux qui en auraient le plus besoin : journalistes, prévisionnistes, enseignants, citoyens curieux.",
         "Data For Good a apporté les compétences techniques pour transformer cette matière première en un outil de visualisation moderne, interactif, accessible et ouvert à tous.",
     ],
 };
