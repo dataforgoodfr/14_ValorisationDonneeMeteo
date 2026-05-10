@@ -24,8 +24,8 @@ const navLinks: InternalNavLink[] = [
     { label: "Indicateur Thermique National", to: "/temperature/itn" },
     { label: "Records de température", to: "/temperature/records" },
     /*  { label: "Extrêmes de température", to: "/extremes" }, */
-    { label: "Documentation", to: "/doc_et_faq/doc" },
-    { label: "FAQ", to: "/doc_et_faq/faq" },
+    { label: "Documentation", to: "/doc-et-faq/doc" },
+    { label: "FAQ", to: "/doc-et-faq/faq" },
     { label: "Le projet", to: "/a-propos/le-projet" },
     { label: "Qui sommes nous ?", to: "/a-propos/qui-sommes-nous" },
 ];
