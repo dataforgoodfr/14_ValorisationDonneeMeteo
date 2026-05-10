@@ -59,21 +59,21 @@ normalized AS (
     FROM source
     WHERE NOT (
         station_code = CASE
-            WHEN day < DATE '2012-05-08' THEN '51449002'
+            WHEN date < DATE '2012-05-08' THEN '51449002'
             ELSE '51183001'
         END
     )
 ),
 daily_itn AS (
     SELECT
-        n.day                          AS date,
-        EXTRACT(YEAR  FROM n.day)::int AS year,
-        EXTRACT(MONTH FROM n.day)::int AS month,
-        EXTRACT(DAY   FROM n.day)::int AS day_of_month,
-        FALSE                          AS is_fictive,
-        AVG(n.tntxm)                   AS itn
+        n.date,
+        EXTRACT(YEAR  FROM n.date)::int AS year,
+        EXTRACT(MONTH FROM n.date)::int AS month,
+        EXTRACT(DAY   FROM n.date)::int AS day_of_month,
+        FALSE                           AS is_fictive,
+        AVG(n.tntxm)                    AS itn
     FROM normalized n
-    GROUP BY n.day
+    GROUP BY n.date
     HAVING COUNT(DISTINCT n.station_code) >= 29
 ),
 feb29_fictive AS (
