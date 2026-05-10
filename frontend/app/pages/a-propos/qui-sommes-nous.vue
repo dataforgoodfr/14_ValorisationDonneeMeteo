@@ -58,9 +58,7 @@ import {
                     <UButton
                         to="https://asso.infoclimat.fr/infos/formulaire.php"
                         target="_blank"
-                        :ui="{
-                            base: 'bg-orange-500 ring-1 ring-orange-350 text-white',
-                        }"
+                        variant="outline"
                         trailing-icon="i-lucide-heart"
                         size="sm"
                     >
