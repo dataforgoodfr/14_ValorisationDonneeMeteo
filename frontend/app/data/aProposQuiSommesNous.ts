@@ -30,7 +30,7 @@ export const infoclimatSection: AssociationSection = {
         after: " est aujourd'hui l'un des plus grands réseaux météorologiques amateurs de France. L'association fédère plusieurs milliers de stations météo bénévoles réparties sur l'ensemble du territoire, des plaines aux sommets alpins, en passant par les territoires ultramarins.",
     },
     paragraphs: [
-        "Grâce à cet engagement bénévole, Infoclimat collecte, contrôle et diffuse en open data des observations météorologiques continues, constituant une base de données d'une richesse exceptionnelle. Ces données, accumulées sur plusieurs décennies, forment le socle factuel sur lequel s'appuie DataClimat.",
+        "Grâce à cet engagement bénévole, Infoclimat collecte, contrôle et diffuse en open data des observations météorologiques continues, constituant une base de données d'une richesse exceptionnelle.",
         "Au-delà du réseau de mesure, l'association porte des valeurs fortes : partage de la connaissance, accessibilité des données scientifiques et indépendance vis-à-vis des intérêts commerciaux. Rejoindre l'association, c'est contribuer à la pérennité de cette mission d'intérêt général.",
     ],
 };
@@ -40,8 +40,8 @@ export const dataforgoodSection: AssociationSection = {
     logoAlt: "Data For Good",
     title: "Data For Good",
     paragraphs: [
-        "Créée en 2014, Data For Good est une association qui mobilise des bénévoles aux compétences numériques — data scientists, ingénieurs logiciel, designers, développeurs — pour les mettre au service de projets d'intérêt général portés par des associations, ONG ou organismes publics.",
-        "L'association fonctionne par « saisons » : des sprints de quelques mois durant lesquels des équipes bénévoles s'investissent sur des projets concrets, de la phase de cadrage jusqu'à la livraison d'un outil ou d'une analyse. Chaque saison réunit des dizaines de volontaires autour de causes variées : santé, environnement, éducation, solidarité...",
-        "Data For Good croit que la technologie et les données peuvent être des leviers puissants pour le bien commun, à condition d'être pilotées par des valeurs et non par la seule logique de profit. DataClimat est l'un des projets nés de cette conviction.",
+        "Créée en 2014, Data For Good est une association qui mobilise plus de 8000 bénévoles avec des compétences liées à l'analyse de données — data scientists, ingénieurs, designers, développeurs — pour les mettre au service de projets d'intérêt général portés par des associations, ONG ou organismes publics.",
+        "Les projets Data For Good réunissent des dizaines de bénévoles autour de causes variées - santé, environnement, éducation, solidarité ... - dans le but de créer et livrer un outil, un plaidoyer ou un site web à l'association afin qu'elle puisse l'utiliser et le faire évoluer si besoin.",
+        "Data For Good croit que la technologie et les données peuvent être des leviers puissants pour le bien commun, tout en luttant contre les schémas de pensée qui l'ont engendré : DataClimat est l'un des projets nés de cette conviction.",
     ],
 };
