@@ -52,8 +52,6 @@ class InMemoryKpiDependency(
             baseline_mean=10.0,
             baseline_std_dev_upper=12.0,
             baseline_std_dev_lower=8.0,
-            baseline_max=15.0,
-            baseline_min=5.0,
         )
 
 
@@ -334,8 +332,6 @@ def test_kpi_itn_mean_is_null_when_no_observed_data(client: APIClient):
                 baseline_mean=10.0,
                 baseline_std_dev_upper=12.0,
                 baseline_std_dev_lower=8.0,
-                baseline_max=15.0,
-                baseline_min=5.0,
             )
 
     dep = EmptyObservedDependency()

@@ -150,8 +150,6 @@ class NationalIndicatorTimePointSerializer(serializers.Serializer):
     baseline_mean = serializers.FloatField()
     baseline_std_dev_upper = serializers.FloatField()
     baseline_std_dev_lower = serializers.FloatField()
-    baseline_max = serializers.FloatField()
-    baseline_min = serializers.FloatField()
     is_hot_peak = serializers.BooleanField()
     is_cold_peak = serializers.BooleanField()
     absolute_min = serializers.FloatField()

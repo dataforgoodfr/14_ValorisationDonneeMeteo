@@ -33,8 +33,6 @@ def _baseline(mean: float, std_dev: float) -> BaselinePoint:
         baseline_mean=mean,
         baseline_std_dev_upper=mean + std_dev,
         baseline_std_dev_lower=mean - std_dev,
-        baseline_max=0.0,
-        baseline_min=0.0,
     )
 
 

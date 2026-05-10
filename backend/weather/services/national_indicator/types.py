@@ -15,8 +15,6 @@ class BaselinePoint:
     baseline_mean: float
     baseline_std_dev_upper: float
     baseline_std_dev_lower: float
-    baseline_max: float
-    baseline_min: float
 
 
 @dataclass(frozen=True)
@@ -32,8 +30,6 @@ class OutputPoint:
     baseline_mean: float
     baseline_std_dev_upper: float
     baseline_std_dev_lower: float
-    baseline_max: float
-    baseline_min: float
     is_hot_peak: bool
     is_cold_peak: bool
     absolute_min: float

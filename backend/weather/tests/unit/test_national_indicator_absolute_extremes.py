@@ -51,8 +51,6 @@ class _FixedBaselineSource(NationalIndicatorBaselineDataSource):
             baseline_mean=10.0,
             baseline_std_dev_upper=12.0,
             baseline_std_dev_lower=8.0,
-            baseline_max=0.0,
-            baseline_min=0.0,
         )
 
     def fetch_monthly_baseline(self, month: int) -> BaselinePoint:
