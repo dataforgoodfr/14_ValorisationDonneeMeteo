@@ -12,10 +12,10 @@ import { useMapColors } from "~/constants/colors";
 import { FONT_CHARTS } from "~/constants/fonts";
 import { itnChartTooltipFormatter } from "./tooltipFormatters/itnChartTooltipFormatter";
 import {
-    formatContinuousAxisLabel,
     formatStackedAxisLabel,
     itnStackedTooltipFormatter,
 } from "./tooltipFormatters/itnStackedTooltipFormatter";
+import { xAxisTimeFormatter } from "~/utils/chartAxisFormatter";
 import {
     DataZoomComponent,
     GraphicComponent,
@@ -339,9 +339,7 @@ const option = computed<ECOption>(() => {
             type: "time",
             axisLabel: {
                 fontSize: FONT_CHARTS.axis,
-                ...(props.adapter.granularity.value === "day"
-                    ? { formatter: formatContinuousAxisLabel }
-                    : {}),
+                formatter: xAxisTimeFormatter(props.adapter.granularity.value),
             },
         },
         yAxis: {

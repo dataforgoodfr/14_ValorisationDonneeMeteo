@@ -22,6 +22,7 @@ import {
 } from "~/utils/recordsChartUtils";
 import { useMapColors } from "~/constants/colors";
 import { FONT_CHARTS, GRAPH_RECORDS_POSITION } from "~/constants/fonts";
+import { xAxisTimeFormatter } from "~/utils/chartAxisFormatter";
 
 echarts.registerLocale("FR", langFR);
 echarts.use([
@@ -133,17 +134,9 @@ const option = computed<ECOption>(() => {
             },
             axisPointer: { type: "line", label: { show: false } },
             boundaryGap: ["3%", "3%"],
-            ...{
-                year: {
-                    axisLabel: { formatter: "{yyyy}" },
-                },
-                month: {
-                    axisLabel: { formatter: "{MMM}-{yyyy}" },
-                },
-                day: {
-                    axisLabel: { formatter: "{dd}-{MMM}-{yyyy}" },
-                },
-            }[props.adapter.granularity.value],
+            axisLabel: {
+                formatter: xAxisTimeFormatter(props.adapter.granularity.value),
+            },
         })),
         yAxis: plots.map((plot, index) => ({
             type: "value",
