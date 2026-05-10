@@ -178,6 +178,16 @@ def setup_db_schema_and_views(django_db_setup, django_db_blocker):
             cur.execute(baseline_station_table_sql)
             cur.execute(itn_baseline_tables_sql)
             cur.execute(itn_absolute_extremes_tables_sql)
+            cur.execute("""
+                DROP TABLE IF EXISTS public.mv_itn_daily_all_years_with_feb29;
+                CREATE TABLE public.mv_itn_daily_all_years_with_feb29 (
+                    year         integer          NOT NULL,
+                    month        integer          NOT NULL,
+                    day_of_month integer          NOT NULL,
+                    is_fictive   boolean          NOT NULL DEFAULT FALSE,
+                    itn          double precision NOT NULL
+                );
+            """)
             cur.execute(
                 "CREATE TABLE public.mv_records_battus_meta (cutoff_date DATE NOT NULL);"
             )
