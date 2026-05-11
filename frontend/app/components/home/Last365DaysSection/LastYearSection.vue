@@ -16,7 +16,7 @@ const { yesterday, yesterdayLess365Days } = useCustomDate();
             INDICATEUR THERMIQUE NATIONAL
         </h2>
         <Itn365Cards />
-        <GoToDataLink :data-url="'/itn'" />
+        <GoToDataLink :data-url="'/temperature/itn'" />
 
         <div class="border-b to-dark-200" />
         <h2 class="text-blue-700 dark:text-primary pb-2 pt-1">
@@ -32,6 +32,6 @@ const { yesterday, yesterdayLess365Days } = useCustomDate();
                 <ExtremeCard hot-cold="cold" :disabled="true" />
             </div> -->
         </div>
-        <GoToDataLink :data-url="'/records?preset=365d#table'" />
+        <GoToDataLink :data-url="'/temperature/records?preset=365d#table'" />
     </Section>
 </template>
