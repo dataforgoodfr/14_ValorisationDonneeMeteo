@@ -20,13 +20,13 @@ const props = defineProps<Props>();
                 <span
                     class="text-4xl font-semibold"
                     :class="
-                        props.type === 'hot' ? 'text-rose-600' : 'text-blue-600'
+                        props.type === 'hot' ? 'text-red-450' : 'text-blue-600'
                     "
                     >{{ props.records }}</span
                 >
                 <span
                     :class="
-                        props.type === 'hot' ? 'text-rose-600' : 'text-blue-600'
+                        props.type === 'hot' ? 'text-red-450' : 'text-blue-600'
                     "
                 >
                     records</span
@@ -49,7 +49,7 @@ const props = defineProps<Props>();
                 <span
                     class="text-sm font-semibold"
                     :class="
-                        props.type === 'hot' ? 'text-rose-600' : 'text-blue-600'
+                        props.type === 'hot' ? 'text-red-450' : 'text-blue-600'
                     "
                 >
                     {{ props.difference !== 0 ? props.difference : "=" }}
