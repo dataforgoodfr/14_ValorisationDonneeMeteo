@@ -21,14 +21,14 @@ const tagData = computed(() => {
         return {
             icon: "i-lucide-sun",
             text: "CHAUD",
-            class: "text-rose-600 bg-error-200",
+            class: "text-red-450 bg-error-200",
             placeholderClass: "text-error-200 bg-error-200",
         };
     }
     return {
         icon: "i-lucide-snowflake",
         text: "FROID",
-        class: "text-blue-700 bg-secondary-200",
+        class: "text-blue-600 bg-secondary-200",
         placeholderClass: "text-secondary-200-200 bg-secondary-200",
     };
 });

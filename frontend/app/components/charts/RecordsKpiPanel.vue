@@ -5,7 +5,7 @@
             :tooltip-text="`Nombre de records de chaleur ${kindLabel.toLowerCase()} en France entre le ${formattedStart} et le ${formattedEnd}.`"
         >
             <template #kpi>
-                <p class="font-semibold text-4xl mb-1 text-rose-600">
+                <p class="font-semibold text-4xl mb-1 text-red-450">
                     {{ hotCount }}
                 </p>
             </template>
@@ -19,7 +19,7 @@
             :tooltip-text="`Nombre de records de froid ${kindLabel.toLowerCase()} en France entre le ${formattedStart} et le ${formattedEnd}.`"
         >
             <template #kpi>
-                <p class="font-semibold text-4xl mb-1 text-blue-700">
+                <p class="font-semibold text-4xl mb-1 text-blue-600">
                     {{ coldCount }}
                 </p>
             </template>
