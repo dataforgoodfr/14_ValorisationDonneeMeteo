@@ -107,7 +107,7 @@ const granularityValues = computed(() => [
         />
 
         <!-- Paramètre d'analyse + Export -->
-        <div class="flex flex-1 gap-6 items-center">
+        <div class="flex flex-1 gap-6 items-center flex-wrap">
             <template
                 v-if="
                     (adapter.features.hasSliceType &&
@@ -183,7 +183,7 @@ const granularityValues = computed(() => [
                     </div>
                 </div>
             </template>
-            <ExportMenu v-if="adapter.features.hasExport" class="ml-auto" />
+            <ExportMenu v-if="adapter.features.hasExport" class="md:ml-auto" />
         </div>
     </div>
 </template>
