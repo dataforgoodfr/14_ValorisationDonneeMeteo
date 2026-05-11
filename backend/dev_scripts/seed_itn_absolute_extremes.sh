@@ -42,7 +42,7 @@ SQL
 # Reproduit mv_itn_daily_all_years (006) puis mv_itn_daily_all_years_with_feb29 (007).
 ITN_DAILY_CTE="
 WITH source AS (
-    SELECT q.station_code, q.date AS day, q.tntxm
+    SELECT q.station_code, q.date, q.tntxm
     FROM v_quotidienne_itn q
     WHERE q.station_code IN (
         '47091001','20148001','25056001','33281001','73054001',
