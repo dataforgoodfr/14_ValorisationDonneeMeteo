@@ -1448,8 +1448,8 @@ components:
               - baseline_std_dev_lower
               - is_hot_peak
               - is_cold_peak
-              - absolute_min
-              - absolute_max
+              - baseline_min
+              - baseline_max
             properties:
               date:
                 type: string
@@ -1481,14 +1481,14 @@ components:
               is_cold_peak:
                 type: boolean
                 description: "Vrai si la température est inférieure à baseline_std_dev_lower"
-              absolute_min:
+              baseline_min:
                 type: number
                 format: float
-                description: "Minimum absolu historique de l'ITN pour ce point calendaire (toutes années disponibles, donc depuis 1946 par construction)"
-              absolute_max:
+                description: "Minimum absolu historique de l'ITN pour ce point calendaire depuis 1946. PAS SUR LA BASELINE (nom du champ à remplacer par absolute_min dans le futur)"
+              baseline_max:
                 type: number
                 format: float
-                description: "Maximum absolu historique de l'ITN pour ce point calendaire (toutes années disponibles, donc depuis 1946 par construction)"
+                description: "Maximum absolu historique de l'ITN pour ce point calendaire depuis 1946. PAS SUR LA BASELINE (nom du champ à remplacer par absolute_max dans le futur)"
 
     KpiPeriodStats:
       type: object
