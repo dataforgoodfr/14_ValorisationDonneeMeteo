@@ -79,3 +79,28 @@ def test_daily_absolute_extremes_include_synthetic_feb29():
     assert (2, 29) in result
     assert result[(2, 29)].absolute_min == pytest.approx(5.0)
     assert result[(2, 29)].absolute_max == pytest.approx(5.0)
+
+
+def test_absolute_extremes_ignore_data_before_1946():
+    """
+    Les données antérieures à 1946 ne doivent pas être prises en compte.
+    Scénario :
+      - 1900 jan 1 : itn =  0.0  ← avant le seuil, ne doit pas compter
+      - 2000 jan 1 : itn = 14.0  ← après le seuil, compte
+    absolute_min et absolute_max doivent être déterminés par 2000 uniquement (14.0).
+    """
+    insert_itn_daily_with_feb29(1900, 1, 1, itn=0.0)
+    insert_itn_daily_with_feb29(2000, 1, 1, itn=14.0)
+    refresh_absolute_extremes_mvs()
+
+    daily = ds.fetch_daily_absolute_extremes({(1, 1)})
+    assert daily[(1, 1)].absolute_min == pytest.approx(14.0)
+    assert daily[(1, 1)].absolute_max == pytest.approx(14.0)
+
+    monthly = ds.fetch_monthly_absolute_extremes({1})
+    assert monthly[1].absolute_min == pytest.approx(14.0)
+    assert monthly[1].absolute_max == pytest.approx(14.0)
+
+    yearly = ds.fetch_yearly_absolute_extremes()
+    assert yearly.absolute_min == pytest.approx(14.0)
+    assert yearly.absolute_max == pytest.approx(14.0)
