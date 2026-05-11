@@ -20,7 +20,7 @@ import LastYearSection from "~/components/home/Last365DaysSection/LastYearSectio
                 class="lg:grid lg:grid-cols-[1fr_2fr] gap-4 md:flex md:flex-col"
             >
                 <TodaySection />
-                <ImportantInformationSection />
+                <ImportantInformationSection class="min-w-0" />
             </div>
             <div class="lg:grid lg:grid-cols-2 gap-4 md:flex md:flex-col">
                 <LastMonthSection />
