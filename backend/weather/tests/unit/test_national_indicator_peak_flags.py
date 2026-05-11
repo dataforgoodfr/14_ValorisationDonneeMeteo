@@ -40,6 +40,8 @@ class FixedBaselineDataSource(
             baseline_mean=_BASELINE_MEAN,
             baseline_std_dev_upper=_UPPER,
             baseline_std_dev_lower=_LOWER,
+            baseline_max=0.0,
+            baseline_min=0.0,
         )
 
     def fetch_monthly_baseline(self, month: int) -> BaselinePoint:

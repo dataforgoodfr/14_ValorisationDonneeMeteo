@@ -42,6 +42,8 @@ class FakeNationalIndicatorDataSource(
             baseline_mean=mean,
             baseline_std_dev_upper=mean + 1.0,
             baseline_std_dev_lower=mean - 1.0,
+            baseline_max=0.0,
+            baseline_min=0.0,
         )
 
     def fetch_monthly_baseline(self, month: int) -> BaselinePoint:
@@ -50,6 +52,8 @@ class FakeNationalIndicatorDataSource(
             baseline_mean=mean,
             baseline_std_dev_upper=mean + 1.0,
             baseline_std_dev_lower=mean - 1.0,
+            baseline_max=0.0,
+            baseline_min=0.0,
         )
 
     def fetch_yearly_baseline(self) -> BaselinePoint:
@@ -58,6 +62,8 @@ class FakeNationalIndicatorDataSource(
             baseline_mean=mean,
             baseline_std_dev_upper=mean + 1.0,
             baseline_std_dev_lower=mean - 1.0,
+            baseline_max=0.0,
+            baseline_min=0.0,
         )
 
 

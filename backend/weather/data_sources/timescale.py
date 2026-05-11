@@ -247,6 +247,8 @@ class TimescaleNationalIndicatorBaselineDataSource(NationalIndicatorBaselineData
             baseline_mean=float(mean),
             baseline_std_dev_upper=float(mean + std),
             baseline_std_dev_lower=float(mean - std),
+            baseline_max=0.0,  # TODO MV future
+            baseline_min=0.0,  # TODO MV future
         )
 
 

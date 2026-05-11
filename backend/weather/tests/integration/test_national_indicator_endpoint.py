@@ -57,6 +57,8 @@ def test_get_national_indicator_month_happy_path(client: APIClient):
                 baseline_mean=mean,
                 baseline_std_dev_upper=mean + 1.0,
                 baseline_std_dev_lower=mean - 1.0,
+                baseline_max=0.0,
+                baseline_min=0.0,
             )
 
         def fetch_monthly_baseline(self, month: int) -> BaselinePoint:
@@ -65,6 +67,8 @@ def test_get_national_indicator_month_happy_path(client: APIClient):
                 baseline_mean=mean,
                 baseline_std_dev_upper=mean + 1.0,
                 baseline_std_dev_lower=mean - 1.0,
+                baseline_max=0.0,
+                baseline_min=0.0,
             )
 
         def fetch_yearly_baseline(self) -> BaselinePoint:
@@ -73,6 +77,8 @@ def test_get_national_indicator_month_happy_path(client: APIClient):
                 baseline_mean=mean,
                 baseline_std_dev_upper=mean + 1.0,
                 baseline_std_dev_lower=mean - 1.0,
+                baseline_max=0.0,
+                baseline_min=0.0,
             )
 
     ITNDependencyProvider.set_builder(
@@ -137,6 +143,8 @@ def test_get_national_indicator_peak_flags_in_response(client: APIClient):
                 baseline_mean=_mean,
                 baseline_std_dev_upper=_upper,
                 baseline_std_dev_lower=_lower,
+                baseline_max=0.0,
+                baseline_min=0.0,
             )
 
         def fetch_monthly_baseline(self, month: int) -> BaselinePoint:
@@ -241,6 +249,8 @@ def test_get_national_indicator_response_contains_absolute_extremes(client: APIC
                 baseline_mean=10.0,
                 baseline_std_dev_upper=12.0,
                 baseline_std_dev_lower=8.0,
+                baseline_max=0.0,
+                baseline_min=0.0,
             )
 
         def fetch_monthly_baseline(self, month: int) -> BaselinePoint:

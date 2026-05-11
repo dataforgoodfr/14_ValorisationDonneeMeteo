@@ -1446,6 +1446,8 @@ components:
               - baseline_mean
               - baseline_std_dev_upper
               - baseline_std_dev_lower
+              - baseline_max
+              - baseline_min
               - is_hot_peak
               - is_cold_peak
               - absolute_min
@@ -1475,6 +1477,14 @@ components:
                 type: number
                 format: float
                 description: "Écart-type inférieur (moyenne - 1 écart-type)"
+              baseline_max:
+                type: number
+                format: float
+                description: "Température maximale observée sur la période 1991-2020"
+              baseline_min:
+                type: number
+                format: float
+                description: "Température minimale observée sur la période 1991-2020"
               is_hot_peak:
                 type: boolean
                 description: "Vrai si la température dépasse baseline_std_dev_upper"
