@@ -290,7 +290,7 @@ def test_get_national_indicator_response_contains_absolute_extremes(client: APIC
     assert len(ts) == 3
 
     for point in ts:
-        assert "absolute_min" in point
-        assert "absolute_max" in point
-        assert point["absolute_min"] == -5.0
-        assert point["absolute_max"] == 30.0
+        assert "baseline_min" in point
+        assert "baseline_max" in point
+        assert point["baseline_min"] == -5.0
+        assert point["baseline_max"] == 30.0

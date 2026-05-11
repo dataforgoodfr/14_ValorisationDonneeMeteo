@@ -139,8 +139,8 @@ def test_daily_absolute_extremes_present_in_output():
     ts = _run(observed, extremes, date_start=day, date_end=day, granularity="day")
 
     assert len(ts) == 1
-    assert "absolute_min" in ts[0]
-    assert "absolute_max" in ts[0]
+    assert "baseline_min" in ts[0]
+    assert "baseline_max" in ts[0]
 
 
 def test_daily_absolute_extremes_uses_daily_method():
@@ -163,8 +163,8 @@ def test_daily_absolute_extremes_correct_key_lookup():
     ts = _run(observed, extremes, date_start=day, date_end=day, granularity="day")
 
     # _RecordingAbsoluteExtremesSource: absolute_min = -(3*100+15) = -315, absolute_max = 315
-    assert ts[0]["absolute_min"] == -315.0
-    assert ts[0]["absolute_max"] == 315.0
+    assert ts[0]["baseline_min"] == -315.0
+    assert ts[0]["baseline_max"] == 315.0
 
 
 def test_daily_absolute_extremes_different_days_get_different_values():
@@ -177,10 +177,10 @@ def test_daily_absolute_extremes_different_days_get_different_values():
 
     assert len(ts) == 2
     pts = {p["date"]: p for p in ts}
-    assert pts[day1.isoformat()]["absolute_min"] == -105.0
-    assert pts[day1.isoformat()]["absolute_max"] == 105.0
-    assert pts[day2.isoformat()]["absolute_min"] == -210.0
-    assert pts[day2.isoformat()]["absolute_max"] == 210.0
+    assert pts[day1.isoformat()]["baseline_min"] == -105.0
+    assert pts[day1.isoformat()]["baseline_max"] == 105.0
+    assert pts[day2.isoformat()]["baseline_min"] == -210.0
+    assert pts[day2.isoformat()]["baseline_max"] == 210.0
 
 
 def test_daily_fetch_is_batched_single_call():
@@ -240,8 +240,8 @@ def test_monthly_absolute_extremes_correct_key_lookup():
     )
 
     assert len(ts) == 1
-    assert ts[0]["absolute_min"] == -10.0
-    assert ts[0]["absolute_max"] == 10.0
+    assert ts[0]["baseline_min"] == -10.0
+    assert ts[0]["baseline_max"] == 10.0
 
 
 def test_monthly_absolute_extremes_two_months_get_different_values():
@@ -263,10 +263,10 @@ def test_monthly_absolute_extremes_two_months_get_different_values():
     assert len(ts) == 2
     pts = {p["date"]: p for p in ts}
     # Mois 1 => -10/10, Mois 2 => -20/20
-    assert pts["2025-01-01"]["absolute_min"] == -10.0
-    assert pts["2025-01-01"]["absolute_max"] == 10.0
-    assert pts["2025-02-01"]["absolute_min"] == -20.0
-    assert pts["2025-02-01"]["absolute_max"] == 20.0
+    assert pts["2025-01-01"]["baseline_min"] == -10.0
+    assert pts["2025-01-01"]["baseline_max"] == 10.0
+    assert pts["2025-02-01"]["baseline_min"] == -20.0
+    assert pts["2025-02-01"]["baseline_max"] == 20.0
 
 
 # ---------------------------------------------------------------------------
@@ -308,7 +308,7 @@ def test_yearly_absolute_extremes_same_value_all_output_points():
 
     assert len(ts) == 2
     # Les deux années doivent avoir les mêmes valeurs absolues (fetch_yearly_absolute_extremes)
-    assert ts[0]["absolute_min"] == ts[1]["absolute_min"] == -999.0
-    assert ts[0]["absolute_max"] == ts[1]["absolute_max"] == 999.0
+    assert ts[0]["baseline_min"] == ts[1]["baseline_min"] == -999.0
+    assert ts[0]["baseline_max"] == ts[1]["baseline_max"] == 999.0
     # Un seul appel, pas un par année
     assert extremes.yearly_calls == 1

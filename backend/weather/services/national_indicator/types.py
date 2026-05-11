@@ -32,8 +32,8 @@ class OutputPoint:
     baseline_std_dev_lower: float
     is_hot_peak: bool
     is_cold_peak: bool
-    absolute_min: float
-    absolute_max: float
+    baseline_min: float
+    baseline_max: float
 
 
 @dataclass(frozen=True)

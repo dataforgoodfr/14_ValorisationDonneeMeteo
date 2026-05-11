@@ -16,8 +16,8 @@ def _valid_base() -> dict:
         "baseline_std_dev_lower": 10.0,
         "is_hot_peak": True,
         "is_cold_peak": False,
-        "absolute_min": -10.0,
-        "absolute_max": 40.0,
+        "baseline_min": -10.0,
+        "baseline_max": 40.0,
     }
 
 
