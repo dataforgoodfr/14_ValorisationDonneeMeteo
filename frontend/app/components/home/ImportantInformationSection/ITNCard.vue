@@ -11,7 +11,10 @@ const yesterdayParams = computed<NationalIndicatorParams>(() => ({
     slice_type: "full",
 }));
 
-const { data: yesterdayData } = useNationalIndicator(yesterdayParams, true);
+const { data: yesterdayData, pending } = useNationalIndicator(
+    yesterdayParams,
+    true,
+);
 
 const yesterdayTemperature = computed(() => {
     return yesterdayData.value?.time_series[0]?.temperature;
@@ -46,6 +49,7 @@ const temperatureChangeYearOverYear = computed<number | undefined>(() => {
 </script>
 <template>
     <Card
+        :loading="pending"
         :title="`ITN Hier -  ${yesterday?.toLocaleDateString('fr-FR', { dateStyle: 'long' })}`"
         :tooltip-text="'L\'Indicateur Thermique National correspond à la température moyenne mesurée en France Métropolitaine à partir de 30 stations définies par Météo-France.'"
     >
@@ -62,10 +66,13 @@ const temperatureChangeYearOverYear = computed<number | undefined>(() => {
                 {{ yesterdayTemperature?.toFixed(1) }} °C
             </p>
         </template>
-        <template v-if="gap" #kpi-context-box>
-            {{ gap?.toFixed(1) === "0.0" ? "= " : gap > 0 ? "+" : ""
-            }}{{ gap?.toFixed(1) === "0.0" ? "" : gap?.toFixed(1) + "°C " }}vs
-            normales 1991-2020
+        <template #kpi-context-box>
+            <template v-if="gap">
+                {{ gap?.toFixed(1) === "0.0" ? "= " : gap > 0 ? "+" : ""
+                }}{{
+                    gap?.toFixed(1) === "0.0" ? "" : gap?.toFixed(1) + "°C "
+                }}vs normales 1991-2020
+            </template>
         </template>
         <template #variation>
             <UIcon

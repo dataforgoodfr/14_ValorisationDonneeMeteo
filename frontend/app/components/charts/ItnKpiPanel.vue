@@ -3,15 +3,11 @@
         <Card
             title="ITN moyen"
             :tooltip-text="`Moyenne de l'Indicateur Thermique National du ${formattedStart} au ${formattedEnd}.`"
+            :loading="pending"
         >
             <template #kpi>
                 <p class="font-semibold text-4xl mb-1 text-red-400">
-                    <UIcon
-                        v-if="pending"
-                        name="i-lucide-loader-circle"
-                        class="animate-spin text-5xl text-muted"
-                    />
-                    <span v-else-if="kpi != null"
+                    <span v-if="kpi != null"
                         >{{ kpi.itn_mean?.toFixed(1) }} °C</span
                     >
 
@@ -19,9 +15,7 @@
                 </p>
             </template>
             <template #variation>
-                <USkeleton v-if="pending" class="h-2 w-full" />
-
-                <template v-else-if="kpi?.deviation_from_normal != null">
+                <template v-if="kpi?.deviation_from_normal != null">
                     <span class="text-sm">
                         {{ kpi.deviation_from_normal >= 0 ? "+" : ""
                         }}{{ kpi.deviation_from_normal.toFixed(1) }} °C

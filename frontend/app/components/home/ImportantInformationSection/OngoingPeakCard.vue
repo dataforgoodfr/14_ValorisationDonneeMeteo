@@ -21,7 +21,7 @@ const params = computed<NationalIndicatorParams>(() => ({
     granularity: "day",
 }));
 
-const { data } = useNationalIndicator(params);
+const { data, pending } = useNationalIndicator(params);
 
 const series = computed(() => data.value?.time_series ?? []);
 
@@ -68,6 +68,7 @@ const kpiColor = computed(() => {
 
 <template>
     <Card
+        :loading="pending"
         title="Excès de température en cours"
         tooltip-text="Nombre de jours consécutifs excessivement chauds ou froids depuis hier (température au-delà de l'écart-type des normales)"
     >

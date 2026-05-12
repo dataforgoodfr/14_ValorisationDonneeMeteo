@@ -5,6 +5,7 @@ interface Props {
     withBorder?: boolean;
     showTitle?: boolean;
     transparent?: boolean;
+    loading?: boolean;
 }
 
 const props = withDefaults(defineProps<Props>(), {
@@ -48,29 +49,43 @@ const isOpen = ref(false);
                 </UPopover>
             </div>
 
-            <slot name="kpi" />
-            <div
-                v-if="$slots['kpi-context-box']"
-                class="kpi-context-box w-fit py-1 px-2 rounded-lg leading-none bg-amber-500 dark:bg-amber-700 border-amber-800 dark:border-amber-500 border"
-            >
-                <span
-                    class="text-xs font-medium text-amber-800 dark:text-amber-500"
+            <template v-if="$slots.kpi">
+                <UIcon
+                    v-if="props.loading"
+                    name="i-lucide-loader-circle"
+                    class="animate-spin text-5xl text-muted"
+                />
+                <slot v-else name="kpi" />
+            </template>
+
+            <template v-if="$slots['kpi-context-box']">
+                <USkeleton v-if="props.loading" class="h-5 w-full" />
+                <div
+                    v-else
+                    class="kpi-context-box w-fit py-1 px-2 rounded-lg leading-none bg-amber-500 dark:bg-amber-700 border-amber-800 dark:border-amber-500 border"
                 >
-                    <slot name="kpi-context-box" />
-                </span>
-            </div>
+                    <span
+                        class="text-xs font-medium text-amber-800 dark:text-amber-500"
+                    >
+                        <slot name="kpi-context-box" />
+                    </span>
+                </div>
+            </template>
+
             <div v-if="$slots['kpi-context-text']" class="mt-3">
                 <div
                     class="kpi-context-text text-xs text-slate-600 dark:text-slate-300 leading-none w-full"
                 >
-                    <slot name="kpi-context-text" />
+                    <USkeleton v-if="props.loading" class="h-2 w-full" />
+                    <slot v-else name="kpi-context-text" />
                 </div>
             </div>
             <div v-if="$slots['variation']" class="flex items-center mt-2">
                 <div
                     class="text-xs text-blue-700 dark:text-blue-350 leading-none w-full"
                 >
-                    <slot name="variation" />
+                    <USkeleton v-if="props.loading" class="h-2 w-full" />
+                    <slot v-else name="variation" />
                 </div>
             </div>
         </template>

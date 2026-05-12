@@ -15,7 +15,7 @@ const params = computed<NationalIndicatorParams>(() => ({
     day_of_month: yesterday.value.getDate(),
 }));
 
-const { data } = useNationalIndicator(params);
+const { data, pending } = useNationalIndicator(params);
 
 const series = computed(() => data.value?.time_series ?? []);
 
@@ -57,6 +57,7 @@ const yesterdayLabel = computed(() =>
 
 <template>
     <Card
+        :loading="pending"
         :title="`Rang Hier -  ${yesterday?.toLocaleDateString('fr-FR', { dateStyle: 'long' })}`"
         :tooltip-text="'Rang de la valeur ITN d\'hier parmi tous les mêmes jours enregistrés depuis 1947'"
     >

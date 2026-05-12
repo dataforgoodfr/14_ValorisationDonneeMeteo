@@ -4,14 +4,14 @@ import type { NationalIndicatorParams } from "~/types/api";
 
 const { yesterday, yesterdayLess365Days } = useCustomDate();
 
-const { data: kpi } = useNationalIndicatorKpi(
+const { data: kpi, pending: kpiPending } = useNationalIndicatorKpi(
     computed(() => ({
         date_start: dateToStringYMD(yesterdayLess365Days.value),
         date_end: dateToStringYMD(yesterday.value),
     })),
 );
 
-const { data: itnData } = useNationalIndicator(
+const { data: itnData, pending: itnPending } = useNationalIndicator(
     computed<NationalIndicatorParams>(() => ({
         date_start: dateToStringYMD(yesterdayLess365Days.value),
         date_end: dateToStringYMD(yesterday.value),
@@ -57,7 +57,13 @@ const coldDiff = computed(() => {
     <div class="flex items-center flex-col gap-4">
         <div class="flex gap-2 items-start flex-col md:flex-row md:gap-40">
             <div class="w-fit">
-                <Card title="" tooltip-text="" :show-title="false" transparent>
+                <Card
+                    :loading="itnPending"
+                    title=""
+                    tooltip-text=""
+                    :show-title="false"
+                    transparent
+                >
                     <template #kpi>
                         <p
                             class="font-semibold text-4xl mb-1"
@@ -131,6 +137,7 @@ const coldDiff = computed(() => {
         <div class="flex gap-6 flex-col md:flex-row">
             <div class="w-fit">
                 <Card
+                    :loading="kpiPending"
                     title="Nombre de jours excessivement chauds"
                     tooltip-text="Nombre de jours parmi ces 365 derniers jours, pour lesquels l'ITN est au-delà de l'écart-type de la période des normales 1991-2020"
                 >
@@ -173,6 +180,7 @@ const coldDiff = computed(() => {
 
             <div class="w-fit">
                 <Card
+                    :loading="kpiPending"
                     title="Nombre de jours excessivement froids"
                     tooltip-text="Nombre de jours parmi ces 365 derniers jours, pour lesquels l'ITN est en-deçà de l'écart-type de la période des normales 1991-2020"
                 >
