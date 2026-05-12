@@ -84,8 +84,10 @@ def test_daily_absolute_extremes_include_synthetic_feb29():
 def test_absolute_extremes_ignore_data_before_1946():
     """
     Les données antérieures à 1946 ne doivent pas être prises en compte.
+    Le filtrage est effectué en amont dans mv_itn_daily_all_years (006) via
+    AND q.date >= DATE '1946-01-01', reproduit ici dans insert_itn_daily_with_feb29.
     Scénario :
-      - 1900 jan 1 : itn =  0.0  ← avant le seuil, ne doit pas compter
+      - 1900 jan 1 : itn =  0.0  ← filtré en amont, ne doit pas compter
       - 2000 jan 1 : itn = 14.0  ← après le seuil, compte
     absolute_min et absolute_max doivent être déterminés par 2000 uniquement (14.0).
     """

@@ -1,6 +1,7 @@
--- Vue matérialisée : ITN journalier sur toutes les années disponibles.
+-- Vue matérialisée : ITN journalier sur toutes les années disponibles (>= 1946).
 -- Équivalent de 001_mv_itn_daily_1991_2020_real.sql sans la restriction de période.
 -- Accepte les jours avec au moins 29 stations sur 30 (HAVING COUNT >= 29).
+-- Le filtre date >= 1946-01-01 est appliqué ici sur la colonne indexée de v_quotidienne_itn.
 DROP MATERIALIZED VIEW IF EXISTS mv_itn_daily_all_years;
 
 CREATE MATERIALIZED VIEW mv_itn_daily_all_years AS
@@ -19,6 +20,7 @@ WITH source AS (
         '86027001','35281001','67124001','31069001',
         '51183001','51449002'
     )
+    AND q.date >= DATE '1946-01-01'
 ),
 normalized AS (
     SELECT *

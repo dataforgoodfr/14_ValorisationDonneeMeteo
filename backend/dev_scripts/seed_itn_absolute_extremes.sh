@@ -53,6 +53,7 @@ WITH source AS (
         '86027001','35281001','67124001','31069001',
         '51183001','51449002'
     )
+    AND q.date >= DATE '1946-01-01'
 ),
 normalized AS (
     SELECT *
@@ -117,7 +118,6 @@ INSERT INTO public.mv_itn_absolute_extremes_daily (month, day_of_month, absolute
 ${ITN_DAILY_CTE}
 SELECT month, day_of_month, MIN(itn) AS absolute_min, MAX(itn) AS absolute_max
 FROM all_days
-WHERE year >= 1946
 GROUP BY month, day_of_month
 ORDER BY month, day_of_month;
 SQL
@@ -137,7 +137,7 @@ ${ITN_DAILY_CTE},
 monthly_itn AS (
     SELECT year, month, AVG(itn) AS monthly_mean
     FROM all_days
-    WHERE NOT is_fictive AND date >= DATE '1946-01-01'
+    WHERE NOT is_fictive
     GROUP BY year, month
 )
 SELECT month, MIN(monthly_mean) AS absolute_min, MAX(monthly_mean) AS absolute_max
@@ -159,7 +159,7 @@ ${ITN_DAILY_CTE},
 yearly_itn AS (
     SELECT year, AVG(itn) AS yearly_mean
     FROM all_days
-    WHERE NOT is_fictive AND date >= DATE '1946-01-01'
+    WHERE NOT is_fictive
     GROUP BY year
 )
 SELECT MIN(yearly_mean) AS absolute_min, MAX(yearly_mean) AS absolute_max

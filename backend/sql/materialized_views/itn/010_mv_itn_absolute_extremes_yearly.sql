@@ -1,5 +1,5 @@
 -- Vue matérialisée : extremes absolus annuels de l'ITN (ligne unique).
--- Minimum et maximum des moyennes annuelles sur les années >= 1946 (début de disponibilité fiable).
+-- Le filtrage >= 1946 est effectué en amont dans mv_itn_daily_all_years.
 -- Les jours fictifs (29 fév synthétique) sont exclus : la moyenne annuelle ne porte que sur
 -- les jours réels, cohérence avec le calcul de la température observée dans le service.
 DROP MATERIALIZED VIEW IF EXISTS mv_itn_absolute_extremes_yearly;
@@ -10,7 +10,7 @@ WITH yearly_itn AS (
         year,
         AVG(itn) AS yearly_mean
     FROM mv_itn_daily_all_years_with_feb29
-    WHERE NOT is_fictive AND date >= DATE '1946-01-01'
+    WHERE NOT is_fictive
     GROUP BY year
 )
 SELECT

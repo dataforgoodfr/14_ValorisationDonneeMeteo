@@ -21,7 +21,13 @@ def _mv_select(filename: str, mv_name: str) -> str:
 def insert_itn_daily_with_feb29(
     year: int, month: int, day_of_month: int, itn: float, *, is_fictive: bool = False
 ) -> None:
-    """Insère une ligne dans mv_itn_daily_all_years_with_feb29."""
+    """Insère une ligne dans mv_itn_daily_all_years_with_feb29.
+
+    Reproduit l'invariant de mv_itn_daily_all_years (006) : les données
+    antérieures au 1er janvier 1946 sont ignorées.
+    """
+    if not is_fictive and year < 1946:
+        return
     date = None if is_fictive else dt.date(year, month, day_of_month)
     with connection.cursor() as cur:
         cur.execute(
