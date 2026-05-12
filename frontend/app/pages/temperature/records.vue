@@ -22,7 +22,11 @@ const route = useRoute();
 
 const { today, yesterday, yesterdayLess30Days } = useCustomDate();
 
+const isLoading = ref<boolean>(true);
+
 onMounted(() => {
+    isLoading.value = false;
+
     const preset = route.query.preset;
     if (!preset) {
         store.dateStart = undefined;
@@ -79,16 +83,7 @@ function exportCSV() {
                 <SearchByTerritoryType />
             </template>
             <template #chart>
-                <div
-                    v-if="selectBarAdapter.pending.value"
-                    class="flex items-center justify-center min-h-32"
-                >
-                    <UIcon
-                        name="i-lucide-loader-circle"
-                        class="animate-spin text-3xl text-muted"
-                    />
-                </div>
-                <div v-else class="flex flex-col md:flex-row gap-4 px-3 py-2">
+                <div class="flex flex-col md:flex-row gap-4 px-3 py-2">
                     <div class="flex flex-col gap-4 flex-1">
                         <UTabs
                             v-model="selectBarAdapter.recordKind!.value"
@@ -104,7 +99,16 @@ function exportCSV() {
                             ]"
                             class="w-fit"
                         />
-                        <RecordsChart :adapter="selectBarAdapter" />
+                        <div
+                            v-if="isLoading"
+                            class="flex items-center justify-center min-h-32"
+                        >
+                            <UIcon
+                                name="i-lucide-loader-circle"
+                                class="animate-spin text-3xl text-muted"
+                            />
+                        </div>
+                        <RecordsChart v-else :adapter="selectBarAdapter" />
                     </div>
                     <RecordsKpiPanel :adapter="selectBarAdapter" />
                 </div>

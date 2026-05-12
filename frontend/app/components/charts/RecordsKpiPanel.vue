@@ -1,6 +1,7 @@
 <template>
     <div class="flex flex-col gap-3 md:w-52 md:shrink-0 py-2">
         <Card
+            :loading="props.adapter.pending.value"
             :title="`Records de chaud (${kindLabel})`"
             :tooltip-text="`Nombre de ${kindLabel.toLowerCase()} de chaleur en France métropolitaine entre le ${formattedStart} et le ${formattedEnd}.`"
         >
