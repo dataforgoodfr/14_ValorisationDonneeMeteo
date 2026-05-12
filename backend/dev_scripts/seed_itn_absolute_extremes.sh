@@ -137,7 +137,7 @@ ${ITN_DAILY_CTE},
 monthly_itn AS (
     SELECT year, month, AVG(itn) AS monthly_mean
     FROM all_days
-    WHERE NOT is_fictive AND year >= 1946
+    WHERE NOT is_fictive AND date >= DATE '1946-01-01'
     GROUP BY year, month
 )
 SELECT month, MIN(monthly_mean) AS absolute_min, MAX(monthly_mean) AS absolute_max
@@ -159,7 +159,7 @@ ${ITN_DAILY_CTE},
 yearly_itn AS (
     SELECT year, AVG(itn) AS yearly_mean
     FROM all_days
-    WHERE NOT is_fictive AND year >= 1946
+    WHERE NOT is_fictive AND date >= DATE '1946-01-01'
     GROUP BY year
 )
 SELECT MIN(yearly_mean) AS absolute_min, MAX(yearly_mean) AS absolute_max

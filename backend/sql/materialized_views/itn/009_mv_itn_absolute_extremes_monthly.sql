@@ -11,7 +11,7 @@ WITH monthly_itn AS (
         month,
         AVG(itn) AS monthly_mean
     FROM mv_itn_daily_all_years_with_feb29
-    WHERE NOT is_fictive AND year >= 1946
+    WHERE NOT is_fictive AND date >= DATE '1946-01-01'
     GROUP BY year, month
 )
 SELECT

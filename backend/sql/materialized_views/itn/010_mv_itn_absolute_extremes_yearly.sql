@@ -10,7 +10,7 @@ WITH yearly_itn AS (
         year,
         AVG(itn) AS yearly_mean
     FROM mv_itn_daily_all_years_with_feb29
-    WHERE NOT is_fictive AND year >= 1946
+    WHERE NOT is_fictive AND date >= DATE '1946-01-01'
     GROUP BY year
 )
 SELECT
