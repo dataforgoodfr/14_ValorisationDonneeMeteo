@@ -54,8 +54,8 @@ const coldDiff = computed(() => {
 </script>
 
 <template>
-    <div class="flex items-center flex-col gap-2">
-        <div class="flex gap-40 items-start">
+    <div class="flex items-center flex-col gap-4">
+        <div class="flex gap-2 items-start flex-col md:flex-row md:gap-40">
             <div class="w-fit">
                 <Card title="" tooltip-text="" :show-title="false" transparent>
                     <template #kpi>
@@ -73,15 +73,25 @@ const coldDiff = computed(() => {
                         v-if="deviationFromNormal != null"
                         #kpi-context-box
                     >
-                        {{ deviationFromNormal >= 0 ? "+" : ""
-                        }}{{ deviationFromNormal.toFixed(1) }}°C vs normale
-                        1991-2020
+                        {{
+                            deviationFromNormal.toFixed(1) === "0.0"
+                                ? "= "
+                                : deviationFromNormal > 0
+                                  ? "+"
+                                  : ""
+                        }}
+                        {{
+                            deviationFromNormal.toFixed(1) === "0.0"
+                                ? ""
+                                : deviationFromNormal.toFixed(1) + "°C "
+                        }}vs normale 1991-2020
                     </template>
                     <template #kpi-context-text>
                         en moyenne ces 365 derniers jours
                     </template>
                     <template v-if="itnDiff != null" #variation>
                         <UIcon
+                            v-if="itnDiff.toFixed(1) !== '0.0'"
                             :name="
                                 itnDiff < 0
                                     ? 'i-lucide-arrow-down-right'
@@ -97,9 +107,13 @@ const coldDiff = computed(() => {
                             :class="
                                 itnDiff < 0 ? 'text-blue-400' : 'text-red-400'
                             "
-                        >
-                            {{ itnDiff >= 0 ? "+" : ""
-                            }}{{ itnDiff.toFixed(1) }}°C
+                            >{{
+                                itnDiff.toFixed(1) !== "0.0"
+                                    ? (itnDiff > 0 ? "+" : "") +
+                                      itnDiff.toFixed(1) +
+                                      "°C"
+                                    : "="
+                            }}
                         </span>
                         vs. 365 jours précédents
                     </template>
@@ -114,10 +128,10 @@ const coldDiff = computed(() => {
             </p>
         </div>
 
-        <div class="flex gap-6">
+        <div class="flex gap-6 flex-col md:flex-row">
             <div class="w-fit">
                 <Card
-                    title="Nombre de jours anormalement chauds"
+                    title="Nombre de jours excessivement chauds"
                     tooltip-text="Nombre de jours parmi ces 365 derniers jours, pour lesquels l'ITN est au-delà de l'écart-type de la période des normales 1991-2020"
                 >
                     >
@@ -135,6 +149,7 @@ const coldDiff = computed(() => {
                     </template>
                     <template v-if="hotDiff != null" #variation>
                         <UIcon
+                            v-if="hotDiff.toFixed(1) !== '0.0'"
                             :name="
                                 hotDiff < 0
                                     ? 'i-lucide-arrow-down-right'
@@ -142,9 +157,15 @@ const coldDiff = computed(() => {
                             "
                             class="text-red-400 font-semibold"
                         />
-                        <span class="text-sm font-semibold text-red-400">
-                            {{ hotDiff >= 0 ? "+" : "" }}{{ hotDiff }} jours
+                        <span
+                            v-if="hotDiff !== 0"
+                            class="text-sm font-semibold text-red-400"
+                        >
+                            {{ hotDiff > 0 ? "+" : "" }}{{ hotDiff }} jours
                         </span>
+                        <span v-else class="text-sm font-semibold text-red-400"
+                            >=</span
+                        >
                         vs. 365 jours précédents
                     </template>
                 </Card>
@@ -152,7 +173,7 @@ const coldDiff = computed(() => {
 
             <div class="w-fit">
                 <Card
-                    title="Nombre de jours anormalement froids"
+                    title="Nombre de jours excessivement froids"
                     tooltip-text="Nombre de jours parmi ces 365 derniers jours, pour lesquels l'ITN est en-deçà de l'écart-type de la période des normales 1991-2020"
                 >
                     <template #kpi>
@@ -169,6 +190,7 @@ const coldDiff = computed(() => {
                     </template>
                     <template v-if="coldDiff != null" #variation>
                         <UIcon
+                            v-if="coldDiff !== 0"
                             :name="
                                 coldDiff < 0
                                     ? 'i-lucide-arrow-down-right'
@@ -176,9 +198,15 @@ const coldDiff = computed(() => {
                             "
                             class="text-blue-400 font-semibold"
                         />
-                        <span class="text-sm font-semibold text-blue-400">
-                            {{ coldDiff >= 0 ? "+" : "" }}{{ coldDiff }} jours
+                        <span
+                            v-if="coldDiff !== 0"
+                            class="text-sm font-semibold text-blue-400"
+                        >
+                            {{ coldDiff > 0 ? "+" : "" }}{{ coldDiff }} jours
                         </span>
+                        <span v-else class="text-sm font-semibold text-blue-400"
+                            >=</span
+                        >
                         vs. 365 jours précédents
                     </template>
                 </Card>

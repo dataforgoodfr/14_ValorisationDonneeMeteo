@@ -31,11 +31,20 @@ const label = computed(() => {
         .sort((a, b) => a - b)
         .join(", ");
 });
+
+const open = ref(false);
+
+// Open the popover when switching the chartType to "stacked", to prompt the user to select years.
+// This relies on the fact that the component is unmounted and remounted when switching the chartType, which is currently the case in SelectBar.vue.
+// See the US here: https://github.com/dataforgoodfr/14_ValorisationDonneeMeteo/issues/527.
+onMounted(() => {
+    open.value = true;
+});
 </script>
 
 <template>
     <UFormField label="Années" name="stacked-years">
-        <UPopover :content="{ align: 'start' }">
+        <UPopover v-model:open="open" :content="{ align: 'start' }">
             <UButton
                 color="neutral"
                 variant="outline"

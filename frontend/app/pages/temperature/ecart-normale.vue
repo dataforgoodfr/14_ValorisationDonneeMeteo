@@ -25,6 +25,13 @@ const chartType = computed<ChartType>(
 const tableStore = useDeviationTableStore();
 const { dateStart, dateEnd } = storeToRefs(tableStore);
 
+const { yesterday, yesterdayLess30Days } = useCustomDate();
+
+onMounted(() => {
+    tableStore.dateStart = yesterdayLess30Days.value;
+    tableStore.dateEnd = yesterday.value;
+});
+
 const isPeriodInfoOpen = ref(false);
 
 const toISODate = (date: Date) => date.toISOString().substring(0, 10);
@@ -41,55 +48,6 @@ const infoPanelSections = ecartNormaleSections;
             :title="heroData.title"
             :description="heroData.description"
         />
-
-        <div class="flex flex-col gap-4 dark:bg-elevated rounded-lg px-3 py-2">
-            <div class="flex flex-col gap-2">
-                <div class="flex items-center gap-1">
-                    <p class="text-sm font-medium">
-                        Période de moyennage des données
-                    </p>
-                    <UPopover v-model:open="isPeriodInfoOpen">
-                        <button
-                            class="text-blue-350 hover:text-blue-300 transition-colors cursor-pointer"
-                            @mouseenter="isPeriodInfoOpen = true"
-                            @mouseleave="isPeriodInfoOpen = false"
-                        >
-                            <UIcon name="i-lucide-circle-info" />
-                        </button>
-                        <template #content>
-                            <p class="p-3 text-sm max-w-64">
-                                Sélectionnez la période au cours de laquelle les
-                                données de la carte et du tableau seront
-                                moyennées
-                            </p>
-                        </template>
-                    </UPopover>
-                </div>
-                <DatePresetPicker
-                    v-model:start-date="dateStart"
-                    v-model:end-date="dateEnd"
-                />
-            </div>
-
-            <hr class="border-accented" />
-
-            <div
-                v-if="tableStore.pending"
-                class="flex items-center justify-center min-h-32"
-            >
-                <UIcon
-                    name="i-lucide-loader-circle"
-                    class="animate-spin text-3xl text-muted"
-                />
-            </div>
-            <div v-else class="flex lg:flex-row flex-col items-start gap-8">
-                <ClientOnly>
-                    <MapD3 :date-start="mapDateStart" :date-end="mapDateEnd" />
-                </ClientOnly>
-
-                <DeviationTable :show-filters="false" />
-            </div>
-        </div>
 
         <ChartLayout :has-sidebar="true">
             <template #select-bar>
@@ -120,6 +78,51 @@ const infoPanelSections = ecartNormaleSections;
                 </ClientOnly>
             </template>
         </ChartLayout>
+
+        <div
+            id="table"
+            class="flex flex-col gap-4 dark:bg-elevated rounded-lg px-3 py-2"
+        >
+            <div class="flex flex-col gap-2">
+                <div class="flex items-center gap-1">
+                    <p class="text-sm font-medium">
+                        Période de moyennage des données
+                    </p>
+                    <UPopover v-model:open="isPeriodInfoOpen">
+                        <button
+                            class="text-blue-350 hover:text-blue-300 transition-colors cursor-pointer"
+                            @mouseenter="isPeriodInfoOpen = true"
+                            @mouseleave="isPeriodInfoOpen = false"
+                        >
+                            <UIcon name="i-lucide-circle-info" />
+                        </button>
+                        <template #content>
+                            <p class="p-3 text-sm max-w-64">
+                                Sélectionnez la période au cours de laquelle les
+                                données de la carte et du tableau seront
+                                moyennées
+                            </p>
+                        </template>
+                    </UPopover>
+                </div>
+                <DatePresetPicker
+                    v-model:start-date="dateStart"
+                    v-model:end-date="dateEnd"
+                />
+            </div>
+
+            <hr class="border-accented" />
+
+            <div class="flex lg:flex-row flex-col items-start gap-8">
+                <ClientOnly>
+                    <MapD3 :date-start="mapDateStart" :date-end="mapDateEnd" />
+                </ClientOnly>
+
+                <div class="w-full overflow-x-auto">
+                    <DeviationTable :show-filters="false" />
+                </div>
+            </div>
+        </div>
 
         <InfoPanel :title="heroData.title" :sections="infoPanelSections" />
     </UContainer>

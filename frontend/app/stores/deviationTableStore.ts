@@ -7,6 +7,7 @@ import type {
 } from "~/components/ui/commons/filterBarTypes";
 import { departements } from "~/data/records/departements";
 import { regions } from "~/data/records/regions";
+import { expandClasseRange } from "~/utils/classeFilter";
 
 type DeviationTableFilters = {
     name?: StringFilterValue;
@@ -15,7 +16,7 @@ type DeviationTableFilters = {
     // altitude?: RangeFilterValue;
     deviation?: RangeFilterValue;
     temperatureMean?: RangeFilterValue;
-    classe?: RangeFilterValue;
+    classe?: StringFilterValue;
     anneeDeCreation?: RangeFilterValue;
 };
 
@@ -37,8 +38,7 @@ export const useDeviationTableStore = defineStore("deviationTableStore", () => {
     const deviationMax = ref<string | undefined>(undefined);
     const temperatureMeanMin = ref<string | undefined>(undefined);
     const temperatureMeanMax = ref<string | undefined>(undefined);
-    const classeMin = ref<string | undefined>(undefined);
-    const classeMax = ref<string | undefined>(undefined);
+    const classeFilter = ref<string[]>([]);
     const creationYearMin = ref<string | undefined>(undefined);
     const creationYearMax = ref<string | undefined>(undefined);
 
@@ -52,6 +52,7 @@ export const useDeviationTableStore = defineStore("deviationTableStore", () => {
             value: d.name,
             label: `${d.name}`,
         })),
+        classe: ["1", "2", "3", "4"].map((v) => ({ value: v, label: v })),
     };
 
     const filters = computed<DeviationTableFilters>(() => {
@@ -83,14 +84,10 @@ export const useDeviationTableStore = defineStore("deviationTableStore", () => {
                 min: temperatureMeanMin.value,
                 max: temperatureMeanMax.value,
             };
-        if (classeMin.value || classeMax.value)
-            result.classe = {
-                type: "number-range",
-                min: classeMin.value,
-                max: classeMax.value,
-            };
+        if (classeFilter.value.length >= 1)
+            result.classe = { type: "string", values: classeFilter.value };
         if (creationYearMin.value || creationYearMax.value)
-            result.date_de_creation = {
+            result.anneeDeCreation = {
                 type: "number-range",
                 min: creationYearMin.value,
                 max: creationYearMax.value,
@@ -103,6 +100,9 @@ export const useDeviationTableStore = defineStore("deviationTableStore", () => {
             if (id === "name") stationIds.value = value.values;
             if (id === "departement") departmentsFilter.value = value.values;
             if (id === "region") regionsFilter.value = value.values;
+            if (id === "classe") {
+                classeFilter.value = expandClasseRange(value.values);
+            }
         } else if (value.type === "number-range") {
             // if (id === "altitude") {
             //     altitudeMin.value = value.min;
@@ -113,10 +113,7 @@ export const useDeviationTableStore = defineStore("deviationTableStore", () => {
             } else if (id === "temperatureMean") {
                 temperatureMeanMin.value = value.min;
                 temperatureMeanMax.value = value.max;
-            } else if (id === "classe") {
-                classeMin.value = value.min;
-                classeMax.value = value.max;
-            } else if (id === "date_de_creation") {
+            } else if (id === "anneeDeCreation") {
                 creationYearMin.value = value.min;
                 creationYearMax.value = value.max;
             }
@@ -140,9 +137,8 @@ export const useDeviationTableStore = defineStore("deviationTableStore", () => {
             temperatureMeanMin.value = undefined;
             temperatureMeanMax.value = undefined;
         } else if (id === "classe") {
-            classeMin.value = undefined;
-            classeMax.value = undefined;
-        } else if (id === "date_de_creation") {
+            classeFilter.value = [];
+        } else if (id === "anneeDeCreation") {
             creationYearMin.value = undefined;
             creationYearMax.value = undefined;
         }
@@ -166,8 +162,7 @@ export const useDeviationTableStore = defineStore("deviationTableStore", () => {
         temperatureMeanMax,
         debounceDuration,
     );
-    const debouncedClasseMin = refDebounced(classeMin, debounceDuration);
-    const debouncedClasseMax = refDebounced(classeMax, debounceDuration);
+    const debouncedClasseFilter = refDebounced(classeFilter, debounceDuration);
     const debouncedCreationYearMin = refDebounced(
         creationYearMin,
         debounceDuration,
@@ -207,10 +202,11 @@ export const useDeviationTableStore = defineStore("deviationTableStore", () => {
             result.temperature_mean_min = Number(debouncedTMeanMin.value);
         if (debouncedTMeanMax.value)
             result.temperature_mean_max = Number(debouncedTMeanMax.value);
-        if (debouncedClasseMin.value)
-            result.classe_recente_min = Number(debouncedClasseMin.value);
-        if (debouncedClasseMax.value)
-            result.classe_recente_max = Number(debouncedClasseMax.value);
+        if (debouncedClasseFilter.value.length > 0) {
+            const nums = debouncedClasseFilter.value.map(Number);
+            result.classe_recente_min = Math.min(...nums);
+            result.classe_recente_max = Math.max(...nums);
+        }
         if (debouncedCreationYearMin.value)
             result.date_de_creation_min = `${debouncedCreationYearMin.value}-01-01`;
         if (debouncedCreationYearMax.value)

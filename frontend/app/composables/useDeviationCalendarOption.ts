@@ -20,7 +20,7 @@ import type { GranularityType } from "~/components/ui/commons/selectBar/types";
 import type { DeviationStationIdAndName } from "~/types/common";
 import { MONTH_SHORT } from "~/constants/months";
 import { FONT_CHARTS } from "~/constants/fonts";
-import { useMapColors } from "~/constants/colors";
+import { DEVIATION_MAP_COLORS, useMapColors } from "~/constants/colors";
 
 // transforme "Jan-2024" en nombre comparable
 function toMonthNumber(monthLabel: string): number {
@@ -338,15 +338,15 @@ export function useDeviationCalendarOption(
     });
 
     const visualMap: ContinousVisualMapOption = {
-        min: -5,
-        max: +5,
+        min: DEVIATION_MAP_COLORS.min,
+        max: DEVIATION_MAP_COLORS.max,
         calculable: true,
         show: true,
         orient: "vertical",
         right: "0%",
         bottom: "center",
         inRange: {
-            color: [mapColors.value.cold, "#FFF", mapColors.value.hot],
+            color: DEVIATION_MAP_COLORS.stops.map(([, color]) => color),
         },
         textStyle: { color: mapColors.value.foreground },
         handleStyle: { borderColor: mapColors.value.chartAccentColor },

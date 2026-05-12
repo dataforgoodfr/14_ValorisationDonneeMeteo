@@ -138,7 +138,7 @@ const lastYearColdRecordsCount = computed(
     <Section
         :title="`CES 30 DERNIERS JOURS -  ${formatDateLongForDisplay(yesterdayLess30Days)} au ${formatDateLongForDisplay(yesterday)}`"
     >
-        <h2 class="text-blue-700 dark:text-primary pb-2">
+        <h2 class="text-blue-700 dark:text-primary pb-4">
             ECART DE TEMPÉRATURE A LA NORMALE
         </h2>
         <div class="flex flex-col lg:flex-row gap-4 mt-2 mb-4 lg:items-start">
@@ -162,6 +162,7 @@ const lastYearColdRecordsCount = computed(
                     :city="hotStation?.station_name"
                     :department-string="hotStation?.region"
                     :department-number="hotStation?.department"
+                    tag-content="Ecart max"
                 />
                 <ExtremeCard
                     hot-cold="cold"
@@ -174,8 +175,11 @@ const lastYearColdRecordsCount = computed(
                     :city="coldStation?.station_name"
                     :department-string="coldStation?.region"
                     :department-number="coldStation?.department"
+                    tag-content="Ecart min"
                 />
-                <GoToDataLink :data-url="'/ecart-normale'" />
+                <GoToDataLink
+                    :data-url="'/temperature/ecart-normale?preset=30d#table'"
+                />
             </div>
         </div>
         <div class="border-b to-slate-200" />
@@ -202,6 +206,6 @@ const lastYearColdRecordsCount = computed(
                 compare-to="année dernière"
             />
         </div>
-        <GoToDataLink :data-url="'/records'" />
+        <GoToDataLink :data-url="'/temperature/records?preset=30d#table'" />
     </Section>
 </template>

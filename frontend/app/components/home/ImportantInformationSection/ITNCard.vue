@@ -63,7 +63,9 @@ const temperatureChangeYearOverYear = computed<number | undefined>(() => {
             </p>
         </template>
         <template v-if="gap" #kpi-context-box>
-            {{ gap?.toFixed(1) }}°C vs normale 1991-2020
+            {{ gap?.toFixed(1) === "0.0" ? "= " : gap > 0 ? "+" : ""
+            }}{{ gap?.toFixed(1) === "0.0" ? "" : gap?.toFixed(1) + "°C " }}vs
+            normale 1991-2020
         </template>
         <template #variation>
             <UIcon
@@ -77,6 +79,7 @@ const temperatureChangeYearOverYear = computed<number | undefined>(() => {
                 class="text-red-450"
             />
             <span
+                v-if="temperatureChangeYearOverYear?.toFixed(1) !== '0.0'"
                 class="text-sm font-semibold"
                 :class="
                     (temperatureChangeYearOverYear ?? 0) <= 0
@@ -86,6 +89,7 @@ const temperatureChangeYearOverYear = computed<number | undefined>(() => {
             >
                 {{ temperatureChangeYearOverYear?.toFixed(1) }}°C
             </span>
+            <span v-else class="text-sm font-semibold text-blue-600">=</span>
             vs
             {{
                 toValue(yesterdayLastYear).toLocaleDateString("fr-FR", {

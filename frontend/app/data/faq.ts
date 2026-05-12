@@ -1,14 +1,12 @@
-<script setup lang="ts">
-import PagesHero from "~/components/layout/PagesHero.vue";
 import type { AccordionItem } from "@nuxt/ui";
 
-const heroData = {
+export const faqHeroData = {
     title: "FAQ",
     description:
         "Retrouvez ici les réponses aux questions les plus fréquentes sur DataClimat et ses indicateurs.",
 };
 
-const faqItems: AccordionItem[] = [
+export const faqItems: AccordionItem[] = [
     {
         label: "Qu'est-ce que DataClimat ?",
         content:
@@ -60,21 +58,3 @@ const faqItems: AccordionItem[] = [
             "DataClimat utilise la définition climatologique des saisons :\n- Printemps : du 1er mars au 31 mai\n- Été : du 1er juin au 31 août\n- Automne : du 1er septembre au 30 novembre\n- Hiver : du 1er décembre au 28 (ou 29) février",
     },
 ];
-</script>
-
-<template>
-    <UContainer class="flex flex-col gap-y-16">
-        <PagesHero
-            :title="heroData.title"
-            :description="heroData.description"
-        />
-
-        <UAccordion type="multiple" collapsible :items="faqItems">
-            <template #body="{ item }">
-                <p class="whitespace-pre-wrap text-sm text-muted pb-4 px-1">
-                    {{ item.content }}
-                </p>
-            </template>
-        </UAccordion>
-    </UContainer>
-</template>

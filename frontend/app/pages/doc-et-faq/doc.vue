@@ -1,47 +1,7 @@
 <script setup lang="ts">
 import PagesHero from "~/components/layout/PagesHero.vue";
-import { itnHeroData, itnSections } from "~/data/docItn";
-import {
-    ecartNormaleHeroData,
-    ecartNormaleSections,
-} from "~/data/docEcartNormale";
-import { recordsHeroData, recordsSections } from "~/data/docRecords";
+import { docHeroData, docEntries } from "~/data/doc";
 import type { InfoSection } from "~/types/common";
-
-interface DocEntry {
-    title: string;
-    description: string;
-    sections: InfoSection[];
-    icon: string;
-    to: string;
-}
-
-const heroData = {
-    title: "Documentation",
-    description:
-        "Retrouvez ici la documentation détaillée des métriques et indicateurs disponibles sur DataClimat : définitions, méthodes de calcul et sources.",
-};
-
-const docs: DocEntry[] = [
-    {
-        ...itnHeroData,
-        sections: itnSections,
-        icon: "i-lucide-thermometer-sun",
-        to: "/itn",
-    },
-    {
-        ...ecartNormaleHeroData,
-        sections: ecartNormaleSections,
-        icon: "i-lucide-move-horizontal",
-        to: "/ecart-normale",
-    },
-    {
-        ...recordsHeroData,
-        sections: recordsSections,
-        icon: "i-lucide-sun-snow",
-        to: "/records",
-    },
-];
 
 function toAccordionItems(sections: InfoSection[]) {
     return sections.map((section, i) => ({
@@ -55,13 +15,13 @@ function toAccordionItems(sections: InfoSection[]) {
 <template>
     <UContainer class="flex flex-col gap-y-16">
         <PagesHero
-            :title="heroData.title"
-            :description="heroData.description"
+            :title="docHeroData.title"
+            :description="docHeroData.description"
         />
 
         <div class="flex flex-col gap-12">
             <div
-                v-for="doc in docs"
+                v-for="doc in docEntries"
                 :key="doc.title"
                 class="flex flex-col gap-4"
             >

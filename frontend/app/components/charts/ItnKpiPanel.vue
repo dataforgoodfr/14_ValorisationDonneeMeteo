@@ -1,89 +1,129 @@
 <template>
-    <div class="flex flex-col gap-3 w-52 shrink-0 py-2">
+    <div class="flex flex-col gap-3 md:w-52 md:shrink-0 py-2">
         <Card
             title="ITN moyen"
             tooltip-text="Moyenne de l'Indicateur Thermique National sur la période sélectionnée."
         >
             <template #kpi>
                 <p class="font-semibold text-4xl mb-1 text-red-400">
-                    <span v-if="kpi != null"
+                    <UIcon
+                        v-if="pending"
+                        name="i-lucide-loader-circle"
+                        class="animate-spin text-5xl text-muted"
+                    />
+                    <span v-else-if="kpi != null"
                         >{{ kpi.itn_mean?.toFixed(1) }} °C</span
                     >
+
                     <span v-else class="text-muted">—</span>
                 </p>
             </template>
-            <template v-if="kpi?.deviation_from_normal != null" #variation>
-                <span class="text-sm">
-                    {{ kpi.deviation_from_normal >= 0 ? "+" : ""
-                    }}{{ kpi.deviation_from_normal.toFixed(1) }} °C
-                </span>
-                <UIcon
-                    v-if="kpi.deviation_from_normal < 0"
-                    name="i-lucide-arrow-down-right"
-                    class="text-blue-400"
-                />
-                <UIcon
-                    v-if="kpi.deviation_from_normal > 0"
-                    name="i-lucide-arrow-up-right"
-                    class="text-red-400"
-                />
-                vs période des normales
+            <template #variation>
+                <USkeleton v-if="pending" class="h-2 w-full" />
+
+                <template v-else-if="kpi?.deviation_from_normal != null">
+                    <span class="text-sm">
+                        {{ kpi.deviation_from_normal >= 0 ? "+" : ""
+                        }}{{ kpi.deviation_from_normal.toFixed(1) }} °C
+                    </span>
+                    <UIcon
+                        v-if="kpi.deviation_from_normal < 0"
+                        name="i-lucide-arrow-down-right"
+                        class="text-blue-400"
+                    />
+                    <UIcon
+                        v-if="kpi.deviation_from_normal > 0"
+                        name="i-lucide-arrow-up-right"
+                        class="text-red-400"
+                    />
+                    vs période des normales
+                </template>
+
+                <span v-else class="text-muted">—</span>
             </template>
         </Card>
 
         <Card
-            title="Nombre de jours anormalement chauds"
+            title="Nombre de jours excessivement chauds"
             tooltip-text="Nombre de jours, sur la période sélectionnée, pour lesquels la valeur de l'ITN est au-delà de l'écart-type de la période des normales."
         >
             <template #kpi>
                 <p class="font-semibold text-4xl mb-1 text-red-400">
-                    <span v-if="kpi != null">{{ kpi.hot_peak_count }}</span>
+                    <UIcon
+                        v-if="pending"
+                        name="i-lucide-loader-circle"
+                        class="animate-spin text-5xl text-muted"
+                    />
+
+                    <span v-else-if="kpi != null">{{
+                        kpi.hot_peak_count
+                    }}</span>
+
                     <span v-else class="text-muted">—</span>
                 </p>
             </template>
-            <template v-if="hotDiff != null" #variation>
-                <span class="text-sm">
-                    {{ hotDiff >= 0 ? "+" : "" }}{{ hotDiff }}
-                </span>
-                <UIcon
-                    v-if="hotDiff < 0"
-                    name="i-lucide-arrow-down-right"
-                    class="text-red-400"
-                />
-                <UIcon
-                    v-if="hotDiff > 0"
-                    name="i-lucide-arrow-up-right"
-                    class="text-red-400"
-                />
-                vs période précédente
+            <template #variation>
+                <USkeleton v-if="pending" class="h-2 w-full" />
+
+                <template v-else-if="hotDiff != null">
+                    <span class="text-sm">
+                        {{ hotDiff >= 0 ? "+" : "" }}{{ hotDiff }}
+                    </span>
+                    <UIcon
+                        v-if="hotDiff < 0"
+                        name="i-lucide-arrow-down-right"
+                        class="text-red-400"
+                    />
+                    <UIcon
+                        v-if="hotDiff > 0"
+                        name="i-lucide-arrow-up-right"
+                        class="text-red-400"
+                    />
+                    vs période précédente
+                </template>
+
+                <span v-else class="text-muted">—</span>
             </template>
         </Card>
 
         <Card
-            title="Nombre de jours anormalement froids"
+            title="Nombre de jours excessivement froids"
             tooltip-text="Nombre de jours, sur la période sélectionnée, pour lesquels la valeur de l'ITN est en-deçà de l'écart-type de la période des normales."
         >
             <template #kpi>
                 <p class="font-semibold text-4xl mb-1 text-blue-400">
-                    <span v-if="kpi != null">{{ kpi.cold_peak_count }}</span>
+                    <UIcon
+                        v-if="pending"
+                        name="i-lucide-loader-circle"
+                        class="animate-spin text-5xl text-muted"
+                    />
+                    <span v-else-if="kpi != null">{{
+                        kpi.cold_peak_count
+                    }}</span>
                     <span v-else class="text-muted">—</span>
                 </p>
             </template>
-            <template v-if="coldDiff != null" #variation>
-                <span class="text-sm">
-                    {{ coldDiff >= 0 ? "+" : "" }}{{ coldDiff }}
-                </span>
-                <UIcon
-                    v-if="coldDiff < 0"
-                    name="i-lucide-arrow-down-right"
-                    class="text-blue-400"
-                />
-                <UIcon
-                    v-if="coldDiff > 0"
-                    name="i-lucide-arrow-up-right"
-                    class="text-blue-400"
-                />
-                vs période précédente
+            <template #variation>
+                <USkeleton v-if="pending" class="h-2 w-full" />
+
+                <template v-else-if="coldDiff != null">
+                    <span class="text-sm">
+                        {{ coldDiff >= 0 ? "+" : "" }}{{ coldDiff }}
+                    </span>
+                    <UIcon
+                        v-if="coldDiff < 0"
+                        name="i-lucide-arrow-down-right"
+                        class="text-blue-400"
+                    />
+                    <UIcon
+                        v-if="coldDiff > 0"
+                        name="i-lucide-arrow-up-right"
+                        class="text-blue-400"
+                    />
+                    vs période précédente
+                </template>
+
+                <span v-else class="text-muted">—</span>
             </template>
         </Card>
     </div>
@@ -103,7 +143,7 @@ const params = computed<NationalIndicatorKpiParams>(() => ({
     date_end: dateToStringYMD(pickedDateEnd.value),
 }));
 
-const { data: kpi } = useNationalIndicatorKpi(params);
+const { data: kpi, pending } = useNationalIndicatorKpi(params);
 
 const hotDiff = computed(() => {
     if (kpi.value == null) return null;

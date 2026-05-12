@@ -11,6 +11,7 @@ from weather.services.national_indicator.types import (
     DailySeriesQuery,
     ObservedPoint,
 )
+from weather.tests.helpers.itn_absolute_extremes import stub_absolute_extremes
 from weather.utils.date_range import iter_days_intersecting
 
 
@@ -41,8 +42,6 @@ class FakeNationalIndicatorDataSource(
             baseline_mean=mean,
             baseline_std_dev_upper=mean + 1.0,
             baseline_std_dev_lower=mean - 1.0,
-            baseline_max=0.0,
-            baseline_min=0.0,
         )
 
     def fetch_monthly_baseline(self, month: int) -> BaselinePoint:
@@ -51,8 +50,6 @@ class FakeNationalIndicatorDataSource(
             baseline_mean=mean,
             baseline_std_dev_upper=mean + 1.0,
             baseline_std_dev_lower=mean - 1.0,
-            baseline_max=0.0,
-            baseline_min=0.0,
         )
 
     def fetch_yearly_baseline(self) -> BaselinePoint:
@@ -61,8 +58,6 @@ class FakeNationalIndicatorDataSource(
             baseline_mean=mean,
             baseline_std_dev_upper=mean + 1.0,
             baseline_std_dev_lower=mean - 1.0,
-            baseline_max=0.0,
-            baseline_min=0.0,
         )
 
 
@@ -72,6 +67,7 @@ def test_itn_acceptance_month_day_of_month_clamp():
     res = compute_national_indicator(
         observed_data_source=ds,
         baseline_data_source=ds,
+        absolute_extremes_data_source=stub_absolute_extremes,
         date_start=dt.date(2025, 1, 1),
         date_end=dt.date(2025, 2, 28),
         granularity="month",
@@ -100,6 +96,7 @@ def test_itn_acceptance_year_month_of_year_filters_correctly():
     res = compute_national_indicator(
         observed_data_source=ds,
         baseline_data_source=ds,
+        absolute_extremes_data_source=stub_absolute_extremes,
         date_start=dt.date(2024, 1, 1),
         date_end=dt.date(2025, 12, 31),
         granularity="year",
@@ -124,6 +121,7 @@ def test_itn_acceptance_year_day_of_month_with_month_and_clamp_leap_year():
     res = compute_national_indicator(
         observed_data_source=ds,
         baseline_data_source=ds,
+        absolute_extremes_data_source=stub_absolute_extremes,
         date_start=dt.date(2024, 1, 1),
         date_end=dt.date(2025, 12, 31),
         granularity="year",

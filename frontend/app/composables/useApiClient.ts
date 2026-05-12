@@ -32,9 +32,10 @@ export function useApiClient() {
         );
 
         const result = useApiFetch<T>(endpoint, {
-            query: params,
+            query: computed(() => toValue(params)),
             immediate: false,
             watch: false,
+            key: `${toValue(endpoint)}-${Math.random()}`, // Bypass useFetch cache sharing between pages
         });
 
         watch(

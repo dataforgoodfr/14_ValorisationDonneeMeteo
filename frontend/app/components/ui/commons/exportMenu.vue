@@ -27,14 +27,6 @@ const exportMenuItems = ref<DropdownMenuItem[]>([
         },
     },
     {
-        label: "Format PNG fond blanc",
-        icon: "i-lucide-file-image",
-        onSelect(e: Event) {
-            e.preventDefault();
-            exportAsPngWhiteBackground();
-        },
-    },
-    {
         label: "Format CSV",
         icon: "i-lucide-file-spreadsheet",
         onSelect(e: Event) {
@@ -81,28 +73,6 @@ function exportAsPngWithoutBackground() {
         type: "png",
         pixelRatio: 2,
         backgroundColor: "transparent",
-        excludeComponents: ["dataZoom"],
-    });
-
-    const a = document.createElement("a");
-    a.href = dataURL;
-    a.download = useFormatFileName(
-        exportConfig.chartName,
-        granularity.value,
-        "png",
-        pickedDateStart.value,
-        pickedDateEnd.value,
-    );
-    a.click();
-}
-
-function exportAsPngWhiteBackground() {
-    if (!import.meta.client) return;
-    if (!chartRef?.value) return;
-    const dataURL = chartRef.value.getDataURL({
-        type: "png",
-        pixelRatio: 2,
-        backgroundColor: "#ffffff",
         excludeComponents: ["dataZoom"],
     });
 

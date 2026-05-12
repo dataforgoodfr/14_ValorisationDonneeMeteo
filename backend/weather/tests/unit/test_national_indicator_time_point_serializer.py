@@ -14,10 +14,10 @@ def _valid_base() -> dict:
         "baseline_mean": 12.0,
         "baseline_std_dev_upper": 14.0,
         "baseline_std_dev_lower": 10.0,
-        "baseline_max": 20.0,
-        "baseline_min": 5.0,
         "is_hot_peak": True,
         "is_cold_peak": False,
+        "baseline_min": -10.0,
+        "baseline_max": 40.0,
     }
 
 

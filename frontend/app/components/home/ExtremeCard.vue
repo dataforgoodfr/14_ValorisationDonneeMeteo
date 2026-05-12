@@ -10,6 +10,7 @@ interface Props {
     city?: string;
     departmentString?: string;
     departmentNumber?: string | number;
+    tagContent?: string;
     disabled?: boolean;
 }
 
@@ -20,14 +21,14 @@ const tagData = computed(() => {
         return {
             icon: "i-lucide-sun",
             text: "CHAUD",
-            class: "text-rose-600 bg-error-200",
+            class: "text-red-450 bg-error-200",
             placeholderClass: "text-error-200 bg-error-200",
         };
     }
     return {
         icon: "i-lucide-snowflake",
         text: "FROID",
-        class: "text-blue-700 bg-secondary-200",
+        class: "text-blue-600 bg-secondary-200",
         placeholderClass: "text-secondary-200-200 bg-secondary-200",
     };
 });
@@ -39,7 +40,9 @@ const tagData = computed(() => {
             :class="`${tagData.class} text-[13px] mb-2 self-start flex gap-1 items-center rounded-lg p-1 font-semibold`"
         >
             <UIcon :name="tagData.icon" class="text-[15px]" />
-            <span>{{ tagData.text }}</span>
+            <span>{{
+                tagContent ? tagContent.toUpperCase() : tagData.text
+            }}</span>
         </div>
         <div
             v-if="loading"

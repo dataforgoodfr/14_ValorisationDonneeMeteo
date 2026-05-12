@@ -355,8 +355,10 @@ export interface ItnStation {
     code: string;
     lat: number;
     lon: number;
+    alt: number;
     nom: string;
     classe: number;
+    annee_creation: string;
 }
 
 export interface MapColorConfig {

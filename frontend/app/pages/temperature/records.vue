@@ -19,6 +19,34 @@ import { recordsHeroData, recordsSections } from "~/data/docRecords";
 const selectBarAdapter = useRecordsSelectBarAdapter();
 
 const store = useRecordsTableStore();
+const route = useRoute();
+
+const { today, yesterday, yesterdayLess30Days } = useCustomDate();
+
+onMounted(() => {
+    const preset = route.query.preset;
+    if (!preset) {
+        store.dateStart = undefined;
+        store.dateEnd = undefined;
+        store.ordering = "";
+        return;
+    }
+
+    store.ordering = "-recordDate";
+
+    if (preset === "today") {
+        store.dateStart = today.value;
+        store.dateEnd = today.value;
+    } else if (preset === "30d") {
+        store.dateStart = yesterdayLess30Days.value;
+        store.dateEnd = yesterday.value;
+    } else if (preset === "365d") {
+        const start = new Date(yesterday.value);
+        start.setFullYear(start.getFullYear() - 1);
+        store.dateStart = start;
+        store.dateEnd = yesterday.value;
+    }
+});
 
 const heroData = recordsHeroData;
 const infoPanelSections = recordsSections;
@@ -31,7 +59,50 @@ const infoPanelSections = recordsSections;
             :description="heroData.description"
         />
 
-        <div class="flex flex-col gap-4 dark:bg-elevated rounded-lg px-3 py-2">
+        <ChartLayout :has-sidebar="true">
+            <template #select-bar>
+                <SelectBar :adapter="selectBarAdapter" />
+            </template>
+            <template #sidebar>
+                <SearchByTerritoryType />
+            </template>
+            <template #chart>
+                <div
+                    v-if="selectBarAdapter.pending.value"
+                    class="flex items-center justify-center min-h-32"
+                >
+                    <UIcon
+                        name="i-lucide-loader-circle"
+                        class="animate-spin text-3xl text-muted"
+                    />
+                </div>
+                <div v-else class="flex flex-col md:flex-row gap-4 px-3 py-2">
+                    <div class="flex flex-col gap-4 flex-1">
+                        <UTabs
+                            v-model="selectBarAdapter.recordKind!.value"
+                            :items="[
+                                {
+                                    label: 'Records absolus',
+                                    value: 'absolute',
+                                },
+                                {
+                                    label: 'Records battus',
+                                    value: 'historical',
+                                },
+                            ]"
+                            class="w-fit"
+                        />
+                        <RecordsChart :adapter="selectBarAdapter" />
+                    </div>
+                    <RecordsKpiPanel :adapter="selectBarAdapter" />
+                </div>
+            </template>
+        </ChartLayout>
+
+        <div
+            id="table"
+            class="flex flex-col gap-4 dark:bg-elevated rounded-lg px-3 py-2"
+        >
             <div class="flex items-center gap-1">
                 <p class="text-sm font-medium">Période</p>
                 <FieldInfo
@@ -75,16 +146,7 @@ const infoPanelSections = recordsSections;
 
             <hr class="border-accented" />
 
-            <div
-                v-if="store.pending"
-                class="flex items-center justify-center min-h-32"
-            >
-                <UIcon
-                    name="i-lucide-loader-circle"
-                    class="animate-spin text-3xl text-muted"
-                />
-            </div>
-            <div v-else class="flex flex-col md:flex-row items-start gap-8">
+            <div class="flex flex-col md:flex-row items-start gap-8">
                 <ClientOnly>
                     <RecordsMap />
                 </ClientOnly>
@@ -92,46 +154,6 @@ const infoPanelSections = recordsSections;
                 <RecordsTable />
             </div>
         </div>
-
-        <ChartLayout :has-sidebar="true">
-            <template #select-bar>
-                <SelectBar :adapter="selectBarAdapter" />
-            </template>
-            <template #sidebar>
-                <SearchByTerritoryType />
-            </template>
-            <template #chart>
-                <div
-                    v-if="selectBarAdapter.pending.value"
-                    class="flex items-center justify-center min-h-32"
-                >
-                    <UIcon
-                        name="i-lucide-loader-circle"
-                        class="animate-spin text-3xl text-muted"
-                    />
-                </div>
-                <div v-else class="flex flex-col md:flex-row gap-4 px-3 py-2">
-                    <div class="flex flex-col gap-4 flex-1">
-                        <UTabs
-                            v-model="selectBarAdapter.recordKind!.value"
-                            :items="[
-                                {
-                                    label: 'Records absolus',
-                                    value: 'absolute',
-                                },
-                                {
-                                    label: 'Records battus',
-                                    value: 'historical',
-                                },
-                            ]"
-                            class="w-fit"
-                        />
-                        <RecordsChart :adapter="selectBarAdapter" />
-                    </div>
-                    <RecordsKpiPanel :adapter="selectBarAdapter" />
-                </div>
-            </template>
-        </ChartLayout>
 
         <InfoPanel :title="heroData.title" :sections="infoPanelSections" />
     </UContainer>

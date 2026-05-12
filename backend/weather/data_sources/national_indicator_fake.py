@@ -18,11 +18,13 @@ import math
 import random
 
 from weather.services.national_indicator.protocols import (
+    NationalIndicatorAbsoluteExtremesDataSource,
     NationalIndicatorBaselineDataSource,
     NationalIndicatorObservedDataSource,
 )
 from weather.services.national_indicator.service import compute_national_indicator
 from weather.services.national_indicator.types import (
+    AbsoluteExtremes,
     BaselinePoint,
     DailySeriesQuery,
     ObservedPoint,
@@ -30,7 +32,7 @@ from weather.services.national_indicator.types import (
 from weather.utils.date_range import iter_days_intersecting
 
 
-def _climatology_for_date(d: dt.date) -> tuple[float, float, float, float]:
+def _climatology_for_date(d: dt.date) -> tuple[float, float]:
     """
     Retourne une climatologie synthétique pour une date donnée :
     (mean, stddev, min, max)
@@ -46,25 +48,18 @@ def _climatology_for_date(d: dt.date) -> tuple[float, float, float, float]:
     sigma_amp = 0.6
     sigma = sigma_base + sigma_amp * (1 - math.sin(phi)) / 2.0
 
-    baseline_min = baseline_mean - (3.0 * sigma + 1.0)
-    baseline_max = baseline_mean + (3.0 * sigma + 1.0)
-
-    return baseline_mean, sigma, baseline_min, baseline_max
+    return baseline_mean, sigma
 
 
 def _baseline_point_from_mean_std(
     *,
     mean: float,
     stddev: float,
-    baseline_min: float,
-    baseline_max: float,
 ) -> BaselinePoint:
     return BaselinePoint(
         baseline_mean=mean,
         baseline_std_dev_upper=mean + stddev,
         baseline_std_dev_lower=mean - stddev,
-        baseline_max=baseline_max,
-        baseline_min=baseline_min,
     )
 
 
@@ -89,7 +84,7 @@ class FakeNationalIndicatorDataSource(
             days = tuple(iter_days_intersecting(query.date_start, query.date_end))
 
         for d in days:
-            baseline_mean, sigma, _, _ = _climatology_for_date(d)
+            baseline_mean, sigma = _climatology_for_date(d)
             temperature = baseline_mean + rng.gauss(0.0, sigma)
             out.append(
                 ObservedPoint(
@@ -101,13 +96,8 @@ class FakeNationalIndicatorDataSource(
         return out
 
     def fetch_daily_baseline(self, day: dt.date) -> BaselinePoint:
-        mean, stddev, baseline_min, baseline_max = _climatology_for_date(day)
-        return _baseline_point_from_mean_std(
-            mean=mean,
-            stddev=stddev,
-            baseline_min=baseline_min,
-            baseline_max=baseline_max,
-        )
+        mean, stddev = _climatology_for_date(day)
+        return _baseline_point_from_mean_std(mean=mean, stddev=stddev)
 
     def fetch_monthly_baseline(self, month: int) -> BaselinePoint:
         """
@@ -125,15 +115,8 @@ class FakeNationalIndicatorDataSource(
 
         mean = sum(s[0] for s in daily_stats) / len(daily_stats)
         stddev = sum(s[1] for s in daily_stats) / len(daily_stats)
-        baseline_min = min(s[2] for s in daily_stats)
-        baseline_max = max(s[3] for s in daily_stats)
 
-        return _baseline_point_from_mean_std(
-            mean=mean,
-            stddev=stddev,
-            baseline_min=baseline_min,
-            baseline_max=baseline_max,
-        )
+        return _baseline_point_from_mean_std(mean=mean, stddev=stddev)
 
     def fetch_yearly_baseline(self) -> BaselinePoint:
         """
@@ -150,14 +133,69 @@ class FakeNationalIndicatorDataSource(
 
         mean = sum(s[0] for s in daily_stats) / len(daily_stats)
         stddev = sum(s[1] for s in daily_stats) / len(daily_stats)
-        baseline_min = min(s[2] for s in daily_stats)
-        baseline_max = max(s[3] for s in daily_stats)
 
-        return _baseline_point_from_mean_std(
-            mean=mean,
-            stddev=stddev,
-            baseline_min=baseline_min,
-            baseline_max=baseline_max,
+        return _baseline_point_from_mean_std(mean=mean, stddev=stddev)
+
+
+def _absolute_extremes_for_day(month: int, day_of_month: int) -> AbsoluteExtremes:
+    """
+    Extremes absolus synthétiques pour un (mois, jour) donné.
+    Dérivés de la climatologie en simulant une dispersion autour de la moyenne.
+    """
+    ref = dt.date(2001, month, min(day_of_month, 28))
+    mean, sigma = _climatology_for_date(ref)
+    return AbsoluteExtremes(
+        absolute_min=round(mean - sigma, 4),
+        absolute_max=round(mean + sigma, 4),
+    )
+
+
+class FakeNationalIndicatorAbsoluteExtremesDataSource(
+    NationalIndicatorAbsoluteExtremesDataSource,
+):
+    """
+    Fake implémentation des extremes absolus pour tests et démo.
+    Les valeurs sont synthétiques, dérivées de la même climatologie que FakeNationalIndicatorDataSource.
+    """
+
+    def fetch_daily_absolute_extremes(
+        self,
+        month_day_pairs: set[tuple[int, int]],
+    ) -> dict[tuple[int, int], AbsoluteExtremes]:
+        return {(m, d): _absolute_extremes_for_day(m, d) for m, d in month_day_pairs}
+
+    def fetch_monthly_absolute_extremes(
+        self,
+        months: set[int],
+    ) -> dict[int, AbsoluteExtremes]:
+        result: dict[int, AbsoluteExtremes] = {}
+        for month in months:
+            ref_days = [dt.date(2001, month, day) for day in range(1, 29)]
+            mins = [
+                _climatology_for_date(d)[0] - _climatology_for_date(d)[1]
+                for d in ref_days
+            ]
+            maxs = [
+                _climatology_for_date(d)[0] + _climatology_for_date(d)[1]
+                for d in ref_days
+            ]
+            result[month] = AbsoluteExtremes(
+                absolute_min=round(min(mins), 4),
+                absolute_max=round(max(maxs), 4),
+            )
+        return result
+
+    def fetch_yearly_absolute_extremes(self) -> AbsoluteExtremes:
+        ref_days = [dt.date(2001, 1, 1) + dt.timedelta(days=i) for i in range(365)]
+        mins = [
+            _climatology_for_date(d)[0] - _climatology_for_date(d)[1] for d in ref_days
+        ]
+        maxs = [
+            _climatology_for_date(d)[0] + _climatology_for_date(d)[1] for d in ref_days
+        ]
+        return AbsoluteExtremes(
+            absolute_min=round(min(mins), 4),
+            absolute_max=round(max(maxs), 4),
         )
 
 
@@ -181,9 +219,11 @@ def generate_fake_national_indicator(
     Ne reflète pas la qualité des données réelles.
     """
     ds = FakeNationalIndicatorDataSource(seed=42)
+    extremes_ds = FakeNationalIndicatorAbsoluteExtremesDataSource()
     return compute_national_indicator(
         observed_data_source=ds,
         baseline_data_source=ds,
+        absolute_extremes_data_source=extremes_ds,
         date_start=date_start,
         date_end=date_end,
         granularity=granularity,

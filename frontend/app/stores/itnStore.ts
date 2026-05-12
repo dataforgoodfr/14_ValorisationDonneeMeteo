@@ -35,7 +35,13 @@ export const useItnStore = defineStore("itnStore", () => {
     const chartType = ref<ChartType>("line");
 
     // Stacked mode: années sélectionnées et données fusionnées
-    const selectedYears = ref<number[]>([new Date().getFullYear()]);
+    const currentYear = new Date().getFullYear();
+    // Show the last 3 years by default to show the user the value of the stacked mode.
+    const selectedYears = ref<number[]>([
+        currentYear - 2,
+        currentYear - 1,
+        currentYear,
+    ]);
     const stackedData = ref<NationalIndicatorResponse | null>(null);
     const stackedPending = ref(false);
     const stackedDataCache = new Map<number, NationalIndicatorResponse>();
@@ -97,7 +103,7 @@ export const useItnStore = defineStore("itnStore", () => {
             maxDate.value = dates.yesterday.value;
         }
         if (value === "month") {
-            pickedDateStart.value = dates.last10Year.value;
+            pickedDateStart.value = dates.lastYear.value;
             pickedDateEnd.value = dates.lastMonth.value;
             maxDate.value = dates.lastMonth.value;
         }

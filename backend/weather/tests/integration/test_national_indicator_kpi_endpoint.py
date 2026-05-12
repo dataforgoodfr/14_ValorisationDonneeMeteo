@@ -16,6 +16,7 @@ from weather.services.national_indicator.types import (
     DailySeriesQuery,
     ObservedPoint,
 )
+from weather.tests.helpers.itn_absolute_extremes import stub_absolute_extremes
 
 
 @pytest.fixture(autouse=True)
@@ -51,8 +52,6 @@ class InMemoryKpiDependency(
             baseline_mean=10.0,
             baseline_std_dev_upper=12.0,
             baseline_std_dev_lower=8.0,
-            baseline_max=15.0,
-            baseline_min=5.0,
         )
 
 
@@ -62,6 +61,7 @@ def _register(temps: dict[dt.date, float]) -> None:
         lambda: ITNDependencies(
             observed_data_source=dep,
             baseline_data_source=dep,
+            absolute_extremes_data_source=stub_absolute_extremes,
         )
     )
 
@@ -332,13 +332,15 @@ def test_kpi_itn_mean_is_null_when_no_observed_data(client: APIClient):
                 baseline_mean=10.0,
                 baseline_std_dev_upper=12.0,
                 baseline_std_dev_lower=8.0,
-                baseline_max=15.0,
-                baseline_min=5.0,
             )
 
     dep = EmptyObservedDependency()
     ITNDependencyProvider.set_builder(
-        lambda: ITNDependencies(observed_data_source=dep, baseline_data_source=dep)
+        lambda: ITNDependencies(
+            observed_data_source=dep,
+            baseline_data_source=dep,
+            absolute_extremes_data_source=stub_absolute_extremes,
+        )
     )
 
     resp = client.get(

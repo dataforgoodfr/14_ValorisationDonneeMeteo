@@ -76,7 +76,7 @@ const lastYearColdRecordsCount = computed(
                 <ExtremeCard hot-cold="hot" :disabled="true" />
                 <ExtremeCard hot-cold="cold" :disabled="true" />
             </div>
-            <GoToDataLink :data-url="'/itn'" />
+            <GoToDataLink :data-url="'/temperature/itn'" />
 
             <div class="border-b to-slate-200" /> -->
 
@@ -101,7 +101,6 @@ const lastYearColdRecordsCount = computed(
                 compare-to="même jour l'an dernier"
             />
         </div>
-        <GoToDataLink :data-url="'/records'" />
+        <GoToDataLink :data-url="'/temperature/records?preset=today#table'" />
     </Section>
 </template>
-<style lang="css" scoped></style>

@@ -18,27 +18,27 @@ const items = computed<NavigationMenuItem[]>(() => [
         children: [
             {
                 label: "Écart à la normale",
-                to: "/ecart-normale",
+                to: "/temperature/ecart-normale",
                 icon: "i-lucide-move-horizontal",
-                active: route.path.startsWith("/ecart-normale"),
+                active: route.path.startsWith("/temperature/ecart-normale"),
             },
             {
                 label: "Indicateur Thermique National",
-                to: "/itn",
+                to: "/temperature/itn",
                 icon: "i-lucide-thermometer-sun",
-                active: route.path.startsWith("/itn"),
+                active: route.path.startsWith("/temperature/itn"),
             },
             // {
             //     label: "Min/max",
-            //     to: "/itn",
+            //     to: "/temperature/itn",
             //     icon: "i-lucide-diff",
-            //     active: route.path.startsWith("/min-max"),
+            //     active: route.path.startsWith("/temperature/min-max"),
             // },
             {
                 label: "Records",
-                to: "/records",
+                to: "/temperature/records",
                 icon: "i-lucide-sun-snow",
-                active: route.path.startsWith("/records"),
+                active: route.path.startsWith("/temperature/records"),
             },
         ],
     },
@@ -47,15 +47,32 @@ const items = computed<NavigationMenuItem[]>(() => [
         children: [
             {
                 label: "Documentation",
-                to: "/doc",
+                to: "/doc-et-faq/doc",
                 icon: "i-lucide-book-open",
-                active: route.path.startsWith("/doc"),
+                active: route.path.startsWith("/doc-et-faq/doc"),
             },
             {
                 label: "FAQ",
-                to: "/faq",
+                to: "/doc-et-faq/faq",
                 icon: "i-lucide-circle-help",
-                active: route.path.startsWith("/faq"),
+                active: route.path.startsWith("/doc-et-faq/faq"),
+            },
+        ],
+    },
+    {
+        label: "À propos",
+        children: [
+            {
+                label: "Qui sommes nous ?",
+                to: "/a-propos/qui-sommes-nous",
+                icon: "i-lucide-users",
+                active: route.path.startsWith("/a-propos/qui-sommes-nous"),
+            },
+            {
+                label: "Le projet collaboratif",
+                to: "/a-propos/le-projet",
+                icon: "i-lucide-lightbulb",
+                active: route.path.startsWith("/a-propos/le-projet"),
             },
         ],
     },
@@ -102,6 +119,7 @@ const items = computed<NavigationMenuItem[]>(() => [
         <div class="flex justify-between">
             <!-- Commenter le temps de la beta (jusqu'au 22/05/2026) -->
             <!-- :ui="{ base: 'bg-slate-450 ring-1 ring-blue-350 text-white' }" to="https://asso.infoclimat.fr/infos/formulaire.php" target="_blank" -->
+
             <UButton
                 :ui="{
                     base: 'bg-orange-500 ring-1 ring-orange-350 text-white',
@@ -165,7 +183,12 @@ const items = computed<NavigationMenuItem[]>(() => [
                     }"
                 />
                 <!-- Commenter le temps de la beta (jusqu'au 22/05/2026) -->
-                <!-- :ui="{base: 'bg-slate-450 ring-1 ring-blue-350 text-white',} to="https://asso.infoclimat.fr/infos/formulaire.php" target="_blank" -->
+                <!-- :ui="{
+                        base: 'bg-slate-450 ring-1 ring-blue-350 text-white',
+                    }"
+                    to="https://asso.infoclimat.fr/infos/formulaire.php"
+                    target="_blank" -->
+
                 <UButton
                     :ui="{
                         base: 'bg-orange-600 ring-1 ring-orange-350 text-white',

@@ -10,12 +10,13 @@ from weather.utils.date_range import (
 
 from .aggregation import aggregate_observed
 from .protocols import (
+    NationalIndicatorAbsoluteExtremesDataSource,
     NationalIndicatorBaselineDataSource,
     NationalIndicatorObservedDataSource,
 )
 from .slicing import apply_slice
 from .source_window import compute_source_window
-from .types import DailySeriesQuery, OutputPoint
+from .types import AbsoluteExtremes, DailySeriesQuery, ObservedPoint, OutputPoint
 
 
 def compute_target_dates(
@@ -99,6 +100,7 @@ def compute_national_indicator(
     *,
     observed_data_source: NationalIndicatorObservedDataSource,
     baseline_data_source: NationalIndicatorBaselineDataSource,
+    absolute_extremes_data_source: NationalIndicatorAbsoluteExtremesDataSource,
     date_start: dt.date,
     date_end: dt.date,
     granularity: str,
@@ -154,7 +156,42 @@ def compute_national_indicator(
         month_of_year=month_of_year,
     )
 
-    # 7. Enrichissement baseline
+    # 7. Fetch extremes absolus (une seule requête groupée)
+    absolute_extremes_map: (
+        dict[tuple[int, int], AbsoluteExtremes]
+        | dict[int, AbsoluteExtremes]
+        | AbsoluteExtremes
+    )
+    if granularity == "day" or (
+        granularity in ("month", "year") and slice_type == "day_of_month"
+    ):
+        month_day_pairs = {(p.date.month, p.date.day) for p in observed_points}
+        absolute_extremes_map = (
+            absolute_extremes_data_source.fetch_daily_absolute_extremes(month_day_pairs)
+        )
+    elif granularity == "month" or (
+        granularity == "year" and slice_type == "month_of_year"
+    ):
+        months = {p.date.month for p in observed_points}
+        absolute_extremes_map = (
+            absolute_extremes_data_source.fetch_monthly_absolute_extremes(months)
+        )
+    else:
+        # granularity=year, slice_type=full
+        absolute_extremes_map = (
+            absolute_extremes_data_source.fetch_yearly_absolute_extremes()
+        )
+
+    def _get_absolute_extremes(p: ObservedPoint) -> AbsoluteExtremes:
+        if isinstance(absolute_extremes_map, AbsoluteExtremes):
+            return absolute_extremes_map
+        if granularity == "day" or (
+            granularity in ("month", "year") and slice_type == "day_of_month"
+        ):
+            return absolute_extremes_map[(p.date.month, p.date.day)]
+        return absolute_extremes_map[p.date.month]
+
+    # 8. Enrichissement baseline + extremes absolus
     points: list[OutputPoint] = []
     for p in observed_points:
         b = _baseline_for_output_point(
@@ -163,6 +200,7 @@ def compute_national_indicator(
             slice_type=slice_type,
             baseline_data_source=baseline_data_source,
         )
+        ae = _get_absolute_extremes(p)
 
         points.append(
             OutputPoint(
@@ -171,14 +209,14 @@ def compute_national_indicator(
                 baseline_mean=b.baseline_mean,
                 baseline_std_dev_upper=b.baseline_std_dev_upper,
                 baseline_std_dev_lower=b.baseline_std_dev_lower,
-                baseline_max=b.baseline_max,
-                baseline_min=b.baseline_min,
                 is_hot_peak=p.temperature > b.baseline_std_dev_upper,
                 is_cold_peak=p.temperature < b.baseline_std_dev_lower,
+                baseline_min=ae.absolute_min,
+                baseline_max=ae.absolute_max,
             )
         )
 
-    # 8. Format réponse
+    # 9. Format réponse
     return {
         "time_series": [
             {
@@ -187,10 +225,10 @@ def compute_national_indicator(
                 "baseline_mean": round(p.baseline_mean, 2),
                 "baseline_std_dev_upper": round(p.baseline_std_dev_upper, 2),
                 "baseline_std_dev_lower": round(p.baseline_std_dev_lower, 2),
-                "baseline_max": round(p.baseline_max, 2),
-                "baseline_min": round(p.baseline_min, 2),
                 "is_hot_peak": p.is_hot_peak,
                 "is_cold_peak": p.is_cold_peak,
+                "baseline_min": round(p.baseline_min, 2),
+                "baseline_max": round(p.baseline_max, 2),
             }
             for p in points
         ]

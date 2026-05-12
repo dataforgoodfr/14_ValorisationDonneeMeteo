@@ -1,5 +1,5 @@
 <template>
-    <div class="flex flex-col gap-2 lg:w-[700px] w-full flex-shrink-0">
+    <div class="flex flex-col gap-2 lg:w-155 w-full shrink-0">
         <Card
             class="w-fit mx-auto"
             :with-border="false"
@@ -7,10 +7,17 @@
             tooltip-text="Ecart à la normale moyen en France métropolitaine sur la période sélectionnée."
         >
             <template #kpi>
-                <p class="font-semibold text-4xl mb-1 text-red-400">
-                    <span v-if="kpi?.deviation_from_normal != null">
-                        {{ kpi.deviation_from_normal >= 0 ? "+" : ""
-                        }}{{ kpi.deviation_from_normal.toFixed(1) }} °C
+                <p
+                    class="font-semibold text-4xl mb-1"
+                    :class="
+                        deviation && deviation > 0
+                            ? 'text-red-400'
+                            : 'text-blue-400'
+                    "
+                >
+                    <span v-if="deviation != null">
+                        {{ deviation > 0 ? "+" : ""
+                        }}{{ deviation.toFixed(1) }} °C
                     </span>
                     <span v-else class="text-muted">—</span>
                 </p>
@@ -21,6 +28,7 @@
         </Card>
 
         <StationMap
+            class="-mt-20"
             :stations="mappableStations"
             :color-config="DEVIATION_MAP_COLORS"
             :tooltip-formatter="tooltipFormatter"
@@ -52,6 +60,8 @@ const paramsItn = computed<NationalIndicatorKpiParams>(() => ({
 }));
 
 const { data: kpi } = useNationalIndicatorKpi(paramsItn);
+
+const deviation = computed(() => kpi.value?.deviation_from_normal);
 
 const params = computed<DeviationMapParams>(() => ({
     date_start: props.dateStart,

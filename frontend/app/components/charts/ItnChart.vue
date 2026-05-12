@@ -12,10 +12,10 @@ import { useMapColors } from "~/constants/colors";
 import { FONT_CHARTS } from "~/constants/fonts";
 import { itnChartTooltipFormatter } from "./tooltipFormatters/itnChartTooltipFormatter";
 import {
-    formatContinuousAxisLabel,
     formatStackedAxisLabel,
     itnStackedTooltipFormatter,
 } from "./tooltipFormatters/itnStackedTooltipFormatter";
+import { xAxisTimeFormatter } from "~/utils/chartAxisFormatter";
 import {
     DataZoomComponent,
     GraphicComponent,
@@ -58,9 +58,41 @@ const initOptions = computed(() => ({
 }));
 provide(INIT_OPTIONS_KEY, initOptions);
 
+// Palette sans bleu ni rouge (conflictuels avec les bandes chaud/froid)
+const YEAR_COLORS_LIGHT = [
+    "#7B30C6", // violet foncé
+    "#FFA679", // orange
+    "#5B932D", // vert foncé
+    "#C7C847", // jaune sombre
+    "#EB84E5", // rose
+];
+
+const YEAR_COLORS_DARK = [
+    "#EB84E5", // rose
+    "#FCFF27", // jaune
+    "#FFA679", // orange
+    "#64EB79", // vert
+];
+
+function generateExtraColors(count: number, isDark: boolean): string[] {
+    return Array.from({ length: count }, (_, i) => {
+        const hue = (i * 137.5) % 360;
+        return isDark ? `hsl(${hue}, 80%, 65%)` : `hsl(${hue}, 70%, 40%)`;
+    });
+}
+
 const itnColors = useItnColors();
 const mapColors = useMapColors();
 const colorMode = useColorMode();
+
+const yearColorPalette = computed(() => {
+    const isDark = colorMode.value === "dark";
+    const base = isDark ? YEAR_COLORS_DARK : YEAR_COLORS_LIGHT;
+    return (n: number) =>
+        n <= base.length
+            ? base.slice(0, n)
+            : [...base, ...generateExtraColors(n - base.length, isDark)];
+});
 
 function buildStackedOption(
     timeSeries: NationalIndicatorDataPoint[],
@@ -94,6 +126,7 @@ function buildStackedOption(
         byYear.get(year)!.set(k, p.temperature);
     }
     const years = [...byYear.keys()].sort();
+    const palette = yearColorPalette.value(years.length);
 
     const baselineSource = allPositions.map((pos) => {
         const p = baselineByPos.get(pos)!;
@@ -160,7 +193,7 @@ function buildStackedOption(
         },
     ];
 
-    const yearSeries: ECOption["series"] = years.map((year) => ({
+    const yearSeries: ECOption["series"] = years.map((year, index) => ({
         name: String(year),
         type: "line",
         data: allPositions.map((pos) => [
@@ -168,6 +201,7 @@ function buildStackedOption(
             byYear.get(year)?.get(pos) ?? null,
         ]),
         symbol: "none",
+        color: palette[index % palette.length],
         lineStyle: { width: 1.5 },
         connectNulls: false,
         z: 10,
@@ -215,9 +249,10 @@ function buildStackedOption(
         series: [...baselineSeries, ...yearSeries],
         legend: {
             data: [
-                ITN_SERIES.extremes,
-                ITN_SERIES.baseline,
                 ITN_SERIES.temperature,
+                ITN_SERIES.baseline,
+                ITN_SERIES.stdDev,
+                ITN_SERIES.extremes,
                 ...years.map(String),
             ],
             bottom: 85,
@@ -304,9 +339,7 @@ const option = computed<ECOption>(() => {
             type: "time",
             axisLabel: {
                 fontSize: FONT_CHARTS.axis,
-                ...(props.adapter.granularity.value === "day"
-                    ? { formatter: formatContinuousAxisLabel }
-                    : {}),
+                formatter: xAxisTimeFormatter(props.adapter.granularity.value),
             },
         },
         yAxis: {

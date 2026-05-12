@@ -142,6 +142,9 @@ def setup_db_schema_and_views(django_db_setup, django_db_blocker):
     itn_baseline_tables_sql = (
         BASE_DIR / "sql" / "test_tables" / "itn_baseline.sql"
     ).read_text()
+    itn_absolute_extremes_tables_sql = (
+        BASE_DIR / "sql" / "test_tables" / "itn_absolute_extremes.sql"
+    ).read_text()
 
     with django_db_blocker.unblock():
         with connection.cursor() as cur:
@@ -174,6 +177,18 @@ def setup_db_schema_and_views(django_db_setup, django_db_blocker):
             cur.execute(v_station_records_sql)
             cur.execute(baseline_station_table_sql)
             cur.execute(itn_baseline_tables_sql)
+            cur.execute(itn_absolute_extremes_tables_sql)
+            cur.execute("""
+                DROP TABLE IF EXISTS public.mv_itn_daily_all_years_with_feb29;
+                CREATE TABLE public.mv_itn_daily_all_years_with_feb29 (
+                    date         date             NULL,
+                    year         integer          NOT NULL,
+                    month        integer          NOT NULL,
+                    day_of_month integer          NOT NULL,
+                    is_fictive   boolean          NOT NULL DEFAULT FALSE,
+                    itn          double precision NOT NULL
+                );
+            """)
             cur.execute(
                 "CREATE TABLE public.mv_records_battus_meta (cutoff_date DATE NOT NULL);"
             )

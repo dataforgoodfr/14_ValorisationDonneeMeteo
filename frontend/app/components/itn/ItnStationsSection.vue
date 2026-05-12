@@ -1,6 +1,6 @@
 <template>
     <section
-        class="flex flex-col gap-4 dark:bg-elevated rounded-lg p-14 border border-gray-200 dark:border-default"
+        class="flex flex-col gap-4 dark:bg-elevated rounded-lg p-4 md:p-8 lg:p-14 border border-gray-200 dark:border-default"
     >
         <p class="text-lg sm:text-xl/8 text-muted text-balance mb-6">
             Voici la liste des stations utilisées pour calculer cet indicateur

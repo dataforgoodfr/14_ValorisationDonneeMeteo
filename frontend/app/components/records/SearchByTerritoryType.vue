@@ -6,10 +6,16 @@ import SearchByRegion from "./SearchByRegion.vue";
 import SearchByTerritory from "./SearchByTerritory.vue";
 import SearchByStation from "./SearchByStation.vue";
 import { useRecordsChartStore } from "#imports";
+import { MAX_GRAPH_TERRITORIES } from "~/constants/graphSelection";
+import MaxTerritoriesReachedTooltip from "~/components/ui/commons/MaxTerritoriesReachedTooltip.vue";
 
 const store = useRecordsChartStore();
 const { selectedElements } = storeToRefs(store);
 const { removeItemFromFilter } = store;
+
+const isAtLimit = computed(
+    () => selectedElements.value.length >= MAX_GRAPH_TERRITORIES,
+);
 
 const searchQuery = ref<undefined | string>("");
 
@@ -72,22 +78,23 @@ function onUnselectElement(
 
         <USeparator v-if="selectedElements.length > 0" />
 
-        <SearchByStation
-            v-if="selectedTerritoryType === TerritoryFilterType.STATION"
-            :search-query="searchQuery"
-        />
-
-        <SearchByDepartment
-            v-if="selectedTerritoryType === TerritoryFilterType.DEPARTMENT"
-            :search-query="searchQuery"
-        />
-        <SearchByRegion
-            v-if="selectedTerritoryType === TerritoryFilterType.REGION"
-            :search-query="searchQuery"
-        />
-        <SearchByTerritory
-            v-if="selectedTerritoryType === TerritoryFilterType.TERRITORY"
-            :search-query="searchQuery"
-        />
+        <MaxTerritoriesReachedTooltip :is-at-limit="isAtLimit">
+            <SearchByStation
+                v-if="selectedTerritoryType === TerritoryFilterType.STATION"
+                :search-query="searchQuery"
+            />
+            <SearchByDepartment
+                v-if="selectedTerritoryType === TerritoryFilterType.DEPARTMENT"
+                :search-query="searchQuery"
+            />
+            <SearchByRegion
+                v-if="selectedTerritoryType === TerritoryFilterType.REGION"
+                :search-query="searchQuery"
+            />
+            <SearchByTerritory
+                v-if="selectedTerritoryType === TerritoryFilterType.TERRITORY"
+                :search-query="searchQuery"
+            />
+        </MaxTerritoriesReachedTooltip>
     </div>
 </template>

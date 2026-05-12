@@ -10,6 +10,9 @@ from django.db.models.functions import ExtractDay, ExtractMonth
 
 from weather.models import (
     BaselineStationDailyMean19912020,
+    ITNAbsoluteExtremesDaily,
+    ITNAbsoluteExtremesMonthly,
+    ITNAbsoluteExtremesYearly,
     ITNBaselineDaily19912020,
     ITNBaselineMonthly19912020,
     ITNBaselineYearly19912020,
@@ -18,6 +21,7 @@ from weather.models import (
 )
 from weather.regions import departments_for_region
 from weather.services.national_indicator.protocols import (
+    NationalIndicatorAbsoluteExtremesDataSource,
     NationalIndicatorBaselineDataSource,
     NationalIndicatorObservedDataSource,
 )
@@ -29,6 +33,7 @@ from weather.services.national_indicator.stations import (
     expected_station_codes,
 )
 from weather.services.national_indicator.types import (
+    AbsoluteExtremes,
     BaselinePoint,
     DailySeriesQuery,
 )
@@ -242,8 +247,58 @@ class TimescaleNationalIndicatorBaselineDataSource(NationalIndicatorBaselineData
             baseline_mean=float(mean),
             baseline_std_dev_upper=float(mean + std),
             baseline_std_dev_lower=float(mean - std),
-            baseline_max=0.0,  # TODO MV future
-            baseline_min=0.0,  # TODO MV future
+        )
+
+
+class TimescaleNationalIndicatorAbsoluteExtremesDataSource(
+    NationalIndicatorAbsoluteExtremesDataSource
+):
+    """
+    Lit les extremes absolus historiques de l'ITN depuis les vues matérialisées
+    mv_itn_absolute_extremes_daily/monthly/yearly.
+    Ces MV sont rafraîchies via pg_cron toutes les 6 min (même job que mv_quotidienne_realtime).
+    """
+
+    def fetch_daily_absolute_extremes(
+        self,
+        month_day_pairs: set[tuple[int, int]],
+    ) -> dict[tuple[int, int], AbsoluteExtremes]:
+        if not month_day_pairs:
+            return {}
+        rows = ITNAbsoluteExtremesDaily.objects.all()
+        return {
+            (r.month, r.day_of_month): AbsoluteExtremes(
+                absolute_min=float(r.absolute_min),
+                absolute_max=float(r.absolute_max),
+            )
+            for r in rows
+            if (r.month, r.day_of_month) in month_day_pairs
+        }
+
+    def fetch_monthly_absolute_extremes(
+        self,
+        months: set[int],
+    ) -> dict[int, AbsoluteExtremes]:
+        if not months:
+            return {}
+        rows = ITNAbsoluteExtremesMonthly.objects.filter(month__in=months)
+        return {
+            r.month: AbsoluteExtremes(
+                absolute_min=float(r.absolute_min),
+                absolute_max=float(r.absolute_max),
+            )
+            for r in rows
+        }
+
+    def fetch_yearly_absolute_extremes(self) -> AbsoluteExtremes:
+        row = ITNAbsoluteExtremesYearly.objects.first()
+        if row is None:
+            raise ValueError(
+                "Aucune donnée historique ITN pour calculer les extremes annuels"
+            )
+        return AbsoluteExtremes(
+            absolute_min=float(row.absolute_min),
+            absolute_max=float(row.absolute_max),
         )
 
 

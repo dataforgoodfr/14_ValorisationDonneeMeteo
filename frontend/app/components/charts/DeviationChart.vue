@@ -22,6 +22,7 @@ import { BarChart, HeatmapChart } from "echarts/charts";
 import { UniversalTransition } from "echarts/features";
 import { CanvasRenderer } from "echarts/renderers";
 import { useDeviationCalendarOption } from "~/composables/useDeviationCalendarOption";
+import { xAxisTimeFormatter } from "~/utils/chartAxisFormatter";
 
 echarts.registerLocale("FR", langFR);
 echarts.use([
@@ -102,6 +103,9 @@ const barOption = computed<ECOption>(() => {
                 fontWeight: "bold",
             },
             axisPointer: { type: "line", label: { show: false } },
+            axisLabel: {
+                formatter: xAxisTimeFormatter(props.adapter.granularity.value),
+            },
         })),
         yAxis: stationsAndNational.map((_, index) => ({
             type: "value",

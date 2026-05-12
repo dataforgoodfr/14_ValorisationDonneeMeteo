@@ -31,9 +31,7 @@ export function useTemperatureDeviation(
         );
     });
 
-    const isEnabled = computed(() =>
-        enabled !== undefined ? toValue(enabled) : true,
-    );
+    const isEnabled = computed(() => toValue(enabled) ?? true);
 
     const result = useApiFetch<TemperatureDeviationResponse>(
         "/temperature/deviation",
@@ -50,7 +48,7 @@ export function useTemperatureDeviation(
             if (enabled && hasParams) {
                 result.execute();
             } else if (!hasParams) {
-                result.data.value = undefined;
+                result.clear();
             }
         },
         { immediate: true, deep: true },
@@ -73,9 +71,7 @@ export function useTemperatureDeviationGraph(
         );
     });
 
-    const isEnabled = computed(() =>
-        enabled !== undefined ? toValue(enabled) : true,
-    );
+    const isEnabled = computed(() => toValue(enabled) ?? true);
 
     const result = useApiFetch<TemperatureDeviationGraphResponse>(
         "/temperature/deviation/graph",
@@ -92,7 +88,7 @@ export function useTemperatureDeviationGraph(
             if (enabled && hasParams) {
                 result.execute();
             } else if (!hasParams) {
-                result.data.value = undefined;
+                result.clear();
             }
         },
         { immediate: true },
@@ -107,9 +103,7 @@ export function useTemperatureRecordsGraph(
 ) {
     const { useApiFetch } = useApiClient();
 
-    const isEnabled = computed(() =>
-        enabled !== undefined ? toValue(enabled) : true,
-    );
+    const isEnabled = computed(() => toValue(enabled) ?? true);
 
     const result = useApiFetch<TemperatureRecordsGraphResponse>(
         "/temperature/records/graph",
@@ -142,37 +136,16 @@ export function useTemperatureExtremes(
 
 export function useTemperatureRecords(
     params: MaybeRef<TemperatureRecordsParams>,
-    enabled?: MaybeRef<boolean>,
 ) {
     const { useApiFetch } = useApiClient();
 
-    if (enabled === undefined) {
-        return useApiFetch<TemperatureRecordsPaginatedResponse>(
-            "/temperature/records",
-            {
-                query: params,
-            },
-        );
-    }
-
-    const isEnabled = toRef(enabled);
-
-    const result = useApiFetch<TemperatureRecordsPaginatedResponse>(
+    return useApiFetch<TemperatureRecordsPaginatedResponse>(
         "/temperature/records",
         {
             query: params,
-            immediate: isEnabled.value,
-            watch: false,
+            server: false,
         },
     );
-
-    watch([isEnabled, params], () => {
-        if (isEnabled.value) {
-            result.execute();
-        }
-    });
-
-    return result;
 }
 
 export function useCumulativeRecords(
