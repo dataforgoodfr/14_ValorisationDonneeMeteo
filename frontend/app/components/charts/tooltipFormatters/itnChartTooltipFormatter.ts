@@ -35,7 +35,7 @@ export function itnChartTooltipFormatter(
         formattedDate,
         `${find(ITN_SERIES.temperature)?.marker ?? ""}${ITN_SERIES.temperature} : ${fmt(d.temperature as number)}`,
         `${find(ITN_SERIES.baseline)?.marker ?? ""}${ITN_SERIES.baseline} : ${fmt(d.baseline_mean as number)}`,
-        // `${find(ITN_SERIES.extremes)?.marker ?? ""}${ITN_SERIES.extremes} : [${fmt(d.baseline_min as number)} – ${fmt(d.baseline_max as number)}]`, // TODO: Enable when extremes are available
+        `${find(ITN_SERIES.extremes)?.marker ?? ""}${ITN_SERIES.extremes} : [${fmt(d.baseline_min as number)} – ${fmt(d.baseline_max as number)}]`,
         `${find(ITN_SERIES.stdDev)?.marker ?? ""}${ITN_SERIES.stdDev} : [${fmt(d.baseline_std_dev_lower as number)} – ${fmt(d.baseline_std_dev_upper as number)}]`,
     ].join("<br/>");
 }

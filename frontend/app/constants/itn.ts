@@ -282,7 +282,7 @@ export const ITN_SERIES = {
 };
 
 const ITN_LIGHT_COLORS = {
-    extremes: "rgba(100, 100, 100, 0.20)",
+    extremes: "rgba(100, 100, 100, 0.75)",
     ecartType: "rgba(175, 175, 175, 1)",
     hotBand: TEMPERATURE_COLORS.hot,
     coldBand: TEMPERATURE_COLORS.cold,
@@ -291,7 +291,7 @@ const ITN_LIGHT_COLORS = {
 };
 
 const ITN_DARK_COLORS = {
-    extremes: "rgb(132, 145, 167, 0.2)",
+    extremes: "rgba(132, 145, 167, 0.85)",
     ecartType: "rgb(132, 145, 167, 0.5)",
     hotBand: TEMPERATURE_COLORS.hot,
     coldBand: TEMPERATURE_COLORS.cold,

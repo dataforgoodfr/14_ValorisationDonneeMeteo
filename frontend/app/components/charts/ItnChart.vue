@@ -132,8 +132,8 @@ function buildStackedOption(
         const p = baselineByPos.get(pos)!;
         return [
             pos,
-            undefined, // p.baseline_min, // TODO: Enable when extremes are available
-            undefined, // p.baseline_max - p.baseline_min, // TODO: Enable when extremes are available
+            p.baseline_min,
+            p.baseline_max,
             p.baseline_std_dev_lower,
             p.baseline_std_dev_upper - p.baseline_std_dev_lower,
             p.baseline_mean,
@@ -142,25 +142,28 @@ function buildStackedOption(
 
     const baselineSeries: ECOption["series"] = [
         {
+            name: ITN_SERIES.extremes,
             type: "line",
             encode: { x: "position", y: "baseline_min" },
-            stack: "extreme",
-            stackStrategy: "all",
             symbol: "none",
-            lineStyle: { opacity: 0 },
-            areaStyle: { color: "transparent" },
-            tooltip: { show: false },
+            color: itnColors.value.extremes,
+            lineStyle: {
+                type: "dashed",
+                width: 1.5,
+                color: itnColors.value.extremes,
+            },
         },
         {
             name: ITN_SERIES.extremes,
             type: "line",
-            encode: { x: "position", y: "baseline_band" },
-            stack: "extreme",
-            stackStrategy: "all",
+            encode: { x: "position", y: "baseline_max" },
             symbol: "none",
             color: itnColors.value.extremes,
-            lineStyle: { opacity: 0 },
-            areaStyle: { color: itnColors.value.extremes },
+            lineStyle: {
+                type: "dashed",
+                width: 1.5,
+                color: itnColors.value.extremes,
+            },
         },
         {
             type: "line",
@@ -212,7 +215,7 @@ function buildStackedOption(
             dimensions: [
                 "position",
                 "baseline_min",
-                "baseline_band",
+                "baseline_max",
                 "baseline_std_dev_lower",
                 "baseline_std_dev_band",
                 "baseline_mean",
@@ -297,7 +300,6 @@ const option = computed<ECOption>(() => {
                 "baseline_std_dev_band",
                 "baseline_max",
                 "baseline_min",
-                "baseline_band",
                 "hot_red_band",
                 "cold_blue_band",
                 "hot_cold_invisible_band",
@@ -313,9 +315,8 @@ const option = computed<ECOption>(() => {
                     baseline_std_dev_band:
                         point.baseline_std_dev_upper -
                         point.baseline_std_dev_lower,
-                    baseline_max: undefined, // point.baseline_max, // TODO: Enable when extremes are available
-                    baseline_min: undefined, // point.baseline_min, // TODO: Enable when extremes are available
-                    baseline_band: undefined, // point.baseline_max - point.baseline_min, // TODO: Enable when extremes are available
+                    baseline_max: point.baseline_max,
+                    baseline_min: point.baseline_min,
                     cold_blue_band:
                         point.baseline_mean -
                         Math.min(point.temperature, point.baseline_mean),
@@ -355,28 +356,31 @@ const option = computed<ECOption>(() => {
             },
         },
         series: [
-            // extreme - Invisible base — pushes the band up to start at lower bound
-            {
-                type: "line",
-                encode: { x: "date", y: "baseline_min" },
-                stack: "extreme",
-                stackStrategy: "all",
-                symbol: "none",
-                lineStyle: { opacity: 0 },
-                areaStyle: { color: "transparent" },
-                tooltip: { show: false },
-            },
-            // extreme - baseline_band
+            // extreme min - dashed line
             {
                 name: ITN_SERIES.extremes,
                 type: "line",
-                encode: { x: "date", y: "baseline_band" },
-                stack: "extreme",
-                stackStrategy: "all",
+                encode: { x: "date", y: "baseline_min" },
                 symbol: "none",
                 color: itnColors.value.extremes,
-                lineStyle: { opacity: 0 },
-                areaStyle: { color: itnColors.value.extremes },
+                lineStyle: {
+                    type: "dashed",
+                    width: 1.5,
+                    color: itnColors.value.extremes,
+                },
+            },
+            // extreme max - dashed line
+            {
+                name: ITN_SERIES.extremes,
+                type: "line",
+                encode: { x: "date", y: "baseline_max" },
+                symbol: "none",
+                color: itnColors.value.extremes,
+                lineStyle: {
+                    type: "dashed",
+                    width: 1.5,
+                    color: itnColors.value.extremes,
+                },
             },
             // ecart-type - Invisible base — pushes the band up to start at lower bound
             {

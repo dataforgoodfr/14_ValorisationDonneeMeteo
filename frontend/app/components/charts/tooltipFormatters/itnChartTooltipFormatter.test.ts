@@ -160,12 +160,8 @@ describe("itnChartTooltipFormatter", () => {
             },
         ];
         const result = itnChartTooltipFormatter(params, "day");
-        // TODO: Enable when extremes are available
-        // expect(result).toBe(
-        //     "lun. 23 mars 2026<br/>ITN : 17.3°C<br/>ITN des normales : 18.5°C<br/>dummy-markerExtrêmes : [12.6°C – 24.4°C]<br/>dummy-markerÉcart-type : [16.9°C – 20.1°C]",
-        // );
         expect(result).toBe(
-            "lun. 23 mars 2026<br/>ITN : 17.3°C<br/>ITN des normales : 18.5°C<br/>dummy-markerÉcart-type : [16.9°C – 20.1°C]",
+            "lun. 23 mars 2026<br/>ITN : 17.3°C<br/>ITN des normales : 18.5°C<br/>dummy-markerExtrêmes : [12.6°C – 24.4°C]<br/>dummy-markerÉcart-type : [16.9°C – 20.1°C]",
         );
     });
 
@@ -253,12 +249,8 @@ describe("itnChartTooltipFormatter", () => {
             },
         ];
         const result = itnChartTooltipFormatter(params, "month");
-        // TODO: Enable when extremes are available
-        // expect(result).toBe(
-        //     "mars 2026<br/>ITN : 18.0°C<br/>ITN des normales : 17.9°C<br/>dummy-markerExtrêmes : [11.1°C – 24.4°C]<br/>dummy-markerÉcart-type : [16.2°C – 19.6°C]",
-        // );
         expect(result).toBe(
-            "mars 2026<br/>ITN : 18.0°C<br/>ITN des normales : 17.9°C<br/>dummy-markerÉcart-type : [16.2°C – 19.6°C]",
+            "mars 2026<br/>ITN : 18.0°C<br/>ITN des normales : 17.9°C<br/>dummy-markerExtrêmes : [11.1°C – 24.4°C]<br/>dummy-markerÉcart-type : [16.2°C – 19.6°C]",
         );
     });
 
@@ -346,12 +338,8 @@ describe("itnChartTooltipFormatter", () => {
             },
         ];
         const result = itnChartTooltipFormatter(params, "year");
-        // TODO: Enable when extremes are available
-        // expect(result).toBe(
-        //     '2026<br/>ITN : 15.5°C<br/>ITN des normales : 15.4°C<br/>dummy-markerExtrêmes : [4.7°C – 24.4°C]<br/>Écart-type : [13.7°C – 17.2°C]',
-        // );
         expect(result).toBe(
-            "2026<br/>ITN : 15.5°C<br/>ITN des normales : 15.4°C<br/>dummy-markerÉcart-type : [13.7°C – 17.2°C]",
+            "2026<br/>ITN : 15.5°C<br/>ITN des normales : 15.4°C<br/>dummy-markerExtrêmes : [4.7°C – 24.4°C]<br/>dummy-markerÉcart-type : [13.7°C – 17.2°C]",
         );
     });
 
