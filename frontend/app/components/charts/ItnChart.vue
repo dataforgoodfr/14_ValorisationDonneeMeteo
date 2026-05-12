@@ -411,6 +411,7 @@ const option = computed<ECOption>(() => {
                 type: "line",
                 encode: { x: "date", y: "baseline_mean" },
                 symbol: "none",
+                color: itnColors.value.baselineLine,
             },
             // Temperature - temperature
             {
