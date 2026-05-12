@@ -27,11 +27,21 @@
                 {{ formattedStart }} – {{ formattedEnd }}
             </template>
         </Card>
+
+        <HotColdRatioCard
+            title="Records chaud / froid"
+            :tooltip-text="`Proportion de records de chaleur par rapport aux records de froid entre le ${formattedStart} et le ${formattedEnd}.`"
+            :hot-value="hotCount"
+            :cold-value="coldCount"
+            hot-label="chaleur"
+            cold-label="froid"
+        />
     </div>
 </template>
 
 <script setup lang="ts">
 import Card from "~/components/home/Card.vue";
+import HotColdRatioCard from "~/components/home/HotColdRatioCard.vue";
 import type { SelectBarAdapter } from "~/components/ui/commons/selectBar/types";
 import type { TemperatureRecordsGraphResponse } from "~/types/api";
 

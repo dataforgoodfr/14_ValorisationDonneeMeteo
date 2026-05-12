@@ -8,6 +8,8 @@ interface Props {
     coldValue: number;
     hotLabel?: string;
     coldLabel?: string;
+    unitLabel?: string;
+    variationContext?: string;
     withBorder?: boolean;
     variation?: number;
 }
@@ -15,6 +17,8 @@ interface Props {
 const props = withDefaults(defineProps<Props>(), {
     hotLabel: "chaud",
     coldLabel: "froid",
+    unitLabel: "records de",
+    variationContext: "vs. 365 jours précédents",
     withBorder: false,
     variation: undefined,
 });
@@ -33,14 +37,16 @@ const hotPercent = computed(() =>
         class="h-fit max-w-96"
     >
         <template #kpi>
-            <p class="font-semibold text-4xl mb-1 text-red-400">
-                {{ hotPercent }}%
-                <span
-                    class="text-sm font-normal text-slate-500 dark:text-slate-300"
+            <div class="flex flex-wrap items-baseline gap-x-2 mb-1">
+                <span class="font-semibold text-4xl text-red-400"
+                    >{{ hotPercent }}%</span
                 >
-                    de records de {{ props.hotLabel }}
+                <span
+                    class="text-xs font-normal text-slate-500 dark:text-slate-300"
+                >
+                    de {{ props.unitLabel }} {{ props.hotLabel }}
                 </span>
-            </p>
+            </div>
             <div class="flex w-full h-4 rounded-full overflow-hidden mt-1 mb-2">
                 <div
                     class="bg-red-400 transition-all duration-500"
@@ -68,11 +74,11 @@ const hotPercent = computed(() =>
                 {{ props.variation > 0 ? "+" : "" }}{{ props.variation }} points
             </span>
             <span v-else class="text-sm font-semibold text-blue-600"> = </span>
-            vs. période précédente
+            {{ props.variationContext }}
         </template>
         <template #kpi-context-text>
-            {{ props.hotValue }} records de {{ props.hotLabel }} vs
-            {{ props.coldValue }} records de {{ props.coldLabel }}
+            {{ props.hotValue }} {{ props.unitLabel }} {{ props.hotLabel }} vs
+            {{ props.coldValue }} {{ props.unitLabel }} {{ props.coldLabel }}
         </template>
     </Card>
 </template>

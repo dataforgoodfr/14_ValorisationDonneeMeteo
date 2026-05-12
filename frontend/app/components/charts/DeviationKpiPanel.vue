@@ -50,11 +50,22 @@
                 </p>
             </template>
         </Card>
+
+        <HotColdRatioCard
+            title="Jours chauds / froids"
+            tooltip-text="Proportion de jours au-dessus des normales par rapport aux jours en-dessous des normales sur la période sélectionnée."
+            :hot-value="kpi?.days_above_baseline ?? 0"
+            :cold-value="kpi?.days_below_baseline ?? 0"
+            hot-label="chauds"
+            cold-label="froids"
+            unit-label="jours"
+        />
     </div>
 </template>
 
 <script setup lang="ts">
 import Card from "~/components/home/Card.vue";
+import HotColdRatioCard from "~/components/home/HotColdRatioCard.vue";
 import { useDeviationStore, dateToStringYMD } from "#imports";
 import type { NationalIndicatorKpiParams } from "~/types/api";
 
