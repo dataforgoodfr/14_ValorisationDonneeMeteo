@@ -239,6 +239,7 @@ function buildStackedOption(
         },
         yAxis: {
             type: "value",
+            scale: true,
             name: "Température (°C)",
             nameRotate: 90,
             nameLocation: "middle",
@@ -345,6 +346,7 @@ const option = computed<ECOption>(() => {
         },
         yAxis: {
             type: "value",
+            scale: true,
             name: "Température (°C)",
             nameRotate: 90,
             nameLocation: "middle",
