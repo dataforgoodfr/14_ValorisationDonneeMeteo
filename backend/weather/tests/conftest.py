@@ -181,6 +181,7 @@ def setup_db_schema_and_views(django_db_setup, django_db_blocker):
             cur.execute("""
                 DROP TABLE IF EXISTS public.mv_itn_daily_all_years_with_feb29;
                 CREATE TABLE public.mv_itn_daily_all_years_with_feb29 (
+                    date         date             NULL,
                     year         integer          NOT NULL,
                     month        integer          NOT NULL,
                     day_of_month integer          NOT NULL,

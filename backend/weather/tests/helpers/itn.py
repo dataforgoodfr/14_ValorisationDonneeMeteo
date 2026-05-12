@@ -22,14 +22,16 @@ def insert_itn_daily_with_feb29(
     year: int, month: int, day_of_month: int, itn: float, *, is_fictive: bool = False
 ) -> None:
     """Insère une ligne dans mv_itn_daily_all_years_with_feb29."""
+    date = None if is_fictive else dt.date(year, month, day_of_month)
     with connection.cursor() as cur:
         cur.execute(
             """
             INSERT INTO public.mv_itn_daily_all_years_with_feb29
-                (year, month, day_of_month, is_fictive, itn)
-            VALUES (%(year)s, %(month)s, %(day_of_month)s, %(is_fictive)s, %(itn)s)
+                (date, year, month, day_of_month, is_fictive, itn)
+            VALUES (%(date)s, %(year)s, %(month)s, %(day_of_month)s, %(is_fictive)s, %(itn)s)
             """,
             {
+                "date": date,
                 "year": year,
                 "month": month,
                 "day_of_month": day_of_month,
