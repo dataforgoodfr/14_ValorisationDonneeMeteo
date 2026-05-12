@@ -1,8 +1,8 @@
 <template>
     <div class="flex flex-col gap-3 md:w-52 md:shrink-0 py-2">
         <Card
-            title="Écart moyen en France"
-            tooltip-text="Écart moyen à la normale en France métropolitaine sur la période sélectionnée."
+            title="Écart à la normale moyen en France"
+            :tooltip-text="`Écart à la normale moyen en France métropolitaine entre le ${formattedStart} et le ${formattedEnd}.`"
         >
             <template #kpi>
                 <p
@@ -24,8 +24,8 @@
         </Card>
 
         <Card
-            title="Jours au-dessus des normales"
-            tooltip-text="Nombre de jours, sur la période sélectionnée, pour lesquels l'écart à la normale en France est supérieur à 0."
+            title="Nombre de jours au-dessus des normales"
+            :tooltip-text="`Nombre de jours, entre le ${formattedStart} et le ${formattedEnd}, pour lesquels l'écart à la normale en France métropolitaine est supérieur à 0.`"
         >
             <template #kpi>
                 <p class="font-semibold text-4xl mb-1 text-red-400">
@@ -35,11 +35,12 @@
                     <span v-else class="text-muted">—</span>
                 </p>
             </template>
+            <template #kpi-context-text> vs normales 1991–2020 </template>
         </Card>
 
         <Card
-            title="Jours en-dessous des normales"
-            tooltip-text="Nombre de jours, sur la période sélectionnée, pour lesquels l'écart à la normale en France est inférieur à 0."
+            title="Nombre de jours en-dessous des normales"
+            :tooltip-text="`Nombre de jours, entre le ${formattedStart} et le ${formattedEnd} pour lesquels l'écart à la normale en France métropolitaine est inférieur à 0.`"
         >
             <template #kpi>
                 <p class="font-semibold text-4xl mb-1 text-blue-400">
@@ -49,6 +50,7 @@
                     <span v-else class="text-muted">—</span>
                 </p>
             </template>
+            <template #kpi-context-text> vs normales 1991–2020 </template>
         </Card>
     </div>
 </template>
@@ -60,6 +62,10 @@ import type { NationalIndicatorKpiParams } from "~/types/api";
 
 const store = useDeviationStore();
 const { pickedDateStart, pickedDateEnd } = storeToRefs(store);
+
+const fmt = (d: Date) => d.toLocaleDateString("fr-FR", { dateStyle: "short" });
+const formattedStart = computed(() => fmt(pickedDateStart.value));
+const formattedEnd = computed(() => fmt(pickedDateEnd.value));
 
 const params = computed<NationalIndicatorKpiParams>(() => ({
     date_start: dateToStringYMD(pickedDateStart.value),

@@ -65,7 +65,7 @@ const temperatureChangeYearOverYear = computed<number | undefined>(() => {
         <template v-if="gap" #kpi-context-box>
             {{ gap?.toFixed(1) === "0.0" ? "= " : gap > 0 ? "+" : ""
             }}{{ gap?.toFixed(1) === "0.0" ? "" : gap?.toFixed(1) + "°C " }}vs
-            normale 1991-2020
+            normales 1991-2020
         </template>
         <template #variation>
             <UIcon

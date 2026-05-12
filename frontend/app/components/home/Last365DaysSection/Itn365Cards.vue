@@ -84,7 +84,7 @@ const coldDiff = computed(() => {
                             deviationFromNormal.toFixed(1) === "0.0"
                                 ? ""
                                 : deviationFromNormal.toFixed(1) + "°C "
-                        }}vs normale 1991-2020
+                        }}vs normales 1991-2020
                     </template>
                     <template #kpi-context-text>
                         en moyenne ces 365 derniers jours
@@ -145,7 +145,7 @@ const coldDiff = computed(() => {
                         </p>
                     </template>
                     <template #kpi-context-text>
-                        période des normales 1991-2020
+                        période des normales: 1991-2020
                     </template>
                     <template v-if="hotDiff != null" #variation>
                         <UIcon
@@ -186,7 +186,7 @@ const coldDiff = computed(() => {
                         </p>
                     </template>
                     <template #kpi-context-text>
-                        période des normales 1991-2020
+                        période des normales: 1991-2020
                     </template>
                     <template v-if="coldDiff != null" #variation>
                         <UIcon

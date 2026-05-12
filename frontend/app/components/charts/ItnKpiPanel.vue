@@ -2,7 +2,7 @@
     <div class="flex flex-col gap-3 md:w-52 md:shrink-0 py-2">
         <Card
             title="ITN moyen"
-            tooltip-text="Moyenne de l'Indicateur Thermique National sur la période sélectionnée."
+            :tooltip-text="`Moyenne de l'Indicateur Thermique National du ${formattedStart} au ${formattedEnd}.`"
         >
             <template #kpi>
                 <p class="font-semibold text-4xl mb-1 text-red-400">
@@ -36,7 +36,7 @@
                         name="i-lucide-arrow-up-right"
                         class="text-red-400"
                     />
-                    vs période des normales
+                    vs normales 1991-2020
                 </template>
 
                 <span v-else class="text-muted">—</span>
@@ -45,7 +45,7 @@
 
         <Card
             title="Nombre de jours excessivement chauds"
-            tooltip-text="Nombre de jours, sur la période sélectionnée, pour lesquels la valeur de l'ITN est au-delà de l'écart-type de la période des normales."
+            :tooltip-text="`Nombre de jours, entre le ${formattedStart} et le ${formattedEnd}, pour lesquels la valeur de l'ITN est au-delà de l'écart-type des normales 1991-2020.`"
         >
             <template #kpi>
                 <p class="font-semibold text-4xl mb-1 text-red-400">
@@ -88,7 +88,7 @@
 
         <Card
             title="Nombre de jours excessivement froids"
-            tooltip-text="Nombre de jours, sur la période sélectionnée, pour lesquels la valeur de l'ITN est en-deçà de l'écart-type de la période des normales."
+            :tooltip-text="`Nombre de jours du ${formattedStart} au ${formattedEnd} pour lesquels la valeur de l'ITN est en-deçà de l'écart-type de la période des normales.`"
         >
             <template #kpi>
                 <p class="font-semibold text-4xl mb-1 text-blue-400">
@@ -137,6 +137,10 @@ import type { NationalIndicatorKpiParams } from "~/types/api";
 
 const store = useItnStore();
 const { pickedDateStart, pickedDateEnd } = storeToRefs(store);
+
+const fmt = (d: Date) => d.toLocaleDateString("fr-FR", { dateStyle: "short" });
+const formattedStart = computed(() => fmt(pickedDateStart.value));
+const formattedEnd = computed(() => fmt(pickedDateEnd.value));
 
 const params = computed<NationalIndicatorKpiParams>(() => ({
     date_start: dateToStringYMD(pickedDateStart.value),

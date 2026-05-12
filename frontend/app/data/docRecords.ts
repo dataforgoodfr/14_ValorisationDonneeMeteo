@@ -11,7 +11,7 @@ export const recordsSections: InfoSection[] = [
         label: "Définition",
         content:
             "Une mesure de température est un record si c'est la valeur la plus extrême" +
-            " (chaude ou froide) jamais mesurée, à date, sur la période d'analyse sélectionnée.",
+            " (chaude ou froide) jamais mesurée, à date, depuis la création de la station.",
     },
     {
         label: "Méthode de calcul",
@@ -20,7 +20,7 @@ export const recordsSections: InfoSection[] = [
                 title: "Records absolus",
                 text:
                     "Un record absolu est la (et l'unique) valeur de température la plus extrême jamais" +
-                    " mesurée sur la période d'analyse sélectionnée",
+                    " mesurée depuis la création de la station",
             },
             {
                 title: "Records battus",
@@ -33,13 +33,14 @@ export const recordsSections: InfoSection[] = [
                     " défini comme le record absolu des 50 premières années de mesures.",
             },
             {
-                title: "Période d'analyse",
+                title: "Types de records",
                 text:
-                    "La période d'analyse permet d'afficher les records mensuels ou saisonniers (absolus ou battus) pour une" +
-                    " partie de l'année (un mois ou une saison) seulement:" +
-                    "\n- si la période d'analyse est un mois, les records mensuels, du mois sélectionné, sont affichés." +
-                    "\n- si la période d'analyse est une saison, les records saisonniers, de la saison sélectionnée, sont affichés." +
-                    "\n- si la période est 'Année complète' les records annuels (tous mois confondus) sont affichés.",
+                    "Trois types de records sont disponobles sur DataClimat: records annuels, saisonniers ou mensuels." +
+                    "\n- Un record annuel est une valeur qui est la plus extrême tous mois confondus" +
+                    "\n- Un record saisonnier est une valeur qui est la plus extrême en ne considérant que la saison en cours: " +
+                    " il est possible d'afficher les records saisonniers de toutes les saisons ou d'une saison en particulier" +
+                    "\n- Un record mensuel est une valeur qui est la plus extrême en ne considérant que le mois en cours: " +
+                    " il est possible d'afficher les records mensuels de tous les mois ou d'un mois en en particulier.",
             },
         ],
     },

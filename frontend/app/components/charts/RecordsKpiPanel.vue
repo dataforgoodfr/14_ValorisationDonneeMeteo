@@ -2,7 +2,7 @@
     <div class="flex flex-col gap-3 md:w-52 md:shrink-0 py-2">
         <Card
             :title="`Records de chaud (${kindLabel})`"
-            :tooltip-text="`Nombre de records de chaleur ${kindLabel.toLowerCase()} en France entre le ${formattedStart} et le ${formattedEnd}.`"
+            :tooltip-text="`Nombre de ${kindLabel.toLowerCase()} de chaleur en France métropolitaine entre le ${formattedStart} et le ${formattedEnd}.`"
         >
             <template #kpi>
                 <p class="font-semibold text-4xl mb-1 text-red-450">
@@ -16,7 +16,7 @@
 
         <Card
             :title="`Records de froid (${kindLabel})`"
-            :tooltip-text="`Nombre de records de froid ${kindLabel.toLowerCase()} en France entre le ${formattedStart} et le ${formattedEnd}.`"
+            :tooltip-text="`Nombre de ${kindLabel.toLowerCase()} de froid en France métropolitaine entre le ${formattedStart} et le ${formattedEnd}.`"
         >
             <template #kpi>
                 <p class="font-semibold text-4xl mb-1 text-blue-600">
