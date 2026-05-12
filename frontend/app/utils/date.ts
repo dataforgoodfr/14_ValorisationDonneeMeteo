@@ -22,13 +22,8 @@ export function dateToStringDMY(date: Date): string {
 }
 
 /** Returns the first day of the year for the given date as date */
-export function getFirstDayOfYear(date: Date): Date {
-    return new Date(date.getUTCFullYear(), 1 - 1, 1, 0, 0, 0, 0);
-}
-
-/** Returns the first day of the year for the given date as date */
 export function getFirstDayOfYearInLocal(date: Date): Date {
-    return fromUTCToLocal(getFirstDayOfYear(fromLocalToUTC(date)));
+    return new Date(date.getFullYear(), 0, 1);
 }
 
 function isCurrentYear(date: Date, today: Date = new Date()): boolean {
