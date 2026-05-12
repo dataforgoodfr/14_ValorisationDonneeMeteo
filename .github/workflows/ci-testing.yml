@@ -21,7 +21,7 @@ jobs:
       - name: Install dependencies
         working-directory: backend
         run: |
-          uv sync --extra dev
+          uv sync
           cp .env.example .env
 
       - name: Start db
