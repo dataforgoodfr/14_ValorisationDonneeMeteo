@@ -115,21 +115,56 @@ function exportCSV() {
             id="table"
             class="flex flex-col gap-4 dark:bg-elevated rounded-lg px-3 py-2"
         >
-            <div class="flex items-center gap-1">
-                <p class="text-sm font-medium">Période</p>
-                <FieldInfo
-                    text="Sélectionnez une période pour afficher les records mensuels ou saisonnier ou sur toute l'année"
-                />
-            </div>
+            <div class="flex flex-col">
+                <div class="flex items-start gap-1">
+                    <p class="text-sm font-medium">Période</p>
+                    <FieldInfo
+                        text="Sélectionnez une période pour afficher les records mensuels ou saisonnier ou sur toute l'année"
+                    />
+                </div>
+                <div class="flex flex-col justify-between gap-2">
+                    <div class="flex gap-2">
+                        <USelect
+                            v-model="store.periodSelection"
+                            :items="periodOptions"
+                        />
 
-            <div class="flex items-end gap-4">
-                <div class="flex flex-col md:flex-row gap-4">
-                    <RecordsFilterBar />
-                    <div class="mt-3.5">
+                        <UFieldGroup>
+                            <UButton
+                                :ui="{
+                                    base:
+                                        store.typeRecords === 'hot'
+                                            ? 'bg-rose-200 text-rose-600 ring-1 ring-rose-300 pointer-events-none'
+                                            : '',
+                                }"
+                                color="neutral"
+                                variant="outline"
+                                label="Chaud"
+                                @click="store.typeRecords = 'hot'"
+                            />
+                            <UButton
+                                :ui="{
+                                    base:
+                                        store.typeRecords === 'cold'
+                                            ? 'bg-blue-200 text-blue-650! dark:text-blue-700! ring-1 ring-blue-300 pointer-events-none'
+                                            : '',
+                                }"
+                                color="neutral"
+                                variant="outline"
+                                label="Froid"
+                                @click="store.typeRecords = 'cold'"
+                            />
+                        </UFieldGroup>
+                    </div>
+                    <div
+                        class="flex flex-col lg:flex-row justify-between flex-1 gap-2"
+                    >
+                        <RecordsFilterBar />
+
                         <UButton
+                            class="self-start"
                             label="Exporter CSV"
                             icon="i-lucide-download"
-                            class="ml-auto"
                             :ui="EXPORT_BTN_UI"
                             :disabled="store.pending"
                             @click="exportCSV"

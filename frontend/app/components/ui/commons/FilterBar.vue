@@ -138,11 +138,10 @@ const hasAnyFilter = computed(() => Object.keys(props.filters).length > 0);
 </script>
 
 <template>
-    <div ref="containerRef" class="flex flex-col gap-3 py-3.5">
+    <div ref="containerRef" class="flex flex-col gap-3">
         <!-- Filter buttons row -->
 
         <div class="flex items-center gap-2 flex-wrap">
-            <slot name="extra-fields" />
             <div v-for="field in fields" :key="field.id" class="relative">
                 <button
                     class="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium rounded-md border transition-colors cursor-pointer"

@@ -19,6 +19,7 @@ import DeviationFilterBar from "~/components/table/deviation/DeviationFilterBar.
 import { buildDeviationCsv } from "~/utils/deviationCsv";
 import type { TemperatureDeviationResponse } from "~/types/api";
 import { EXPORT_BTN_UI } from "~/constants/tableUtils";
+import DatePresetPicker from "~/components/ui/commons/DatePresetPicker.vue";
 
 const selectBarAdapter = useDeviationSelectBarAdapter();
 const chartType = computed<ChartType>(
@@ -106,8 +107,8 @@ async function exportCSV() {
             id="table"
             class="flex flex-col gap-4 dark:bg-elevated rounded-lg px-3 py-2"
         >
-            <div class="flex flex-col gap-2">
-                <div class="flex items-center gap-1">
+            <div class="flex flex-col">
+                <div class="flex items-center">
                     <p class="text-sm font-medium">
                         Période de moyennage des données
                     </p>
@@ -129,12 +130,18 @@ async function exportCSV() {
                     </UPopover>
                 </div>
 
-                <div
-                    class="flex flex-col lg:flex-row items-start lg:items-start justify-between gap-2"
-                >
-                    <DeviationFilterBar />
-                    <div class="mt-3.5">
+                <div class="flex flex-col justify-between gap-2">
+                    <DatePresetPicker
+                        v-model:start-date="dateStart"
+                        v-model:end-date="dateEnd"
+                    />
+                    <div
+                        class="flex flex-col lg:flex-row justify-between flex-1 gap-2"
+                    >
+                        <DeviationFilterBar />
+
                         <UButton
+                            class="self-start"
                             label="Exporter CSV"
                             icon="i-lucide-download"
                             :ui="EXPORT_BTN_UI"

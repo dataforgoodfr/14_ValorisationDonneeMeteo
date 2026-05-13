@@ -47,24 +47,26 @@ onMounted((): void => {
 </script>
 
 <template>
-    <USelect
-        v-model="preset"
-        :items="presetOptions"
-        class="w-48"
-        @change="applyPreset"
-    />
-    <div
-        :class="
-            preset !== 'custom'
-                ? 'opacity-50 pointer-events-none select-none'
-                : ''
-        "
-    >
-        <DayPicker
-            v-model:start-date="dateStart"
-            v-model:end-date="dateEnd"
-            :min-date="dates.absoluteMinDataDate.value"
-            :max-date="dates.yesterday.value"
+    <div class="flex flex-col md:flex-row gap-2">
+        <USelect
+            v-model="preset"
+            :items="presetOptions"
+            class="w-48"
+            @change="applyPreset"
         />
+        <div
+            :class="
+                preset !== 'custom'
+                    ? 'opacity-50 pointer-events-none select-none'
+                    : ''
+            "
+        >
+            <DayPicker
+                v-model:start-date="dateStart"
+                v-model:end-date="dateEnd"
+                :min-date="dates.absoluteMinDataDate.value"
+                :max-date="dates.yesterday.value"
+            />
+        </div>
     </div>
 </template>
