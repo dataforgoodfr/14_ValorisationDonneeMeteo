@@ -24,7 +24,9 @@ const {
     pending,
     error,
     ordering,
+    hasActiveFilters,
 } = storeToRefs(store);
+const { resetFilters } = store;
 
 // Track the record type that corresponds to the data currently displayed,
 // so the badge color only flips once the new data has arrived.
@@ -171,6 +173,18 @@ const columns = [
                         <USkeleton class="h-4 w-full" />
                     </td>
                 </tr>
+            </template>
+            <template #empty>
+                <div class="flex flex-col items-center gap-3 py-8 text-muted">
+                    <span>Aucune donnée affichée.</span>
+                    <UButton
+                        v-if="hasActiveFilters"
+                        label="Réinitialiser les filtres"
+                        icon="i-lucide-filter-x"
+                        :ui="EXPORT_BTN_UI"
+                        @click="resetFilters"
+                    />
+                </div>
             </template>
         </UTable>
 

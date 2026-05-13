@@ -34,7 +34,9 @@ const {
     dateEnd,
     ordering,
     pending,
+    hasActiveFilters,
 } = storeToRefs(store);
+const { resetFilters } = store;
 
 const { setOrdering } = store;
 
@@ -168,6 +170,18 @@ const columns = [
                         <USkeleton class="h-4 w-full" />
                     </td>
                 </tr>
+            </template>
+            <template #empty>
+                <div class="flex flex-col items-center gap-3 py-8 text-muted">
+                    <span>Aucune donnée affichée.</span>
+                    <UButton
+                        v-if="hasActiveFilters"
+                        label="Réinitialiser les filtres"
+                        icon="i-lucide-filter-x"
+                        :ui="EXPORT_BTN_UI"
+                        @click="resetFilters"
+                    />
+                </div>
             </template>
         </UTable>
 

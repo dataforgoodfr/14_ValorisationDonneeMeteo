@@ -120,6 +120,23 @@ export const useDeviationTableStore = defineStore("deviationTableStore", () => {
         }
     }
 
+    function resetFilters() {
+        stationIds.value = [];
+        departmentsFilter.value = [];
+        regionsFilter.value = [];
+        deviationMin.value = undefined;
+        deviationMax.value = undefined;
+        temperatureMeanMin.value = undefined;
+        temperatureMeanMax.value = undefined;
+        classeFilter.value = [];
+        creationYearMin.value = undefined;
+        creationYearMax.value = undefined;
+    }
+
+    const hasActiveFilters = computed(
+        () => Object.keys(filters.value).length > 0,
+    );
+
     function clearFilter(id: string) {
         if (id === "name") {
             stationIds.value = [];
@@ -242,6 +259,8 @@ export const useDeviationTableStore = defineStore("deviationTableStore", () => {
         staticOptions,
         setFilter,
         clearFilter,
+        resetFilters,
+        hasActiveFilters,
         deviationData,
         exportParams,
         pending,

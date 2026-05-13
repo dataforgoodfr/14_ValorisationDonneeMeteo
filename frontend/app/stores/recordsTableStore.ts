@@ -209,6 +209,25 @@ export const useRecordsTableStore = defineStore("recordsTableStore", () => {
         }
     }
 
+    function resetFilters() {
+        page.value = 1;
+        stationIds.value = [];
+        departments.value = [];
+        temperatureMin.value = undefined;
+        temperatureMax.value = undefined;
+        dateStart.value = undefined;
+        dateEnd.value = undefined;
+        classeFilter.value = [];
+        creationYearMin.value = undefined;
+        creationYearMax.value = undefined;
+        altMin.value = undefined;
+        altMax.value = undefined;
+    }
+
+    const hasActiveFilters = computed(
+        () => Object.keys(filters.value).length > 0,
+    );
+
     // Build API params from periodSelection
     const params = computed<TemperatureRecordsParams>(() => {
         const result: TemperatureRecordsParams = {
@@ -353,5 +372,7 @@ export const useRecordsTableStore = defineStore("recordsTableStore", () => {
         dateStart,
         dateEnd,
         ordering,
+        resetFilters,
+        hasActiveFilters,
     };
 });
