@@ -1,5 +1,4 @@
 import type {
-    DeviationMapParams,
     DeviationMapResponse,
     TemperatureRecordsGraphParams,
     TemperatureRecordsGraphResponse,
@@ -15,6 +14,7 @@ export function useTemperatureDeviation(
     params: MaybeRef<TemperatureDeviationParams>,
     enabled?: MaybeRef<boolean>,
     requireStations: boolean = true,
+    key?: string,
 ) {
     const { useApiFetch } = useApiClient();
 
@@ -39,6 +39,7 @@ export function useTemperatureDeviation(
             query: params,
             immediate: false,
             watch: false,
+            ...(key ? { key } : {}),
         },
     );
 
@@ -156,7 +157,7 @@ export function useCumulativeRecords(
 }
 
 export function useTemperatureDeviationMap(
-    params: MaybeRef<DeviationMapParams>,
+    params: MaybeRef<TemperatureDeviationParams>,
     key?: string,
 ) {
     const { useApiFetch } = useApiClient();

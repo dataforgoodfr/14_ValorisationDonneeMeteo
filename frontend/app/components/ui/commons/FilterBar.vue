@@ -138,113 +138,94 @@ const hasAnyFilter = computed(() => Object.keys(props.filters).length > 0);
 </script>
 
 <template>
-    <div
-        ref="containerRef"
-        class="flex flex-col gap-3 px-4 py-3.5 border-b border-accented"
-    >
-        <div class="flex items-start gap-4">
-            <div class="flex flex-col gap-3 flex-1 min-w-0">
-                <!-- Filter buttons row -->
-                <div class="flex items-center gap-2 flex-wrap">
-                    <div
-                        v-for="field in fields"
-                        :key="field.id"
-                        class="relative"
+    <div ref="containerRef" class="flex flex-col gap-3">
+        <!-- Filter buttons row -->
+
+        <div class="flex items-center gap-2 flex-wrap">
+            <div v-for="field in fields" :key="field.id" class="relative">
+                <button
+                    class="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium rounded-md border transition-colors cursor-pointer"
+                    :class="
+                        getFilterCount(field.id) > 0
+                            ? 'bg-primary/10 border-primary/40 text-primary'
+                            : 'border-accented hover:bg-elevated'
+                    "
+                    @click="toggleDropdown(field)"
+                >
+                    <UIcon name="i-lucide-filter" class="size-3.5 opacity-60" />
+                    <span>{{ field.label }}</span>
+                    <span
+                        v-if="getFilterCount(field.id) > 0"
+                        class="inline-flex items-center justify-center min-w-[1.1rem] h-[1.1rem] px-1 text-[10px] font-bold rounded-full bg-primary text-white"
                     >
-                        <button
-                            class="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium rounded-md border transition-colors cursor-pointer"
-                            :class="
-                                getFilterCount(field.id) > 0
-                                    ? 'bg-primary/10 border-primary/40 text-primary'
-                                    : 'border-accented hover:bg-elevated'
-                            "
-                            @click="toggleDropdown(field)"
-                        >
-                            <UIcon
-                                name="i-lucide-filter"
-                                class="size-3.5 opacity-60"
-                            />
-                            <span>{{ field.label }}</span>
-                            <span
-                                v-if="getFilterCount(field.id) > 0"
-                                class="inline-flex items-center justify-center min-w-[1.1rem] h-[1.1rem] px-1 text-[10px] font-bold rounded-full bg-primary text-white"
-                            >
-                                {{ getFilterCount(field.id) }}
-                            </span>
-                            <UIcon
-                                :name="
-                                    openField?.id === field.id
-                                        ? 'i-lucide-chevron-up'
-                                        : 'i-lucide-chevron-down'
-                                "
-                                class="size-3 opacity-50"
-                            />
-                        </button>
+                        {{ getFilterCount(field.id) }}
+                    </span>
+                    <UIcon
+                        :name="
+                            openField?.id === field.id
+                                ? 'i-lucide-chevron-up'
+                                : 'i-lucide-chevron-down'
+                        "
+                        class="size-3 opacity-50"
+                    />
+                </button>
 
-                        <!-- Dropdown panel -->
-                        <div
-                            v-if="openField?.id === field.id"
-                            class="absolute top-full left-0 z-50 mt-1 rounded-lg border border-accented bg-default shadow-xl"
-                            :class="
-                                field.type === 'date-range' ? 'w-auto' : 'w-64'
-                            "
-                        >
-                            <FilterDropdownString
-                                v-if="
-                                    field.type === 'string' ||
-                                    field.type === 'string-async'
-                                "
-                                :field="field"
-                                :options="getDisplayedOptions(field)"
-                                :selected-values="stringValuesFor(field.id)"
-                                :search-query="searchQuery"
-                                :async-pending="asyncPending?.[field.id]"
-                                :has-more="asyncHasMore?.[field.id]"
-                                @update:search-query="searchQuery = $event"
-                                @search="emit('search', field.id, $event)"
-                                @toggle="toggleStringValue(field.id, $event)"
-                                @clear="onClear(field.id)"
-                                @load-more="emit('load-more', field.id)"
-                            />
-                            <FilterDropdownRange
-                                v-else-if="field.type === 'number-range'"
-                                :min="localRange.min"
-                                :max="localRange.max"
-                                :has-filter="getFilterCount(field.id) > 0"
-                                @update:min="onUpdateRange('min', $event)"
-                                @update:max="onUpdateRange('max', $event)"
-                                @clear="onClear(field.id)"
-                            />
-                            <FilterDropdownDateRange
-                                v-else
-                                :start-date="localDateRange.start"
-                                :end-date="localDateRange.end"
-                                :has-filter="getFilterCount(field.id) > 0"
-                                @update:start-date="
-                                    onUpdateDateRange('start', $event)
-                                "
-                                @update:end-date="
-                                    onUpdateDateRange('end', $event)
-                                "
-                                @clear="onClear(field.id)"
-                            />
-                        </div>
-                    </div>
+                <!-- Dropdown panel -->
+                <div
+                    v-if="openField?.id === field.id"
+                    class="absolute top-full left-0 z-50 mt-1 rounded-lg border border-accented bg-default shadow-xl"
+                    :class="field.type === 'date-range' ? 'w-auto' : 'w-64'"
+                >
+                    <FilterDropdownString
+                        v-if="
+                            field.type === 'string' ||
+                            field.type === 'string-async'
+                        "
+                        :field="field"
+                        :options="getDisplayedOptions(field)"
+                        :selected-values="stringValuesFor(field.id)"
+                        :search-query="searchQuery"
+                        :async-pending="asyncPending?.[field.id]"
+                        :has-more="asyncHasMore?.[field.id]"
+                        @update:search-query="searchQuery = $event"
+                        @search="emit('search', field.id, $event)"
+                        @toggle="toggleStringValue(field.id, $event)"
+                        @clear="onClear(field.id)"
+                        @load-more="emit('load-more', field.id)"
+                    />
+                    <FilterDropdownRange
+                        v-else-if="field.type === 'number-range'"
+                        :min="localRange.min"
+                        :max="localRange.max"
+                        :has-filter="getFilterCount(field.id) > 0"
+                        @update:min="onUpdateRange('min', $event)"
+                        @update:max="onUpdateRange('max', $event)"
+                        @clear="onClear(field.id)"
+                    />
+                    <FilterDropdownDateRange
+                        v-else
+                        :start-date="localDateRange.start"
+                        :end-date="localDateRange.end"
+                        :has-filter="getFilterCount(field.id) > 0"
+                        @update:start-date="onUpdateDateRange('start', $event)"
+                        @update:end-date="onUpdateDateRange('end', $event)"
+                        @clear="onClear(field.id)"
+                    />
                 </div>
-
-                <!-- Active filter chips -->
-                <FilterActiveChips
-                    v-if="hasAnyFilter"
-                    :fields="fields"
-                    :filters="filters"
-                    :filter-options="filterOptions"
-                    @toggle-string-value="toggleStringValue"
-                    @clear="onClear($event)"
-                />
             </div>
-
-            <!-- Right-side actions slot -->
-            <slot name="actions" />
         </div>
+
+        <!-- Active filter chips -->
+        <FilterActiveChips
+            v-if="hasAnyFilter"
+            :fields="fields"
+            :filters="filters"
+            :filter-options="filterOptions"
+            @toggle-string-value="toggleStringValue"
+            @clear="onClear($event)"
+        />
+
+        <!-- Right-side actions slot -->
+        <slot name="actions" />
     </div>
 </template>

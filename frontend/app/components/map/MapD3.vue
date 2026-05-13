@@ -1,32 +1,5 @@
 <template>
     <div class="flex flex-col gap-2 lg:w-155 w-full shrink-0">
-        <Card
-            class="w-fit mx-auto"
-            :with-border="false"
-            title="Ecart à la normale en France"
-            tooltip-text="Ecart à la normale moyen en France métropolitaine sur la période sélectionnée."
-        >
-            <template #kpi>
-                <p
-                    class="font-semibold text-4xl mb-1"
-                    :class="
-                        deviation && deviation > 0
-                            ? 'text-red-400'
-                            : 'text-blue-400'
-                    "
-                >
-                    <span v-if="deviation != null">
-                        {{ deviation > 0 ? "+" : ""
-                        }}{{ deviation.toFixed(1) }} °C
-                    </span>
-                    <span v-else class="text-muted">—</span>
-                </p>
-            </template>
-            <template #kpi-context-text>
-                période des normales: 1991-2020
-            </template>
-        </Card>
-
         <StationMap
             class="-mt-20"
             :stations="mappableStations"
@@ -38,39 +11,40 @@
 </template>
 
 <script setup lang="ts">
-import type {
-    DeviationMapParams,
-    MappableStation,
-    NationalIndicatorKpiParams,
-} from "~/types/api";
+import type { MappableStation, TemperatureDeviationParams } from "~/types/api";
 import { DEVIATION_MAP_COLORS } from "~/constants/colors";
 import { formatDeviationMapTooltip } from "~/components/map/tooltipFormatters/deviationMapTooltipFormatter";
 import StationMap from "~/components/map/StationMap.vue";
-import Card from "~/components/home/Card.vue";
-import { dateToStringYMD } from "#imports";
 
 const props = defineProps<{
     dateStart: string;
     dateEnd: string;
+    params: TemperatureDeviationParams;
 }>();
 
-const paramsItn = computed<NationalIndicatorKpiParams>(() => ({
-    date_start: dateToStringYMD(new Date(props.dateStart)),
-    date_end: dateToStringYMD(new Date(props.dateEnd)),
-}));
-
-const { data: kpi } = useNationalIndicatorKpi(paramsItn);
-
-const deviation = computed(() => kpi.value?.deviation_from_normal);
-
-const params = computed<DeviationMapParams>(() => ({
+const queryParams = computed<TemperatureDeviationParams>(() => ({
     date_start: props.dateStart,
     date_end: props.dateEnd,
+    station_ids: props.params.station_ids,
+    station_search: props.params.station_search,
+    departments: props.params.departments,
+    regions: props.params.regions,
+    deviation_min: props.params.deviation_min,
+    deviation_max: props.params.deviation_max,
+    classe_recente_min: props.params.classe_recente_min,
+    classe_recente_max: props.params.classe_recente_max,
+    date_de_creation_min: props.params.date_de_creation_min,
+    date_de_creation_max: props.params.date_de_creation_max,
     limit: 99999,
+    offset: 0,
 }));
 
-const { data: stationsData, execute: fetchStations } =
-    useTemperatureDeviationMap(params, "deviation-map");
+const { data: stationsData, execute: fetchStations } = useTemperatureDeviation(
+    queryParams,
+    true,
+    true,
+    "deviation-map",
+);
 
 const mappableStations = computed<MappableStation[]>(
     () =>
@@ -94,7 +68,7 @@ onMounted(async () => {
 });
 
 watch(
-    params,
+    queryParams,
     async () => {
         await fetchStations();
     },

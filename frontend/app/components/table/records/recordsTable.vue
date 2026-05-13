@@ -3,11 +3,8 @@ import { h } from "vue";
 import { UBadge, UButton } from "#components";
 import { storeToRefs } from "pinia";
 import { useRecordsTableStore } from "~/stores/recordsTableStore";
-import RecordsFilterBar from "~/components/table/records/RecordsFilterBar.vue";
-import { buildRecordsCsv } from "~/utils/recordsCsv";
 import {
     CENTERED_COL,
-    EXPORT_BTN_UI,
     REGION_META,
     STATION_META,
     TABLE_HEADER_BTN_MULTILINE_CLASS,
@@ -22,26 +19,12 @@ const {
     page,
     pageSize,
     typeRecords,
-    periodSelection,
     filteredRecords,
     filteredCount,
     pending,
     error,
     ordering,
 } = storeToRefs(store);
-
-function exportCSV() {
-    if (!import.meta.client) return;
-
-    downloadCSV(
-        buildRecordsCsv(filteredRecords.value),
-        useFormatFileName(
-            `tableau-records-${typeRecords.value}`,
-            periodSelection.value,
-            "csv",
-        ),
-    );
-}
 
 // Track the record type that corresponds to the data currently displayed,
 // so the badge color only flips once the new data has arrived.
@@ -166,18 +149,6 @@ const columns = [
 
 <template>
     <div class="flex flex-col gap-4 w-full overflow-x-auto">
-        <div class="flex flex-col lg:flex-row items-end justify-between gap-4">
-            <RecordsFilterBar />
-            <UButton
-                label="Exporter CSV"
-                icon="i-lucide-download"
-                class="ml-auto"
-                :ui="EXPORT_BTN_UI"
-                :disabled="pending"
-                @click="exportCSV"
-            />
-        </div>
-
         <div v-if="error" class="px-4 py-3 bg-error/10 text-error rounded">
             Error loading stations: {{ error.message }}
         </div>

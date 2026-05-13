@@ -7,7 +7,6 @@ import { useDeviationSelectBarAdapter } from "~/adapters/deviationSelectBarAdapt
 import SelectBar from "~/components/ui/commons/selectBar/selectBar.vue";
 import DeviationChart from "~/components/charts/DeviationChart.vue";
 import DeviationTable from "~/components/table/deviation/DeviationTable.vue";
-import DatePresetPicker from "~/components/ui/commons/DatePresetPicker.vue";
 import type { ChartType } from "~/components/ui/commons/selectBar/types";
 import MapD3 from "~/components/map/MapD3.vue";
 import DeviationKpiPanel from "~/components/charts/DeviationKpiPanel.vue";
@@ -16,6 +15,11 @@ import {
     ecartNormaleHeroData,
     ecartNormaleSections,
 } from "~/data/docEcartNormale";
+import DeviationFilterBar from "~/components/table/deviation/DeviationFilterBar.vue";
+import { buildDeviationCsv } from "~/utils/deviationCsv";
+import type { TemperatureDeviationResponse } from "~/types/api";
+import { EXPORT_BTN_UI } from "~/constants/tableUtils";
+import DatePresetPicker from "~/components/ui/commons/DatePresetPicker.vue";
 
 const selectBarAdapter = useDeviationSelectBarAdapter();
 const chartType = computed<ChartType>(
@@ -23,7 +27,7 @@ const chartType = computed<ChartType>(
 );
 
 const tableStore = useDeviationTableStore();
-const { dateStart, dateEnd } = storeToRefs(tableStore);
+const { dateStart, dateEnd, exportParams, pending } = storeToRefs(tableStore);
 
 const { yesterday, yesterdayLess30Days } = useCustomDate();
 
@@ -40,6 +44,26 @@ const mapDateEnd = computed(() => toISODate(dateEnd.value));
 
 const heroData = ecartNormaleHeroData;
 const infoPanelSections = ecartNormaleSections;
+const { apiFetch } = useApiClient();
+
+async function exportCSV() {
+    if (!import.meta.client) return;
+    const data = await apiFetch<TemperatureDeviationResponse>(
+        "/temperature/deviation",
+        { query: exportParams.value },
+    );
+
+    downloadCSV(
+        buildDeviationCsv(data.stations),
+        useFormatFileName(
+            "tableau-ecart-normale",
+            "", // non utile pour deviation
+            "csv",
+            dateStart.value,
+            dateEnd.value,
+        ),
+    );
+}
 </script>
 
 <template>
@@ -83,8 +107,8 @@ const infoPanelSections = ecartNormaleSections;
             id="table"
             class="flex flex-col gap-4 dark:bg-elevated rounded-lg px-3 py-2"
         >
-            <div class="flex flex-col gap-2">
-                <div class="flex items-center gap-1">
+            <div class="flex flex-col">
+                <div class="flex items-center">
                     <p class="text-sm font-medium">
                         Période de moyennage des données
                     </p>
@@ -105,17 +129,38 @@ const infoPanelSections = ecartNormaleSections;
                         </template>
                     </UPopover>
                 </div>
-                <DatePresetPicker
-                    v-model:start-date="dateStart"
-                    v-model:end-date="dateEnd"
-                />
+
+                <div class="flex flex-col justify-between gap-2">
+                    <DatePresetPicker
+                        v-model:start-date="dateStart"
+                        v-model:end-date="dateEnd"
+                    />
+                    <div
+                        class="flex flex-col lg:flex-row justify-between flex-1 gap-2"
+                    >
+                        <DeviationFilterBar />
+
+                        <UButton
+                            class="self-start"
+                            label="Exporter CSV"
+                            icon="i-lucide-download"
+                            :ui="EXPORT_BTN_UI"
+                            :disabled="pending"
+                            @click="exportCSV"
+                        />
+                    </div>
+                </div>
             </div>
 
             <hr class="border-accented" />
 
             <div class="flex lg:flex-row flex-col items-start gap-8">
                 <ClientOnly>
-                    <MapD3 :date-start="mapDateStart" :date-end="mapDateEnd" />
+                    <MapD3
+                        :date-start="mapDateStart"
+                        :date-end="mapDateEnd"
+                        :params="exportParams"
+                    />
                 </ClientOnly>
 
                 <div class="w-full overflow-x-auto">

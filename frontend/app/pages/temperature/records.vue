@@ -10,11 +10,10 @@ import RecordsChart from "~/components/charts/recordsChart.vue";
 import RecordsKpiPanel from "~/components/charts/RecordsKpiPanel.vue";
 import SelectBar from "~/components/ui/commons/selectBar/selectBar.vue";
 import RecordsMap from "~/components/map/RecordsMap.vue";
-import {
-    useRecordsTableStore,
-    periodOptions,
-} from "~/stores/recordsTableStore";
+import { useRecordsTableStore } from "~/stores/recordsTableStore";
 import { recordsHeroData, recordsSections } from "~/data/docRecords";
+import RecordsFilterBar from "~/components/table/records/RecordsFilterBar.vue";
+import { EXPORT_BTN_UI } from "~/constants/tableUtils";
 
 const selectBarAdapter = useRecordsSelectBarAdapter();
 
@@ -50,6 +49,19 @@ onMounted(() => {
 
 const heroData = recordsHeroData;
 const infoPanelSections = recordsSections;
+
+function exportCSV() {
+    if (!import.meta.client) return;
+
+    downloadCSV(
+        buildRecordsCsv(store.filteredRecords),
+        useFormatFileName(
+            `tableau-records-${store.typeRecords}`,
+            store.periodSelection,
+            "csv",
+        ),
+    );
+}
 </script>
 
 <template>
@@ -103,45 +115,62 @@ const infoPanelSections = recordsSections;
             id="table"
             class="flex flex-col gap-4 dark:bg-elevated rounded-lg px-3 py-2"
         >
-            <div class="flex items-center gap-1">
-                <p class="text-sm font-medium">Période</p>
-                <FieldInfo
-                    text="Sélectionnez une période pour afficher les records mensuels ou saisonnier ou sur toute l'année"
-                />
-            </div>
-
-            <div class="flex items-end gap-4">
-                <USelect
-                    v-model="store.periodSelection"
-                    :items="periodOptions"
-                />
-
-                <UFieldGroup>
-                    <UButton
-                        :ui="{
-                            base:
-                                store.typeRecords === 'hot'
-                                    ? 'bg-rose-200 text-rose-600 ring-1 ring-rose-300 pointer-events-none'
-                                    : '',
-                        }"
-                        color="neutral"
-                        variant="outline"
-                        label="Chaud"
-                        @click="store.typeRecords = 'hot'"
+            <div class="flex flex-col">
+                <div class="flex items-start gap-1">
+                    <p class="text-sm font-medium">Période</p>
+                    <FieldInfo
+                        text="Sélectionnez une période pour afficher les records mensuels ou saisonnier ou sur toute l'année"
                     />
-                    <UButton
-                        :ui="{
-                            base:
-                                store.typeRecords === 'cold'
-                                    ? 'bg-blue-200 text-blue-650! dark:text-blue-700! ring-1 ring-blue-300 pointer-events-none'
-                                    : '',
-                        }"
-                        color="neutral"
-                        variant="outline"
-                        label="Froid"
-                        @click="store.typeRecords = 'cold'"
-                    />
-                </UFieldGroup>
+                </div>
+                <div class="flex flex-col justify-between gap-2">
+                    <div class="flex gap-2">
+                        <USelect
+                            v-model="store.periodSelection"
+                            :items="periodOptions"
+                        />
+
+                        <UFieldGroup>
+                            <UButton
+                                :ui="{
+                                    base:
+                                        store.typeRecords === 'hot'
+                                            ? 'bg-rose-200 text-rose-600 ring-1 ring-rose-300 pointer-events-none'
+                                            : '',
+                                }"
+                                color="neutral"
+                                variant="outline"
+                                label="Chaud"
+                                @click="store.typeRecords = 'hot'"
+                            />
+                            <UButton
+                                :ui="{
+                                    base:
+                                        store.typeRecords === 'cold'
+                                            ? 'bg-blue-200 text-blue-650! dark:text-blue-700! ring-1 ring-blue-300 pointer-events-none'
+                                            : '',
+                                }"
+                                color="neutral"
+                                variant="outline"
+                                label="Froid"
+                                @click="store.typeRecords = 'cold'"
+                            />
+                        </UFieldGroup>
+                    </div>
+                    <div
+                        class="flex flex-col lg:flex-row justify-between flex-1 gap-2"
+                    >
+                        <RecordsFilterBar />
+
+                        <UButton
+                            class="self-start"
+                            label="Exporter CSV"
+                            icon="i-lucide-download"
+                            :ui="EXPORT_BTN_UI"
+                            :disabled="store.pending"
+                            @click="exportCSV"
+                        />
+                    </div>
+                </div>
             </div>
 
             <hr class="border-accented" />
