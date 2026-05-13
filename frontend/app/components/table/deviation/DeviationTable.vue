@@ -3,7 +3,6 @@ import { h } from "vue";
 import { UBadge, UButton } from "#components";
 import {
     CENTERED_TD,
-    EXPORT_BTN_UI,
     makeSortableColFactory,
     REGION_META,
     STATION_META,
@@ -173,16 +172,10 @@ const columns = [
                 </tr>
             </template>
             <template #empty>
-                <div class="flex flex-col items-center gap-3 py-8 text-muted">
-                    <span>Aucune donnée affichée.</span>
-                    <UButton
-                        v-if="hasActiveFilters"
-                        label="Réinitialiser les filtres"
-                        icon="i-lucide-filter-x"
-                        :ui="EXPORT_BTN_UI"
-                        @click="resetFilters"
-                    />
-                </div>
+                <TableEmptyState
+                    :has-active-filters="hasActiveFilters"
+                    @reset="resetFilters"
+                />
             </template>
         </UTable>
 

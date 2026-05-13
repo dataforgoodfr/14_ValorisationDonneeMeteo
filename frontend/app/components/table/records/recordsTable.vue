@@ -5,7 +5,6 @@ import { storeToRefs } from "pinia";
 import { useRecordsTableStore } from "~/stores/recordsTableStore";
 import {
     CENTERED_COL,
-    EXPORT_BTN_UI,
     REGION_META,
     STATION_META,
     TABLE_HEADER_BTN_MULTILINE_CLASS,
@@ -176,16 +175,10 @@ const columns = [
                 </tr>
             </template>
             <template #empty>
-                <div class="flex flex-col items-center gap-3 py-8 text-muted">
-                    <span>Aucune donnée affichée.</span>
-                    <UButton
-                        v-if="hasActiveFilters"
-                        label="Réinitialiser les filtres"
-                        icon="i-lucide-filter-x"
-                        :ui="EXPORT_BTN_UI"
-                        @click="resetFilters"
-                    />
-                </div>
+                <TableEmptyState
+                    :has-active-filters="hasActiveFilters"
+                    @reset="resetFilters"
+                />
             </template>
         </UTable>
 
