@@ -58,7 +58,7 @@ const yesterdayLabel = computed(() =>
 <template>
     <Card
         :title="`Rang Hier -  ${yesterday?.toLocaleDateString('fr-FR', { dateStyle: 'long' })}`"
-        :tooltip-text="'Rang de la valeur ITN d\'hier parmi tous les mêmes jours enregistrés depuis 1946'"
+        :tooltip-text="'Rang de la valeur ITN d\'hier parmi tous les mêmes jours enregistrés depuis 1947'"
     >
         <template #kpi>
             <p v-if="rank !== null" class="font-semibold mb-1">

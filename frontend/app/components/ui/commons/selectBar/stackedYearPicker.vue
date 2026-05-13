@@ -4,7 +4,7 @@ import type { SelectBarAdapter } from "~/components/ui/commons/selectBar/types";
 const adapter = inject<SelectBarAdapter>("selectBarAdapter")!;
 
 const currentYear = new Date().getFullYear();
-const MIN_YEAR = 1946;
+const MIN_YEAR = 1947;
 
 const allYears = Array.from(
     { length: currentYear - MIN_YEAR + 1 },

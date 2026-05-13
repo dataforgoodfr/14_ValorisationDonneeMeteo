@@ -41,7 +41,7 @@ export function useCustomDate() {
     });
 
     const absoluteMinDataDate = computed(() => {
-        const minDataDate = new Date(1946, 0, 1);
+        const minDataDate = new Date(7, 0, 1);
 
         return minDataDate;
     });

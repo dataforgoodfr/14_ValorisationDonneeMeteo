@@ -31,7 +31,7 @@ class NationalIndicatorBaselineDataSource(Protocol):
 
 class NationalIndicatorAbsoluteExtremesDataSource(Protocol):
     """
-    Source des extremes absolus historiques de l'ITN (1946 à aujourd'hui).
+    Source des extremes absolus historiques de l'ITN (1947 à aujourd'hui).
     Les résultats ne dépendent pas de la fenêtre date_start/date_end de la requête.
     """
 

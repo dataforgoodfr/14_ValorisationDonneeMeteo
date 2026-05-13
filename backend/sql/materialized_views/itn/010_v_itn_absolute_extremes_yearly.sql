@@ -1,5 +1,5 @@
 -- Vue : extremes absolus annuels de l'ITN (ligne unique).
--- Le filtrage >= 1946 est effectué en amont dans mv_itn_daily_all_years.
+-- Le filtrage >= 1947 est effectué en amont dans mv_itn_daily_all_years.
 -- Les jours fictifs (29 fév synthétique) sont exclus : la moyenne annuelle ne porte que sur
 -- les jours réels, cohérence avec le calcul de la température observée dans le service.
 CREATE OR REPLACE VIEW v_itn_absolute_extremes_yearly AS
