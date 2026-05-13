@@ -1,7 +1,5 @@
 <script setup lang="ts">
 import { refDebounced } from "@vueuse/core";
-import { storeToRefs } from "pinia";
-import { useRecordsTableStore } from "~/stores/recordsTableStore";
 import FilterBar from "~/components/ui/commons/FilterBar.vue";
 import type {
     FilterField,
@@ -10,27 +8,13 @@ import type {
 } from "~/components/ui/commons/FilterBar.vue";
 import type { PaginatedResponse, Station, StationFilters } from "~/types/api";
 
-const filterFields: FilterField[] = [
-    { id: "name", label: "Station", type: "string-async" },
-    { id: "departement", label: "Département", type: "string" },
-    {
-        id: "record",
-        label: "Température du record absolu",
-        type: "number-range",
-    },
-    { id: "record_date", label: "Date du record absolu", type: "date-range" },
-    { id: "classe", label: "Classe", type: "string" },
-    { id: "altitude", label: "Altitude", type: "number-range" },
-    {
-        id: "date_de_creation",
-        label: "Année de création",
-        type: "number-range",
-    },
-];
-
-const store = useRecordsTableStore();
-const { filters } = storeToRefs(store);
-const { setFilter, clearFilter } = store;
+const props = defineProps<{
+    filterFields: FilterField[];
+    filters: Record<string, FilterValue>;
+    staticOptions: Record<string, FilterOption[]>;
+    setFilter: (id: string, value: FilterValue) => void;
+    clearFilter: (id: string) => void;
+}>();
 
 const searchQuery = ref("");
 const debouncedQuery = refDebounced(searchQuery, 300);
@@ -82,8 +66,6 @@ watch(debouncedQuery, () => {
     fetchStations();
 });
 
-// Preserve code→name for selected stations so chips resolve labels after
-// search results are cleared. Updated at selection time when labels are available.
 const selectedStationOptions = ref<FilterOption[]>([]);
 
 function updateSelectedStationOptions(codes: string[]) {
@@ -99,21 +81,14 @@ function updateSelectedStationOptions(codes: string[]) {
 }
 
 function onUpdateFilter(id: string, value: FilterValue) {
-    if (id === "name" && value.type === "string") {
+    if (id === "name" && value.type === "string")
         updateSelectedStationOptions(value.values);
-    }
-    setFilter(id, value);
+    props.setFilter(id, value);
 }
 
 function onSearch(id: string, query: string) {
-    if (id !== "name") {
-        return;
-    }
-
+    if (id !== "name") return;
     searchQuery.value = query;
-
-    // When the dropdown opens with an empty query, debouncedQuery won't
-    // change (it's already ""), so the watcher won't fire — fetch directly.
     if (!query) {
         stationPage.value = 0;
         allStationOptions.value = [];
@@ -130,9 +105,6 @@ function onLoadMore(id: string) {
     }
 }
 
-// Merge live search results with selected-station options (deduped).
-// Selected options are appended only when not already present in search results,
-// so chips can always resolve code→name even when search results are cleared.
 const filterOptions = computed(() => {
     const searchResults = allStationOptions.value;
     const searchResultCodes = new Set(searchResults.map((o) => o.value));
@@ -140,7 +112,7 @@ const filterOptions = computed(() => {
         (o) => !searchResultCodes.has(o.value),
     );
     return {
-        ...store.staticOptions,
+        ...props.staticOptions,
         name: [...searchResults, ...extraSelected],
     };
 });

@@ -15,11 +15,31 @@ import {
     ecartNormaleHeroData,
     ecartNormaleSections,
 } from "~/data/docEcartNormale";
-import DeviationFilterBar from "~/components/table/deviation/DeviationFilterBar.vue";
+import type { FilterField } from "~/components/ui/commons/FilterBar.vue";
 import { buildDeviationCsv } from "~/utils/deviationCsv";
 import type { TemperatureDeviationResponse } from "~/types/api";
 import { EXPORT_BTN_UI } from "~/constants/tableUtils";
 import DatePresetPicker from "~/components/ui/commons/DatePresetPicker.vue";
+
+const deviationFilterFields: FilterField[] = [
+    { id: "name", label: "Station", type: "string-async" },
+    { id: "departement", label: "Département", type: "string" },
+    { id: "region", label: "Région", type: "string" },
+    {
+        id: "deviation",
+        label: "Écart à la normale",
+        type: "number-range",
+        unit: "°C",
+    },
+    {
+        id: "temperatureMean",
+        label: "Température moyenne",
+        type: "number-range",
+        unit: "°C",
+    },
+    { id: "classe", label: "Classe", type: "string" },
+    { id: "anneeDeCreation", label: "Année de création", type: "number-range" },
+];
 
 const selectBarAdapter = useDeviationSelectBarAdapter();
 const chartType = computed<ChartType>(
@@ -138,7 +158,13 @@ async function exportCSV() {
                     <div
                         class="flex flex-col lg:flex-row justify-between flex-1 gap-2"
                     >
-                        <DeviationFilterBar />
+                        <TableFilterBar
+                            :filter-fields="deviationFilterFields"
+                            :filters="tableStore.filters"
+                            :static-options="tableStore.staticOptions"
+                            :set-filter="tableStore.setFilter"
+                            :clear-filter="tableStore.clearFilter"
+                        />
 
                         <UButton
                             class="self-start"

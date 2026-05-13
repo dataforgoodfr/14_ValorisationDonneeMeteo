@@ -12,8 +12,26 @@ import SelectBar from "~/components/ui/commons/selectBar/selectBar.vue";
 import RecordsMap from "~/components/map/RecordsMap.vue";
 import { useRecordsTableStore } from "~/stores/recordsTableStore";
 import { recordsHeroData, recordsSections } from "~/data/docRecords";
-import RecordsFilterBar from "~/components/table/records/RecordsFilterBar.vue";
 import { EXPORT_BTN_UI } from "~/constants/tableUtils";
+import type { FilterField } from "~/components/ui/commons/FilterBar.vue";
+
+const recordsFilterFields: FilterField[] = [
+    { id: "name", label: "Station", type: "string-async" },
+    { id: "departement", label: "Département", type: "string" },
+    {
+        id: "record",
+        label: "Température du record absolu",
+        type: "number-range",
+    },
+    { id: "record_date", label: "Date du record absolu", type: "date-range" },
+    { id: "classe", label: "Classe", type: "string" },
+    { id: "altitude", label: "Altitude", type: "number-range" },
+    {
+        id: "date_de_creation",
+        label: "Année de création",
+        type: "number-range",
+    },
+];
 
 const selectBarAdapter = useRecordsSelectBarAdapter();
 
@@ -159,7 +177,13 @@ function exportCSV() {
                     <div
                         class="flex flex-col lg:flex-row justify-between flex-1 gap-2"
                     >
-                        <RecordsFilterBar />
+                        <TableFilterBar
+                            :filter-fields="recordsFilterFields"
+                            :filters="store.filters"
+                            :static-options="store.staticOptions"
+                            :set-filter="store.setFilter"
+                            :clear-filter="store.clearFilter"
+                        />
 
                         <UButton
                             class="self-start"
