@@ -20,7 +20,7 @@ const { data } = useTemperatureRecordsGraph(
     })),
 );
 
-const { data: previousData } = useTemperatureRecordsGraph(
+const { data: previousData, pending } = useTemperatureRecordsGraph(
     computed(() => ({
         date_start: dateToStringYMD(yesterdayLastYearLess365Days.value),
         date_end: dateToStringYMD(yesterdayLastYear.value),
@@ -68,5 +68,6 @@ const variation = computed(() =>
         :variation="variation"
         hot-label="chaleur"
         cold-label="froid"
+        :pending="pending"
     />
 </template>

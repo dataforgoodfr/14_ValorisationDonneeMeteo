@@ -36,6 +36,7 @@
             :cold-value="coldCount"
             hot-label="chaleur"
             cold-label="froid"
+            :pending="props.adapter.pending.value"
         />
     </div>
 </template>

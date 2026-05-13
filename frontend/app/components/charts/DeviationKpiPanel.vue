@@ -64,6 +64,7 @@
             hot-label="chauds"
             cold-label="froids"
             unit-label="jours"
+            :pending="pending"
         />
     </div>
 </template>

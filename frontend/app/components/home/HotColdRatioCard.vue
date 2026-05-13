@@ -37,35 +37,26 @@ const hotPercent = computed(() =>
         :tooltip-text="props.tooltipText"
         :with-border="props.withBorder"
         class="h-fit max-w-96"
-        :loading="props.variation == null"
+        :loading="props.pending"
     >
         <template #kpi>
-            <UIcon
-                v-if="props.pending"
-                name="i-lucide-loader-circle"
-                class="animate-spin text-5xl text-muted"
-            />
-            <template v-else>
-                <div class="flex flex-wrap items-baseline gap-x-2 mb-1">
-                    <span class="font-semibold text-4xl text-red-400"
-                        >{{ hotPercent }}%</span
-                    >
-                    <span
-                        class="text-xs font-normal text-slate-500 dark:text-slate-300"
-                    >
-                        de {{ props.unitLabel }} {{ props.hotLabel }}
-                    </span>
-                </div>
-                <div
-                    class="flex w-full h-4 rounded-full overflow-hidden mt-1 mb-2"
+            <div class="flex flex-wrap items-baseline gap-x-2 mb-1">
+                <span class="font-semibold text-4xl text-red-400"
+                    >{{ hotPercent }}%</span
                 >
-                    <div
-                        class="bg-red-400 transition-all duration-500"
-                        :style="{ width: `${hotPercent}%` }"
-                    />
-                    <div class="bg-blue-400 flex-1" />
-                </div>
-            </template>
+                <span
+                    class="text-xs font-normal text-slate-500 dark:text-slate-300"
+                >
+                    de {{ props.unitLabel }} {{ props.hotLabel }}
+                </span>
+            </div>
+            <div class="flex w-full h-4 rounded-full overflow-hidden mt-1 mb-2">
+                <div
+                    class="bg-red-400 transition-all duration-500"
+                    :style="{ width: `${hotPercent}%` }"
+                />
+                <div class="bg-blue-400 flex-1" />
+            </div>
         </template>
         <template v-if="props.variation !== undefined" #variation>
             <UIcon

@@ -22,7 +22,7 @@ const route = useRoute();
 
 const { today, yesterday, yesterdayLess30Days } = useCustomDate();
 
-const isLoading = ref<boolean>(true);
+const isLoading = ref<boolean>(true); // SSR rendering takes ~2s
 
 onMounted(() => {
     isLoading.value = false;
