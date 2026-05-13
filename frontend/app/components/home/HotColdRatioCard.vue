@@ -12,6 +12,7 @@ interface Props {
     variationContext?: string;
     withBorder?: boolean;
     variation?: number;
+    pending?: boolean;
 }
 
 const props = withDefaults(defineProps<Props>(), {
@@ -21,6 +22,7 @@ const props = withDefaults(defineProps<Props>(), {
     variationContext: "vs. 365 jours précédents",
     withBorder: false,
     variation: undefined,
+    pending: false,
 });
 
 const total = computed(() => props.hotValue + props.coldValue);
@@ -37,23 +39,32 @@ const hotPercent = computed(() =>
         class="h-fit max-w-96"
     >
         <template #kpi>
-            <div class="flex flex-wrap items-baseline gap-x-2 mb-1">
-                <span class="font-semibold text-4xl text-red-400"
-                    >{{ hotPercent }}%</span
-                >
-                <span
-                    class="text-xs font-normal text-slate-500 dark:text-slate-300"
-                >
-                    de {{ props.unitLabel }} {{ props.hotLabel }}
-                </span>
-            </div>
-            <div class="flex w-full h-4 rounded-full overflow-hidden mt-1 mb-2">
+            <UIcon
+                v-if="props.pending"
+                name="i-lucide-loader-circle"
+                class="animate-spin text-5xl text-muted"
+            />
+            <template v-else>
+                <div class="flex flex-wrap items-baseline gap-x-2 mb-1">
+                    <span class="font-semibold text-4xl text-red-400"
+                        >{{ hotPercent }}%</span
+                    >
+                    <span
+                        class="text-xs font-normal text-slate-500 dark:text-slate-300"
+                    >
+                        de {{ props.unitLabel }} {{ props.hotLabel }}
+                    </span>
+                </div>
                 <div
-                    class="bg-red-400 transition-all duration-500"
-                    :style="{ width: `${hotPercent}%` }"
-                />
-                <div class="bg-blue-400 flex-1" />
-            </div>
+                    class="flex w-full h-4 rounded-full overflow-hidden mt-1 mb-2"
+                >
+                    <div
+                        class="bg-red-400 transition-all duration-500"
+                        :style="{ width: `${hotPercent}%` }"
+                    />
+                    <div class="bg-blue-400 flex-1" />
+                </div>
+            </template>
         </template>
         <template v-if="props.variation !== undefined" #variation>
             <UIcon

@@ -126,11 +126,23 @@
                 <span v-else class="text-muted">—</span>
             </template>
         </Card>
+
+        <HotColdRatioCard
+            title="Excès de chaleur / froid"
+            :tooltip-text="`Proportion de jours excessivement chauds par rapport aux jours excessivement froids du ${formattedStart} au ${formattedEnd}.`"
+            :hot-value="kpi?.hot_peak_count ?? 0"
+            :cold-value="kpi?.cold_peak_count ?? 0"
+            hot-label="chaleur"
+            cold-label="froid"
+            unit-label="jours avec excès de"
+            :pending="pending"
+        />
     </div>
 </template>
 
 <script setup lang="ts">
 import Card from "~/components/home/Card.vue";
+import HotColdRatioCard from "~/components/home/HotColdRatioCard.vue";
 import { useItnStore } from "~/stores/itnStore";
 import { dateToStringYMD } from "#imports";
 import type { NationalIndicatorKpiParams } from "~/types/api";
