@@ -1,10 +1,12 @@
 <script setup lang="ts">
 interface Props {
     hasSidebar?: boolean;
+    chartHeight?: string;
 }
 
 const props = withDefaults(defineProps<Props>(), {
     hasSidebar: false,
+    chartHeight: "md:h-158",
 });
 
 const sidebarOpen = ref(false);
@@ -18,10 +20,14 @@ const sidebarOpen = ref(false);
 
         <div
             class="flex flex-col md:flex-row"
-            :class="{
-                'md:h-158 md:divide-x md:divide-gray-200 dark:md:divide-default':
-                    props.hasSidebar,
-            }"
+            :class="
+                props.hasSidebar
+                    ? [
+                          props.chartHeight,
+                          'md:divide-x md:divide-gray-200 dark:md:divide-default',
+                      ]
+                    : []
+            "
         >
             <aside
                 v-if="props.hasSidebar && $slots.sidebar"
