@@ -51,12 +51,13 @@ const tagData = computed(() => {
         >
             <USkeleton class="w-4 h-3" />
             <div class="flex flex-col gap-1">
-                <USkeleton class="w-24 h-4" />
-                <USkeleton class="w-16 h-3" />
+                <UIcon
+                    name="i-lucide-loader-circle"
+                    class="animate-spin text-5xl text-muted"
+                />
             </div>
             <div class="flex flex-col gap-1 ml-auto items-end">
-                <USkeleton class="w-14 h-6 rounded-lg" />
-                <USkeleton class="w-12 h-3" />
+                <USkeleton class="w-20 h-8 rounded-lg" />
             </div>
         </div>
         <div

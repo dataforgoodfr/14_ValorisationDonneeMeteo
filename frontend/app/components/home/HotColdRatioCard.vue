@@ -37,6 +37,7 @@ const hotPercent = computed(() =>
         :tooltip-text="props.tooltipText"
         :with-border="props.withBorder"
         class="h-fit max-w-96"
+        :loading="props.variation == null"
     >
         <template #kpi>
             <UIcon

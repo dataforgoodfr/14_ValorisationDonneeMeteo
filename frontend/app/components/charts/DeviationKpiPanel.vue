@@ -25,14 +25,9 @@
         </Card>
 
         <Card
-<<<<<<< HEAD
             title="Nombre de jours au-dessus des normales"
             :tooltip-text="`Nombre de jours, entre le ${formattedStart} et le ${formattedEnd}, pour lesquels l'écart à la normale en France métropolitaine est supérieur à 0.`"
-=======
-            v-bind:loading="pending"
-            title="Jours au-dessus des normales"
-            tooltip-text="Nombre de jours, sur la période sélectionnée, pour lesquels l'écart à la normale en France est supérieur à 0."
->>>>>>> b901e45 (Feat: DeviationKpiPanel  ajout etat loading)
+            :loading="pending"
         >
             <template #kpi>
                 <p class="font-semibold text-4xl mb-1 text-red-400">
@@ -46,14 +41,9 @@
         </Card>
 
         <Card
-<<<<<<< HEAD
             title="Nombre de jours en-dessous des normales"
             :tooltip-text="`Nombre de jours, entre le ${formattedStart} et le ${formattedEnd} pour lesquels l'écart à la normale en France métropolitaine est inférieur à 0.`"
-=======
-            v-bind:loading="pending"
-            title="Jours en-dessous des normales"
-            tooltip-text="Nombre de jours, sur la période sélectionnée, pour lesquels l'écart à la normale en France est inférieur à 0."
->>>>>>> b901e45 (Feat: DeviationKpiPanel  ajout etat loading)
+            :loading="pending"
         >
             <template #kpi>
                 <p class="font-semibold text-4xl mb-1 text-blue-400">
