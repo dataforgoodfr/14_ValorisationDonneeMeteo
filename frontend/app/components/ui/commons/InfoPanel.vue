@@ -46,25 +46,29 @@ function openPanel() {
     isOpen.value = true;
 }
 
-onMounted(() => {
+let t1: ReturnType<typeof setTimeout>;
+let t2: ReturnType<typeof setTimeout>;
+let t3: ReturnType<typeof setTimeout>;
+
+onMounted((): void => {
     if (sessionStorage.getItem("info-hint-dismissed")) return;
 
-    const t1 = setTimeout(() => {
+    t1 = setTimeout(() => {
         isBouncing.value = true;
         showHint.value = true;
     }, 10_000);
-    const t2 = setTimeout(() => {
+    t2 = setTimeout(() => {
         isBouncing.value = false;
     }, 13_000);
-    const t3 = setTimeout(() => {
+    t3 = setTimeout(() => {
         showHint.value = false;
     }, 16_000);
+});
 
-    onUnmounted(() => {
-        clearTimeout(t1);
-        clearTimeout(t2);
-        clearTimeout(t3);
-    });
+onUnmounted((): void => {
+    clearTimeout(t1);
+    clearTimeout(t2);
+    clearTimeout(t3);
 });
 </script>
 
