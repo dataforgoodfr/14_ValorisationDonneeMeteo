@@ -29,7 +29,7 @@
         </Card>
 
         <HotColdRatioCard
-            title="Records chaud / froid"
+            title="Records chauds / froids"
             :tooltip-text="`Proportion de records de chaleur par rapport aux records de froid entre le ${formattedStart} et le ${formattedEnd}.`"
             :hot-value="hotCount"
             :cold-value="coldCount"
