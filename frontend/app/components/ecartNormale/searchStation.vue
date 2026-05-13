@@ -95,38 +95,36 @@ useIntersectionObserver(sentinel, ([entry]) => {
         <USeparator v-if="selectedStations.length > 0 || includeNational" />
 
         <MaxTerritoriesReachedTooltip :is-at-limit="isAtLimit">
-            <div class="overflow-y-auto">
-                <ul>
-                    <li
-                        v-if="!includeNational"
-                        class="cursor-pointer pr-2 py-1 text-sm flex items-center justify-between"
-                        :title="'France Métropolitaine'"
-                        @click="deviationStore.setIncludeNational(true)"
+            <ul>
+                <li
+                    v-if="!includeNational"
+                    class="cursor-pointer pr-2 py-1 text-sm flex items-center justify-between"
+                    :title="'France Métropolitaine'"
+                    @click="deviationStore.setIncludeNational(true)"
+                >
+                    <span>France Métropolitaine</span>
+                    <UIcon :name="'i-lucide-plus'" class="shrink-0" />
+                </li>
+                <li
+                    v-for="station in unselectedFilteredStations"
+                    :key="`filtered-${station.code}`"
+                    :title="`${station.nom} (${station.departement})`"
+                    class="cursor-pointer pr-2 py-1 text-sm flex items-center justify-between"
+                    @click="onSelectStation($event, station)"
+                >
+                    <span class="truncate"
+                        >{{ station.nom }} ({{ station.departement }})</span
                     >
-                        <span>France Métropolitaine</span>
-                        <UIcon :name="'i-lucide-plus'" class="shrink-0" />
-                    </li>
-                    <li
-                        v-for="station in unselectedFilteredStations"
-                        :key="`filtered-${station.code}`"
-                        :title="`${station.nom} (${station.departement})`"
-                        class="cursor-pointer pr-2 py-1 text-sm flex items-center justify-between"
-                        @click="onSelectStation($event, station)"
-                    >
-                        <span class="truncate"
-                            >{{ station.nom }} ({{ station.departement }})</span
-                        >
-                        <UIcon name="i-lucide-plus" class="shrink-0" />
-                    </li>
-                    <li
-                        v-if="hasMore"
-                        ref="sentinel"
-                        class="py-1 text-center text-xs text-gray-400"
-                    >
-                        <span>Chargement...</span>
-                    </li>
-                </ul>
-            </div>
+                    <UIcon name="i-lucide-plus" class="shrink-0" />
+                </li>
+                <li
+                    v-if="hasMore"
+                    ref="sentinel"
+                    class="py-1 text-center text-xs text-gray-400"
+                >
+                    <span>Chargement...</span>
+                </li>
+            </ul>
         </MaxTerritoriesReachedTooltip>
     </div>
 </template>
