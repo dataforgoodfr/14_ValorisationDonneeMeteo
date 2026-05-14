@@ -207,10 +207,15 @@ const lastYearColdRecordsCount = computed(
                 compare-to="année dernière"
             />
         </div>
-        <RecordsBattusExportBar
-            :date-start="dateStart"
-            :date-end="dateEnd"
-            data-url="/temperature/records?preset=30d#table"
-        />
+        <div class="flex items-center justify-between gap-2">
+            <RecordsBattusExportBar
+                :date-start="dateStart"
+                :date-end="dateEnd"
+            />
+            <GoToDataLink
+                class="shrink-0"
+                :data-url="'/temperature/records?preset=30d#table'"
+            />
+        </div>
     </Section>
 </template>

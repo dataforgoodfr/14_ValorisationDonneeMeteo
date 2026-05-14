@@ -36,10 +36,15 @@ const dateEnd = computed(() => dateToStringYMD(yesterday.value));
                 <ExtremeCard hot-cold="cold" :disabled="true" />
             </div> -->
         </div>
-        <RecordsBattusExportBar
-            :date-start="dateStart"
-            :date-end="dateEnd"
-            data-url="/temperature/records?preset=365d#table"
-        />
+        <div class="flex items-center justify-between gap-2">
+            <RecordsBattusExportBar
+                :date-start="dateStart"
+                :date-end="dateEnd"
+            />
+            <GoToDataLink
+                class="shrink-0"
+                :data-url="'/temperature/records?preset=365d#table'"
+            />
+        </div>
     </Section>
 </template>
