@@ -18,6 +18,7 @@ export function useExportRecordsBattus() {
             {
                 query: {
                     type_records: typeRecords,
+                    period_type: "month",
                     date_start: dateStart,
                     date_end: dateEnd,
                     page_size: 9999,
