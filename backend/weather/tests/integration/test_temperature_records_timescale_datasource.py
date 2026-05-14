@@ -382,3 +382,54 @@ def test_fetch_records_all_seasons_returns_records_for_each_season():
     values = {e.record_value for e in station_entries}
     assert 42.0 in values
     assert 8.0 in values
+
+
+@pytest.mark.django_db
+def test_fetch_records_date_filter_excludes_outside_range():
+    """date_start/date_end filtre les records dont record_date est hors fenêtre."""
+    station_code = "99013001"
+
+    insert_station(
+        station_code,
+        "Station Date Filter",
+        departement=99,
+        lat=48.0,
+        lon=2.0,
+        alt=100.0,
+    )
+
+    # Record dans la fenêtre (2024-06-15)
+    insert_mv_record(
+        station_code,
+        "Station Date Filter",
+        "month",
+        "6",
+        "TX",
+        38.0,
+        dt.date(2024, 6, 15),
+    )
+    # Record hors fenêtre (2003-07-15)
+    insert_mv_record(
+        station_code,
+        "Station Date Filter",
+        "month",
+        "7",
+        "TX",
+        42.0,
+        dt.date(2003, 7, 15),
+    )
+
+    ds = MaterializedTemperatureRecordsDataSource()
+    req = TemperatureRecordsRequest(
+        period_type="month",
+        type_records="hot",
+        month=None,
+        date_start=dt.date(2024, 1, 1),
+        date_end=dt.date(2024, 12, 31),
+    )
+    result = ds.fetch_records(req)
+
+    station_entries = [e for e in result if e.station_id.strip() == station_code]
+    values = {e.record_value for e in station_entries}
+    assert 38.0 in values
+    assert 42.0 not in values

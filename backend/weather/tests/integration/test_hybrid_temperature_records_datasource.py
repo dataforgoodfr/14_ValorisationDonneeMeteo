@@ -279,6 +279,75 @@ def test_all_seasons_mode_skips_cutoff_returns_mv_only():
 
 
 @pytest.mark.django_db
+def test_all_months_date_filter_excludes_outside_range():
+    """Export use case : month=None + date_start/date_end → seuls les records dans la fenêtre."""
+    code = "76116013"
+    insert_station(code, "Station Export Date", departement=76)
+
+    # Record dans la fenêtre (2024-06)
+    insert_mv_record(
+        code, "Station Export Date", "month", "6", "TX", 38.0, dt.date(2024, 6, 15)
+    )
+    # Record hors fenêtre (2003-07)
+    insert_mv_record(
+        code, "Station Export Date", "month", "7", "TX", 42.0, dt.date(2003, 7, 15)
+    )
+
+    ds = HybridTemperatureRecordsDataSource()
+    result = ds.fetch_records(
+        TemperatureRecordsRequest(
+            period_type="month",
+            type_records="hot",
+            month=None,
+            date_start=dt.date(2024, 1, 1),
+            date_end=dt.date(2024, 12, 31),
+        )
+    )
+
+    entries = [e for e in result.entries if e.station_id.strip() == code]
+    values = {e.record_value for e in entries}
+    assert 38.0 in values
+    assert 42.0 not in values
+
+
+@pytest.mark.django_db
+def test_after_cutoff_date_filter_excludes_outside_range():
+    """date_start/date_end filtre aussi les records post-cutoff hors de la fenêtre."""
+    code = "76116014"
+    insert_station(code, "Station Post Cutoff Date", departement=76)
+    insert_mv_record(
+        code,
+        "Station Post Cutoff Date",
+        "all_time",
+        None,
+        "TX",
+        38.0,
+        dt.date(2003, 7, 15),
+    )
+    set_cutoff(dt.date(2025, 12, 31))
+
+    # Record post-cutoff hors fenêtre (avant date_start) — ne bat pas le seed
+    insert_quotidienne(dt.date(2026, 1, 5), code, tx=35.0)
+    # Record post-cutoff dans la fenêtre — bat le seed de 38.0
+    insert_quotidienne(dt.date(2026, 6, 10), code, tx=45.0)
+
+    ds = HybridTemperatureRecordsDataSource()
+    result = ds.fetch_records(
+        TemperatureRecordsRequest(
+            period_type="all_time",
+            type_records="hot",
+            date_start=dt.date(2026, 6, 1),
+            date_end=dt.date(2026, 12, 31),
+        )
+    )
+
+    entries = [e for e in result.entries if e.station_id.strip() == code]
+    values = {e.record_value for e in entries}
+    assert 45.0 in values
+    assert 35.0 not in values
+
+
+@pytest.mark.django_db
 def test_meta_table_absent_falls_back_to_mv():
     """Erreur DB sur la méta table → pas d'exception, retourne les données MV seules."""
     code = "76116010"
