@@ -1,11 +1,15 @@
 <script setup lang="ts">
 import Section from "../Section.vue";
 import GoToDataLink from "../GoToDataLink.vue";
+import RecordsBattusExportBar from "../RecordsBattusExportBar.vue";
 import RecordsRatioCard from "./RecordsRatioCard.vue";
 import Itn365Cards from "./Itn365Cards.vue";
 // import ExtremeCard from "../ExtremeCard.vue";
 
 const { yesterday, yesterdayLess365Days } = useCustomDate();
+
+const dateStart = computed(() => dateToStringYMD(yesterdayLess365Days.value));
+const dateEnd = computed(() => dateToStringYMD(yesterday.value));
 </script>
 
 <template>
@@ -32,6 +36,15 @@ const { yesterday, yesterdayLess365Days } = useCustomDate();
                 <ExtremeCard hot-cold="cold" :disabled="true" />
             </div> -->
         </div>
-        <GoToDataLink :data-url="'/temperature/records?preset=365d#table'" />
+        <div class="flex items-center justify-between gap-2">
+            <RecordsBattusExportBar
+                :date-start="dateStart"
+                :date-end="dateEnd"
+            />
+            <GoToDataLink
+                class="shrink-0"
+                :data-url="'/temperature/records?preset=365d#table'"
+            />
+        </div>
     </Section>
 </template>
