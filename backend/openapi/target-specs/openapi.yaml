@@ -690,7 +690,7 @@ paths:
 
         **Comportement de `period_type`**
 
-        - `all_time` (défaut) : record absolu toutes périodes confondues.
+        - `all_time` (défaut) : liste des records battus progressifs toutes périodes confondues (le dernier par station correspond au record absolu actuel).
         - `month` + `month=N` (1–12) : record du mois N uniquement.
         - `month` sans `month` : records de **tous les mois** (une ligne par station et par mois).
         - `season` + `season=<saison>` : record de la saison indiquée.

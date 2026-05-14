@@ -204,7 +204,7 @@ class TemperatureDeviationGraphAPIView(APIView):
 class TemperatureRecordsAPIView(APIView):
     """
     GET /api/v1/temperature/records
-    Retourne les records absolus de température par station.
+    Retourne les records battus de température par station (liste progressive, pas uniquement le record absolu).
     """
 
     authentication_classes = []
@@ -219,7 +219,7 @@ class TemperatureRecordsAPIView(APIView):
             "- le type de record (`hot` ou `cold`)\n"
             "- le tri des résultats (`sort`)\n\n"
             "**Comportement de `period_type`**\n\n"
-            "- `all_time` (défaut) : record absolu toutes périodes confondues.\n"
+            "- `all_time` (défaut) : liste des records battus progressifs toutes périodes confondues (le dernier par station correspond au record absolu actuel).\n"
             "- `month` + `month=N` (1–12) : record du mois N uniquement.\n"
             "- `month` sans `month` : records de **tous les mois** (une ligne par station et par mois).\n"
             "- `season` + `season=<saison>` : record de la saison indiquée.\n"
