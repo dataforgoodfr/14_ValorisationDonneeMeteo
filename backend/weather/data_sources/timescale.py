@@ -894,9 +894,9 @@ def _territoire_clause_named(
 def _temperature_records_period_clause(
     request: TemperatureRecordsRequest,
 ) -> tuple[str, list]:
-    if request.period_type == "month":
+    if request.period_type == "month" and request.month is not None:
         return 'EXTRACT(MONTH FROM q."AAAAMMJJ") = %s', [request.month]
-    elif request.period_type == "season":
+    elif request.period_type == "season" and request.season is not None:
         months = list(SEASON_MONTHS[request.season])
         placeholders = ", ".join(["%s"] * len(months))
         return f'EXTRACT(MONTH FROM q."AAAAMMJJ") IN ({placeholders})', months
@@ -908,11 +908,11 @@ def _temperature_records_period_clause_named(
     request: TemperatureRecordsRequest,
 ) -> tuple[str, dict]:
     """Variante de _temperature_records_period_clause avec placeholders nommés %(…)s."""
-    if request.period_type == "month":
+    if request.period_type == "month" and request.month is not None:
         return 'EXTRACT(MONTH FROM q."AAAAMMJJ") = %(period_month)s', {
             "period_month": request.month
         }
-    elif request.period_type == "season":
+    elif request.period_type == "season" and request.season is not None:
         months = list(SEASON_MONTHS[request.season])
         named = {f"period_season_{i}": m for i, m in enumerate(months)}
         placeholders = ", ".join(f"%(period_season_{i})s" for i in range(len(months)))
@@ -938,13 +938,6 @@ class MaterializedTemperatureRecordsDataSource:
     ) -> list[TemperatureRecordEntry]:
         record_type = "TX" if request.type_records == "hot" else "TN"
 
-        if request.period_type == "month":
-            period_value: str | None = str(request.month)
-        elif request.period_type == "season":
-            period_value = request.season
-        else:
-            period_value = None
-
         sort_parts = [s.strip() for s in request.sort.split(",")]
 
         field_mapping = {
@@ -966,16 +959,24 @@ class MaterializedTemperatureRecordsDataSource:
             order_sql = ", ".join(order_clauses)
         else:
             order_sql = "record_value DESC, station_name ASC, record_date ASC"
+
         clauses = [
             "record_type = %(record_type)s",
             "period_type = %(period_type)s",
-            "period_value IS NOT DISTINCT FROM %(period_value)s",
         ]
         params: dict = {
             "record_type": record_type,
             "period_type": request.period_type,
-            "period_value": period_value,
         }
+
+        if request.period_type == "month" and request.month is not None:
+            clauses.append("period_value = %(period_value)s")
+            params["period_value"] = str(request.month)
+        elif request.period_type == "season" and request.season is not None:
+            clauses.append("period_value = %(period_value)s")
+            params["period_value"] = request.season
+        elif request.period_type == "all_time":
+            clauses.append("period_value IS NULL")
 
         if request.date_start:
             clauses.append("record_date >= %(date_start)s")
@@ -1100,6 +1101,10 @@ class HybridTemperatureRecordsDataSource(TemperatureRecordsDataSource):
         except Exception:
             return self._paginate(mv_entries, request)
         if cutoff is None:
+            return self._paginate(mv_entries, request)
+        if (request.period_type == "month" and request.month is None) or (
+            request.period_type == "season" and request.season is None
+        ):
             return self._paginate(mv_entries, request)
         hot_results = self._fetch_records_after_cutoff(request, cutoff)
         all_entries = mv_entries + hot_results

@@ -34,20 +34,20 @@ def test_records_query_serializer_all_time_happy_path():
     assert s.is_valid(), s.errors
 
 
-def test_records_query_serializer_rejects_month_missing_when_period_type_month():
+def test_records_query_serializer_accepts_month_missing_when_period_type_month():
     s = TemperatureRecordsQuerySerializer(
         data={"period_type": "month", "type_records": "hot"}
     )
-    assert not s.is_valid()
-    assert "month" in s.errors
+    assert s.is_valid(), s.errors
+    assert s.validated_data.get("month") is None
 
 
-def test_records_query_serializer_rejects_season_missing_when_period_type_season():
+def test_records_query_serializer_accepts_season_missing_when_period_type_season():
     s = TemperatureRecordsQuerySerializer(
         data={"period_type": "season", "type_records": "cold"}
     )
-    assert not s.is_valid()
-    assert "season" in s.errors
+    assert s.is_valid(), s.errors
+    assert s.validated_data.get("season") is None
 
 
 def test_records_query_serializer_rejects_unknown_period_type():

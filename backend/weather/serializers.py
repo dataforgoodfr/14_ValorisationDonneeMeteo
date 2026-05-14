@@ -442,21 +442,10 @@ class TemperatureRecordsQuerySerializer(serializers.Serializer):
         return value
 
     def validate(self, attrs) -> dict:
-        period_type = attrs.get("period_type", "all_time")
-        month = attrs.get("month")
-        season = attrs.get("season")
         date_start = attrs.get("date_start")
         date_end = attrs.get("date_end")
         territoire = attrs.get("territoire", "france")
         territoire_id = attrs.get("territoire_id")
-
-        if period_type == "month" and month is None:
-            raise serializers.ValidationError({"month": "Requis si period_type=month."})
-
-        if period_type == "season" and season is None:
-            raise serializers.ValidationError(
-                {"season": "Requis si period_type=season."}
-            )
 
         if (date_start is None) != (date_end is None):
             raise serializers.ValidationError(
