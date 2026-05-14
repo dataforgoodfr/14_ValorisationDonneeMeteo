@@ -4,6 +4,7 @@ import type { SelectBarAdapter } from "./selectBar/types";
 import { useMapColors } from "~/constants/colors";
 
 const mapColors = useMapColors();
+const colorMode = useColorMode();
 
 const adapter = inject<SelectBarAdapter>("selectBarAdapter")!;
 const { exportConfig, chartRef, granularity, pickedDateStart, pickedDateEnd } =
@@ -119,7 +120,7 @@ function exportAsHTML() {
     <meta charset="utf-8">
     <title>${exportConfig.chartName.toUpperCase()}</title>
     <${scriptTag} src="https://cdn.jsdelivr.net/npm/echarts/dist/echarts.min.js"></${scriptTag}>
-    <style>html { margin: 0; padding: 0; width: 100%; height: 100vh; }, body { display: flex; align-items: center; margin: 0; padding: 0; width: 100%; height: 100vh; } #chart { margin: 20px; width: auto; height: calc(100vh - 40px); }</style>
+    <style>html { background-color: ${colorMode.value === "dark" ? "#1a2130" : "#fff"}; margin: 0; padding: 0; width: 100%; height: 100vh; }, body {  display: flex; align-items: center; margin: 0; padding: 0; width: 100%; height: 100vh; } #chart { margin: 20px; width: auto; height: calc(100vh - 40px); }</style>
 </head>
 <body>
     <div id="chart"></div>
