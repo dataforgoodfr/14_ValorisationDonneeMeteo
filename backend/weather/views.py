@@ -218,10 +218,18 @@ class TemperatureRecordsAPIView(APIView):
             "- le découpage temporel (`period_type`) : tous les temps, par mois ou par saison\n"
             "- le type de record (`hot` ou `cold`)\n"
             "- le tri des résultats (`sort`)\n\n"
+            "**Comportement de `period_type`**\n\n"
+            "- `all_time` (défaut) : record absolu toutes périodes confondues.\n"
+            "- `month` + `month=N` (1–12) : record du mois N uniquement.\n"
+            "- `month` sans `month` : records de **tous les mois** (une ligne par station et par mois).\n"
+            "- `season` + `season=<saison>` : record de la saison indiquée.\n"
+            "- `season` sans `season` : records de **toutes les saisons** (une ligne par station et par saison).\n\n"
             "Exemples de requêtes :\n"
             "- `period_type=all_time&type_records=hot&sort=-record_value`\n"
             "- `period_type=month&month=7&type_records=hot&page=1&page_size=50`\n"
+            "- `period_type=month&type_records=hot` (tous les mois)\n"
             "- `period_type=season&season=summer&type_records=cold&sort=station_name`\n"
+            "- `period_type=season&type_records=cold` (toutes les saisons)\n"
             "- `period_type=all_time&type_records=hot&sort=-record_value,station_name`"
         ),
         parameters=[

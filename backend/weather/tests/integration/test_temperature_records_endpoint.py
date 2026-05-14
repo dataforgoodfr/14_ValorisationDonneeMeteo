@@ -92,32 +92,36 @@ def test_get_records_season_happy_path(client: APIClient):
     assert isinstance(body, dict)
 
 
-def test_get_records_returns_400_if_period_type_month_without_month(
+@pytest.mark.usefixtures("fake_temperature_records_dep")
+def test_get_records_returns_200_if_period_type_month_without_month(
     client: APIClient,
 ):
+    """period_type=month sans month spécifique → tous les mois, HTTP 200."""
     resp = client.get(
         "/api/v1/temperature/records",
         {"period_type": "month", "type_records": "hot"},
     )
 
-    assert resp.status_code == 400
+    assert resp.status_code == 200
     body = resp.json()
-    assert body["error"]["code"] == "INVALID_PARAMETER"
-    assert "month" in body["error"]["details"]
+    assert isinstance(body, dict)
+    assert "results" in body
 
 
-def test_get_records_returns_400_if_period_type_season_without_season(
+@pytest.mark.usefixtures("fake_temperature_records_dep")
+def test_get_records_returns_200_if_period_type_season_without_season(
     client: APIClient,
 ):
+    """period_type=season sans saison spécifique → toutes les saisons, HTTP 200."""
     resp = client.get(
         "/api/v1/temperature/records",
         {"period_type": "season", "type_records": "cold"},
     )
 
-    assert resp.status_code == 400
+    assert resp.status_code == 200
     body = resp.json()
-    assert body["error"]["code"] == "INVALID_PARAMETER"
-    assert "season" in body["error"]["details"]
+    assert isinstance(body, dict)
+    assert "results" in body
 
 
 def test_get_records_returns_400_if_unknown_period_type(client: APIClient):

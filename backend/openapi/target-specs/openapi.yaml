@@ -688,13 +688,25 @@ paths:
 
         - l'année de fermeture de la station (`date_de_fermeture_min` / `date_de_fermeture_max`)
 
+        **Comportement de `period_type`**
+
+        - `all_time` (défaut) : record absolu toutes périodes confondues.
+        - `month` + `month=N` (1–12) : record du mois N uniquement.
+        - `month` sans `month` : records de **tous les mois** (une ligne par station et par mois).
+        - `season` + `season=<saison>` : record de la saison indiquée.
+        - `season` sans `season` : records de **toutes les saisons** (une ligne par station et par saison).
+
         Exemples de requêtes :
 
         - `period_type=all_time&type_records=hot&sort=-record_value`
 
         - `period_type=month&month=7&type_records=hot&page=1&page_size=50`
 
+        - `period_type=month&type_records=hot` (tous les mois)
+
         - `period_type=season&season=summer&type_records=cold&sort=station_name`
+
+        - `period_type=season&type_records=cold` (toutes les saisons)
 
         - `period_type=all_time&type_records=hot&sort=-record_value,station_name`
 
@@ -708,8 +720,8 @@ paths:
           description: |
             Découpage temporel des records :
             - `all_time` : records sans découpage temporel (défaut)
-            - `month` : records pour un mois donné (paramètre `month` requis)
-            - `season` : records pour une saison donnée (paramètre `season` requis)
+            - `month` : records pour un mois. Si `month` est absent, retourne tous les mois.
+            - `season` : records pour une saison. Si `season` est absente, retourne toutes les saisons.
           schema:
             type: string
             enum: [all_time, month, season]
@@ -718,7 +730,7 @@ paths:
           in: query
           required: false
           description: |
-            Numéro du mois (1-12). Requis si `period_type=month`.
+            Numéro du mois (1-12). Optionnel si `period_type=month` — si absent, retourne les records de tous les mois.
           schema:
             type: integer
             minimum: 1
@@ -728,7 +740,7 @@ paths:
           in: query
           required: false
           description: |
-            Saison. Requis si `period_type=season`.
+            Saison. Optionnel si `period_type=season` — si absente, retourne les records de toutes les saisons.
             - `spring` : printemps (mars–mai)
             - `summer` : été (juin–août)
             - `autumn` : automne (septembre–novembre)

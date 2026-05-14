@@ -223,6 +223,62 @@ def test_season_filter_respected():
 
 
 @pytest.mark.django_db
+def test_all_months_mode_skips_cutoff_returns_mv_only():
+    """period_type='month' sans month → mode 'tous les mois', l'enrichissement post-cutoff est ignoré."""
+    code = "76116011"
+    insert_station(code, "Station Hybrid 11", departement=76)
+    insert_mv_record(
+        code, "Station Hybrid 11", "month", "7", "TX", 38.0, dt.date(2003, 7, 15)
+    )
+    insert_mv_record(
+        code, "Station Hybrid 11", "month", "8", "TX", 35.0, dt.date(2001, 8, 10)
+    )
+    set_cutoff(dt.date(2025, 12, 31))
+
+    # Donnée post-cutoff qui battrait le record de juillet — ne doit PAS apparaître
+    insert_quotidienne(dt.date(2026, 7, 1), code, tx=50.0)
+
+    ds = HybridTemperatureRecordsDataSource()
+    result = ds.fetch_records(
+        TemperatureRecordsRequest(period_type="month", type_records="hot", month=None)
+    )
+
+    entries = [e for e in result.entries if e.station_id.strip() == code]
+    values = [e.record_value for e in entries]
+    # Seules les données MV (38.0 et 35.0), pas les 50.0 post-cutoff
+    assert 50.0 not in values
+    assert 38.0 in values
+    assert 35.0 in values
+
+
+@pytest.mark.django_db
+def test_all_seasons_mode_skips_cutoff_returns_mv_only():
+    """period_type='season' sans season → mode 'toutes les saisons', l'enrichissement post-cutoff est ignoré."""
+    code = "76116012"
+    insert_station(code, "Station Hybrid 12", departement=76)
+    insert_mv_record(
+        code, "Station Hybrid 12", "season", "summer", "TX", 40.0, dt.date(2003, 8, 12)
+    )
+    insert_mv_record(
+        code, "Station Hybrid 12", "season", "winter", "TX", 12.0, dt.date(2010, 1, 5)
+    )
+    set_cutoff(dt.date(2025, 12, 31))
+
+    insert_quotidienne(dt.date(2026, 7, 1), code, tx=55.0)
+
+    ds = HybridTemperatureRecordsDataSource()
+    result = ds.fetch_records(
+        TemperatureRecordsRequest(period_type="season", type_records="hot", season=None)
+    )
+
+    entries = [e for e in result.entries if e.station_id.strip() == code]
+    values = [e.record_value for e in entries]
+    assert 55.0 not in values
+    assert 40.0 in values
+    assert 12.0 in values
+
+
+@pytest.mark.django_db
 def test_meta_table_absent_falls_back_to_mv():
     """Erreur DB sur la méta table → pas d'exception, retourne les données MV seules."""
     code = "76116010"
