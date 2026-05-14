@@ -5,10 +5,11 @@ import datetime as dt
 import pytest
 
 from weather.data_sources.timescale import (
+    MaterializedTemperatureRecordsDataSource,
     TimescaleTemperatureRecordsDataSource,
 )
 from weather.services.temperature_records.types import TemperatureRecordsRequest
-from weather.tests.conftest import insert_quotidienne
+from weather.tests.conftest import insert_mv_record, insert_quotidienne
 from weather.tests.helpers.stations import insert_station
 
 # =========================
@@ -292,29 +293,47 @@ def test_fetch_records_sorting_by_station_name_desc():
 
 @pytest.mark.django_db
 def test_fetch_records_all_months_returns_records_for_each_month():
-    """period_type='month' sans month → retourne les records de tous les mois."""
+    """period_type='month' sans month → retourne les records de tous les mois via la MV."""
     station_code = "99011001"
 
     insert_station(
         station_code, "Station All Months", departement=99, lat=48.0, lon=2.0, alt=100.0
     )
 
-    # Juillet : record à 40.0
-    insert_quotidienne(dt.date(2003, 7, 15), station_code, tx=40.0, tn=20.0)
-    # Août : record à 38.0
-    insert_quotidienne(dt.date(2001, 8, 10), station_code, tx=38.0, tn=19.0)
-    # Janvier : record à 5.0
-    insert_quotidienne(dt.date(1990, 1, 20), station_code, tx=5.0, tn=-2.0)
+    insert_mv_record(
+        station_code,
+        "Station All Months",
+        "month",
+        "7",
+        "TX",
+        40.0,
+        dt.date(2003, 7, 15),
+    )
+    insert_mv_record(
+        station_code,
+        "Station All Months",
+        "month",
+        "8",
+        "TX",
+        38.0,
+        dt.date(2001, 8, 10),
+    )
+    insert_mv_record(
+        station_code,
+        "Station All Months",
+        "month",
+        "1",
+        "TX",
+        5.0,
+        dt.date(1990, 1, 20),
+    )
 
-    ds = TimescaleTemperatureRecordsDataSource()
+    ds = MaterializedTemperatureRecordsDataSource()
     req = TemperatureRecordsRequest(period_type="month", type_records="hot", month=None)
     result = ds.fetch_records(req)
 
-    station_entries = [
-        e for e in result.entries if e.station_id.strip() == station_code
-    ]
+    station_entries = [e for e in result if e.station_id.strip() == station_code]
     values = {e.record_value for e in station_entries}
-    # Les trois records de mois différents doivent tous être présents
     assert 40.0 in values
     assert 38.0 in values
     assert 5.0 in values
@@ -322,7 +341,7 @@ def test_fetch_records_all_months_returns_records_for_each_month():
 
 @pytest.mark.django_db
 def test_fetch_records_all_seasons_returns_records_for_each_season():
-    """period_type='season' sans season → retourne les records de toutes les saisons."""
+    """period_type='season' sans season → retourne les records de toutes les saisons via la MV."""
     station_code = "99012001"
 
     insert_station(
@@ -334,20 +353,32 @@ def test_fetch_records_all_seasons_returns_records_for_each_season():
         alt=100.0,
     )
 
-    # Été (août) : record à 42.0
-    insert_quotidienne(dt.date(2003, 8, 12), station_code, tx=42.0, tn=22.0)
-    # Hiver (janvier) : record à 8.0
-    insert_quotidienne(dt.date(2010, 1, 5), station_code, tx=8.0, tn=-5.0)
+    insert_mv_record(
+        station_code,
+        "Station All Seasons",
+        "season",
+        "summer",
+        "TX",
+        42.0,
+        dt.date(2003, 8, 12),
+    )
+    insert_mv_record(
+        station_code,
+        "Station All Seasons",
+        "season",
+        "winter",
+        "TX",
+        8.0,
+        dt.date(2010, 1, 5),
+    )
 
-    ds = TimescaleTemperatureRecordsDataSource()
+    ds = MaterializedTemperatureRecordsDataSource()
     req = TemperatureRecordsRequest(
         period_type="season", type_records="hot", season=None
     )
     result = ds.fetch_records(req)
 
-    station_entries = [
-        e for e in result.entries if e.station_id.strip() == station_code
-    ]
+    station_entries = [e for e in result if e.station_id.strip() == station_code]
     values = {e.record_value for e in station_entries}
     assert 42.0 in values
     assert 8.0 in values
