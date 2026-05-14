@@ -3,7 +3,7 @@ import { buildDeviationCsv } from "./deviationCsv";
 import type { TemperatureDeviationStation } from "~/types/api";
 
 const HEADERS =
-    "Station,Département,Région,Écart à la normale (°C),Température Moyenne (°C)";
+    "Station,Département,Région,Écart à la normale (°C),Température Moyenne (°C),Classe,Année de création";
 
 function makeStation(
     overrides: Partial<TemperatureDeviationStation> = {},
@@ -19,6 +19,8 @@ function makeStation(
         alt: 35,
         lat: 48.85,
         lon: 2.35,
+        classe_recente: 1,
+        date_de_creation: "1872-01-01",
         ...overrides,
     };
 }
@@ -30,7 +32,9 @@ describe("buildDeviationCsv", () => {
 
     test("une station — ligne correcte", () => {
         const result = buildDeviationCsv([makeStation()]);
-        expect(result).toBe(`${HEADERS}\nParis,Paris,Île-de-France,1.5,12.3`);
+        expect(result).toBe(
+            `${HEADERS}\nParis,Paris,Île-de-France,1.5,12.3,1,1872`,
+        );
     });
 
     test("plusieurs stations — plusieurs lignes", () => {
@@ -46,10 +50,12 @@ describe("buildDeviationCsv", () => {
                 region: "Auvergne-Rhône-Alpes",
                 deviation: -0.3,
                 temperature_mean: 11.1,
+                classe_recente: 2,
+                date_de_creation: "1920-03-15",
             }),
         ]);
         expect(result).toBe(
-            `${HEADERS}\nParis,Paris,Île-de-France,1.5,12.3\nLyon,Rhône,Auvergne-Rhône-Alpes,-0.3,11.1`,
+            `${HEADERS}\nParis,Paris,Île-de-France,1.5,12.3,1,1872\nLyon,Rhône,Auvergne-Rhône-Alpes,-0.3,11.1,2,1920`,
         );
     });
 
@@ -58,7 +64,7 @@ describe("buildDeviationCsv", () => {
             makeStation({ station_name: "Paris, 7e" }),
         ]);
         expect(result).toBe(
-            `${HEADERS}\n"Paris, 7e",Paris,Île-de-France,1.5,12.3`,
+            `${HEADERS}\n"Paris, 7e",Paris,Île-de-France,1.5,12.3,1,1872`,
         );
     });
 });

@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import type { TemperatureRecordsGraphParams, TypeRecords } from "~/types/api";
 import GoToDataLink from "../GoToDataLink.vue";
+import RecordsBattusExportBar from "../RecordsBattusExportBar.vue";
 import ExtremeCard from "../ExtremeCard.vue";
 import Section from "../Section.vue";
 import TemperatureRecord from "../TemperatureRecord.vue";
@@ -206,6 +207,10 @@ const lastYearColdRecordsCount = computed(
                 compare-to="année dernière"
             />
         </div>
-        <GoToDataLink :data-url="'/temperature/records?preset=30d#table'" />
+        <RecordsBattusExportBar
+            :date-start="dateStart"
+            :date-end="dateEnd"
+            data-url="/temperature/records?preset=30d#table"
+        />
     </Section>
 </template>

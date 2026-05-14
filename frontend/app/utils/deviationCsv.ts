@@ -7,6 +7,8 @@ const HEADERS = [
     "Région",
     "Écart à la normale (°C)",
     "Température Moyenne (°C)",
+    "Classe",
+    "Année de création",
 ].join(",");
 
 export function buildDeviationCsv(
@@ -20,6 +22,8 @@ export function buildDeviationCsv(
                 escapeCsvValue(s.region),
                 s.deviation?.toFixed(1) ?? "",
                 s.temperature_mean?.toFixed(1) ?? "",
+                s.classe_recente,
+                new Date(s.date_de_creation).getFullYear(),
             ].join(","),
         )
         .join("\n");
