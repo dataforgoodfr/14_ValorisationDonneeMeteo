@@ -13,12 +13,12 @@ from weather.utils.date_range import (
 )
 
 
-def test_iter_days_intersecting_inclusive_single_day():
+def test_iter_days_intersecting_inclusive_single_day() -> None:
     out = list(iter_days_intersecting(dt.date(2024, 1, 1), dt.date(2024, 1, 1)))
     assert out == [dt.date(2024, 1, 1)]
 
 
-def test_iter_days_intersecting_inclusive_range():
+def test_iter_days_intersecting_inclusive_range() -> None:
     out = list(iter_days_intersecting(dt.date(2024, 1, 1), dt.date(2024, 1, 3)))
     assert out == [dt.date(2024, 1, 1), dt.date(2024, 1, 2), dt.date(2024, 1, 3)]
 
@@ -34,11 +34,11 @@ def test_iter_days_intersecting_inclusive_range():
         (2023, 2, 28, 28),
     ],
 )
-def test_clamp_day_to_month_end(year, month, day, expected):
+def test_clamp_day_to_month_end(year: int, month: int, day: int, expected: int) -> None:
     assert clamp_day_to_month_end(year, month, day) == expected
 
 
-def test_iter_month_starts_intersecting_mid_month_to_mid_month():
+def test_iter_month_starts_intersecting_mid_month_to_mid_month() -> None:
     # 2024-01-15..2024-03-10 => Jan, Feb, Mar
     out = list(
         iter_month_starts_intersecting(dt.date(2024, 1, 15), dt.date(2024, 3, 10))
@@ -46,19 +46,19 @@ def test_iter_month_starts_intersecting_mid_month_to_mid_month():
     assert out == [dt.date(2024, 1, 1), dt.date(2024, 2, 1), dt.date(2024, 3, 1)]
 
 
-def test_iter_month_starts_intersecting_cross_year():
+def test_iter_month_starts_intersecting_cross_year() -> None:
     out = list(
         iter_month_starts_intersecting(dt.date(2023, 12, 31), dt.date(2024, 1, 1))
     )
     assert out == [dt.date(2023, 12, 1), dt.date(2024, 1, 1)]
 
 
-def test_iter_year_starts_intersecting_includes_both_ends():
+def test_iter_year_starts_intersecting_includes_both_ends() -> None:
     out = list(iter_year_starts_intersecting(dt.date(2024, 6, 1), dt.date(2026, 2, 1)))
     assert out == [dt.date(2024, 1, 1), dt.date(2025, 1, 1), dt.date(2026, 1, 1)]
 
 
-def test_days_in_month_in_range_filters_only_selected_month_and_is_inclusive():
+def test_days_in_month_in_range_filters_only_selected_month_and_is_inclusive() -> None:
     out = days_in_month_in_range(
         date_start=dt.date(2024, 1, 30),
         date_end=dt.date(2024, 2, 2),
@@ -67,7 +67,7 @@ def test_days_in_month_in_range_filters_only_selected_month_and_is_inclusive():
     assert out == (dt.date(2024, 2, 1), dt.date(2024, 2, 2))
 
 
-def test_days_in_month_in_range_can_be_empty():
+def test_days_in_month_in_range_can_be_empty() -> None:
     out = days_in_month_in_range(
         date_start=dt.date(2024, 1, 1),
         date_end=dt.date(2024, 1, 31),
@@ -76,7 +76,7 @@ def test_days_in_month_in_range_can_be_empty():
     assert out == ()
 
 
-def test_monthly_points_in_range_clamps_and_filters_by_window():
+def test_monthly_points_in_range_clamps_and_filters_by_window() -> None:
     # day_of_month=31 => Feb clamp to 29 (bissextile)
     out = monthly_points_in_range(
         date_start=dt.date(2024, 1, 1),
@@ -86,7 +86,7 @@ def test_monthly_points_in_range_clamps_and_filters_by_window():
     assert out == (dt.date(2024, 1, 31), dt.date(2024, 2, 29), dt.date(2024, 3, 31))
 
 
-def test_monthly_points_in_range_excludes_candidates_outside_window():
+def test_monthly_points_in_range_excludes_candidates_outside_window() -> None:
     # window 2024-01-15..2024-03-10, target day=1 => Jan 1 excluded, Feb 1 ok, Mar 1 ok
     out = monthly_points_in_range(
         date_start=dt.date(2024, 1, 15),
@@ -96,7 +96,7 @@ def test_monthly_points_in_range_excludes_candidates_outside_window():
     assert out == (dt.date(2024, 2, 1), dt.date(2024, 3, 1))
 
 
-def test_yearly_points_in_range_clamps_and_filters_by_window():
+def test_yearly_points_in_range_clamps_and_filters_by_window() -> None:
     out = yearly_points_in_range(
         date_start=dt.date(2021, 1, 1),
         date_end=dt.date(2023, 12, 31),
@@ -106,7 +106,7 @@ def test_yearly_points_in_range_clamps_and_filters_by_window():
     assert out == (dt.date(2021, 2, 28), dt.date(2022, 2, 28), dt.date(2023, 2, 28))
 
 
-def test_yearly_points_in_range_excludes_candidates_outside_window():
+def test_yearly_points_in_range_excludes_candidates_outside_window() -> None:
     out = yearly_points_in_range(
         date_start=dt.date(2024, 6, 1),
         date_end=dt.date(2026, 2, 1),

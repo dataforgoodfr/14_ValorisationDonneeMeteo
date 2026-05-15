@@ -11,7 +11,7 @@ from weather.tests.helpers.stations import insert_station
 
 
 @pytest.mark.django_db
-def test_fetch_daily_series_happy_path():
+def test_fetch_daily_series_happy_path() -> None:
     station_code = "07149001"
 
     insert_station(
@@ -46,7 +46,7 @@ def test_fetch_daily_series_happy_path():
 
 
 @pytest.mark.django_db
-def test_fetch_daily_series_filters_by_department():
+def test_fetch_daily_series_filters_by_department() -> None:
     s1 = "07149001"
     s2 = "07500001"
 
@@ -72,7 +72,7 @@ def test_fetch_daily_series_filters_by_department():
 
 
 @pytest.mark.django_db
-def test_fetch_daily_series_returns_empty_when_no_match():
+def test_fetch_daily_series_returns_empty_when_no_match() -> None:
     station_code = "07149001"
 
     insert_station(station_code, "Station Lyon", departement=69)
@@ -93,7 +93,7 @@ def test_fetch_daily_series_returns_empty_when_no_match():
 
 
 @pytest.mark.django_db
-def test_fetch_national_daily_series_happy_path():
+def test_fetch_national_daily_series_happy_path() -> None:
     s1 = "07149001"
     s2 = "07500001"
 

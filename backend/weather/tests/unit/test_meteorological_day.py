@@ -35,7 +35,7 @@ from weather.tests.helpers.meteorological_day import (
         ("2026-05-15T23:59:59Z", "2026-05-16"),
     ],
 )
-def test_meteorological_tn_day(reading: str, expected_day: str):
+def test_meteorological_tn_day(reading: str, expected_day: str) -> None:
     assert meteorological_tn_day(dt.datetime.fromisoformat(reading)) == (
         dt.date.fromisoformat(expected_day)
     )
@@ -55,7 +55,7 @@ def test_meteorological_tn_day(reading: str, expected_day: str):
         ("2026-05-15T22:00:00Z", "2026-05-15"),
     ],
 )
-def test_meteorological_tx_day(reading: str, expected_day: str):
+def test_meteorological_tx_day(reading: str, expected_day: str) -> None:
     assert meteorological_tx_day(dt.datetime.fromisoformat(reading)) == (
         dt.date.fromisoformat(expected_day)
     )

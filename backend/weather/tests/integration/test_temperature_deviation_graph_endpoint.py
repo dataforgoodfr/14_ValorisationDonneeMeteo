@@ -10,7 +10,7 @@ from weather.data_sources.temperature_deviation_fake import (
 
 
 @pytest.fixture
-def fake_temperature_deviation_dep():
+def fake_temperature_deviation_dep() -> None:
     TemperatureDeviationDependencyProvider.set_builder(
         lambda: FakeTemperatureDeviationDailyDataSource()
     )
@@ -23,7 +23,7 @@ def fake_temperature_deviation_dep():
 @pytest.mark.usefixtures("fake_temperature_deviation_dep")
 def test_get_temperature_deviation_graph_day_happy_path(
     client: APIClient,
-):
+) -> None:
     resp = client.get(
         "/api/v1/temperature/deviation/graph",
         {
@@ -65,7 +65,7 @@ def test_get_temperature_deviation_graph_day_happy_path(
 
 
 @pytest.mark.usefixtures("fake_temperature_deviation_dep")
-def test_get_temperature_deviation_graph_without_national(client: APIClient):
+def test_get_temperature_deviation_graph_without_national(client: APIClient) -> None:
     resp = client.get(
         "/api/v1/temperature/deviation/graph",
         {
@@ -87,7 +87,7 @@ def test_get_temperature_deviation_graph_without_national(client: APIClient):
 
 def test_get_temperature_deviation_graph_returns_400_if_include_national_false_and_no_station_ids(
     client: APIClient,
-):
+) -> None:
     resp = client.get(
         "/api/v1/temperature/deviation/graph",
         {
@@ -107,7 +107,7 @@ def test_get_temperature_deviation_graph_returns_400_if_include_national_false_a
 
 def test_get_temperature_deviation_graph_returns_400_if_date_start_gt_date_end(
     client: APIClient,
-):
+) -> None:
     resp = client.get(
         "/api/v1/temperature/deviation/graph",
         {
@@ -127,7 +127,7 @@ def test_get_temperature_deviation_graph_returns_400_if_date_start_gt_date_end(
 @pytest.mark.usefixtures("fake_temperature_deviation_dep")
 def test_get_temperature_deviation_graph_endpoint_uses_dependency_provider(
     client: APIClient,
-):
+) -> None:
     resp = client.get(
         "/api/v1/temperature/deviation/graph",
         {
@@ -148,7 +148,7 @@ def test_get_temperature_deviation_graph_endpoint_uses_dependency_provider(
 @pytest.mark.usefixtures("fake_temperature_deviation_dep")
 def test_get_temperature_deviation_graph_year_month_of_year_slice_happy_path(
     client: APIClient,
-):
+) -> None:
     resp = client.get(
         "/api/v1/temperature/deviation/graph",
         {
@@ -182,7 +182,7 @@ def test_get_temperature_deviation_graph_year_month_of_year_slice_happy_path(
 @pytest.mark.usefixtures("fake_temperature_deviation_dep")
 def test_get_temperature_deviation_graph_month_day_of_month_slice_happy_path(
     client: APIClient,
-):
+) -> None:
     resp = client.get(
         "/api/v1/temperature/deviation/graph",
         {
@@ -215,7 +215,7 @@ def test_get_temperature_deviation_graph_month_day_of_month_slice_happy_path(
 @pytest.mark.usefixtures("fake_temperature_deviation_dep")
 def test_get_temperature_deviation_graph_year_day_of_month_slice_happy_path(
     client: APIClient,
-):
+) -> None:
     resp = client.get(
         "/api/v1/temperature/deviation/graph",
         {
@@ -249,7 +249,7 @@ def test_get_temperature_deviation_graph_year_day_of_month_slice_happy_path(
 
 def test_get_temperature_deviation_graph_returns_400_for_day_granularity_with_day_of_month_slice(
     client: APIClient,
-):
+) -> None:
     resp = client.get(
         "/api/v1/temperature/deviation/graph",
         {
@@ -270,7 +270,7 @@ def test_get_temperature_deviation_graph_returns_400_for_day_granularity_with_da
 
 def test_get_temperature_deviation_graph_returns_400_for_month_of_year_slice_without_month_of_year(
     client: APIClient,
-):
+) -> None:
     resp = client.get(
         "/api/v1/temperature/deviation/graph",
         {
@@ -290,7 +290,7 @@ def test_get_temperature_deviation_graph_returns_400_for_month_of_year_slice_wit
 
 def test_get_temperature_deviation_graph_returns_400_for_year_day_of_month_slice_without_month_of_year(
     client: APIClient,
-):
+) -> None:
     resp = client.get(
         "/api/v1/temperature/deviation/graph",
         {

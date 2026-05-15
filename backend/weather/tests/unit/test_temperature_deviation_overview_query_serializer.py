@@ -3,7 +3,7 @@ import datetime as dt
 from weather.serializers import TemperatureDeviationOverviewQuerySerializer
 
 
-def test_temperature_deviation_overview_query_serializer_happy_path():
+def test_temperature_deviation_overview_query_serializer_happy_path() -> None:
     s = TemperatureDeviationOverviewQuerySerializer(
         data={
             "date_start": "2025-03-01",
@@ -34,7 +34,7 @@ def test_temperature_deviation_overview_query_serializer_happy_path():
     assert s.validated_data["station_ids"] == ("07149", "07255")
 
 
-def test_temperature_deviation_overview_query_serializer_defaults():
+def test_temperature_deviation_overview_query_serializer_defaults() -> None:
     s = TemperatureDeviationOverviewQuerySerializer(
         data={
             "date_start": "2025-03-01",
@@ -54,7 +54,9 @@ def test_temperature_deviation_overview_query_serializer_defaults():
     assert s.validated_data["station_ids"] == ()
 
 
-def test_temperature_deviation_overview_query_serializer_rejects_date_start_gt_date_end():
+def test_temperature_deviation_overview_query_serializer_rejects_date_start_gt_date_end() -> (
+    None
+):
     s = TemperatureDeviationOverviewQuerySerializer(
         data={
             "date_start": "2025-04-01",
@@ -66,7 +68,9 @@ def test_temperature_deviation_overview_query_serializer_rejects_date_start_gt_d
     assert "date_end" in s.errors
 
 
-def test_temperature_deviation_overview_query_serializer_rejects_temperature_bounds():
+def test_temperature_deviation_overview_query_serializer_rejects_temperature_bounds() -> (
+    None
+):
     s = TemperatureDeviationOverviewQuerySerializer(
         data={
             "date_start": "2025-03-01",
@@ -80,7 +84,9 @@ def test_temperature_deviation_overview_query_serializer_rejects_temperature_bou
     assert "temperature_mean_max" in s.errors
 
 
-def test_temperature_deviation_overview_query_serializer_rejects_deviation_bounds():
+def test_temperature_deviation_overview_query_serializer_rejects_deviation_bounds() -> (
+    None
+):
     s = TemperatureDeviationOverviewQuerySerializer(
         data={
             "date_start": "2025-03-01",
@@ -94,7 +100,9 @@ def test_temperature_deviation_overview_query_serializer_rejects_deviation_bound
     assert "deviation_max" in s.errors
 
 
-def test_temperature_deviation_overview_query_serializer_blank_station_search_is_none():
+def test_temperature_deviation_overview_query_serializer_blank_station_search_is_none() -> (
+    None
+):
     s = TemperatureDeviationOverviewQuerySerializer(
         data={
             "date_start": "2025-03-01",
@@ -107,7 +115,9 @@ def test_temperature_deviation_overview_query_serializer_blank_station_search_is
     assert s.validated_data["station_search"] is None
 
 
-def test_temperature_deviation_overview_query_serializer_whitespace_station_search_is_none():
+def test_temperature_deviation_overview_query_serializer_whitespace_station_search_is_none() -> (
+    None
+):
     s = TemperatureDeviationOverviewQuerySerializer(
         data={
             "date_start": "2025-03-01",
@@ -120,7 +130,9 @@ def test_temperature_deviation_overview_query_serializer_whitespace_station_sear
     assert s.validated_data["station_search"] is None
 
 
-def test_temperature_deviation_overview_query_serializer_parses_departments_regions_and_alt():
+def test_temperature_deviation_overview_query_serializer_parses_departments_regions_and_alt() -> (
+    None
+):
     s = TemperatureDeviationOverviewQuerySerializer(
         data={
             "date_start": "2025-03-01",
@@ -139,7 +151,7 @@ def test_temperature_deviation_overview_query_serializer_parses_departments_regi
     assert s.validated_data["alt_max"] == 500.0
 
 
-def test_temperature_deviation_overview_query_serializer_rejects_alt_bounds():
+def test_temperature_deviation_overview_query_serializer_rejects_alt_bounds() -> None:
     s = TemperatureDeviationOverviewQuerySerializer(
         data={
             "date_start": "2025-03-01",
@@ -153,7 +165,9 @@ def test_temperature_deviation_overview_query_serializer_rejects_alt_bounds():
     assert "alt_max" in s.errors
 
 
-def test_temperature_deviation_overview_query_serializer_rejects_negative_offset():
+def test_temperature_deviation_overview_query_serializer_rejects_negative_offset() -> (
+    None
+):
     s = TemperatureDeviationOverviewQuerySerializer(
         data={
             "date_start": "2025-03-01",
@@ -166,7 +180,7 @@ def test_temperature_deviation_overview_query_serializer_rejects_negative_offset
     assert "offset" in s.errors
 
 
-def test_temperature_deviation_overview_query_serializer_parses_station_ids():
+def test_temperature_deviation_overview_query_serializer_parses_station_ids() -> None:
     s = TemperatureDeviationOverviewQuerySerializer(
         data={
             "date_start": "2025-03-01",
@@ -179,7 +193,9 @@ def test_temperature_deviation_overview_query_serializer_parses_station_ids():
     assert s.validated_data["station_ids"] == ("07149", "07255")
 
 
-def test_temperature_deviation_overview_query_serializer_accepts_department_and_region_ordering():
+def test_temperature_deviation_overview_query_serializer_accepts_department_and_region_ordering() -> (
+    None
+):
     for ordering in ("department", "-department", "region", "-region"):
         s = TemperatureDeviationOverviewQuerySerializer(
             data={
@@ -193,7 +209,9 @@ def test_temperature_deviation_overview_query_serializer_accepts_department_and_
         assert s.validated_data["ordering"] == ordering
 
 
-def test_temperature_deviation_overview_query_serializer_parses_classe_recente():
+def test_temperature_deviation_overview_query_serializer_parses_classe_recente() -> (
+    None
+):
     s = TemperatureDeviationOverviewQuerySerializer(
         data={
             "date_start": "2025-03-01",
@@ -208,7 +226,9 @@ def test_temperature_deviation_overview_query_serializer_parses_classe_recente()
     assert s.validated_data["classe_recente_max"] == 3
 
 
-def test_temperature_deviation_overview_query_serializer_rejects_classe_recente_bounds():
+def test_temperature_deviation_overview_query_serializer_rejects_classe_recente_bounds() -> (
+    None
+):
     s = TemperatureDeviationOverviewQuerySerializer(
         data={
             "date_start": "2025-03-01",
@@ -222,7 +242,9 @@ def test_temperature_deviation_overview_query_serializer_rejects_classe_recente_
     assert "classe_recente_max" in s.errors
 
 
-def test_temperature_deviation_overview_query_serializer_parses_date_de_creation():
+def test_temperature_deviation_overview_query_serializer_parses_date_de_creation() -> (
+    None
+):
     s = TemperatureDeviationOverviewQuerySerializer(
         data={
             "date_start": "2025-03-01",
@@ -237,7 +259,9 @@ def test_temperature_deviation_overview_query_serializer_parses_date_de_creation
     assert s.validated_data["date_de_creation_max"] == dt.date(1960, 12, 31)
 
 
-def test_temperature_deviation_overview_query_serializer_rejects_date_de_creation_bounds():
+def test_temperature_deviation_overview_query_serializer_rejects_date_de_creation_bounds() -> (
+    None
+):
     s = TemperatureDeviationOverviewQuerySerializer(
         data={
             "date_start": "2025-03-01",
@@ -251,7 +275,9 @@ def test_temperature_deviation_overview_query_serializer_rejects_date_de_creatio
     assert "date_de_creation_max" in s.errors
 
 
-def test_temperature_deviation_overview_query_serializer_parses_date_de_fermeture():
+def test_temperature_deviation_overview_query_serializer_parses_date_de_fermeture() -> (
+    None
+):
     s = TemperatureDeviationOverviewQuerySerializer(
         data={
             "date_start": "2025-03-01",
@@ -266,7 +292,9 @@ def test_temperature_deviation_overview_query_serializer_parses_date_de_fermetur
     assert s.validated_data["date_de_fermeture_max"] == dt.date(2020, 12, 31)
 
 
-def test_temperature_deviation_overview_query_serializer_rejects_date_de_fermeture_bounds():
+def test_temperature_deviation_overview_query_serializer_rejects_date_de_fermeture_bounds() -> (
+    None
+):
     s = TemperatureDeviationOverviewQuerySerializer(
         data={
             "date_start": "2025-03-01",
@@ -280,7 +308,9 @@ def test_temperature_deviation_overview_query_serializer_rejects_date_de_fermetu
     assert "date_de_fermeture_max" in s.errors
 
 
-def test_temperature_deviation_overview_query_serializer_accepts_altitude_classe_creation_fields():
+def test_temperature_deviation_overview_query_serializer_accepts_altitude_classe_creation_fields() -> (
+    None
+):
     ordering_fields = (
         "alt",
         "-alt",
@@ -303,7 +333,9 @@ def test_temperature_deviation_overview_query_serializer_accepts_altitude_classe
         assert s.validated_data["ordering"] == ordering
 
 
-def test_temperature_deviation_overview_query_serializer_absent_new_filters_are_none():
+def test_temperature_deviation_overview_query_serializer_absent_new_filters_are_none() -> (
+    None
+):
     s = TemperatureDeviationOverviewQuerySerializer(
         data={
             "date_start": "2025-03-01",

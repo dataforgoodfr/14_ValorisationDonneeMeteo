@@ -23,7 +23,7 @@ class ConfigurableRecordsDataSource:
         return self._preset
 
 
-def test_temperature_records_business_returns_datasource_output():
+def test_temperature_records_business_returns_datasource_output() -> None:
     expected = (
         StationRecords(
             id="12345678",
@@ -34,7 +34,7 @@ def test_temperature_records_business_returns_datasource_output():
     )
 
     class DeterministicRecordsDataSource:
-        def fetch_records(self, query):
+        def fetch_records(self, query) -> StationRecords:
             return expected
 
     out = get_records(
@@ -50,11 +50,11 @@ def test_temperature_records_business_returns_datasource_output():
     assert out == expected
 
 
-def test_temperature_records_business_passes_departments_to_datasource():
+def test_temperature_records_business_passes_departments_to_datasource() -> None:
     captured = {}
 
     class CapturingRecordsDataSource:
-        def fetch_records(self, query):
+        def fetch_records(self, query) -> None:
             captured["query"] = query
             return ()
 
@@ -78,7 +78,7 @@ def test_temperature_records_business_passes_departments_to_datasource():
 # ---------------------------------------------------------------------------
 
 
-def test_alltime_hot_records_progression():
+def test_alltime_hot_records_progression() -> None:
     """
     GIVEN  Une station avec 3 records de chaleur progressifs et 1 non-record
     WHEN   get_records(record_scope=all_time, type_records=hot, record_kind=historical)
@@ -119,7 +119,7 @@ def test_alltime_hot_records_progression():
 # ---------------------------------------------------------------------------
 
 
-def test_monthly_hot_records_passes_scope_to_datasource():
+def test_monthly_hot_records_passes_scope_to_datasource() -> None:
     """
     GIVEN  Une station avec 2 records mensuels pour juillet
     WHEN   get_records(record_scope=monthly, type_records=hot)
@@ -155,7 +155,7 @@ def test_monthly_hot_records_passes_scope_to_datasource():
 # ---------------------------------------------------------------------------
 
 
-def test_alltime_cold_records_two_stations():
+def test_alltime_cold_records_two_stations() -> None:
     """
     GIVEN  Station A avec un record froid à -22.0 °C, Station B à -18.5 °C
     WHEN   get_records(record_scope=all_time, type_records=cold)
@@ -199,7 +199,7 @@ def test_alltime_cold_records_two_stations():
 # ---------------------------------------------------------------------------
 
 
-def test_absolute_kind_passes_record_kind_to_datasource():
+def test_absolute_kind_passes_record_kind_to_datasource() -> None:
     """
     GIVEN  Une station avec un seul record (le record absolu en vigueur)
     WHEN   get_records(record_kind=absolute)
@@ -234,7 +234,7 @@ def test_absolute_kind_passes_record_kind_to_datasource():
 # ---------------------------------------------------------------------------
 
 
-def test_department_filter_passed_to_datasource():
+def test_department_filter_passed_to_datasource() -> None:
     """
     GIVEN  Deux stations (dept 13 et dept 69)
     WHEN   get_records avec departments=("13",)

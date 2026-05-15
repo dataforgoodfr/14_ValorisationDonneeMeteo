@@ -19,7 +19,7 @@ class FakeNationalIndicatorDataSource(
     NationalIndicatorObservedDataSource,
     NationalIndicatorBaselineDataSource,
 ):
-    def __init__(self, day_to_temp_func: Callable[[dt.date], float]):
+    def __init__(self, day_to_temp_func: Callable[[dt.date], float]) -> None:
         self._day_to_temp = day_to_temp_func
 
     def fetch_daily_series(self, query: DailySeriesQuery) -> list[ObservedPoint]:
@@ -61,7 +61,7 @@ class FakeNationalIndicatorDataSource(
         )
 
 
-def test_itn_acceptance_month_day_of_month_clamp():
+def test_itn_acceptance_month_day_of_month_clamp() -> None:
     ds = FakeNationalIndicatorDataSource(lambda d: d.day)
 
     res = compute_national_indicator(
@@ -90,7 +90,7 @@ def test_itn_acceptance_month_day_of_month_clamp():
     assert ts[1]["baseline_mean"] == 1028.0
 
 
-def test_itn_acceptance_year_month_of_year_filters_correctly():
+def test_itn_acceptance_year_month_of_year_filters_correctly() -> None:
     ds = FakeNationalIndicatorDataSource(lambda d: 100.0 if d.month == 1 else 0.0)
 
     res = compute_national_indicator(
@@ -115,7 +115,7 @@ def test_itn_acceptance_year_month_of_year_filters_correctly():
     assert ts[1]["baseline_mean"] == 2001.0
 
 
-def test_itn_acceptance_year_day_of_month_with_month_and_clamp_leap_year():
+def test_itn_acceptance_year_day_of_month_with_month_and_clamp_leap_year() -> None:
     ds = FakeNationalIndicatorDataSource(lambda d: d.day)
 
     res = compute_national_indicator(

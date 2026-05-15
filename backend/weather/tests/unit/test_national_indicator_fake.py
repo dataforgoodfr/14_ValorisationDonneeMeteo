@@ -5,7 +5,7 @@ from weather.data_sources.national_indicator_fake import (
 )
 
 
-def test_fake_generator_day_granularity_returns_all_days_inclusive():
+def test_fake_generator_day_granularity_returns_all_days_inclusive() -> None:
     payload = generate_fake_national_indicator(
         date_start=dt.date(2024, 1, 1),
         date_end=dt.date(2024, 1, 7),
@@ -24,7 +24,7 @@ def test_fake_generator_day_granularity_returns_all_days_inclusive():
         assert cur == prev + dt.timedelta(days=1)
 
 
-def test_fake_generator_month_granularity_returns_one_point_per_month():
+def test_fake_generator_month_granularity_returns_one_point_per_month() -> None:
     payload = generate_fake_national_indicator(
         date_start=dt.date(2024, 1, 1),
         date_end=dt.date(2024, 3, 31),
@@ -41,7 +41,7 @@ def test_fake_generator_month_granularity_returns_one_point_per_month():
     assert actual_dates == expected_dates
 
 
-def test_month_granularity_includes_month_if_interval_intersects():
+def test_month_granularity_includes_month_if_interval_intersects() -> None:
     payload = generate_fake_national_indicator(
         date_start=dt.date(2024, 1, 15),
         date_end=dt.date(2024, 3, 10),
@@ -58,7 +58,7 @@ def test_month_granularity_includes_month_if_interval_intersects():
     ]
 
 
-def test_day_of_month_clamps_to_last_day_of_month():
+def test_day_of_month_clamps_to_last_day_of_month() -> None:
     payload = generate_fake_national_indicator(
         date_start=dt.date(2024, 1, 1),
         date_end=dt.date(2024, 3, 31),
@@ -77,7 +77,7 @@ def test_day_of_month_clamps_to_last_day_of_month():
     ]
 
 
-def test_day_of_month_clamps_to_feb_28_on_non_leap_year():
+def test_day_of_month_clamps_to_feb_28_on_non_leap_year() -> None:
     payload = generate_fake_national_indicator(
         date_start=dt.date(2023, 1, 1),
         date_end=dt.date(2023, 3, 31),
@@ -96,7 +96,7 @@ def test_day_of_month_clamps_to_feb_28_on_non_leap_year():
     ]
 
 
-def test_fake_generator_year_granularity_includes_years_intersecting_interval():
+def test_fake_generator_year_granularity_includes_years_intersecting_interval() -> None:
     payload = generate_fake_national_indicator(
         date_start=dt.date(2024, 6, 1),
         date_end=dt.date(2026, 2, 1),
@@ -113,7 +113,9 @@ def test_fake_generator_year_granularity_includes_years_intersecting_interval():
     ]
 
 
-def test_fake_generator_year_month_of_year_sets_date_to_first_day_of_selected_month():
+def test_fake_generator_year_month_of_year_sets_date_to_first_day_of_selected_month() -> (
+    None
+):
     payload = generate_fake_national_indicator(
         date_start=dt.date(2020, 6, 1),
         date_end=dt.date(2022, 2, 1),
@@ -132,7 +134,7 @@ def test_fake_generator_year_month_of_year_sets_date_to_first_day_of_selected_mo
     ]
 
 
-def test_fake_generator_year_day_of_month_clamps_within_selected_month():
+def test_fake_generator_year_day_of_month_clamps_within_selected_month() -> None:
     payload = generate_fake_national_indicator(
         date_start=dt.date(2021, 1, 1),
         date_end=dt.date(2023, 12, 31),

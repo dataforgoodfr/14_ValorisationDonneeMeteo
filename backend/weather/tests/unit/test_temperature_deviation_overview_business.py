@@ -11,15 +11,15 @@ from weather.services.temperature_deviation.types import (
 
 
 class DummyDataSource:
-    def __init__(self):
+    def __init__(self) -> None:
         self.national_called_with = None
         self.query_received = None
 
-    def fetch_national_mean_deviation(self, *, date_start, date_end):
+    def fetch_national_mean_deviation(self, *, date_start: str, date_end: str) -> float:
         self.national_called_with = (date_start, date_end)
         return 1.23456
 
-    def fetch_station_overview(self, query):
+    def fetch_station_overview(self, query) -> TemperatureDeviationOverviewResult:
         self.query_received = query
 
         return TemperatureDeviationOverviewResult(
@@ -64,7 +64,7 @@ class DummyDataSource:
         )
 
 
-def test_compute_overview_happy_path():
+def test_compute_overview_happy_path() -> None:
     ds = DummyDataSource()
 
     out = compute_temperature_deviation_overview(
@@ -83,7 +83,7 @@ def test_compute_overview_happy_path():
     assert len(out["stations"]) == 2
 
 
-def test_compute_overview_rounding():
+def test_compute_overview_rounding() -> None:
     ds = DummyDataSource()
 
     out = compute_temperature_deviation_overview(
@@ -99,7 +99,7 @@ def test_compute_overview_rounding():
     assert s["deviation"] == round(1.1358, 2)
 
 
-def test_compute_overview_propagates_pagination():
+def test_compute_overview_propagates_pagination() -> None:
     ds = DummyDataSource()
 
     out = compute_temperature_deviation_overview(
@@ -115,7 +115,7 @@ def test_compute_overview_propagates_pagination():
     assert p["offset"] == 0
 
 
-def test_compute_overview_calls_datasource_with_correct_dates():
+def test_compute_overview_calls_datasource_with_correct_dates() -> None:
     ds = DummyDataSource()
 
     compute_temperature_deviation_overview(
@@ -130,7 +130,7 @@ def test_compute_overview_calls_datasource_with_correct_dates():
     )
 
 
-def test_compute_overview_passes_query_parameters():
+def test_compute_overview_passes_query_parameters() -> None:
     ds = DummyDataSource()
 
     compute_temperature_deviation_overview(
@@ -161,7 +161,7 @@ def test_compute_overview_passes_query_parameters():
     assert q.station_ids == ("07149", "07255")
 
 
-def test_compute_overview_national_independent_from_station_result():
+def test_compute_overview_national_independent_from_station_result() -> None:
     ds = DummyDataSource()
 
     out = compute_temperature_deviation_overview(
@@ -174,7 +174,7 @@ def test_compute_overview_national_independent_from_station_result():
     assert out["national"]["deviation_mean"] == 1.23
 
 
-def test_compute_overview_propagates_added_station_fields():
+def test_compute_overview_propagates_added_station_fields() -> None:
     ds = DummyDataSource()
 
     out = compute_temperature_deviation_overview(
@@ -192,7 +192,7 @@ def test_compute_overview_propagates_added_station_fields():
     assert s["region"] == "Île-de-France"
 
 
-def test_compute_overview_passes_added_query_parameters():
+def test_compute_overview_passes_added_query_parameters() -> None:
     ds = DummyDataSource()
 
     compute_temperature_deviation_overview(

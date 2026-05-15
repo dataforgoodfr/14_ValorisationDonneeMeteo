@@ -46,7 +46,7 @@ def insert_mv_records_absolus_par_mois(
 
 
 @pytest.mark.django_db
-def test_fetch_records_hot_all_time_returns_max_across_all_months():
+def test_fetch_records_hot_all_time_returns_max_across_all_months() -> None:
     """
     GIVEN  Une station avec un record d'avril (25°C) et un de juillet (42°C)
     WHEN   period_type=all_time, type_records=hot
@@ -95,7 +95,7 @@ def test_fetch_records_hot_all_time_returns_max_across_all_months():
 
 
 @pytest.mark.django_db
-def test_fetch_records_cold_all_time_returns_min_across_all_months():
+def test_fetch_records_cold_all_time_returns_min_across_all_months() -> None:
     """
     GIVEN  Une station avec un record cold de janvier (-25°C) et un de novembre (-5°C)
     WHEN   period_type=all_time, type_records=cold
@@ -136,7 +136,7 @@ def test_fetch_records_cold_all_time_returns_min_across_all_months():
 
 
 @pytest.mark.django_db
-def test_fetch_records_month_filters_by_specific_month():
+def test_fetch_records_month_filters_by_specific_month() -> None:
     """
     GIVEN  Une station avec un record en juillet (42°C) et un en août (38°C)
     WHEN   period_type=month, month=7
@@ -177,7 +177,7 @@ def test_fetch_records_month_filters_by_specific_month():
 
 
 @pytest.mark.django_db
-def test_fetch_records_season_winter_aggregates_across_dec_jan_feb():
+def test_fetch_records_season_winter_aggregates_across_dec_jan_feb() -> None:
     """
     GIVEN  Records hot en décembre (10°C), janvier (12°C), février (15°C)
     WHEN   period_type=season, season=winter, type_records=hot
@@ -223,7 +223,7 @@ def test_fetch_records_season_winter_aggregates_across_dec_jan_feb():
 
 
 @pytest.mark.django_db
-def test_fetch_records_season_summer_excludes_other_seasons():
+def test_fetch_records_season_summer_excludes_other_seasons() -> None:
     """
     GIVEN  Un record d'été (juillet, 42°C) et un d'hiver (janvier, 12°C)
     WHEN   period_type=season, season=summer
@@ -266,7 +266,7 @@ def test_fetch_records_season_summer_excludes_other_seasons():
 
 
 @pytest.mark.django_db
-def test_fetch_records_territoire_department_filters_other_departments():
+def test_fetch_records_territoire_department_filters_other_departments() -> None:
     """
     GIVEN  Une station en Seine-Maritime (76) et une à Paris (75)
     WHEN   territoire=department, territoire_id=76
@@ -308,7 +308,7 @@ def test_fetch_records_territoire_department_filters_other_departments():
 
 
 @pytest.mark.django_db
-def test_fetch_records_territoire_station_returns_only_one_station():
+def test_fetch_records_territoire_station_returns_only_one_station() -> None:
     """
     GIVEN  Deux stations dans le même département
     WHEN   territoire=station, territoire_id=<une station>
@@ -355,7 +355,7 @@ def test_fetch_records_territoire_station_returns_only_one_station():
 
 
 @pytest.mark.django_db
-def test_fetch_records_date_range_excludes_records_outside_window():
+def test_fetch_records_date_range_excludes_records_outside_window() -> None:
     """
     GIVEN  Une station avec un record en 2019 et un en 1985
     WHEN   date_start=2010-01-01, date_end=2020-12-31
@@ -400,7 +400,7 @@ def test_fetch_records_date_range_excludes_records_outside_window():
 
 
 @pytest.mark.django_db
-def test_fetch_records_classe_recente_max_excludes_higher_classes():
+def test_fetch_records_classe_recente_max_excludes_higher_classes() -> None:
     """
     GIVEN  Une station classe 1 et une station classe 3
     WHEN   classe_recente_min=1, classe_recente_max=2
@@ -447,7 +447,7 @@ def test_fetch_records_classe_recente_max_excludes_higher_classes():
 
 
 @pytest.mark.django_db
-def test_fetch_records_pagination_page_and_page_size():
+def test_fetch_records_pagination_page_and_page_size() -> None:
     """
     GIVEN  Trois stations chacune avec un record
     WHEN   page=2, page_size=1, sort=-record_value
@@ -492,7 +492,7 @@ def test_fetch_records_pagination_page_and_page_size():
 
 
 @pytest.mark.django_db
-def test_fetch_records_sorting_by_value_desc():
+def test_fetch_records_sorting_by_value_desc() -> None:
     """
     GIVEN  Deux stations avec des valeurs différentes (38°C et 45°C)
     WHEN   sort=-record_value
@@ -541,7 +541,7 @@ def test_fetch_records_sorting_by_value_desc():
 
 
 @pytest.mark.django_db
-def test_fetch_records_returns_correct_entry_types():
+def test_fetch_records_returns_correct_entry_types() -> None:
     """Valide les types des champs de TemperatureRecordEntry."""
     station_code = "76200060"
     insert_station(

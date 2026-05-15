@@ -60,7 +60,7 @@ def _insert_station_with_deviation_data(code: str, classe: int) -> None:
 
 
 @pytest.mark.django_db
-def test_deviation_classe_3_is_included():
+def test_deviation_classe_3_is_included() -> None:
     """
     GIVEN  Une station de classe 3 (incluse dans les deux endpoints)
     WHEN   fetch_station_overview sans filtre explicite
@@ -77,7 +77,7 @@ def test_deviation_classe_3_is_included():
 
 
 @pytest.mark.django_db
-def test_deviation_classe_4_is_included():
+def test_deviation_classe_4_is_included() -> None:
     """
     GIVEN  Une station de classe 4 (valeur limite haute autorisée)
     WHEN   fetch_station_overview sans filtre explicite
@@ -94,7 +94,7 @@ def test_deviation_classe_4_is_included():
 
 
 @pytest.mark.django_db
-def test_deviation_classe_5_is_excluded():
+def test_deviation_classe_5_is_excluded() -> None:
     """
     GIVEN  Une station de classe 5 (première valeur hors seuil)
     WHEN   fetch_station_overview sans filtre explicite

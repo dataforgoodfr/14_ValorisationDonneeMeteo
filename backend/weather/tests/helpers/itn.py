@@ -62,7 +62,7 @@ def insert_quotidienne(day: dt.date, code: str, tntxm: float) -> None:
         )
 
 
-def insert_complete_itn_day(day: dt.date, value: float):
+def insert_complete_itn_day(day: dt.date, value: float) -> None:
     for code in expected_station_codes(day):
         insert_station(code)
         insert_quotidienne(day, code, value)

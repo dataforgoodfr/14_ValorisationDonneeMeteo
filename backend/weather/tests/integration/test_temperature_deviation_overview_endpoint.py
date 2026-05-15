@@ -10,7 +10,7 @@ from weather.data_sources.temperature_deviation_fake import (
 
 
 @pytest.fixture(autouse=True)
-def use_fake_datasource():
+def use_fake_datasource() -> None:
     TemperatureDeviationOverviewDependencyProvider.set_builder(
         lambda: FakeTemperatureDeviationOverviewDataSource()
     )
@@ -26,7 +26,7 @@ def client() -> APIClient:
 ENDPOINT = "/api/v1/temperature/deviation"
 
 
-def test_overview_endpoint_happy_path(client: APIClient):
+def test_overview_endpoint_happy_path(client: APIClient) -> None:
     resp = client.get(
         ENDPOINT,
         {
@@ -48,7 +48,7 @@ def test_overview_endpoint_happy_path(client: APIClient):
     assert len(data["stations"]) > 0
 
 
-def test_overview_endpoint_returns_400_on_invalid_dates(client: APIClient):
+def test_overview_endpoint_returns_400_on_invalid_dates(client: APIClient) -> None:
     resp = client.get(
         ENDPOINT,
         {
@@ -62,7 +62,7 @@ def test_overview_endpoint_returns_400_on_invalid_dates(client: APIClient):
     assert "error" in data
 
 
-def test_overview_endpoint_returns_400_on_invalid_bounds(client: APIClient):
+def test_overview_endpoint_returns_400_on_invalid_bounds(client: APIClient) -> None:
     resp = client.get(
         ENDPOINT,
         {
@@ -76,7 +76,7 @@ def test_overview_endpoint_returns_400_on_invalid_bounds(client: APIClient):
     assert resp.status_code == 400
 
 
-def test_overview_endpoint_pagination(client: APIClient):
+def test_overview_endpoint_pagination(client: APIClient) -> None:
     resp = client.get(
         ENDPOINT,
         {
@@ -95,7 +95,7 @@ def test_overview_endpoint_pagination(client: APIClient):
     assert len(data["stations"]) <= 10
 
 
-def test_overview_endpoint_ordering(client: APIClient):
+def test_overview_endpoint_ordering(client: APIClient) -> None:
     resp = client.get(
         ENDPOINT,
         {
@@ -112,7 +112,7 @@ def test_overview_endpoint_ordering(client: APIClient):
     assert stations[0]["deviation"] >= stations[1]["deviation"]
 
 
-def test_overview_endpoint_filters(client: APIClient):
+def test_overview_endpoint_filters(client: APIClient) -> None:
     resp = client.get(
         ENDPOINT,
         {
@@ -128,7 +128,7 @@ def test_overview_endpoint_filters(client: APIClient):
     assert all(s["deviation"] >= 2 for s in stations)
 
 
-def test_overview_endpoint_empty_result(client: APIClient):
+def test_overview_endpoint_empty_result(client: APIClient) -> None:
     resp = client.get(
         ENDPOINT,
         {
@@ -145,7 +145,7 @@ def test_overview_endpoint_empty_result(client: APIClient):
     assert data["pagination"]["total_count"] == 0
 
 
-def test_overview_endpoint_returns_added_station_fields(client: APIClient):
+def test_overview_endpoint_returns_added_station_fields(client: APIClient) -> None:
     resp = client.get(
         ENDPOINT,
         {
@@ -164,7 +164,7 @@ def test_overview_endpoint_returns_added_station_fields(client: APIClient):
     assert "region" in station
 
 
-def test_overview_endpoint_filters_by_department(client: APIClient):
+def test_overview_endpoint_filters_by_department(client: APIClient) -> None:
     resp = client.get(
         ENDPOINT,
         {
@@ -182,7 +182,7 @@ def test_overview_endpoint_filters_by_department(client: APIClient):
 
 def test_overview_endpoint_metadata_includes_station_lifecycle_filters(
     client: APIClient,
-):
+) -> None:
     resp = client.get(
         ENDPOINT,
         {
@@ -208,7 +208,7 @@ def test_overview_endpoint_metadata_includes_station_lifecycle_filters(
 
 def test_overview_endpoint_national_is_independent_from_station_filters(
     client: APIClient,
-):
+) -> None:
     resp_all = client.get(
         ENDPOINT,
         {
@@ -233,7 +233,7 @@ def test_overview_endpoint_national_is_independent_from_station_filters(
     )
 
 
-def test_overview_endpoint_returns_400_on_negative_offset(client: APIClient):
+def test_overview_endpoint_returns_400_on_negative_offset(client: APIClient) -> None:
     resp = client.get(
         ENDPOINT,
         {
@@ -246,7 +246,7 @@ def test_overview_endpoint_returns_400_on_negative_offset(client: APIClient):
     assert resp.status_code == 400
 
 
-def test_overview_endpoint_filters_by_station_ids(client: APIClient):
+def test_overview_endpoint_filters_by_station_ids(client: APIClient) -> None:
     resp = client.get(
         ENDPOINT,
         {
@@ -264,7 +264,9 @@ def test_overview_endpoint_filters_by_station_ids(client: APIClient):
     assert {s["station_id"] for s in stations} == {"70000", "70001"}
 
 
-def test_overview_endpoint_combines_station_ids_and_station_search(client: APIClient):
+def test_overview_endpoint_combines_station_ids_and_station_search(
+    client: APIClient,
+) -> None:
     resp = client.get(
         ENDPOINT,
         {
@@ -284,7 +286,9 @@ def test_overview_endpoint_combines_station_ids_and_station_search(client: APICl
     assert stations[0]["station_id"] == "70010"
 
 
-def test_overview_endpoint_echoes_station_ids_in_metadata_filters(client: APIClient):
+def test_overview_endpoint_echoes_station_ids_in_metadata_filters(
+    client: APIClient,
+) -> None:
     resp = client.get(
         ENDPOINT,
         {
@@ -298,7 +302,7 @@ def test_overview_endpoint_echoes_station_ids_in_metadata_filters(client: APICli
     assert resp.json()["metadata"]["filters"]["station_ids"] == ["70000", "70001"]
 
 
-def test_overview_endpoint_ordering_by_department(client: APIClient):
+def test_overview_endpoint_ordering_by_department(client: APIClient) -> None:
     resp = client.get(
         ENDPOINT,
         {
@@ -315,7 +319,7 @@ def test_overview_endpoint_ordering_by_department(client: APIClient):
     assert stations[0]["department"] <= stations[1]["department"]
 
 
-def test_overview_endpoint_ordering_by_region(client: APIClient):
+def test_overview_endpoint_ordering_by_region(client: APIClient) -> None:
     resp = client.get(
         ENDPOINT,
         {

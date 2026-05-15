@@ -63,7 +63,7 @@ def _yesterday() -> dt.date:
 # ---------------------------------------------------------------------------
 
 
-def test_v_quotidienne_realtime_happy_path_from_htr():
+def test_v_quotidienne_realtime_happy_path_from_htr() -> None:
     """Une lecture HTR hier midi produit une ligne quotidienne datée d'hier."""
     yesterday = _yesterday()
     insert_horaire_temps_reel(STATION, _at(yesterday, 12), tn=5.0, tx=15.0)
@@ -77,7 +77,7 @@ def test_v_quotidienne_realtime_happy_path_from_htr():
     assert float(rows[0]["tntxm"]) == pytest.approx(10.0)
 
 
-def test_v_quotidienne_realtime_aggregates_min_max_per_day():
+def test_v_quotidienne_realtime_aggregates_min_max_per_day() -> None:
     """Plusieurs lectures sur le même jour → MIN(tn) et MAX(tx)."""
     yesterday = _yesterday()
     insert_horaire_temps_reel(STATION, _at(yesterday, 10), tn=5.0, tx=12.0)
@@ -92,7 +92,7 @@ def test_v_quotidienne_realtime_aggregates_min_max_per_day():
     assert float(rows[0]["tntxm"]) == pytest.approx(10.0)
 
 
-def test_v_quotidienne_realtime_separates_stations():
+def test_v_quotidienne_realtime_separates_stations() -> None:
     other = "31069001"
     yesterday = _yesterday()
 
@@ -119,7 +119,7 @@ def test_v_quotidienne_realtime_separates_stations():
 # ---------------------------------------------------------------------------
 
 
-def test_v_quotidienne_realtime_aggregates_infrahoraire_into_hourly_min_max():
+def test_v_quotidienne_realtime_aggregates_infrahoraire_into_hourly_min_max() -> None:
     """
     3 lectures infra-horaires dans la même heure sont d'abord agrégées
     par heure (`LAST(t)`, `MIN(t)`, `MAX(t)`) puis intégrées au quotidien.
@@ -161,7 +161,7 @@ def test_v_quotidienne_realtime_aggregates_infrahoraire_into_hourly_min_max():
         assert rows == []
 
 
-def test_v_quotidienne_realtime_infrahoraire_coexists_with_htr():
+def test_v_quotidienne_realtime_infrahoraire_coexists_with_htr() -> None:
     """
     HTR sur hier et ITR récent : la lecture d'hier reste intacte tant que
     l'ITR n'alimente pas la fenêtre tx d'hier (cas "tôt le matin", où
@@ -197,7 +197,7 @@ def test_v_quotidienne_realtime_infrahoraire_coexists_with_htr():
 # ---------------------------------------------------------------------------
 
 
-def test_v_quotidienne_realtime_uses_horaire_for_older_data():
+def test_v_quotidienne_realtime_uses_horaire_for_older_data() -> None:
     """Donnée 3 jours en arrière (hors fenêtre HTR) : vient de la table `Horaire`."""
     three_days_ago = _utc_today() - dt.timedelta(days=3)
     insert_horaire(STATION, _at(three_days_ago, 12), tn=2.0, tx=12.0)
@@ -210,7 +210,7 @@ def test_v_quotidienne_realtime_uses_horaire_for_older_data():
     assert float(rows[0]["tx"]) == pytest.approx(12.0)
 
 
-def test_v_quotidienne_realtime_combines_htr_and_horaire_across_days():
+def test_v_quotidienne_realtime_combines_htr_and_horaire_across_days() -> None:
     """Deux jours via deux sources différentes → 2 lignes dans la vue."""
     yesterday = _yesterday()
     three_days_ago = _utc_today() - dt.timedelta(days=3)
@@ -238,7 +238,7 @@ def test_v_quotidienne_realtime_combines_htr_and_horaire_across_days():
 # ---------------------------------------------------------------------------
 
 
-def test_v_quotidienne_realtime_tn_uses_18h_meteorological_day():
+def test_v_quotidienne_realtime_tn_uses_18h_meteorological_day() -> None:
     """
     `tn` du jour D = MIN(tn) sur les lectures dont l'heure ≤ D 18:00.
     Une lecture à `hier 17:00` doit alimenter `tn(hier)`.
@@ -263,7 +263,7 @@ def test_v_quotidienne_realtime_tn_uses_18h_meteorological_day():
     assert float(rows[0]["tx"]) == pytest.approx(20.0)
 
 
-def test_v_quotidienne_realtime_tx_uses_6h_meteorological_day():
+def test_v_quotidienne_realtime_tx_uses_6h_meteorological_day() -> None:
     """
     `tx` du jour D = MAX(tx) sur les lectures dont l'heure > D 06:00.
     Une lecture à `hier 04:00` doit alimenter `tx(avant-hier)`.
@@ -294,7 +294,7 @@ def test_v_quotidienne_realtime_tx_uses_6h_meteorological_day():
 # ---------------------------------------------------------------------------
 
 
-def test_v_quotidienne_realtime_filters_day_with_only_tn():
+def test_v_quotidienne_realtime_filters_day_with_only_tn() -> None:
     """Un jour avec uniquement tn (tx manquant) → tntxm NULL → ligne exclue."""
     yesterday = _yesterday()
     insert_horaire_temps_reel(STATION, _at(yesterday, 12), tn=5.0, tx=None)
@@ -304,7 +304,7 @@ def test_v_quotidienne_realtime_filters_day_with_only_tn():
     assert rows == []
 
 
-def test_v_quotidienne_realtime_filters_day_with_only_tx():
+def test_v_quotidienne_realtime_filters_day_with_only_tx() -> None:
     """Symétrique : un jour avec uniquement tx (tn manquant) → ligne exclue."""
     yesterday = _yesterday()
     insert_horaire_temps_reel(STATION, _at(yesterday, 12), tn=None, tx=15.0)
@@ -314,7 +314,7 @@ def test_v_quotidienne_realtime_filters_day_with_only_tx():
     assert rows == []
 
 
-def test_v_quotidienne_realtime_excludes_data_older_than_3_days():
+def test_v_quotidienne_realtime_excludes_data_older_than_3_days() -> None:
     """
     Donnée à 4 jours dans le passé (encore dans la fenêtre Horaire), mais la
     journée agrégée tombe avant `date_trunc('day', now()) - 3 jours` et la

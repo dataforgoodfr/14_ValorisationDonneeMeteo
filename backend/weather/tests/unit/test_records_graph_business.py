@@ -42,7 +42,7 @@ class ConfigurableRecordsGraphDataSource:
 _EMPTY_RESULT = RecordsGraphResult(buckets=[], records=[])
 
 
-def test_records_graph_business_returns_datasource_output():
+def test_records_graph_business_returns_datasource_output() -> None:
     expected = RecordsGraphResult(
         buckets=[RecordsGraphBucket(bucket="2024", nb_records_battus=3)],
         records=[
@@ -63,7 +63,7 @@ def test_records_graph_business_returns_datasource_output():
     assert result == expected
 
 
-def test_records_graph_business_passes_request_to_datasource():
+def test_records_graph_business_passes_request_to_datasource() -> None:
     ds = ConfigurableRecordsGraphDataSource(_EMPTY_RESULT)
     req = _req(granularity="month", type_records="cold")
 
@@ -72,7 +72,9 @@ def test_records_graph_business_passes_request_to_datasource():
     assert ds.last_request == req
 
 
-def test_records_graph_business_period_type_month_without_month_delegates_to_datasource():
+def test_records_graph_business_period_type_month_without_month_delegates_to_datasource() -> (
+    None
+):
     ds = ConfigurableRecordsGraphDataSource(_EMPTY_RESULT)
     req = _req(period_type="month", month=None)
 
@@ -82,7 +84,9 @@ def test_records_graph_business_period_type_month_without_month_delegates_to_dat
     assert ds.last_request == req
 
 
-def test_records_graph_business_period_type_season_without_season_delegates_to_datasource():
+def test_records_graph_business_period_type_season_without_season_delegates_to_datasource() -> (
+    None
+):
     ds = ConfigurableRecordsGraphDataSource(_EMPTY_RESULT)
     req = _req(period_type="season", season=None)
 
@@ -92,7 +96,7 @@ def test_records_graph_business_period_type_season_without_season_delegates_to_d
     assert ds.last_request == req
 
 
-def test_records_graph_business_raises_if_date_start_after_date_end():
+def test_records_graph_business_raises_if_date_start_after_date_end() -> None:
     ds = ConfigurableRecordsGraphDataSource(_EMPTY_RESULT)
     req = _req(date_start=dt.date(2025, 1, 1), date_end=dt.date(2024, 1, 1))
 
@@ -100,7 +104,7 @@ def test_records_graph_business_raises_if_date_start_after_date_end():
         get_records_graph(request=req, data_source=ds)
 
 
-def test_records_graph_business_period_type_month_with_month_does_not_raise():
+def test_records_graph_business_period_type_month_with_month_does_not_raise() -> None:
     ds = ConfigurableRecordsGraphDataSource(_EMPTY_RESULT)
     req = _req(period_type="month", month=7)
 
@@ -109,7 +113,7 @@ def test_records_graph_business_period_type_month_with_month_does_not_raise():
     assert result == _EMPTY_RESULT
 
 
-def test_records_graph_business_period_type_season_with_season_does_not_raise():
+def test_records_graph_business_period_type_season_with_season_does_not_raise() -> None:
     ds = ConfigurableRecordsGraphDataSource(_EMPTY_RESULT)
     req = _req(period_type="season", season="summer")
 
@@ -118,7 +122,7 @@ def test_records_graph_business_period_type_season_with_season_does_not_raise():
     assert result == _EMPTY_RESULT
 
 
-def test_records_graph_business_same_date_start_and_end_does_not_raise():
+def test_records_graph_business_same_date_start_and_end_does_not_raise() -> None:
     ds = ConfigurableRecordsGraphDataSource(_EMPTY_RESULT)
     same = dt.date(2024, 6, 15)
     req = _req(date_start=same, date_end=same)

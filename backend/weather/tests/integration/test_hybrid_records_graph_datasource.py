@@ -39,7 +39,7 @@ def _req(**kwargs) -> RecordsGraphRequest:
 
 @pytest.mark.django_db
 @pytest.mark.skip(reason=_MV_RECORDS_BATTUS_REALTIME_SKIP_REASON)
-def test_new_temperature_in_realtime_pipeline_appears_as_new_record():
+def test_new_temperature_in_realtime_pipeline_appears_as_new_record() -> None:
     """
     Scénario réaliste : un record historique existe dans mv_records_battus.
     Une nouvelle température (qui bat le record) arrive via le pipeline
@@ -90,7 +90,7 @@ def test_new_temperature_in_realtime_pipeline_appears_as_new_record():
 
 @pytest.mark.django_db
 @pytest.mark.skip(reason=_MV_RECORDS_BATTUS_REALTIME_SKIP_REASON)
-def test_record_on_cutoff_date_is_detected():
+def test_record_on_cutoff_date_is_detected() -> None:
     """Quand un nouveau record tombe le MÊME jour que la cutoff_date,
     il doit être détecté (la borne de la query post-cutoff inclut la cutoff)."""
     code = "75114004"
@@ -126,7 +126,7 @@ def test_record_on_cutoff_date_is_detected():
 
 
 @pytest.mark.django_db
-def test_record_present_in_mv_and_realtime_is_not_counted_twice():
+def test_record_present_in_mv_and_realtime_is_not_counted_twice() -> None:
     """Un record présent à la fois dans mv_records_battus ET dans
     mv_quotidienne_realtime (avec la même valeur) ne doit pas apparaître
     deux fois — la comparaison au seed empêche la détection redondante."""
@@ -159,7 +159,7 @@ def test_record_present_in_mv_and_realtime_is_not_counted_twice():
 
 
 @pytest.mark.django_db
-def test_no_false_positive_cold_records_when_above_seed():
+def test_no_false_positive_cold_records_when_above_seed() -> None:
     """Plusieurs jours post-cutoff avec TN au-dessus du seed cold historique
     (-20°C) ne doivent générer AUCUN nouveau record."""
     code = "75114007"
@@ -196,7 +196,7 @@ def test_no_false_positive_cold_records_when_above_seed():
 
 
 @pytest.mark.django_db
-def test_absolute_record_predates_50_year_filter_seeds_correctly():
+def test_absolute_record_predates_50_year_filter_seeds_correctly() -> None:
     """Reproduit le cas MARIGNANE (13054001) :
     - Station créée en 1920 → first_temp + 50 ans = 1970.
     - Record absolu cold de mai = 0.0°C le 1960-05-01 → EXCLU de
@@ -247,7 +247,7 @@ def test_absolute_record_predates_50_year_filter_seeds_correctly():
 
 @pytest.mark.django_db
 @pytest.mark.skip(reason=_MV_RECORDS_BATTUS_REALTIME_SKIP_REASON)
-def test_real_new_cold_record_still_detected_against_absolute_seed():
+def test_real_new_cold_record_still_detected_against_absolute_seed() -> None:
     """Vérifie que le fix MARIGNANE (seed via v_records_absolus_par_type)
     n'a pas supprimé les vrais nouveaux records : si une TN post-cutoff
     descend EN DESSOUS du record absolu, elle doit être détectée."""
@@ -297,7 +297,7 @@ def test_real_new_cold_record_still_detected_against_absolute_seed():
 
 @pytest.mark.django_db
 @pytest.mark.skip(reason=_MV_RECORDS_BATTUS_REALTIME_SKIP_REASON)
-def test_real_new_records_detected_with_type_records_all():
+def test_real_new_records_detected_with_type_records_all() -> None:
     """Réplique du cas staging : type_records=all, period_type=month, month=5
     avec une station style MARIGNANE (records absolus en mv_records_absolus_par_mois,
     rien en mv_records_battus). Une TN ET une TX battant respectivement le
@@ -350,7 +350,7 @@ def test_real_new_records_detected_with_type_records_all():
 
 @pytest.mark.django_db
 @pytest.mark.skip(reason=_MV_RECORDS_BATTUS_REALTIME_SKIP_REASON)
-def test_today_real_new_hot_record_with_period_type_month_no_month():
+def test_today_real_new_hot_record_with_period_type_month_no_month() -> None:
     """Réplique exacte de l'URL staging qui ne renvoie plus les vrais nouveaux
     records après le fix MARIGNANE :
     /api/v1/temperature/records/graph
@@ -404,7 +404,7 @@ def test_today_real_new_hot_record_with_period_type_month_no_month():
 
 @pytest.mark.django_db
 @pytest.mark.skip(reason=_MV_RECORDS_BATTUS_REALTIME_SKIP_REASON)
-def test_real_new_hot_record_still_detected_against_absolute_seed():
+def test_real_new_hot_record_still_detected_against_absolute_seed() -> None:
     """Symétrique : un vrai nouveau record chaud doit toujours apparaître."""
     code = "13054003"
     insert_station(
@@ -450,7 +450,7 @@ def test_real_new_hot_record_still_detected_against_absolute_seed():
 
 
 @pytest.mark.django_db
-def test_no_false_positive_cold_when_type_records_all():
+def test_no_false_positive_cold_when_type_records_all() -> None:
     """Avec type_records=all, l'enrichissement post-cutoff lance deux passes
     (hot + cold). Les TN au-dessus du seed cold ne doivent pas être détectés
     comme records, même si la même ligne v_quotidienne a un TX qui dépasse
@@ -498,7 +498,7 @@ def test_no_false_positive_cold_when_type_records_all():
 
 @pytest.mark.django_db
 @pytest.mark.skip(reason=_MV_RECORDS_BATTUS_REALTIME_SKIP_REASON)
-def test_stale_mv_record_does_not_duplicate_with_fresher_realtime():
+def test_stale_mv_record_does_not_duplicate_with_fresher_realtime() -> None:
     """Quand le mv_records_battus a une valeur figée (par ex. 38) mais que la
     pipeline temps-réel a vu plus chaud le même jour (45), la réponse ne doit
     contenir qu'une seule ligne pour ce jour (la plus à jour)."""

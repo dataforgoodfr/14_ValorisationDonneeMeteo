@@ -53,7 +53,7 @@ def _first_of_previous_month() -> dt.date:
 # ---------------------------------------------------------------------------
 
 
-def test_v_mensuelle_aggregates_one_station_one_month():
+def test_v_mensuelle_aggregates_one_station_one_month() -> None:
     """Trois jours d'un même mois → une ligne mensuelle datée au 1er du mois."""
     first = _first_of_this_month()
 
@@ -73,7 +73,7 @@ def test_v_mensuelle_aggregates_one_station_one_month():
     assert rows[0]["date"].date() == first
 
 
-def test_v_mensuelle_tnn_is_min_tn_of_month():
+def test_v_mensuelle_tnn_is_min_tn_of_month() -> None:
     first = _first_of_this_month()
 
     insert_mv_quotidienne_realtime(
@@ -91,7 +91,7 @@ def test_v_mensuelle_tnn_is_min_tn_of_month():
     assert float(rows[0]["tnn"]) == pytest.approx(3.0)
 
 
-def test_v_mensuelle_txx_is_max_tx_of_month():
+def test_v_mensuelle_txx_is_max_tx_of_month() -> None:
     first = _first_of_this_month()
 
     insert_mv_quotidienne_realtime(
@@ -109,7 +109,7 @@ def test_v_mensuelle_txx_is_max_tx_of_month():
     assert float(rows[0]["txx"]) == pytest.approx(20.0)
 
 
-def test_v_mensuelle_tmm_is_rounded_avg_of_tntxm():
+def test_v_mensuelle_tmm_is_rounded_avg_of_tntxm() -> None:
     """tmm = ROUND(AVG(tntxm), 1) où tntxm = (tn+tx)/2."""
     first = _first_of_this_month()
 
@@ -134,7 +134,7 @@ def test_v_mensuelle_tmm_is_rounded_avg_of_tntxm():
 # ---------------------------------------------------------------------------
 
 
-def test_v_mensuelle_tnn_date_is_day_of_min_tn():
+def test_v_mensuelle_tnn_date_is_day_of_min_tn() -> None:
     first = _first_of_this_month()
 
     insert_mv_quotidienne_realtime(
@@ -152,7 +152,7 @@ def test_v_mensuelle_tnn_date_is_day_of_min_tn():
     assert rows[0]["tnn_date"].date() == dt.date(first.year, first.month, 2)
 
 
-def test_v_mensuelle_txx_date_is_day_of_max_tx():
+def test_v_mensuelle_txx_date_is_day_of_max_tx() -> None:
     first = _first_of_this_month()
 
     insert_mv_quotidienne_realtime(
@@ -170,7 +170,7 @@ def test_v_mensuelle_txx_date_is_day_of_max_tx():
     assert rows[0]["txx_date"].date() == dt.date(first.year, first.month, 2)
 
 
-def test_v_mensuelle_tnn_date_tie_breaker_picks_earliest():
+def test_v_mensuelle_tnn_date_tie_breaker_picks_earliest() -> None:
     """Quand plusieurs jours partagent le min tn, on prend le plus ancien."""
     first = _first_of_this_month()
 
@@ -190,7 +190,7 @@ def test_v_mensuelle_tnn_date_tie_breaker_picks_earliest():
     assert rows[0]["tnn_date"].date() == dt.date(first.year, first.month, 1)
 
 
-def test_v_mensuelle_txx_date_tie_breaker_picks_earliest():
+def test_v_mensuelle_txx_date_tie_breaker_picks_earliest() -> None:
     """Quand plusieurs jours partagent le max tx, on prend le plus ancien."""
     first = _first_of_this_month()
 
@@ -215,7 +215,7 @@ def test_v_mensuelle_txx_date_tie_breaker_picks_earliest():
 # ---------------------------------------------------------------------------
 
 
-def test_v_mensuelle_excludes_data_older_than_2_months():
+def test_v_mensuelle_excludes_data_older_than_2_months() -> None:
     """
     Filtre `date >= date_trunc('month', now()) - 2 months`.
     Une donnée datée de 3 mois avant le 1er du mois courant est exclue.
@@ -238,7 +238,7 @@ def test_v_mensuelle_excludes_data_older_than_2_months():
     assert rows == []
 
 
-def test_v_mensuelle_separates_stations():
+def test_v_mensuelle_separates_stations() -> None:
     """Deux stations dans le même mois → deux lignes, agrégats indépendants."""
     first = _first_of_this_month()
     other = "31069001"
@@ -264,7 +264,7 @@ def test_v_mensuelle_separates_stations():
     assert float(rows_b[0]["txx"]) == pytest.approx(8.0)
 
 
-def test_v_mensuelle_returns_one_row_per_month_in_window():
+def test_v_mensuelle_returns_one_row_per_month_in_window() -> None:
     """Données dans 2 mois différents → 2 lignes, triées par date asc."""
     first_this = _first_of_this_month()
     first_prev = _first_of_previous_month()

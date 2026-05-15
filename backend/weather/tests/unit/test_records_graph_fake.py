@@ -22,7 +22,7 @@ def _req(**kwargs) -> RecordsGraphRequest:
     return RecordsGraphRequest(**defaults)
 
 
-def test_fake_records_graph_hot_returns_non_empty_buckets():
+def test_fake_records_graph_hot_returns_non_empty_buckets() -> None:
     ds = FakeRecordsGraphDataSource()
     result = ds.fetch_graph(_req(type_records="hot"))
 
@@ -31,7 +31,7 @@ def test_fake_records_graph_hot_returns_non_empty_buckets():
     assert total >= 1
 
 
-def test_fake_records_graph_cold_returns_non_empty_buckets():
+def test_fake_records_graph_cold_returns_non_empty_buckets() -> None:
     ds = FakeRecordsGraphDataSource()
     result = ds.fetch_graph(_req(type_records="cold"))
 
@@ -40,7 +40,7 @@ def test_fake_records_graph_cold_returns_non_empty_buckets():
     assert total >= 1
 
 
-def test_fake_records_graph_all_returns_both_types():
+def test_fake_records_graph_all_returns_both_types() -> None:
     ds = FakeRecordsGraphDataSource()
     result = ds.fetch_graph(_req(type_records="all"))
 
@@ -49,21 +49,21 @@ def test_fake_records_graph_all_returns_both_types():
     assert "cold" in types
 
 
-def test_fake_records_graph_hot_records_are_all_hot():
+def test_fake_records_graph_hot_records_are_all_hot() -> None:
     ds = FakeRecordsGraphDataSource()
     result = ds.fetch_graph(_req(type_records="hot"))
 
     assert all(r.type_records == "hot" for r in result.records)
 
 
-def test_fake_records_graph_cold_records_are_all_cold():
+def test_fake_records_graph_cold_records_are_all_cold() -> None:
     ds = FakeRecordsGraphDataSource()
     result = ds.fetch_graph(_req(type_records="cold"))
 
     assert all(r.type_records == "cold" for r in result.records)
 
 
-def test_fake_records_graph_buckets_cover_full_year_range():
+def test_fake_records_graph_buckets_cover_full_year_range() -> None:
     ds = FakeRecordsGraphDataSource()
     result = ds.fetch_graph(
         _req(
@@ -79,7 +79,7 @@ def test_fake_records_graph_buckets_cover_full_year_range():
     assert "2022" in bucket_keys
 
 
-def test_fake_records_graph_records_have_correct_shape():
+def test_fake_records_graph_records_have_correct_shape() -> None:
     ds = FakeRecordsGraphDataSource()
     result = ds.fetch_graph(_req(type_records="all"))
 
@@ -91,7 +91,7 @@ def test_fake_records_graph_records_have_correct_shape():
         assert isinstance(r.valeur, float)
 
 
-def test_fake_records_graph_is_deterministic():
+def test_fake_records_graph_is_deterministic() -> None:
     ds = FakeRecordsGraphDataSource()
     req = _req(type_records="all")
 
@@ -101,7 +101,7 @@ def test_fake_records_graph_is_deterministic():
     assert r1 == r2
 
 
-def test_fake_records_graph_nb_records_matches_individual_records():
+def test_fake_records_graph_nb_records_matches_individual_records() -> None:
     ds = FakeRecordsGraphDataSource()
     result = ds.fetch_graph(
         _req(

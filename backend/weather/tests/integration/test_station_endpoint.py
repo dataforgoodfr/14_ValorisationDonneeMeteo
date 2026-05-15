@@ -8,7 +8,7 @@ from weather.tests.helpers.stations import insert_station
 
 
 @pytest.mark.django_db
-def test_station_list_filters_by_first_temperature_year_max(client: APIClient):
+def test_station_list_filters_by_first_temperature_year_max(client: APIClient) -> None:
     insert_station(
         "00000001", "Station 1959", first_temperature_date=dt.datetime(1959, 1, 1)
     )
@@ -33,7 +33,7 @@ def test_station_list_filters_by_first_temperature_year_max(client: APIClient):
 
 
 @pytest.mark.django_db
-def test_station_records_list_uses_station_records_view(client: APIClient):
+def test_station_records_list_uses_station_records_view(client: APIClient) -> None:
     current_year = dt.date.today().year
 
     insert_station(
@@ -57,7 +57,7 @@ def test_station_records_list_uses_station_records_view(client: APIClient):
 @pytest.mark.django_db
 def test_station_records_detail_returns_404_for_station_outside_records_view(
     client: APIClient,
-):
+) -> None:
     current_year = dt.date.today().year
 
     insert_station(
@@ -80,7 +80,7 @@ def test_station_records_detail_returns_404_for_station_outside_records_view(
 
 
 @pytest.mark.django_db
-def test_station_deviation_list_uses_station_deviation_view(client: APIClient):
+def test_station_deviation_list_uses_station_deviation_view(client: APIClient) -> None:
     insert_station(
         "00000031",
         "Station eligible",
@@ -110,7 +110,7 @@ def test_station_deviation_list_uses_station_deviation_view(client: APIClient):
 @pytest.mark.django_db
 def test_station_deviation_detail_returns_404_for_station_outside_deviation_view(
     client: APIClient,
-):
+) -> None:
     insert_station(
         "00000041",
         "Station eligible",

@@ -90,7 +90,7 @@ def _insert_station_with_record(code: str, classe: int) -> None:
 
 
 @pytest.mark.django_db
-def test_records_classe_1_is_included():
+def test_records_classe_1_is_included() -> None:
     """
     GIVEN  Une station de classe 1 (classe minimale)
     WHEN   fetch_records sans filtre explicite
@@ -105,7 +105,7 @@ def test_records_classe_1_is_included():
 
 
 @pytest.mark.django_db
-def test_records_classe_3_is_included():
+def test_records_classe_3_is_included() -> None:
     """
     GIVEN  Une station de classe 3 (valeur limite haute autorisée)
     WHEN   fetch_records sans filtre explicite
@@ -120,7 +120,7 @@ def test_records_classe_3_is_included():
 
 
 @pytest.mark.django_db
-def test_records_classe_4_is_excluded():
+def test_records_classe_4_is_excluded() -> None:
     """
     GIVEN  Une station de classe 4 (première valeur hors seuil)
     WHEN   fetch_records sans filtre explicite
@@ -135,7 +135,7 @@ def test_records_classe_4_is_excluded():
 
 
 @pytest.mark.django_db
-def test_records_classe_5_is_excluded():
+def test_records_classe_5_is_excluded() -> None:
     """
     GIVEN  Une station de classe 5 (classe maximale, hors seuil)
     WHEN   fetch_records sans filtre explicite
@@ -155,7 +155,7 @@ def test_records_classe_5_is_excluded():
 
 
 @pytest.mark.django_db
-def test_classe_4_excluded_from_records_but_included_in_deviation():
+def test_classe_4_excluded_from_records_but_included_in_deviation() -> None:
     """
     GIVEN  Une station de classe 4 avec un record ET des données de déviation
     WHEN   On appelle les deux datasources

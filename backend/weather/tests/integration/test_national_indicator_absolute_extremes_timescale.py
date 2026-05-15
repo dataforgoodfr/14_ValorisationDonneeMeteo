@@ -25,7 +25,7 @@ pytestmark = pytest.mark.django_db
 # ---------------------------------------------------------------------------
 
 
-def test_daily_absolute_extremes_returns_matching_pairs():
+def test_daily_absolute_extremes_returns_matching_pairs() -> None:
     insert_itn_daily(2000, 1, 1, 2.0)
     insert_itn_daily(2025, 1, 1, 7.0)
     insert_itn_daily(2000, 3, 1, 5.0)
@@ -45,7 +45,7 @@ def test_daily_absolute_extremes_returns_matching_pairs():
     assert (6, 15) not in result
 
 
-def test_daily_absolute_extremes_filters_unrequested_pairs():
+def test_daily_absolute_extremes_filters_unrequested_pairs() -> None:
     insert_itn_daily(2000, 5, 1, 10.0)
     insert_itn_daily(2000, 5, 2, 999.0)
 
@@ -57,12 +57,12 @@ def test_daily_absolute_extremes_filters_unrequested_pairs():
     assert result[(5, 1)].absolute_max == pytest.approx(10.0)
 
 
-def test_daily_absolute_extremes_empty_input_returns_empty():
+def test_daily_absolute_extremes_empty_input_returns_empty() -> None:
     ds = TimescaleNationalIndicatorAbsoluteExtremesDataSource()
     assert ds.fetch_daily_absolute_extremes(set()) == {}
 
 
-def test_daily_absolute_extremes_requested_pair_absent_returns_empty():
+def test_daily_absolute_extremes_requested_pair_absent_returns_empty() -> None:
     """Un (month, day_of_month) absent de la MV n'est pas retourné."""
     insert_itn_daily(2000, 1, 1, 5.0)
     insert_itn_daily(2025, 1, 1, 10.0)
@@ -78,7 +78,7 @@ def test_daily_absolute_extremes_requested_pair_absent_returns_empty():
 # ---------------------------------------------------------------------------
 
 
-def test_monthly_absolute_extremes_returns_matching_months():
+def test_monthly_absolute_extremes_returns_matching_months() -> None:
     insert_itn_daily(2000, 1, 1, 4.0)
     insert_itn_daily(2025, 1, 4, 7.0)
     insert_itn_daily(2000, 6, 1, 20.0)
@@ -94,7 +94,7 @@ def test_monthly_absolute_extremes_returns_matching_months():
     assert result[6].absolute_max == pytest.approx(22.0)
 
 
-def test_monthly_absolute_extremes_filters_unrequested_months():
+def test_monthly_absolute_extremes_filters_unrequested_months() -> None:
     insert_itn_daily(2000, 3, 1, 8.0)
     insert_itn_daily(2025, 3, 4, 12.0)
     insert_itn_daily(2000, 9, 1, 15.0)
@@ -107,7 +107,7 @@ def test_monthly_absolute_extremes_filters_unrequested_months():
     assert result[3].absolute_min == pytest.approx(8.0)
 
 
-def test_monthly_absolute_extremes_empty_input_returns_empty():
+def test_monthly_absolute_extremes_empty_input_returns_empty() -> None:
     ds = TimescaleNationalIndicatorAbsoluteExtremesDataSource()
     assert ds.fetch_monthly_absolute_extremes(set()) == {}
 
@@ -117,7 +117,7 @@ def test_monthly_absolute_extremes_empty_input_returns_empty():
 # ---------------------------------------------------------------------------
 
 
-def test_yearly_absolute_extremes_returns_values():
+def test_yearly_absolute_extremes_returns_values() -> None:
     insert_itn_daily(2000, 1, 2, 5.0)
     insert_itn_daily(2013, 3, 4, 6.5)
     insert_itn_daily(2025, 5, 6, 8.0)
@@ -129,7 +129,7 @@ def test_yearly_absolute_extremes_returns_values():
     assert result.absolute_max == pytest.approx(8.0)
 
 
-def test_yearly_absolute_extremes_no_data_raises():
+def test_yearly_absolute_extremes_no_data_raises() -> None:
     """La table est vide → ValueError (même comportement que la baseline)."""
     ds = TimescaleNationalIndicatorAbsoluteExtremesDataSource()
     with pytest.raises(ValueError, match="extremes annuels"):

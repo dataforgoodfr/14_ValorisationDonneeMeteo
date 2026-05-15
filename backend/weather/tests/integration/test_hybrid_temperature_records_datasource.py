@@ -29,7 +29,7 @@ _MV_RECORDS_BATTUS_REALTIME_SKIP_REASON = (
 
 
 @pytest.mark.django_db
-def test_no_cutoff_returns_mv_only():
+def test_no_cutoff_returns_mv_only() -> None:
     """Méta table vide → retourne uniquement les données MV, sans query à chaud."""
     code = "76116001"
     insert_station(code, "Station Hybrid 1", departement=76)
@@ -49,7 +49,7 @@ def test_no_cutoff_returns_mv_only():
 
 
 @pytest.mark.django_db
-def test_cutoff_future_no_new_data():
+def test_cutoff_future_no_new_data() -> None:
     """Cutoff = aujourd'hui, données Quotidienne avant cutoff → aucun ajout."""
     code = "76116002"
     insert_station(code, "Station Hybrid 2", departement=76)
@@ -73,7 +73,7 @@ def test_cutoff_future_no_new_data():
 
 @pytest.mark.django_db
 @pytest.mark.skip(reason=_MV_RECORDS_BATTUS_REALTIME_SKIP_REASON)
-def test_new_hot_record_after_cutoff_is_added():
+def test_new_hot_record_after_cutoff_is_added() -> None:
     """Record chaud battu après cutoff → ligne ajoutée dans les résultats."""
     code = "76116003"
     insert_station(code, "Station Hybrid 3", departement=76)
@@ -98,7 +98,7 @@ def test_new_hot_record_after_cutoff_is_added():
 
 
 @pytest.mark.django_db
-def test_value_below_seed_not_added():
+def test_value_below_seed_not_added() -> None:
     """Valeur après cutoff inférieure au seed → pas ajoutée."""
     code = "76116004"
     insert_station(code, "Station Hybrid 4", departement=76)
@@ -121,7 +121,7 @@ def test_value_below_seed_not_added():
 
 @pytest.mark.django_db
 @pytest.mark.skip(reason=_MV_RECORDS_BATTUS_REALTIME_SKIP_REASON)
-def test_new_station_after_cutoff_gets_first_record():
+def test_new_station_after_cutoff_gets_first_record() -> None:
     """Nouvelle station absente de la MV → son premier jour après cutoff = record."""
     code = "76116005"
     insert_station(code, "Station Hybrid 5", departement=76)
@@ -142,7 +142,7 @@ def test_new_station_after_cutoff_gets_first_record():
 
 @pytest.mark.django_db
 @pytest.mark.skip(reason=_MV_RECORDS_BATTUS_REALTIME_SKIP_REASON)
-def test_new_cold_record_after_cutoff():
+def test_new_cold_record_after_cutoff() -> None:
     """Record froid battu après cutoff → type_records='cold'."""
     code = "76116006"
     insert_station(code, "Station Hybrid 6", departement=76)
@@ -165,7 +165,7 @@ def test_new_cold_record_after_cutoff():
 
 
 @pytest.mark.django_db
-def test_cold_above_seed_not_added():
+def test_cold_above_seed_not_added() -> None:
     """TN après cutoff supérieure (moins froid) au seed → pas ajoutée."""
     code = "76116007"
     insert_station(code, "Station Hybrid 7", departement=76)
@@ -187,7 +187,7 @@ def test_cold_above_seed_not_added():
 
 
 @pytest.mark.django_db
-def test_month_filter_respected():
+def test_month_filter_respected() -> None:
     """Filtre period_type='month' : données hors mois ignorées dans le hot calc."""
     code = "76116008"
     insert_station(code, "Station Hybrid 8", departement=76)
@@ -210,7 +210,7 @@ def test_month_filter_respected():
 
 
 @pytest.mark.django_db
-def test_season_filter_respected():
+def test_season_filter_respected() -> None:
     """Filtre period_type='season' : données hors saison ignorées dans le hot calc."""
     code = "76116009"
     insert_station(code, "Station Hybrid 9", departement=76)
@@ -236,7 +236,7 @@ def test_season_filter_respected():
 
 @pytest.mark.django_db
 @pytest.mark.skip(reason=_MV_RECORDS_BATTUS_REALTIME_SKIP_REASON)
-def test_all_months_mode_enriches_per_month_seeds():
+def test_all_months_mode_enriches_per_month_seeds() -> None:
     """period_type='month' sans month : l'enrichissement post-cutoff compare
     chaque ligne post-cutoff au seed du mois où elle tombe (per-month seeds)."""
     code = "76116011"
@@ -270,7 +270,7 @@ def test_all_months_mode_enriches_per_month_seeds():
 
 @pytest.mark.django_db
 @pytest.mark.skip(reason=_MV_RECORDS_BATTUS_REALTIME_SKIP_REASON)
-def test_all_seasons_mode_enriches_per_season_seeds():
+def test_all_seasons_mode_enriches_per_season_seeds() -> None:
     """period_type='season' sans season : enrichissement post-cutoff comparé au
     seed de la saison où tombe chaque ligne (per-season seeds)."""
     code = "76116012"
@@ -302,7 +302,7 @@ def test_all_seasons_mode_enriches_per_season_seeds():
 
 
 @pytest.mark.django_db
-def test_all_months_date_filter_excludes_outside_range():
+def test_all_months_date_filter_excludes_outside_range() -> None:
     """Export use case : month=None + date_start/date_end → seuls les records dans la fenêtre."""
     code = "76116013"
     insert_station(code, "Station Export Date", departement=76)
@@ -335,7 +335,7 @@ def test_all_months_date_filter_excludes_outside_range():
 
 @pytest.mark.django_db
 @pytest.mark.skip(reason=_MV_RECORDS_BATTUS_REALTIME_SKIP_REASON)
-def test_after_cutoff_date_filter_excludes_outside_range():
+def test_after_cutoff_date_filter_excludes_outside_range() -> None:
     """date_start/date_end filtre aussi les records post-cutoff hors de la fenêtre."""
     code = "76116014"
     insert_station(code, "Station Post Cutoff Date", departement=76)
@@ -372,7 +372,7 @@ def test_after_cutoff_date_filter_excludes_outside_range():
 
 
 @pytest.mark.django_db
-def test_meta_table_absent_falls_back_to_mv():
+def test_meta_table_absent_falls_back_to_mv() -> None:
     """Erreur DB sur la méta table → pas d'exception, retourne les données MV seules."""
     code = "76116010"
     insert_station(code, "Station Hybrid 10", departement=76)
@@ -397,7 +397,7 @@ def test_meta_table_absent_falls_back_to_mv():
 
 @pytest.mark.django_db
 @pytest.mark.skip(reason=_MV_RECORDS_BATTUS_REALTIME_SKIP_REASON)
-def test_new_temperature_in_realtime_pipeline_appears_as_new_record():
+def test_new_temperature_in_realtime_pipeline_appears_as_new_record() -> None:
     """
     Variante "avant/après" : un premier appel renvoie le record historique
     de la MV figée ; une nouvelle température arrive ensuite via le pipeline
@@ -431,7 +431,7 @@ def test_new_temperature_in_realtime_pipeline_appears_as_new_record():
 
 @pytest.mark.django_db
 @pytest.mark.skip(reason=_MV_RECORDS_BATTUS_REALTIME_SKIP_REASON)
-def test_record_on_cutoff_date_is_detected():
+def test_record_on_cutoff_date_is_detected() -> None:
     """Un record qui tombe exactement le jour de la cutoff_date doit être
     détecté (borne de la query post-cutoff inclut la cutoff)."""
     code = "76116016"
@@ -462,7 +462,7 @@ def test_record_on_cutoff_date_is_detected():
 
 
 @pytest.mark.django_db
-def test_record_present_in_mv_and_realtime_is_not_counted_twice():
+def test_record_present_in_mv_and_realtime_is_not_counted_twice() -> None:
     """Un record présent à la fois dans mv_records_battus ET dans
     mv_quotidienne_realtime (même valeur) ne doit pas apparaître deux fois."""
     code = "76116017"
@@ -489,7 +489,7 @@ def test_record_present_in_mv_and_realtime_is_not_counted_twice():
 
 @pytest.mark.django_db
 @pytest.mark.skip(reason=_MV_RECORDS_BATTUS_REALTIME_SKIP_REASON)
-def test_stale_mv_record_does_not_duplicate_with_fresher_realtime():
+def test_stale_mv_record_does_not_duplicate_with_fresher_realtime() -> None:
     """Si mv_records_battus a une valeur figée plus basse (38) que le pipeline
     temps-réel (45) le même jour, la réponse ne doit contenir qu'une seule
     ligne pour ce jour, avec la valeur la plus haute (la fraîche)."""
@@ -516,7 +516,7 @@ def test_stale_mv_record_does_not_duplicate_with_fresher_realtime():
 
 
 @pytest.mark.django_db
-def test_absolute_record_predates_50_year_filter_seeds_correctly():
+def test_absolute_record_predates_50_year_filter_seeds_correctly() -> None:
     """Cas MARIGNANE pour l'endpoint table : record absolu cold de mai (0°C
     le 1960-05-01) absent de mv_records_battus (filtre 50-ans) mais présent
     dans v_records_absolus_par_type. Une TN du jour à 12.3°C ne doit PAS

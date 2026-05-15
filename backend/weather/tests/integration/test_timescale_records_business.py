@@ -50,7 +50,7 @@ def _station_by_id(results, station_id: str):
 
 
 @pytest.mark.django_db
-def test_alltime_hot_records_progression():
+def test_alltime_hot_records_progression() -> None:
     """
     GIVEN  La station 99001001 a battu son record de chaleur 3 fois :
              - 1990-07-20 : 35.0 °C (premier record, pas de précédent)
@@ -119,7 +119,7 @@ def test_alltime_hot_records_progression():
 
 
 @pytest.mark.django_db
-def test_monthly_hot_records_only_target_month():
+def test_monthly_hot_records_only_target_month() -> None:
     """
     GIVEN  La station 99002001 a battu son record mensuel en juillet :
              - 2000-07-15 : 38.0 °C (premier record juillet)
@@ -183,7 +183,7 @@ def test_monthly_hot_records_only_target_month():
 
 
 @pytest.mark.django_db
-def test_alltime_cold_records_two_stations():
+def test_alltime_cold_records_two_stations() -> None:
     """
     GIVEN  Station A (99003001) : record froid le 1985-01-16 à -22.0 °C
            Station B (99003002) : record froid le 1963-02-11 à -18.5 °C
@@ -242,7 +242,7 @@ def test_alltime_cold_records_two_stations():
 
 
 @pytest.mark.django_db
-def test_absolute_kind_returns_only_last_record_per_station():
+def test_absolute_kind_returns_only_last_record_per_station() -> None:
     """
     GIVEN  La station 99004001 a battu son record chaud 3 fois :
              - 1990-07-20 : 33.0 °C
@@ -304,7 +304,7 @@ def test_absolute_kind_returns_only_last_record_per_station():
 
 
 @pytest.mark.django_db
-def test_department_filter_excludes_other_departments():
+def test_department_filter_excludes_other_departments() -> None:
     """
     GIVEN  Station 99005001 (dept 13, Marseille) et Station 99005002 (dept 69, Lyon)
            Les deux ont un record all-time chaud

@@ -31,7 +31,7 @@ from weather.utils.date_range import iter_days_intersecting
 
 
 class _FixedObservedSource(NationalIndicatorObservedDataSource):
-    def __init__(self, temps: dict[dt.date, float]):
+    def __init__(self, temps: dict[dt.date, float]) -> None:
         self._temps = temps
 
     def fetch_daily_series(self, query: DailySeriesQuery) -> list[ObservedPoint]:
@@ -131,7 +131,7 @@ def _run(
 # ---------------------------------------------------------------------------
 
 
-def test_daily_absolute_extremes_present_in_output():
+def test_daily_absolute_extremes_present_in_output() -> None:
     day = dt.date(2025, 3, 15)
     observed = _FixedObservedSource({day: 10.0})
     extremes = _RecordingAbsoluteExtremesSource()
@@ -143,7 +143,7 @@ def test_daily_absolute_extremes_present_in_output():
     assert "baseline_max" in ts[0]
 
 
-def test_daily_absolute_extremes_uses_daily_method():
+def test_daily_absolute_extremes_uses_daily_method() -> None:
     day = dt.date(2025, 3, 15)
     observed = _FixedObservedSource({day: 10.0})
     extremes = _RecordingAbsoluteExtremesSource()
@@ -155,7 +155,7 @@ def test_daily_absolute_extremes_uses_daily_method():
     assert extremes.yearly_calls == 0
 
 
-def test_daily_absolute_extremes_correct_key_lookup():
+def test_daily_absolute_extremes_correct_key_lookup() -> None:
     day = dt.date(2025, 3, 15)  # month=3, day=15
     observed = _FixedObservedSource({day: 10.0})
     extremes = _RecordingAbsoluteExtremesSource()
@@ -167,7 +167,7 @@ def test_daily_absolute_extremes_correct_key_lookup():
     assert ts[0]["baseline_max"] == 315.0
 
 
-def test_daily_absolute_extremes_different_days_get_different_values():
+def test_daily_absolute_extremes_different_days_get_different_values() -> None:
     day1 = dt.date(2025, 1, 5)  # (1, 5) => min=-105, max=105
     day2 = dt.date(2025, 2, 10)  # (2, 10) => min=-210, max=210
     observed = _FixedObservedSource({day1: 10.0, day2: 10.0})
@@ -183,7 +183,7 @@ def test_daily_absolute_extremes_different_days_get_different_values():
     assert pts[day2.isoformat()]["baseline_max"] == 210.0
 
 
-def test_daily_fetch_is_batched_single_call():
+def test_daily_fetch_is_batched_single_call() -> None:
     """Un seul appel à fetch_daily_absolute_extremes quelle que soit la taille de la série."""
     days = {dt.date(2025, 1, i): float(i) for i in range(1, 8)}
     observed = _FixedObservedSource(days)
@@ -208,7 +208,7 @@ def test_daily_fetch_is_batched_single_call():
 # ---------------------------------------------------------------------------
 
 
-def test_monthly_absolute_extremes_uses_monthly_method():
+def test_monthly_absolute_extremes_uses_monthly_method() -> None:
     observed = _FixedObservedSource({dt.date(2025, 1, d): 10.0 for d in range(1, 32)})
     extremes = _RecordingAbsoluteExtremesSource()
 
@@ -225,7 +225,7 @@ def test_monthly_absolute_extremes_uses_monthly_method():
     assert extremes.yearly_calls == 0
 
 
-def test_monthly_absolute_extremes_correct_key_lookup():
+def test_monthly_absolute_extremes_correct_key_lookup() -> None:
     # Mois 1 => min = -10, max = 10
     days = {dt.date(2025, 1, d): 10.0 for d in range(1, 32)}
     observed = _FixedObservedSource(days)
@@ -244,7 +244,7 @@ def test_monthly_absolute_extremes_correct_key_lookup():
     assert ts[0]["baseline_max"] == 10.0
 
 
-def test_monthly_absolute_extremes_two_months_get_different_values():
+def test_monthly_absolute_extremes_two_months_get_different_values() -> None:
     days = {
         **{dt.date(2025, 1, d): 10.0 for d in range(1, 32)},
         **{dt.date(2025, 2, d): 10.0 for d in range(1, 29)},
@@ -274,7 +274,7 @@ def test_monthly_absolute_extremes_two_months_get_different_values():
 # ---------------------------------------------------------------------------
 
 
-def test_yearly_absolute_extremes_uses_yearly_method():
+def test_yearly_absolute_extremes_uses_yearly_method() -> None:
     days = {dt.date(2025, 1, 1) + dt.timedelta(days=i): 10.0 for i in range(365)}
     observed = _FixedObservedSource(days)
     extremes = _RecordingAbsoluteExtremesSource()
@@ -292,7 +292,7 @@ def test_yearly_absolute_extremes_uses_yearly_method():
     assert extremes.monthly_calls == []
 
 
-def test_yearly_absolute_extremes_same_value_all_output_points():
+def test_yearly_absolute_extremes_same_value_all_output_points() -> None:
     days_2024 = {dt.date(2024, 1, 1) + dt.timedelta(days=i): 10.0 for i in range(366)}
     days_2025 = {dt.date(2025, 1, 1) + dt.timedelta(days=i): 10.0 for i in range(365)}
     observed = _FixedObservedSource({**days_2024, **days_2025})

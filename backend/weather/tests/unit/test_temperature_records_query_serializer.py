@@ -3,14 +3,14 @@ import datetime as dt
 from weather.serializers import TemperatureRecordsQuerySerializer
 
 
-def test_records_query_serializer_defaults_to_all_time_hot():
+def test_records_query_serializer_defaults_to_all_time_hot() -> None:
     s = TemperatureRecordsQuerySerializer(data={})
     assert s.is_valid(), s.errors
     assert s.validated_data["period_type"] == "all_time"
     assert s.validated_data["type_records"] == "hot"
 
 
-def test_records_query_serializer_month_happy_path():
+def test_records_query_serializer_month_happy_path() -> None:
     s = TemperatureRecordsQuerySerializer(
         data={"period_type": "month", "month": 7, "type_records": "hot"}
     )
@@ -18,7 +18,7 @@ def test_records_query_serializer_month_happy_path():
     assert s.validated_data["month"] == 7
 
 
-def test_records_query_serializer_season_happy_path():
+def test_records_query_serializer_season_happy_path() -> None:
     s = TemperatureRecordsQuerySerializer(
         data={"period_type": "season", "season": "winter", "type_records": "cold"}
     )
@@ -27,14 +27,16 @@ def test_records_query_serializer_season_happy_path():
     assert s.validated_data["type_records"] == "cold"
 
 
-def test_records_query_serializer_all_time_happy_path():
+def test_records_query_serializer_all_time_happy_path() -> None:
     s = TemperatureRecordsQuerySerializer(
         data={"period_type": "all_time", "type_records": "hot"}
     )
     assert s.is_valid(), s.errors
 
 
-def test_records_query_serializer_accepts_month_missing_when_period_type_month():
+def test_records_query_serializer_accepts_month_missing_when_period_type_month() -> (
+    None
+):
     s = TemperatureRecordsQuerySerializer(
         data={"period_type": "month", "type_records": "hot"}
     )
@@ -42,7 +44,9 @@ def test_records_query_serializer_accepts_month_missing_when_period_type_month()
     assert s.validated_data.get("month") is None
 
 
-def test_records_query_serializer_accepts_season_missing_when_period_type_season():
+def test_records_query_serializer_accepts_season_missing_when_period_type_season() -> (
+    None
+):
     s = TemperatureRecordsQuerySerializer(
         data={"period_type": "season", "type_records": "cold"}
     )
@@ -50,7 +54,7 @@ def test_records_query_serializer_accepts_season_missing_when_period_type_season
     assert s.validated_data.get("season") is None
 
 
-def test_records_query_serializer_rejects_unknown_period_type():
+def test_records_query_serializer_rejects_unknown_period_type() -> None:
     s = TemperatureRecordsQuerySerializer(
         data={"period_type": "weekly", "type_records": "hot"}
     )
@@ -58,7 +62,7 @@ def test_records_query_serializer_rejects_unknown_period_type():
     assert "period_type" in s.errors
 
 
-def test_records_query_serializer_rejects_month_out_of_range():
+def test_records_query_serializer_rejects_month_out_of_range() -> None:
     s = TemperatureRecordsQuerySerializer(
         data={"period_type": "month", "month": 13, "type_records": "hot"}
     )
@@ -66,7 +70,7 @@ def test_records_query_serializer_rejects_month_out_of_range():
     assert "month" in s.errors
 
 
-def test_records_query_serializer_rejects_unknown_season():
+def test_records_query_serializer_rejects_unknown_season() -> None:
     s = TemperatureRecordsQuerySerializer(
         data={"period_type": "season", "season": "monsoon", "type_records": "cold"}
     )
@@ -74,20 +78,20 @@ def test_records_query_serializer_rejects_unknown_season():
     assert "season" in s.errors
 
 
-def test_records_query_serializer_sort_single_field():
+def test_records_query_serializer_sort_single_field() -> None:
     s = TemperatureRecordsQuerySerializer(data={"sort": "station_name"})
     assert s.is_valid(), s.errors
     assert s.validated_data["sort"] == "station_name"
 
 
-def test_records_query_serializer_sort_multiple_fields():
+def test_records_query_serializer_sort_multiple_fields() -> None:
     # Test avec plusieurs champs et un tri descendant (-)
     s = TemperatureRecordsQuerySerializer(data={"sort": "station_name,-record_value"})
     assert s.is_valid(), s.errors
     assert s.validated_data["sort"] == "station_name,-record_value"
 
 
-def test_records_query_serializer_rejects_invalid_sort_field():
+def test_records_query_serializer_rejects_invalid_sort_field() -> None:
     # Test avec un champ qui n'existe pas (ex: 'population')
     s = TemperatureRecordsQuerySerializer(data={"sort": "population"})
     assert not s.is_valid()
@@ -99,14 +103,14 @@ def test_records_query_serializer_rejects_invalid_sort_field():
 # --- Tests pour la Pagination ---
 
 
-def test_records_query_serializer_pagination_valid():
+def test_records_query_serializer_pagination_valid() -> None:
     s = TemperatureRecordsQuerySerializer(data={"page": 2, "page_size": 50})
     assert s.is_valid(), s.errors
     assert s.validated_data["page"] == 2
     assert s.validated_data["page_size"] == 50
 
 
-def test_records_query_serializer_pagination_defaults():
+def test_records_query_serializer_pagination_defaults() -> None:
     s = TemperatureRecordsQuerySerializer(data={})
     assert s.is_valid()
     # Vérifie si ton serializer a des valeurs par défaut (ex: page 1)
@@ -114,13 +118,13 @@ def test_records_query_serializer_pagination_defaults():
     assert s.validated_data.get("page", 1) == 1
 
 
-def test_records_query_serializer_rejects_negative_page():
+def test_records_query_serializer_rejects_negative_page() -> None:
     s = TemperatureRecordsQuerySerializer(data={"page": -1})
     assert not s.is_valid()
     assert "page" in s.errors
 
 
-def test_records_query_serializer_rejects_invalid_page_size():
+def test_records_query_serializer_rejects_invalid_page_size() -> None:
     # Test si le page_size est trop grand ou n'est pas un nombre
     s = TemperatureRecordsQuerySerializer(data={"page_size": "beaucoup"})
     assert not s.is_valid()
@@ -132,7 +136,7 @@ def test_records_query_serializer_rejects_invalid_page_size():
 # ---------------------------------------------------------------------------
 
 
-def test_records_query_serializer_accepts_classe_recente_min_max():
+def test_records_query_serializer_accepts_classe_recente_min_max() -> None:
     s = TemperatureRecordsQuerySerializer(
         data={"classe_recente_min": 1, "classe_recente_max": 3}
     )
@@ -141,7 +145,7 @@ def test_records_query_serializer_accepts_classe_recente_min_max():
     assert s.validated_data["classe_recente_max"] == 3
 
 
-def test_records_query_serializer_rejects_classe_recente_min_gt_max():
+def test_records_query_serializer_rejects_classe_recente_min_gt_max() -> None:
     s = TemperatureRecordsQuerySerializer(
         data={"classe_recente_min": 4, "classe_recente_max": 2}
     )
@@ -149,7 +153,7 @@ def test_records_query_serializer_rejects_classe_recente_min_gt_max():
     assert "classe_recente_max" in s.errors
 
 
-def test_records_query_serializer_rejects_classe_recente_out_of_bounds():
+def test_records_query_serializer_rejects_classe_recente_out_of_bounds() -> None:
     s = TemperatureRecordsQuerySerializer(data={"classe_recente_min": 0})
     assert not s.is_valid()
     assert "classe_recente_min" in s.errors
@@ -159,7 +163,7 @@ def test_records_query_serializer_rejects_classe_recente_out_of_bounds():
     assert "classe_recente_max" in s2.errors
 
 
-def test_records_query_serializer_accepts_date_de_creation_range():
+def test_records_query_serializer_accepts_date_de_creation_range() -> None:
     s = TemperatureRecordsQuerySerializer(
         data={
             "date_de_creation_min": "1920-01-01",
@@ -171,7 +175,7 @@ def test_records_query_serializer_accepts_date_de_creation_range():
     assert s.validated_data["date_de_creation_max"] == dt.date(1980, 1, 1)
 
 
-def test_records_query_serializer_rejects_date_de_creation_min_gt_max():
+def test_records_query_serializer_rejects_date_de_creation_min_gt_max() -> None:
     s = TemperatureRecordsQuerySerializer(
         data={
             "date_de_creation_min": "1990-01-01",
@@ -182,7 +186,7 @@ def test_records_query_serializer_rejects_date_de_creation_min_gt_max():
     assert "date_de_creation_max" in s.errors
 
 
-def test_records_query_serializer_rejects_date_de_fermeture_min_gt_max():
+def test_records_query_serializer_rejects_date_de_fermeture_min_gt_max() -> None:
     s = TemperatureRecordsQuerySerializer(
         data={
             "date_de_fermeture_min": "2010-01-01",
@@ -193,7 +197,7 @@ def test_records_query_serializer_rejects_date_de_fermeture_min_gt_max():
     assert "date_de_fermeture_max" in s.errors
 
 
-def test_records_query_serializer_normalizes_absent_filters_to_none():
+def test_records_query_serializer_normalizes_absent_filters_to_none() -> None:
     """Champs absents → normalisés à None par validate()."""
     s = TemperatureRecordsQuerySerializer(data={})
     assert s.is_valid(), s.errors

@@ -15,7 +15,7 @@ class StubMinMaxDataSource:
         self,
         station_series: list[StationDailyMinMaxSeries] | None = None,
         national_points: list[DailyMinMaxPoint] | None = None,
-    ):
+    ) -> None:
         self._station_series = station_series or []
         self._national_points = national_points or []
 
@@ -30,7 +30,7 @@ class StubMinMaxDataSource:
         return self._national_points
 
 
-def test_without_territoire_filter_returns_national():
+def test_without_territoire_filter_returns_national() -> None:
     ds = StubMinMaxDataSource(
         national_points=[
             DailyMinMaxPoint(date=dt.date(2020, 1, 1), tmin=-2.0, tmax=5.0),
@@ -50,7 +50,7 @@ def test_without_territoire_filter_returns_national():
     assert len(result["national"]["data"]) == 2
 
 
-def test_with_station_ids_returns_stations():
+def test_with_station_ids_returns_stations() -> None:
     ds = StubMinMaxDataSource(
         station_series=[
             StationDailyMinMaxSeries(
@@ -76,7 +76,7 @@ def test_with_station_ids_returns_stations():
     assert result["stations"][0]["station_id"] == "07149"
 
 
-def test_with_departments_filter_returns_aggregated_series():
+def test_with_departments_filter_returns_aggregated_series() -> None:
     ds = StubMinMaxDataSource(
         national_points=[
             DailyMinMaxPoint(date=dt.date(2020, 1, 1), tmin=-2.0, tmax=5.0),
@@ -95,7 +95,7 @@ def test_with_departments_filter_returns_aggregated_series():
     assert result["stations"] == []
 
 
-def test_aggregation_granularity_month():
+def test_aggregation_granularity_month() -> None:
     ds = StubMinMaxDataSource(
         national_points=[
             DailyMinMaxPoint(date=dt.date(2020, 1, 1), tmin=-2.0, tmax=5.0),
@@ -118,7 +118,7 @@ def test_aggregation_granularity_month():
     assert data[0]["tmax_mean"] == 7.0
 
 
-def test_aggregation_granularity_year():
+def test_aggregation_granularity_year() -> None:
     ds = StubMinMaxDataSource(
         national_points=[
             DailyMinMaxPoint(date=dt.date(2020, 1, 1), tmin=-2.0, tmax=5.0),
@@ -141,7 +141,7 @@ def test_aggregation_granularity_year():
     assert data[0]["tmax_mean"] == 16.5
 
 
-def test_none_values_are_ignored():
+def test_none_values_are_ignored() -> None:
     ds = StubMinMaxDataSource(
         national_points=[
             DailyMinMaxPoint(date=dt.date(2020, 1, 1), tmin=None, tmax=None),

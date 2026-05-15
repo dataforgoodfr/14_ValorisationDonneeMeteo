@@ -10,7 +10,7 @@ from weather.data_sources.temperature_records_fake import (
 
 
 @pytest.fixture
-def fake_temperature_records_dep():
+def fake_temperature_records_dep() -> None:
     TemperatureRecordsDependencyProvider.set_builder(
         lambda: FakeTemperatureRecordsDataSource()
     )
@@ -21,7 +21,7 @@ def fake_temperature_records_dep():
 
 
 @pytest.mark.usefixtures("fake_temperature_records_dep")
-def test_get_records_all_time_hot_happy_path(client: APIClient):
+def test_get_records_all_time_hot_happy_path(client: APIClient) -> None:
     resp = client.get(
         "/api/v1/temperature/records",
         {"type_records": "hot"},
@@ -45,7 +45,7 @@ def test_get_records_all_time_hot_happy_path(client: APIClient):
 
 
 @pytest.mark.usefixtures("fake_temperature_records_dep")
-def test_get_records_defaults_to_all_time_hot(client: APIClient):
+def test_get_records_defaults_to_all_time_hot(client: APIClient) -> None:
     resp = client.get("/api/v1/temperature/records")
 
     assert resp.status_code == 200
@@ -57,7 +57,7 @@ def test_get_records_defaults_to_all_time_hot(client: APIClient):
 
 
 @pytest.mark.usefixtures("fake_temperature_records_dep")
-def test_get_records_cold(client: APIClient):
+def test_get_records_cold(client: APIClient) -> None:
     resp = client.get(
         "/api/v1/temperature/records",
         {"type_records": "cold"},
@@ -69,7 +69,7 @@ def test_get_records_cold(client: APIClient):
 
 
 @pytest.mark.usefixtures("fake_temperature_records_dep")
-def test_get_records_month_happy_path(client: APIClient):
+def test_get_records_month_happy_path(client: APIClient) -> None:
     resp = client.get(
         "/api/v1/temperature/records",
         {"period_type": "month", "month": 7, "type_records": "hot"},
@@ -81,7 +81,7 @@ def test_get_records_month_happy_path(client: APIClient):
 
 
 @pytest.mark.usefixtures("fake_temperature_records_dep")
-def test_get_records_season_happy_path(client: APIClient):
+def test_get_records_season_happy_path(client: APIClient) -> None:
     resp = client.get(
         "/api/v1/temperature/records",
         {"period_type": "season", "season": "winter", "type_records": "cold"},
@@ -95,7 +95,7 @@ def test_get_records_season_happy_path(client: APIClient):
 @pytest.mark.usefixtures("fake_temperature_records_dep")
 def test_get_records_returns_200_if_period_type_month_without_month(
     client: APIClient,
-):
+) -> None:
     """period_type=month sans month spécifique → tous les mois, HTTP 200."""
     resp = client.get(
         "/api/v1/temperature/records",
@@ -111,7 +111,7 @@ def test_get_records_returns_200_if_period_type_month_without_month(
 @pytest.mark.usefixtures("fake_temperature_records_dep")
 def test_get_records_returns_200_if_period_type_season_without_season(
     client: APIClient,
-):
+) -> None:
     """period_type=season sans saison spécifique → toutes les saisons, HTTP 200."""
     resp = client.get(
         "/api/v1/temperature/records",
@@ -124,7 +124,7 @@ def test_get_records_returns_200_if_period_type_season_without_season(
     assert "results" in body
 
 
-def test_get_records_returns_400_if_unknown_period_type(client: APIClient):
+def test_get_records_returns_400_if_unknown_period_type(client: APIClient) -> None:
     resp = client.get(
         "/api/v1/temperature/records",
         {"period_type": "weekly"},
@@ -136,7 +136,7 @@ def test_get_records_returns_400_if_unknown_period_type(client: APIClient):
 
 
 @pytest.mark.usefixtures("fake_temperature_records_dep")
-def test_get_records_endpoint_uses_dependency_provider(client: APIClient):
+def test_get_records_endpoint_uses_dependency_provider(client: APIClient) -> None:
     resp = client.get(
         "/api/v1/temperature/records",
         {"period_type": "all_time", "type_records": "hot"},

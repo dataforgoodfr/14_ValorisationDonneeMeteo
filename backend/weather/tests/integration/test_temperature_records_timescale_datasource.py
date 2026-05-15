@@ -19,7 +19,7 @@ from weather.tests.helpers.stations import insert_station
 
 
 @pytest.mark.django_db
-def test_fetch_records_hot_month_happy_path():
+def test_fetch_records_hot_month_happy_path() -> None:
     station_code = "95001001"
 
     insert_station(
@@ -68,7 +68,7 @@ def test_fetch_records_hot_month_happy_path():
 
 
 @pytest.mark.django_db
-def test_fetch_records_cold_month_happy_path():
+def test_fetch_records_cold_month_happy_path() -> None:
     station_code = "95002001"
 
     insert_station(
@@ -93,7 +93,7 @@ def test_fetch_records_cold_month_happy_path():
 
 
 @pytest.mark.django_db
-def test_fetch_records_season_aggregates_across_months():
+def test_fetch_records_season_aggregates_across_months() -> None:
     station_code = "95003001"
 
     insert_station(
@@ -137,7 +137,7 @@ def test_fetch_records_season_aggregates_across_months():
 
 
 @pytest.mark.django_db
-def test_fetch_records_all_time_returns_entries():
+def test_fetch_records_all_time_returns_entries() -> None:
     station_code = "95004001"
 
     insert_station(
@@ -163,7 +163,7 @@ def test_fetch_records_all_time_returns_entries():
 
 
 @pytest.mark.django_db
-def test_fetch_records_returns_correct_types():
+def test_fetch_records_returns_correct_types() -> None:
     station_code = "95005001"
 
     insert_station(
@@ -192,7 +192,7 @@ def test_fetch_records_returns_correct_types():
 
 
 @pytest.mark.django_db
-def test_fetch_records_pagination_logic():
+def test_fetch_records_pagination_logic() -> None:
     station_code = "95006001"
     insert_station(station_code, "Station Pagination", departement=95)
 
@@ -220,7 +220,7 @@ def test_fetch_records_pagination_logic():
 
 
 @pytest.mark.django_db
-def test_fetch_records_pagination_limit_and_offset():
+def test_fetch_records_pagination_limit_and_offset() -> None:
     """Teste que la pagination (page/page_size) fonctionne comme limit/offset."""
     station_code = "95008001"
     insert_station(station_code, "Station Pagination", departement=95)
@@ -247,7 +247,7 @@ def test_fetch_records_pagination_limit_and_offset():
 
 
 @pytest.mark.django_db
-def test_fetch_records_sorting_by_value_desc():
+def test_fetch_records_sorting_by_value_desc() -> None:
     """Teste le tri par valeur décroissante (-record_value)."""
     s1 = "99009001"
     s2 = "99009002"
@@ -271,7 +271,7 @@ def test_fetch_records_sorting_by_value_desc():
 
 
 @pytest.mark.django_db
-def test_fetch_records_sorting_by_station_name_desc():
+def test_fetch_records_sorting_by_station_name_desc() -> None:
     """Teste le tri inversé sur un champ texte (important pour valider ta logique chr(255-ord))."""
     s1 = "55001001"
     s2 = "62906001"
@@ -293,7 +293,7 @@ def test_fetch_records_sorting_by_station_name_desc():
 
 
 @pytest.mark.django_db
-def test_fetch_records_all_months_returns_records_for_each_month():
+def test_fetch_records_all_months_returns_records_for_each_month() -> None:
     """period_type='month' sans month → retourne les records de tous les mois via la MV."""
     station_code = "95011001"
 
@@ -346,7 +346,7 @@ def test_fetch_records_all_months_returns_records_for_each_month():
 
 
 @pytest.mark.django_db
-def test_fetch_records_all_seasons_returns_records_for_each_season():
+def test_fetch_records_all_seasons_returns_records_for_each_season() -> None:
     """period_type='season' sans season → retourne les records de toutes les saisons via la MV."""
     station_code = "95012001"
 
@@ -391,7 +391,7 @@ def test_fetch_records_all_seasons_returns_records_for_each_season():
 
 
 @pytest.mark.django_db
-def test_fetch_records_date_filter_excludes_outside_range():
+def test_fetch_records_date_filter_excludes_outside_range() -> None:
     """date_start/date_end filtre les records dont record_date est hors fenêtre."""
     station_code = "95013001"
 

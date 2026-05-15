@@ -13,6 +13,7 @@ import pdfplumber
 import requests
 from pdfminer.pdfexceptions import PDFException
 from pdfplumber.utils.exceptions import PdfminerException
+from rest_framework.response import Response
 
 logging.basicConfig(
     level=logging.INFO,
@@ -137,12 +138,12 @@ def build_station_info_from_text(
 
 def get_meteofrance_data_dict(
     *,
-    update=False,
-    itn_only=False,
+    update: bool = False,
+    itn_only: bool = False,
     station_filter: set[StationCode] | None = None,
-    max_pdfs=DEFAULT_MAX_PDFS_TO_READ,
-    keep_pdf=False,
-    parallelism=1,
+    max_pdfs: int | None = DEFAULT_MAX_PDFS_TO_READ,
+    keep_pdf: bool = False,
+    parallelism: int = 1,
 ) -> dict[StationCode, StationInfo]:
     data_dict: dict[StationCode, StationInfo] = {}
     script_dir = Path(__file__).parent
@@ -213,11 +214,11 @@ def get_meteofrance_data_dict(
     return data_dict
 
 
-def get_pdf(pdf_url: str):
+def get_pdf(pdf_url: str) -> Response:
     return requests.get(pdf_url)
 
 
-def save_pdf(filename: Path, pdf_resp) -> None:
+def save_pdf(filename: Path, pdf_resp: Response) -> None:
     with open(filename, "wb") as f:
         f.write(pdf_resp.content)
 
