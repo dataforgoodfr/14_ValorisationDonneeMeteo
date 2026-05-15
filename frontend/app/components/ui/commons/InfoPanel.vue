@@ -193,7 +193,9 @@ onUnmounted((): void => {
                                     >
                                         {{ para.title }}
                                     </p>
-                                    <p>{{ para.text }}</p>
+                                    <p class="whitespace-pre-wrap">
+                                        {{ para.text }}
+                                    </p>
                                 </div>
                             </template>
                             <p v-else class="whitespace-pre-wrap">
@@ -266,7 +268,9 @@ onUnmounted((): void => {
                                     >
                                         {{ para.title }}
                                     </p>
-                                    <p>{{ para.text }}</p>
+                                    <p class="whitespace-pre-wrap">
+                                        {{ para.text }}
+                                    </p>
                                 </div>
                             </template>
                             <p v-else class="whitespace-pre-wrap">

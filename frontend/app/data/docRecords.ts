@@ -36,9 +36,9 @@ export const recordsSections: InfoSection[] = [
                 title: "Types de records",
                 text:
                     "Trois types de records sont disponibles sur DataClimat: records annuels, saisonniers ou mensuels." +
-                    "\n- Un record annuel est une valeur qui est la plus extrême tous mois confondus" +
+                    "\n- Un record annuel est une valeur qui est la plus extrême tous mois confondus." +
                     "\n- Un record saisonnier est une valeur qui est la plus extrême en ne considérant que la saison sélectionnée: " +
-                    " il est possible d'afficher les records saisonniers de toutes les saisons ou d'une saison en particulier" +
+                    " il est possible d'afficher les records saisonniers de toutes les saisons ou d'une saison en particulier." +
                     "\n- Un record mensuel est une valeur qui est la plus extrême en ne considérant que le mois sélectionné: " +
                     " il est possible d'afficher les records mensuels de tous les mois ou d'un mois en en particulier.",
             },
