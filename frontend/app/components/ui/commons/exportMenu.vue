@@ -139,7 +139,7 @@ function exportAsHTML() {
     const a = document.createElement("a");
     a.href = `data:text/html;charset=utf-8,${encodeURIComponent(html)}`;
     a.download = useFormatFileName(
-        "itn",
+        exportConfig.chartName,
         granularity.value,
         "html",
         pickedDateStart.value,
