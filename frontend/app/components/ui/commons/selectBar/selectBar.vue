@@ -89,21 +89,27 @@ const calendarAveragingOptions = computed(() => {
                             v-model:start-date="localStartDate"
                             v-model:end-date="localEndDate"
                             :min-date="dates.absoluteMinDataDate.value"
-                            :max-date="dates.today.value"
+                            :max-date="
+                                adapter.maxDate?.value ?? dates.today.value
+                            "
                         />
                         <MonthPicker
                             v-if="adapter.granularity.value === 'month'"
                             v-model:start-date="localStartDate"
                             v-model:end-date="localEndDate"
                             :min-date="dates.absoluteMinDataDate.value"
-                            :max-date="dates.today.value"
+                            :max-date="
+                                adapter.maxDate?.value ?? dates.today.value
+                            "
                         />
                         <YearPicker
                             v-if="adapter.granularity.value === 'year'"
                             v-model:start-date="localStartDate"
                             v-model:end-date="localEndDate"
                             :min-date="dates.absoluteMinDataDate.value"
-                            :max-date="dates.today.value"
+                            :max-date="
+                                adapter.maxDate?.value ?? dates.today.value
+                            "
                         />
                     </div>
                 </template>

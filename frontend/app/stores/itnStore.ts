@@ -100,17 +100,14 @@ export const useItnStore = defineStore("itnStore", () => {
             sliceTypeSwitchEnabled.value = false;
             pickedDateStart.value = dates.lastYear.value;
             pickedDateEnd.value = dates.yesterday.value;
-            maxDate.value = dates.yesterday.value;
         }
         if (value === "month") {
             pickedDateStart.value = dates.lastYear.value;
             pickedDateEnd.value = dates.lastMonth.value;
-            maxDate.value = dates.lastMonth.value;
         }
         if (value === "year") {
             pickedDateStart.value = dates.absoluteMinDataDate.value;
             pickedDateEnd.value = dates.lastYear.value;
-            maxDate.value = dates.lastYear.value;
         }
     };
 
