@@ -1,5 +1,8 @@
 <template>
-    <div class="flex flex-col gap-3 md:w-52 md:shrink-0 py-2">
+    <div
+        class="flex flex-col gap-3 py-2"
+        :class="compact ? 'w-full' : 'md:w-52 md:shrink-0'"
+    >
         <Card
             title="Écart à la normale moyen en France"
             :tooltip-text="`Écart à la normale moyen en France métropolitaine entre le ${formattedStart} et le ${formattedEnd}.`"
