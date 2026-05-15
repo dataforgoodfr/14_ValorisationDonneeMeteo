@@ -60,12 +60,18 @@ const kpiColor = computed(() => {
     if (currentStreak.value?.type === "cold") return "text-blue-600";
     return "text-muted";
 });
+
+const cardTitle = computed(() => {
+    if (currentStreak.value?.type === "hot") return "Excès de chaleur en cours";
+    if (currentStreak.value?.type === "cold") return "Excès de froid en cours";
+    return "Excès de température en cours";
+});
 </script>
 
 <template>
     <Card
         :loading="pending"
-        title="Excès de température en cours"
+        :title="cardTitle"
         tooltip-text="Nombre de jours consécutifs excessivement chauds ou froids depuis hier (température au-delà de l'écart-type des normales)"
     >
         <template #kpi>
@@ -81,17 +87,9 @@ const kpiColor = computed(() => {
         </template>
 
         <template v-if="currentStreak" #kpi-context-box>
-            {{
-                currentStreak.avgDeviation?.toFixed(1) === "0.0"
-                    ? "= "
-                    : currentStreak.avgDeviation > 0
-                      ? "+"
-                      : ""
-            }}{{
-                currentStreak.avgDeviation?.toFixed(1) === "0.0"
-                    ? ""
-                    : currentStreak.avgDeviation?.toFixed(1) + "°C "
-            }}vs normales 1991-2020
+            Écart moyen : {{ currentStreak.avgDeviation > 0 ? "+" : ""
+            }}{{ currentStreak.avgDeviation?.toFixed(1) }}°C vs normales
+            1991-2020
         </template>
 
         <template #kpi-context-text>
