@@ -18,7 +18,7 @@ from weather.tests.helpers.stations_baseline import insert_station_daily_baselin
 
 
 @pytest.mark.django_db
-def test_fetch_stations_daily_series_happy_path():
+def test_fetch_stations_daily_series_happy_path() -> None:
     station_code = "01269001"
 
     insert_station(station_code, "Station 01269001")
@@ -64,7 +64,7 @@ def test_fetch_stations_daily_series_happy_path():
 
 
 @pytest.mark.django_db
-def test_fetch_stations_daily_series_filters_out_missing_baseline():
+def test_fetch_stations_daily_series_filters_out_missing_baseline() -> None:
     station_code = "01269001"
 
     insert_station(station_code, "Station 01269001")
@@ -86,7 +86,7 @@ def test_fetch_stations_daily_series_filters_out_missing_baseline():
 
 
 @pytest.mark.django_db
-def test_fetch_stations_daily_series_multiple_stations():
+def test_fetch_stations_daily_series_multiple_stations() -> None:
     s1 = "01269001"
     s2 = "01333001"
 
@@ -117,7 +117,7 @@ def test_fetch_stations_daily_series_multiple_stations():
 
 
 @pytest.mark.django_db
-def test_fetch_national_observed_series_happy_path():
+def test_fetch_national_observed_series_happy_path() -> None:
     day = dt.date(2024, 1, 1)
 
     insert_complete_itn_day(day, 10.0)
@@ -139,7 +139,7 @@ def test_fetch_national_observed_series_happy_path():
 
 
 @pytest.mark.django_db
-def test_fetch_station_overview_happy_path():
+def test_fetch_station_overview_happy_path() -> None:
     station_code = "01269001"
 
     insert_station(
@@ -187,7 +187,7 @@ def test_fetch_station_overview_happy_path():
 
 
 @pytest.mark.django_db
-def test_fetch_station_overview_filters_by_department():
+def test_fetch_station_overview_filters_by_department() -> None:
     s1 = "01269001"
     s2 = "01333001"
 
@@ -219,7 +219,7 @@ def test_fetch_station_overview_filters_by_department():
 
 
 @pytest.mark.django_db
-def test_fetch_station_overview_filters_by_region():
+def test_fetch_station_overview_filters_by_region() -> None:
     s1 = "01269001"
     s2 = "01333001"
 
@@ -251,7 +251,7 @@ def test_fetch_station_overview_filters_by_region():
 
 
 @pytest.mark.django_db
-def test_fetch_station_overview_filters_by_altitude():
+def test_fetch_station_overview_filters_by_altitude() -> None:
     s1 = "01269001"
     s2 = "01333001"
 
@@ -283,7 +283,7 @@ def test_fetch_station_overview_filters_by_altitude():
 
 
 @pytest.mark.django_db
-def test_fetch_station_overview_applies_limit_and_offset():
+def test_fetch_station_overview_applies_limit_and_offset() -> None:
     s1 = "01269001"
     s2 = "01333001"
 
@@ -316,7 +316,7 @@ def test_fetch_station_overview_applies_limit_and_offset():
 
 
 @pytest.mark.django_db
-def test_fetch_station_overview_filters_by_station_ids():
+def test_fetch_station_overview_filters_by_station_ids() -> None:
     s1 = "01269001"
     s2 = "01333001"
 
@@ -347,7 +347,7 @@ def test_fetch_station_overview_filters_by_station_ids():
 
 
 @pytest.mark.django_db
-def test_fetch_station_overview_combines_station_ids_and_department_filters():
+def test_fetch_station_overview_combines_station_ids_and_department_filters() -> None:
     s1 = "01269001"
     s2 = "01333001"
 
@@ -379,7 +379,7 @@ def test_fetch_station_overview_combines_station_ids_and_department_filters():
 
 
 @pytest.mark.django_db
-def test_fetch_station_overview_orders_by_department():
+def test_fetch_station_overview_orders_by_department() -> None:
     s1 = "01269001"
     s2 = "01333001"
 
@@ -409,7 +409,7 @@ def test_fetch_station_overview_orders_by_department():
 
 
 @pytest.mark.django_db
-def test_fetch_station_overview_orders_by_region():
+def test_fetch_station_overview_orders_by_region() -> None:
     s1 = "01269001"
     s2 = "01333001"
 
@@ -442,7 +442,7 @@ def test_fetch_station_overview_orders_by_region():
 
 
 @pytest.mark.django_db
-def test_fetch_stations_daily_series_respects_target_dates():
+def test_fetch_stations_daily_series_respects_target_dates() -> None:
     station_code = "01269001"
 
     insert_station(station_code, "Station 01269001")
@@ -482,7 +482,7 @@ def test_fetch_stations_daily_series_respects_target_dates():
 
 
 @pytest.mark.django_db
-def test_fetch_national_observed_series_respects_target_dates():
+def test_fetch_national_observed_series_respects_target_dates() -> None:
     day1 = dt.date(2024, 1, 1)
     day2 = dt.date(2024, 1, 2)
     day3 = dt.date(2024, 1, 3)
@@ -511,7 +511,7 @@ def test_fetch_national_observed_series_respects_target_dates():
 
 
 @pytest.mark.django_db
-def test_fetch_stations_daily_series_target_dates_outside_range_returns_empty():
+def test_fetch_stations_daily_series_target_dates_outside_range_returns_empty() -> None:
     station_code = "01269001"
 
     insert_station(station_code, "Station 01269001")

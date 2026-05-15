@@ -3,7 +3,7 @@ import datetime as dt
 from weather.serializers import TemperatureMinMaxGraphQuerySerializer
 
 
-def test_happy_path_minimal():
+def test_happy_path_minimal() -> None:
     s = TemperatureMinMaxGraphQuerySerializer(
         data={
             "date_start": "2020-01-01",
@@ -22,7 +22,7 @@ def test_happy_path_minimal():
     assert s.validated_data["regions"] == ()
 
 
-def test_happy_path_with_territoire_filters():
+def test_happy_path_with_territoire_filters() -> None:
     s = TemperatureMinMaxGraphQuerySerializer(
         data={
             "date_start": "2020-01-01",
@@ -40,7 +40,7 @@ def test_happy_path_with_territoire_filters():
     assert s.validated_data["regions"] == ("Île-de-France",)
 
 
-def test_rejects_date_start_greater_than_date_end():
+def test_rejects_date_start_greater_than_date_end() -> None:
     """date_end doit être >= date_start."""
     s = TemperatureMinMaxGraphQuerySerializer(
         data={
@@ -54,7 +54,7 @@ def test_rejects_date_start_greater_than_date_end():
     assert "date_end" in s.errors
 
 
-def test_rejects_missing_date_start():
+def test_rejects_missing_date_start() -> None:
     s = TemperatureMinMaxGraphQuerySerializer(
         data={
             "date_end": "2020-12-31",
@@ -66,7 +66,7 @@ def test_rejects_missing_date_start():
     assert "date_start" in s.errors
 
 
-def test_rejects_missing_granularity():
+def test_rejects_missing_granularity() -> None:
     s = TemperatureMinMaxGraphQuerySerializer(
         data={
             "date_start": "2020-01-01",
@@ -78,7 +78,7 @@ def test_rejects_missing_granularity():
     assert "granularity" in s.errors
 
 
-def test_rejects_invalid_granularity():
+def test_rejects_invalid_granularity() -> None:
     s = TemperatureMinMaxGraphQuerySerializer(
         data={
             "date_start": "2020-01-01",
@@ -91,7 +91,7 @@ def test_rejects_invalid_granularity():
     assert "granularity" in s.errors
 
 
-def test_empty_station_ids_normalized_to_empty_tuple():
+def test_empty_station_ids_normalized_to_empty_tuple() -> None:
     s = TemperatureMinMaxGraphQuerySerializer(
         data={
             "date_start": "2020-01-01",
@@ -105,7 +105,7 @@ def test_empty_station_ids_normalized_to_empty_tuple():
     assert s.validated_data["station_ids"] == ()
 
 
-def test_same_date_start_and_date_end_is_valid():
+def test_same_date_start_and_date_end_is_valid() -> None:
     s = TemperatureMinMaxGraphQuerySerializer(
         data={
             "date_start": "2020-06-15",

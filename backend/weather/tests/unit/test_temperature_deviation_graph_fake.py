@@ -6,7 +6,7 @@ from weather.data_sources.temperature_deviation_fake import (
 from weather.services.temperature_deviation.types import DailyDeviationSeriesQuery
 
 
-def test_fake_temperature_deviation_national_returns_one_point_per_day():
+def test_fake_temperature_deviation_national_returns_one_point_per_day() -> None:
     ds = FakeTemperatureDeviationDailyDataSource()
     query = DailyDeviationSeriesQuery(
         date_start=dt.date(2024, 1, 1),
@@ -25,7 +25,7 @@ def test_fake_temperature_deviation_national_returns_one_point_per_day():
     ]
 
 
-def test_fake_temperature_deviation_station_returns_requested_series():
+def test_fake_temperature_deviation_station_returns_requested_series() -> None:
     ds = FakeTemperatureDeviationDailyDataSource()
     query = DailyDeviationSeriesQuery(
         date_start=dt.date(2024, 1, 1),
@@ -42,7 +42,7 @@ def test_fake_temperature_deviation_station_returns_requested_series():
     assert all(len(s.points) == 2 for s in out)
 
 
-def test_fake_temperature_deviation_is_deterministic_for_same_query():
+def test_fake_temperature_deviation_is_deterministic_for_same_query() -> None:
     ds = FakeTemperatureDeviationDailyDataSource()
     query = DailyDeviationSeriesQuery(
         date_start=dt.date(2024, 1, 1),
@@ -61,7 +61,7 @@ def test_fake_temperature_deviation_is_deterministic_for_same_query():
     assert st_1 == st_2
 
 
-def test_fake_temperature_deviation_daily_baseline_returns_366_days():
+def test_fake_temperature_deviation_daily_baseline_returns_366_days() -> None:
     ds = FakeTemperatureDeviationDailyDataSource()
 
     out = ds.fetch_national_daily_baseline()
@@ -71,7 +71,7 @@ def test_fake_temperature_deviation_daily_baseline_returns_366_days():
     assert all(1 <= p.day_of_month <= 31 for p in out)
 
 
-def test_fake_temperature_deviation_monthly_baseline_returns_12_months():
+def test_fake_temperature_deviation_monthly_baseline_returns_12_months() -> None:
     ds = FakeTemperatureDeviationDailyDataSource()
 
     out = ds.fetch_national_monthly_baseline()
@@ -80,7 +80,7 @@ def test_fake_temperature_deviation_monthly_baseline_returns_12_months():
     assert [p.month for p in out] == list(range(1, 13))
 
 
-def test_fake_temperature_deviation_yearly_baseline_returns_value():
+def test_fake_temperature_deviation_yearly_baseline_returns_value() -> None:
     ds = FakeTemperatureDeviationDailyDataSource()
 
     out = ds.fetch_national_yearly_baseline()
@@ -89,7 +89,7 @@ def test_fake_temperature_deviation_yearly_baseline_returns_value():
     assert isinstance(out.mean, float)
 
 
-def test_fake_temperature_deviation_national_respects_target_dates():
+def test_fake_temperature_deviation_national_respects_target_dates() -> None:
     ds = FakeTemperatureDeviationDailyDataSource()
 
     target_dates = (
@@ -111,7 +111,7 @@ def test_fake_temperature_deviation_national_respects_target_dates():
     assert [p.date for p in result] == sorted(target_dates)
 
 
-def test_fake_temperature_deviation_station_respects_target_dates():
+def test_fake_temperature_deviation_station_respects_target_dates() -> None:
     ds = FakeTemperatureDeviationDailyDataSource()
 
     target_dates = (
@@ -136,7 +136,7 @@ def test_fake_temperature_deviation_station_respects_target_dates():
     assert [p.date for p in series.points] == sorted(target_dates)
 
 
-def test_fake_temperature_deviation_target_dates_are_sorted():
+def test_fake_temperature_deviation_target_dates_are_sorted() -> None:
     ds = FakeTemperatureDeviationDailyDataSource()
 
     target_dates = (

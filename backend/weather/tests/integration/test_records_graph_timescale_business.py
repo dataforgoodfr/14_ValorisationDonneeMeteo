@@ -26,7 +26,7 @@ def _req(**kwargs) -> RecordsGraphRequest:
 
 
 @pytest.mark.django_db
-def test_fetch_graph_returns_one_bucket_per_year():
+def test_fetch_graph_returns_one_bucket_per_year() -> None:
     ds = TimescaleRecordsGraphDataSource()
     result = ds.fetch_graph(
         _req(date_start=dt.date(2019, 1, 1), date_end=dt.date(2021, 12, 31))
@@ -37,7 +37,7 @@ def test_fetch_graph_returns_one_bucket_per_year():
 
 
 @pytest.mark.django_db
-def test_fetch_graph_counts_hot_records():
+def test_fetch_graph_counts_hot_records() -> None:
     insert_mv_record(
         station_code="76116001",
         station_name="Station Graph Test",
@@ -73,7 +73,7 @@ def test_fetch_graph_counts_hot_records():
 
 
 @pytest.mark.django_db
-def test_fetch_graph_cold_records_not_counted_as_hot():
+def test_fetch_graph_cold_records_not_counted_as_hot() -> None:
     insert_mv_record(
         station_code="76116003",
         station_name="Station Cold Graph",
@@ -100,7 +100,7 @@ def test_fetch_graph_cold_records_not_counted_as_hot():
 
 
 @pytest.mark.django_db
-def test_fetch_graph_month_granularity_buckets():
+def test_fetch_graph_month_granularity_buckets() -> None:
     ds = TimescaleRecordsGraphDataSource()
     result = ds.fetch_graph(
         _req(
@@ -115,7 +115,7 @@ def test_fetch_graph_month_granularity_buckets():
 
 
 @pytest.mark.django_db
-def test_fetch_graph_empty_buckets_return_zero():
+def test_fetch_graph_empty_buckets_return_zero() -> None:
     ds = TimescaleRecordsGraphDataSource()
     result = ds.fetch_graph(
         _req(
@@ -131,7 +131,7 @@ def test_fetch_graph_empty_buckets_return_zero():
 
 
 @pytest.mark.django_db
-def test_fetch_graph_filter_by_department():
+def test_fetch_graph_filter_by_department() -> None:
     insert_mv_record(
         station_code="94003001",
         station_name="Station Dept 94",
@@ -169,7 +169,7 @@ def test_fetch_graph_filter_by_department():
 
 
 @pytest.mark.django_db
-def test_fetch_graph_all_aggregates_hot_and_cold():
+def test_fetch_graph_all_aggregates_hot_and_cold() -> None:
     insert_mv_record(
         station_code="76116004",
         station_name="S1",
@@ -206,7 +206,7 @@ def test_fetch_graph_all_aggregates_hot_and_cold():
 
 
 @pytest.mark.django_db
-def test_fetch_graph_records_match_inserted_data():
+def test_fetch_graph_records_match_inserted_data() -> None:
     insert_mv_record(
         station_code="76116006",
         station_name="TestStation",
@@ -238,7 +238,7 @@ def test_fetch_graph_records_match_inserted_data():
 
 
 @pytest.mark.django_db
-def test_fetch_graph_period_type_month():
+def test_fetch_graph_period_type_month() -> None:
     insert_mv_record(
         station_code="76116007",
         station_name="Station Period Month",
@@ -277,7 +277,7 @@ def test_fetch_graph_period_type_month():
 
 
 @pytest.mark.django_db
-def test_fetch_graph_period_type_month_all_months():
+def test_fetch_graph_period_type_month_all_months() -> None:
     insert_mv_record(
         station_code="76116008",
         station_name="Station Juillet",
@@ -326,7 +326,7 @@ def test_fetch_graph_period_type_month_all_months():
 
 
 @pytest.mark.django_db
-def test_fetch_graph_period_type_season_all_seasons():
+def test_fetch_graph_period_type_season_all_seasons() -> None:
     insert_mv_record(
         station_code="76116011",
         station_name="Station Été",
@@ -375,7 +375,7 @@ def test_fetch_graph_period_type_season_all_seasons():
 
 
 @pytest.mark.django_db
-def test_fetch_graph_period_type_month_specific_excludes_other_months():
+def test_fetch_graph_period_type_month_specific_excludes_other_months() -> None:
     insert_mv_record(
         station_code="76116014",
         station_name="Station Juillet",

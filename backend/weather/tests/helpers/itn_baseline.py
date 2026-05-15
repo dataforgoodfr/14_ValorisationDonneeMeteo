@@ -10,7 +10,7 @@ def insert_daily_baseline(
     sample_size: int = 30,
     p20: float = 8.0,
     p80: float = 12.0,
-):
+) -> None:
     with connection.cursor() as cursor:
         cursor.execute(
             """
@@ -38,7 +38,7 @@ def insert_monthly_baseline(
     sample_size: int = 30,
     p20: float = 18.0,
     p80: float = 22.0,
-):
+) -> None:
     with connection.cursor() as cursor:
         cursor.execute(
             """
@@ -64,7 +64,7 @@ def insert_yearly_baseline(
     *,
     p20: float = 28.0,
     p80: float = 32.0,
-):
+) -> None:
     with connection.cursor() as cursor:
         cursor.execute(
             """

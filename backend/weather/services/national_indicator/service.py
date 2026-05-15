@@ -16,7 +16,13 @@ from .protocols import (
 )
 from .slicing import apply_slice
 from .source_window import compute_source_window
-from .types import AbsoluteExtremes, DailySeriesQuery, ObservedPoint, OutputPoint
+from .types import (
+    AbsoluteExtremes,
+    BaselinePoint,
+    DailySeriesQuery,
+    ObservedPoint,
+    OutputPoint,
+)
 
 
 def compute_target_dates(
@@ -73,7 +79,7 @@ def _baseline_for_output_point(
     granularity: str,
     slice_type: str,
     baseline_data_source: NationalIndicatorBaselineDataSource,
-):
+) -> BaselinePoint:
     if granularity == "day":
         return baseline_data_source.fetch_daily_baseline(point_date)
 

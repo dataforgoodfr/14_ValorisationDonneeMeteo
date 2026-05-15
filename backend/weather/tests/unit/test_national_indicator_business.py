@@ -27,25 +27,25 @@ def _build_station_code_to_fixed_temperature_map(
     return m
 
 
-def test_expected_station_codes_len_is_30():
+def test_expected_station_codes_len_is_30() -> None:
     assert len(expected_station_codes(dt.date(2025, 1, 1))) == 30
 
 
-def test_expected_station_codes_reims_before_switch_is_courcy():
+def test_expected_station_codes_reims_before_switch_is_courcy() -> None:
     day = REIMS_SWITCH_DATE - dt.timedelta(days=1)  # 2012-05-07
     codes = expected_station_codes(day)
     assert REIMS_COURCY in codes
     assert REIMS_PRUNAY not in codes
 
 
-def test_expected_station_codes_reims_at_switch_is_prunay():
+def test_expected_station_codes_reims_at_switch_is_prunay() -> None:
     day = REIMS_SWITCH_DATE  # 2012-05-08
     codes = expected_station_codes(day)
     assert REIMS_PRUNAY in codes
     assert REIMS_COURCY not in codes
 
 
-def test_compute_itn_ok_returns_mean_over_30_slots():
+def test_compute_itn_ok_returns_mean_over_30_slots() -> None:
     day = dt.date(2025, 1, 1)
     m = _build_station_code_to_fixed_temperature_map(
         day, reims_station_temperature=40.0, always_station_temperature=10.0
@@ -54,7 +54,7 @@ def test_compute_itn_ok_returns_mean_over_30_slots():
     assert itn == (29 * 10.0 + 40.0) / 30.0
 
 
-def test_compute_itn_ok_if_missing_any_always_station():
+def test_compute_itn_ok_if_missing_any_always_station() -> None:
     day = dt.date(2025, 1, 1)
     m = _build_station_code_to_fixed_temperature_map(
         day, reims_station_temperature=40.0, always_station_temperature=10.0
@@ -64,7 +64,7 @@ def test_compute_itn_ok_if_missing_any_always_station():
     assert itn == (28 * 10.0 + 40.0) / 29.0
 
 
-def test_compute_itn_drop_if_missing_2_always_station():
+def test_compute_itn_drop_if_missing_2_always_station() -> None:
     day = dt.date(2025, 1, 1)
     m = _build_station_code_to_fixed_temperature_map(day)
     always_codes = iter(ITN_ALWAYS_STATION_CODES)
@@ -73,7 +73,7 @@ def test_compute_itn_drop_if_missing_2_always_station():
     assert compute_itn_for_day(day, m) is None
 
 
-def test_compute_itn_accepts_double_reims_and_keeps_expected_one():
+def test_compute_itn_accepts_double_reims_and_keeps_expected_one() -> None:
     # après le pivot => Prunay attendue
     day = REIMS_SWITCH_DATE
     m = _build_station_code_to_fixed_temperature_map(
@@ -87,7 +87,7 @@ def test_compute_itn_accepts_double_reims_and_keeps_expected_one():
     assert itn == (29 * 10.0 + 30.0) / 30.0
 
 
-def test_compute_itn_drop_if_extra_station_not_allowed():
+def test_compute_itn_drop_if_extra_station_not_allowed() -> None:
     day = dt.date(2025, 1, 1)
     m = _build_station_code_to_fixed_temperature_map(day)
     m["99999999"] = 12.3  # station parasite

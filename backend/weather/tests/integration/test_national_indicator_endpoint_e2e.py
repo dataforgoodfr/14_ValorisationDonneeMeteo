@@ -34,7 +34,7 @@ pytestmark = pytest.mark.django_db
 
 
 @pytest.fixture(autouse=True)
-def reset_itn_dependency_provider():
+def reset_itn_dependency_provider() -> None:
     # Garantit qu'on utilise les data sources Timescale par défaut, même si
     # un test précédent a installé un builder en mémoire.
     ITNDependencyProvider.reset()
@@ -65,7 +65,7 @@ def _seed_complete_itn_day_realtime(day: dt.date, value: float) -> None:
 
 def test_national_indicator_endpoint_returns_today_and_yesterday(
     client: APIClient,
-):
+) -> None:
     today = dt.datetime.now(dt.UTC).date()
     yesterday = today - dt.timedelta(days=1)
 

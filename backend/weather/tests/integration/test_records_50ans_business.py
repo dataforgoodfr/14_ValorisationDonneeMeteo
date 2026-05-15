@@ -25,7 +25,7 @@ _MV_RECORDS_BATTUS_REALTIME_SKIP_REASON = (
 
 
 @pytest.mark.django_db
-def test_after_cutoff_record_before_50ans_is_excluded():
+def test_after_cutoff_record_before_50ans_is_excluded() -> None:
     """Record post-cutoff dont la date est < création+50 → exclu."""
     code = "76116001"
     # Créée en 2020, seuil = 2070-01-01
@@ -51,7 +51,7 @@ def test_after_cutoff_record_before_50ans_is_excluded():
 
 @pytest.mark.django_db
 @pytest.mark.skip(reason=_MV_RECORDS_BATTUS_REALTIME_SKIP_REASON)
-def test_after_cutoff_record_exactly_at_50ans_is_included():
+def test_after_cutoff_record_exactly_at_50ans_is_included() -> None:
     """Record post-cutoff dont la date est exactement création+50 → inclus."""
     code = "76116002"
     # Créée il y a 50 ans, seuil = YYYY-01-01
@@ -82,7 +82,7 @@ def test_after_cutoff_record_exactly_at_50ans_is_included():
 
 @pytest.mark.django_db
 @pytest.mark.skip(reason=_MV_RECORDS_BATTUS_REALTIME_SKIP_REASON)
-def test_after_cutoff_record_after_50ans_is_included():
+def test_after_cutoff_record_after_50ans_is_included() -> None:
     """Record post-cutoff dont la date est > création+50 → inclus normalement."""
     code = "76116003"
     # Créée en 1970, seuil = 2020-01-01
@@ -108,7 +108,7 @@ def test_after_cutoff_record_after_50ans_is_included():
 
 @pytest.mark.django_db
 @pytest.mark.skip(reason=_MV_RECORDS_BATTUS_REALTIME_SKIP_REASON)
-def test_after_cutoff_only_recent_records_cross_50ans_threshold():
+def test_after_cutoff_only_recent_records_cross_50ans_threshold() -> None:
     """Station avec records pré et post-seuil : seul le post-seuil apparaît."""
     code = "76116004"
     # Créée en 1962, seuil = 2012-01-01

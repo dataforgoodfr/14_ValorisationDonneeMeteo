@@ -41,7 +41,7 @@ def _make_view(**class_attrs):
 
 
 @pytest.fixture
-def factory():
+def factory() -> None:
     return APIRequestFactory()
 
 
@@ -50,19 +50,19 @@ def _cache_control(response) -> str | None:
 
 
 class TestNoProfile:
-    def test_no_header_when_profile_is_none(self, factory):
+    def test_no_header_when_profile_is_none(self, factory) -> None:
         view = _make_view(cache_profile=None).as_view()
         response = view(factory.get("/whatever"))
         assert _cache_control(response) is None
 
 
 class TestLongProfile:
-    def test_long_ttl_uses_class_defaults(self, factory):
+    def test_long_ttl_uses_class_defaults(self, factory) -> None:
         view = _make_view(cache_profile="long").as_view()
         response = view(factory.get("/whatever"))
         assert _cache_control(response) == "public, s-maxage=86400, max-age=3600"
 
-    def test_long_ttl_respects_per_view_overrides(self, factory):
+    def test_long_ttl_respects_per_view_overrides(self, factory) -> None:
         view = _make_view(
             cache_profile="long",
             cache_long_s_maxage=604_800,
@@ -71,7 +71,7 @@ class TestLongProfile:
         response = view(factory.get("/stations"))
         assert _cache_control(response) == "public, s-maxage=604800, max-age=3600"
 
-    def test_long_profile_ignores_date_end(self, factory):
+    def test_long_profile_ignores_date_end(self, factory) -> None:
         """Le profil long ne lit pas date_end : TTL long quoi qu'il arrive."""
         view = _make_view(cache_profile="long").as_view()
         response = view(factory.get(f"/x?date_end={FIXED_TODAY.isoformat()}"))
@@ -79,37 +79,37 @@ class TestLongProfile:
 
 
 class TestByDateEndProfile:
-    def test_no_date_end_falls_back_to_long(self, factory):
+    def test_no_date_end_falls_back_to_long(self, factory) -> None:
         view = _make_view(cache_profile="by_date_end").as_view()
         response = view(factory.get("/x"))
         assert _cache_control(response) == "public, s-maxage=86400, max-age=3600"
 
-    def test_historical_date_end_is_long(self, factory):
+    def test_historical_date_end_is_long(self, factory) -> None:
         view = _make_view(cache_profile="by_date_end").as_view()
         historical = (FIXED_TODAY - dt.timedelta(days=30)).isoformat()
         response = view(factory.get(f"/x?date_end={historical}"))
         assert _cache_control(response) == "public, s-maxage=86400, max-age=3600"
 
-    def test_today_date_end_is_short(self, factory):
+    def test_today_date_end_is_short(self, factory) -> None:
         view = _make_view(cache_profile="by_date_end").as_view()
         response = view(factory.get(f"/x?date_end={FIXED_TODAY.isoformat()}"))
         assert _cache_control(response) == "public, s-maxage=900, max-age=60"
 
-    def test_yesterday_date_end_is_short(self, factory):
+    def test_yesterday_date_end_is_short(self, factory) -> None:
         """J-1 est dans la "zone d'ingestion incertaine" → court."""
         view = _make_view(cache_profile="by_date_end").as_view()
         yesterday = (FIXED_TODAY - dt.timedelta(days=1)).isoformat()
         response = view(factory.get(f"/x?date_end={yesterday}"))
         assert _cache_control(response) == "public, s-maxage=900, max-age=60"
 
-    def test_boundary_is_strict_less_than(self, factory):
+    def test_boundary_is_strict_less_than(self, factory) -> None:
         """date_end == today − threshold_days est en zone "récente" (court)."""
         view = _make_view(cache_profile="by_date_end").as_view()
         boundary = (FIXED_TODAY - dt.timedelta(days=2)).isoformat()
         response = view(factory.get(f"/x?date_end={boundary}"))
         assert _cache_control(response) == "public, s-maxage=900, max-age=60"
 
-    def test_threshold_customizable(self, factory):
+    def test_threshold_customizable(self, factory) -> None:
         """Avec un threshold de 7 jours, J-3 doit être considéré comme récent."""
         view = _make_view(
             cache_profile="by_date_end",
@@ -119,14 +119,14 @@ class TestByDateEndProfile:
         response = view(factory.get(f"/x?date_end={date_end}"))
         assert _cache_control(response) == "public, s-maxage=900, max-age=60"
 
-    def test_malformed_date_end_falls_back_to_short(self, factory):
+    def test_malformed_date_end_falls_back_to_short(self, factory) -> None:
         """Branche défensive : malgré le 400 attendu côté serializer, on ne
         casse pas si une 200 remonte avec un date_end illisible."""
         view = _make_view(cache_profile="by_date_end").as_view()
         response = view(factory.get("/x?date_end=not-a-date"))
         assert _cache_control(response) == "public, s-maxage=900, max-age=60"
 
-    def test_fallback_short_when_date_end_absent(self, factory):
+    def test_fallback_short_when_date_end_absent(self, factory) -> None:
         """Pour les endpoints dont la source évolue en continu (ex. matview
         rafraîchie toutes les N minutes), un client qui n'envoie pas date_end
         doit recevoir un TTL court."""
@@ -137,7 +137,9 @@ class TestByDateEndProfile:
         response = view(factory.get("/x"))
         assert _cache_control(response) == "public, s-maxage=900, max-age=60"
 
-    def test_fallback_short_still_caches_long_for_historical_date_end(self, factory):
+    def test_fallback_short_still_caches_long_for_historical_date_end(
+        self, factory
+    ) -> None:
         """Le fallback ne s'applique qu'en l'absence de date_end : si la query
         précise une plage historique, on doit toujours bénéficier du TTL long."""
         view = _make_view(
@@ -150,7 +152,7 @@ class TestByDateEndProfile:
 
 
 class TestHeaderGuards:
-    def test_no_header_on_400(self, factory):
+    def test_no_header_on_400(self, factory) -> None:
         class _Erroring(CacheControlMixin, APIView):
             authentication_classes: list = []
             permission_classes: list = []
@@ -162,7 +164,7 @@ class TestHeaderGuards:
         response = _Erroring.as_view()(factory.get("/x"))
         assert _cache_control(response) is None
 
-    def test_no_header_on_options(self, factory):
+    def test_no_header_on_options(self, factory) -> None:
         view = _make_view(cache_profile="long").as_view()
         response = view(factory.options("/x"))
         assert _cache_control(response) is None

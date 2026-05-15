@@ -7,7 +7,7 @@ class Command(BaseCommand):
         "Rafraîchit la vue matérialisée mv_records_battus et met à jour la cutoff_date"
     )
 
-    def handle(self, *args, **options):
+    def handle(self, *args, **options) -> None:
         self.stdout.write("Rafraîchissement de mv_records_battus...")
         with connection.cursor() as cur:
             cur.execute("REFRESH MATERIALIZED VIEW public.mv_records_battus")

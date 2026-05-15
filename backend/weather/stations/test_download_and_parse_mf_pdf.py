@@ -31,7 +31,7 @@ from .download_and_parse_mf_pdf import (
         ),
     ],
 )
-def test_extract_id(pdf_url, expected):
+def test_extract_id(pdf_url: str, expected: StationCode | None) -> None:
     assert extract_id(pdf_url) == expected
 
 
@@ -45,12 +45,12 @@ def test_extract_id(pdf_url, expected):
         ("13054001,13054001", {"13054001"}),
     ],
 )
-def test_parse_station_ids(value, expected):
+def test_parse_station_ids(value: str, expected: set[StationCode]) -> None:
     assert parse_station_ids(value) == expected
 
 
 @pytest.mark.parametrize("value", ["", ",", " , ", "  "])
-def test_parse_station_ids_rejects_empty(value):
+def test_parse_station_ids_rejects_empty(value: str) -> set[StationCode]:
     with pytest.raises(argparse.ArgumentTypeError):
         parse_station_ids(value)
 
@@ -63,7 +63,7 @@ def test_parse_station_ids_rejects_empty(value):
         ("No creation date here", None),
     ],
 )
-def test_extract_creation_date(text, expected):
+def test_extract_creation_date(text: str, expected: str | None) -> None:
     assert extract_creation_date(text) == expected
 
 
@@ -76,7 +76,7 @@ def test_extract_creation_date(text, expected):
         ("No closure date here", None),
     ],
 )
-def test_extract_closure_date(text, expected):
+def test_extract_closure_date(text: str, expected: str | None) -> str:
     assert extract_closure_date(text) == expected
 
 
@@ -88,7 +88,7 @@ def test_extract_closure_date(text, expected):
         ("31/12/1999", "1999-12-31T00:00:00+00:00"),
     ],
 )
-def test_date_dd_mm_yyyy_to_iso(date_str, expected):
+def test_date_dd_mm_yyyy_to_iso(date_str: str, expected: str) -> None:
     assert date_dd_mm_yyyy_to_iso(date_str) == expected
 
 
@@ -107,11 +107,11 @@ def test_date_dd_mm_yyyy_to_iso(date_str, expected):
         ("Département : Seine-et-Marne  (77)", {"nom": "Seine-et-Marne", "code": "77"}),
     ],
 )
-def test_extract_departement(text, expected):
+def test_extract_departement(text: str, expected: dict) -> None:
     assert extract_departement(text) == expected
 
 
-def test_extract_classes_one_with_debut_fin():
+def test_extract_classes_one_with_debut_fin() -> None:
     text = """
 QUALITE DU SITE
 Paramètre Classe(*) Réf. Début Fin Méthode Date du relevé
@@ -128,7 +128,7 @@ Temperature 2 Nr35 13/12/2010 26/06/2015 1 13/12/2010
     assert result == expected
 
 
-def test_extract_classes_two_with_debut_fin():
+def test_extract_classes_two_with_debut_fin() -> None:
     text = """
 QUALITE DU SITE
 Paramètre Classe(*) Réf. Début Fin Méthode Date du relevé
@@ -151,7 +151,7 @@ Temperature 2 Nr35 01/01/2011 31/12/2020 1 01/01/2011
     assert result == expected
 
 
-def test_extract_classes_one_with_debut_but_no_fin():
+def test_extract_classes_one_with_debut_but_no_fin() -> None:
     text = """
 QUALITE DU SITE
 Paramètre Classe(*) Réf. Début Fin Méthode Date du relevé
@@ -164,7 +164,7 @@ Temperature 1 Nr35B 01/01/2021 3 07/01/2026
     assert result == expected
 
 
-def test_extract_classes_one_with_debut_fin_and_one_with_debut_but_no_fin():
+def test_extract_classes_one_with_debut_fin_and_one_with_debut_but_no_fin() -> None:
     text = """
 QUALITE DU SITE
 Paramètre Classe(*) Réf. Début Fin Méthode Date du relevé
@@ -183,13 +183,13 @@ Temperature 1 Nr35B 01/01/2021 3 07/01/2026
     assert result == expected
 
 
-def test_extract_classes_no_match():
+def test_extract_classes_no_match() -> None:
     result = extract_classes("No quality data here")
     expected = []
     assert result == expected
 
 
-def test_extract_classes_temperature_with_surrounding_text():
+def test_extract_classes_temperature_with_surrounding_text() -> None:
     text = """
 QUALITE DU SITE
 Humidite 1 Nr35B 03/07/2020 3 07/01/2026
@@ -203,7 +203,7 @@ Pluie 2 Nr35B 27/06/2015 3 07/01/2026
     assert result == expected
 
 
-def test_extract_from_real_text_example():
+def test_extract_from_real_text_example() -> None:
     text = """
 13054001
 MARIGNANE
@@ -244,7 +244,7 @@ CLASSE MESURES
     assert actual == expected
 
 
-def test_build_csv_lines_single_class():
+def test_build_csv_lines_single_class() -> None:
     station = StationCode("13054001")
     info = StationInfo(
         station_code=station,
@@ -272,7 +272,7 @@ def test_build_csv_lines_single_class():
     assert result == expected
 
 
-def test_build_csv_lines_multiple_classes():
+def test_build_csv_lines_multiple_classes() -> None:
     station = StationCode("06088001")
     info = StationInfo(
         station_code=station,
@@ -315,7 +315,7 @@ def test_build_csv_lines_multiple_classes():
     assert result == expected
 
 
-def test_build_csv_lines_with_none_values():
+def test_build_csv_lines_with_none_values() -> None:
     station = StationCode("14137001")
     info = StationInfo(
         station_code=station,
@@ -332,7 +332,7 @@ def test_build_csv_lines_with_none_values():
     assert result == expected
 
 
-def test_build_classes_csv_lines_multiple_classes():
+def test_build_classes_csv_lines_multiple_classes() -> None:
     station = StationCode("06088001")
     info = StationInfo(
         station_code=station,
@@ -357,7 +357,7 @@ def test_build_classes_csv_lines_multiple_classes():
     assert result == expected
 
 
-def test_build_lifecycle_csv_line():
+def test_build_lifecycle_csv_line() -> None:
     station = StationCode("06088001")
     info = StationInfo(
         station_code=station,
@@ -374,7 +374,7 @@ def test_build_lifecycle_csv_line():
     assert result == expected
 
 
-def test_build_station_info_from_text_with_merignane_text_example():
+def test_build_station_info_from_text_with_merignane_text_example() -> None:
     station_id = "13054001"
     pdf_url = "https://object.files.data.gouv.fr/meteofrance/data/synchro_ftp/BASE/INFOS_POSTES/13/13054001_13_MARIGNANE.pdf"
 

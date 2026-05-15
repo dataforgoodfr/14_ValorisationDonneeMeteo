@@ -23,7 +23,7 @@ REIMS_PRUNAY_ID = "51449002"
 REIMS_COURCY_ID = "51183001"
 
 
-def _make_pivoted(index, columns_data):
+def _make_pivoted(index: pd.DatetimeIndex, columns_data: dict) -> pd.DataFrame:
     """
     Build a pivoted DataFrame matching the shape of separate_by_station output.
 
@@ -48,7 +48,7 @@ def _make_pivoted(index, columns_data):
 # == separate_by_station =============================================
 
 
-def test_separate_by_station():
+def test_separate_by_station() -> None:
     dates = pd.date_range("2024-01-01", periods=2, freq="D")
     df = pd.DataFrame(
         {
@@ -100,7 +100,7 @@ def test_separate_by_station():
 # == correct_temperatures_Reims ======================================
 
 
-def test_correct_temperatures_Reims():  # noqa: N802
+def test_correct_temperatures_Reims() -> None:  # noqa: N802
     dates = pd.date_range("2012-05-06", "2012-05-09", freq="D")
     input_df = _make_pivoted(
         dates,
@@ -130,7 +130,7 @@ def test_correct_temperatures_Reims():  # noqa: N802
 # == itn_calculation =================================================
 
 
-def test_itn_calculation():
+def test_itn_calculation() -> None:
     dates = pd.date_range("2024-01-01", periods=4, freq="D")
 
     df = _make_pivoted(
@@ -169,7 +169,7 @@ def test_itn_calculation():
 # == compute_itn =====================================================
 
 
-def test_compute_itn():
+def test_compute_itn() -> None:
     dates = pd.to_datetime(["2012-05-06", "2012-05-07", "2012-05-08", "2012-05-09"])
     results = compute_itn(ReadTemperaturesTests)
     # Courcy tntxm=8,9,NaN,NaN  Prunay=NaN,NaN,11,12  Paris=3,4,5,6  Marseille=15,16,17,18
@@ -200,7 +200,7 @@ def test_compute_itn():
 # == average_itn_calculation =========================================
 
 
-def test_average_itn_calculation():
+def test_average_itn_calculation() -> None:
     dates = pd.date_range("2024-01-01", "2024-03-31", freq="D")
     index = np.unique(dates.strftime("%Y-%m"))
 
@@ -227,7 +227,7 @@ def test_average_itn_calculation():
 # == itn =============================================================
 
 
-def test_itn():
+def test_itn() -> None:
     result = itn(read_protocol=ReadTemperaturesTests)
     expected = np.array(
         [
@@ -244,7 +244,7 @@ def test_itn():
 # == monthly_itn =====================================================
 
 
-def test_monthly_itn():
+def test_monthly_itn() -> None:
     dates = pd.date_range("2024-01-01", "2024-03-31", freq="D")
     index = np.unique(dates.strftime("%Y-%m"))
 
@@ -259,7 +259,7 @@ def test_monthly_itn():
 # == annual_itn =====================================================
 
 
-def test_annual_itn():
+def test_annual_itn() -> None:
     dates = pd.date_range("2021-01-01", "2023-12-31", freq="D")
     index = np.unique(dates.strftime("%Y"))
 

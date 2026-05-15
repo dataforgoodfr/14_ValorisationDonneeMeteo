@@ -12,8 +12,8 @@ from weather.serializers import NationalIndicatorKpiQuerySerializer
     ],
 )
 def test_date_start_must_be_before_or_equal_date_end(
-    date_start, date_end, should_be_valid
-):
+    date_start: str, date_end: str, should_be_valid: bool
+) -> None:
     s = NationalIndicatorKpiQuerySerializer(
         data={"date_start": date_start, "date_end": date_end}
     )
@@ -25,7 +25,7 @@ def test_date_start_must_be_before_or_equal_date_end(
         assert "date_end" in s.errors
 
 
-def test_missing_date_start_is_invalid():
+def test_missing_date_start_is_invalid() -> None:
     s = NationalIndicatorKpiQuerySerializer(data={"date_end": "2024-01-31"})
 
     ok = s.is_valid()
@@ -33,7 +33,7 @@ def test_missing_date_start_is_invalid():
     assert "date_start" in s.errors
 
 
-def test_missing_date_end_is_invalid():
+def test_missing_date_end_is_invalid() -> None:
     s = NationalIndicatorKpiQuerySerializer(data={"date_start": "2024-01-01"})
 
     ok = s.is_valid()
@@ -41,7 +41,7 @@ def test_missing_date_end_is_invalid():
     assert "date_end" in s.errors
 
 
-def test_valid_data_passes():
+def test_valid_data_passes() -> None:
     s = NationalIndicatorKpiQuerySerializer(
         data={"date_start": "2024-01-01", "date_end": "2024-12-31"}
     )

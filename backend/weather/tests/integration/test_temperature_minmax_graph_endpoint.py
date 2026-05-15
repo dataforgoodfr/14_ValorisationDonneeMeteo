@@ -8,7 +8,7 @@ URL = "/api/v1/temperature/extremes/graph"
 
 
 @pytest.fixture
-def fake_minmax_dep():
+def fake_minmax_dep() -> None:
     TemperatureMinMaxDependencyProvider.set_builder(
         lambda: FakeTemperatureMinMaxDataSource()
     )
@@ -18,7 +18,7 @@ def fake_minmax_dep():
         TemperatureMinMaxDependencyProvider.reset()
 
 
-def test_returns_400_when_no_params(client: APIClient):
+def test_returns_400_when_no_params(client: APIClient) -> None:
     resp = client.get(URL)
 
     assert resp.status_code == 400
@@ -29,7 +29,7 @@ def test_returns_400_when_no_params(client: APIClient):
     assert "granularity" in body["error"]["details"]
 
 
-def test_returns_400_when_date_end_before_date_start(client: APIClient):
+def test_returns_400_when_date_end_before_date_start(client: APIClient) -> None:
     resp = client.get(
         URL,
         {
@@ -45,7 +45,7 @@ def test_returns_400_when_date_end_before_date_start(client: APIClient):
     assert "date_end" in body["error"]["details"]
 
 
-def test_returns_400_on_invalid_granularity(client: APIClient):
+def test_returns_400_on_invalid_granularity(client: APIClient) -> None:
     resp = client.get(
         URL,
         {
@@ -59,7 +59,7 @@ def test_returns_400_on_invalid_granularity(client: APIClient):
 
 
 @pytest.mark.usefixtures("fake_minmax_dep")
-def test_france_returns_national_series(client: APIClient):
+def test_france_returns_national_series(client: APIClient) -> None:
     resp = client.get(
         URL,
         {
@@ -87,7 +87,7 @@ def test_france_returns_national_series(client: APIClient):
 
 
 @pytest.mark.usefixtures("fake_minmax_dep")
-def test_station_filter_returns_station_series(client: APIClient):
+def test_station_filter_returns_station_series(client: APIClient) -> None:
     resp = client.get(
         URL,
         {
@@ -113,7 +113,7 @@ def test_station_filter_returns_station_series(client: APIClient):
 
 
 @pytest.mark.usefixtures("fake_minmax_dep")
-def test_department_filter_returns_aggregated_series(client: APIClient):
+def test_department_filter_returns_aggregated_series(client: APIClient) -> None:
     resp = client.get(
         URL,
         {
@@ -138,7 +138,7 @@ def test_department_filter_returns_aggregated_series(client: APIClient):
 
 @pytest.mark.usefixtures("fake_minmax_dep")
 @pytest.mark.parametrize("granularity", ["day", "month", "year"])
-def test_all_granularities_return_200(client: APIClient, granularity: str):
+def test_all_granularities_return_200(client: APIClient, granularity: str) -> None:
     resp = client.get(
         URL,
         {

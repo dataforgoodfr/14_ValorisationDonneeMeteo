@@ -3,7 +3,7 @@ import datetime as dt
 from weather.serializers import TemperatureDeviationGraphQuerySerializer
 
 
-def test_temperature_deviation_query_serializer_happy_path():
+def test_temperature_deviation_query_serializer_happy_path() -> None:
     s = TemperatureDeviationGraphQuerySerializer(
         data={
             "date_start": "2024-01-01",
@@ -22,7 +22,9 @@ def test_temperature_deviation_query_serializer_happy_path():
     assert s.validated_data["slice_type"] == "full"
 
 
-def test_temperature_deviation_query_serializer_include_national_defaults_true():
+def test_temperature_deviation_query_serializer_include_national_defaults_true() -> (
+    None
+):
     s = TemperatureDeviationGraphQuerySerializer(
         data={
             "date_start": "2024-01-01",
@@ -37,7 +39,9 @@ def test_temperature_deviation_query_serializer_include_national_defaults_true()
     assert s.validated_data["slice_type"] == "full"
 
 
-def test_temperature_deviation_query_serializer_rejects_date_start_gt_date_end():
+def test_temperature_deviation_query_serializer_rejects_date_start_gt_date_end() -> (
+    None
+):
     s = TemperatureDeviationGraphQuerySerializer(
         data={
             "date_start": "2024-02-01",
@@ -50,7 +54,9 @@ def test_temperature_deviation_query_serializer_rejects_date_start_gt_date_end()
     assert "date_end" in s.errors
 
 
-def test_temperature_deviation_query_serializer_requires_station_ids_if_include_national_false():
+def test_temperature_deviation_query_serializer_requires_station_ids_if_include_national_false() -> (
+    None
+):
     s = TemperatureDeviationGraphQuerySerializer(
         data={
             "date_start": "2024-01-01",
@@ -64,7 +70,9 @@ def test_temperature_deviation_query_serializer_requires_station_ids_if_include_
     assert "station_ids" in s.errors
 
 
-def test_temperature_deviation_query_serializer_empty_station_ids_are_empty_tuple():
+def test_temperature_deviation_query_serializer_empty_station_ids_are_empty_tuple() -> (
+    None
+):
     s = TemperatureDeviationGraphQuerySerializer(
         data={
             "date_start": "2024-01-01",
@@ -78,7 +86,9 @@ def test_temperature_deviation_query_serializer_empty_station_ids_are_empty_tupl
     assert s.validated_data["station_ids"] == ()
 
 
-def test_temperature_deviation_query_serializer_accepts_year_month_of_year_slice():
+def test_temperature_deviation_query_serializer_accepts_year_month_of_year_slice() -> (
+    None
+):
     s = TemperatureDeviationGraphQuerySerializer(
         data={
             "date_start": "2024-01-01",
@@ -94,7 +104,9 @@ def test_temperature_deviation_query_serializer_accepts_year_month_of_year_slice
     assert s.validated_data["month_of_year"] == 2
 
 
-def test_temperature_deviation_query_serializer_accepts_year_day_of_month_slice():
+def test_temperature_deviation_query_serializer_accepts_year_day_of_month_slice() -> (
+    None
+):
     s = TemperatureDeviationGraphQuerySerializer(
         data={
             "date_start": "2024-01-01",
@@ -109,7 +121,9 @@ def test_temperature_deviation_query_serializer_accepts_year_day_of_month_slice(
     assert s.is_valid(), s.errors
 
 
-def test_temperature_deviation_query_serializer_accepts_month_day_of_month_slice():
+def test_temperature_deviation_query_serializer_accepts_month_day_of_month_slice() -> (
+    None
+):
     s = TemperatureDeviationGraphQuerySerializer(
         data={
             "date_start": "2024-01-01",
@@ -123,7 +137,9 @@ def test_temperature_deviation_query_serializer_accepts_month_day_of_month_slice
     assert s.is_valid(), s.errors
 
 
-def test_temperature_deviation_query_serializer_rejects_day_granularity_with_month_of_year_slice():
+def test_temperature_deviation_query_serializer_rejects_day_granularity_with_month_of_year_slice() -> (
+    None
+):
     s = TemperatureDeviationGraphQuerySerializer(
         data={
             "date_start": "2024-01-01",
@@ -138,7 +154,9 @@ def test_temperature_deviation_query_serializer_rejects_day_granularity_with_mon
     assert "slice_type" in s.errors
 
 
-def test_temperature_deviation_query_serializer_rejects_day_granularity_with_day_of_month_slice():
+def test_temperature_deviation_query_serializer_rejects_day_granularity_with_day_of_month_slice() -> (
+    None
+):
     s = TemperatureDeviationGraphQuerySerializer(
         data={
             "date_start": "2024-01-01",
@@ -153,7 +171,9 @@ def test_temperature_deviation_query_serializer_rejects_day_granularity_with_day
     assert "slice_type" in s.errors
 
 
-def test_temperature_deviation_query_serializer_rejects_day_granularity_with_month_of_year_param():
+def test_temperature_deviation_query_serializer_rejects_day_granularity_with_month_of_year_param() -> (
+    None
+):
     s = TemperatureDeviationGraphQuerySerializer(
         data={
             "date_start": "2024-01-01",
@@ -167,7 +187,9 @@ def test_temperature_deviation_query_serializer_rejects_day_granularity_with_mon
     assert "month_of_year" in s.errors
 
 
-def test_temperature_deviation_query_serializer_rejects_day_granularity_with_day_of_month_param():
+def test_temperature_deviation_query_serializer_rejects_day_granularity_with_day_of_month_param() -> (
+    None
+):
     s = TemperatureDeviationGraphQuerySerializer(
         data={
             "date_start": "2024-01-01",
@@ -181,7 +203,9 @@ def test_temperature_deviation_query_serializer_rejects_day_granularity_with_day
     assert "day_of_month" in s.errors
 
 
-def test_temperature_deviation_query_serializer_rejects_month_of_year_when_slice_type_full():
+def test_temperature_deviation_query_serializer_rejects_month_of_year_when_slice_type_full() -> (
+    None
+):
     s = TemperatureDeviationGraphQuerySerializer(
         data={
             "date_start": "2024-01-01",
@@ -196,7 +220,9 @@ def test_temperature_deviation_query_serializer_rejects_month_of_year_when_slice
     assert "month_of_year" in s.errors
 
 
-def test_temperature_deviation_query_serializer_rejects_day_of_month_when_slice_type_full():
+def test_temperature_deviation_query_serializer_rejects_day_of_month_when_slice_type_full() -> (
+    None
+):
     s = TemperatureDeviationGraphQuerySerializer(
         data={
             "date_start": "2024-01-01",
@@ -211,7 +237,9 @@ def test_temperature_deviation_query_serializer_rejects_day_of_month_when_slice_
     assert "day_of_month" in s.errors
 
 
-def test_temperature_deviation_query_serializer_rejects_month_of_year_slice_for_month_granularity():
+def test_temperature_deviation_query_serializer_rejects_month_of_year_slice_for_month_granularity() -> (
+    None
+):
     s = TemperatureDeviationGraphQuerySerializer(
         data={
             "date_start": "2024-01-01",
@@ -226,7 +254,9 @@ def test_temperature_deviation_query_serializer_rejects_month_of_year_slice_for_
     assert "slice_type" in s.errors
 
 
-def test_temperature_deviation_query_serializer_rejects_month_of_year_slice_without_month_of_year():
+def test_temperature_deviation_query_serializer_rejects_month_of_year_slice_without_month_of_year() -> (
+    None
+):
     s = TemperatureDeviationGraphQuerySerializer(
         data={
             "date_start": "2024-01-01",
@@ -240,7 +270,9 @@ def test_temperature_deviation_query_serializer_rejects_month_of_year_slice_with
     assert "month_of_year" in s.errors
 
 
-def test_temperature_deviation_query_serializer_rejects_day_of_month_with_month_of_year_slice():
+def test_temperature_deviation_query_serializer_rejects_day_of_month_with_month_of_year_slice() -> (
+    None
+):
     s = TemperatureDeviationGraphQuerySerializer(
         data={
             "date_start": "2024-01-01",
@@ -256,7 +288,9 @@ def test_temperature_deviation_query_serializer_rejects_day_of_month_with_month_
     assert "day_of_month" in s.errors
 
 
-def test_temperature_deviation_query_serializer_rejects_year_day_of_month_slice_without_month_of_year():
+def test_temperature_deviation_query_serializer_rejects_year_day_of_month_slice_without_month_of_year() -> (
+    None
+):
     s = TemperatureDeviationGraphQuerySerializer(
         data={
             "date_start": "2024-01-01",
@@ -271,7 +305,9 @@ def test_temperature_deviation_query_serializer_rejects_year_day_of_month_slice_
     assert "month_of_year" in s.errors
 
 
-def test_temperature_deviation_query_serializer_rejects_month_day_of_month_slice_with_month_of_year():
+def test_temperature_deviation_query_serializer_rejects_month_day_of_month_slice_with_month_of_year() -> (
+    None
+):
     s = TemperatureDeviationGraphQuerySerializer(
         data={
             "date_start": "2024-01-01",

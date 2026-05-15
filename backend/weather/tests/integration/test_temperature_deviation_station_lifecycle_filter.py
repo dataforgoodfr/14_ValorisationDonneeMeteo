@@ -93,7 +93,7 @@ def _ids(result) -> set[str]:
 
 
 @pytest.mark.django_db
-def test_fetch_station_overview_filters_by_classe_recente_min():
+def test_fetch_station_overview_filters_by_classe_recente_min() -> None:
     """
     GIVEN  STATION_ID_1 classe 1, STATION_ID_2 classe 3
     WHEN   classe_recente_min=2
@@ -115,7 +115,7 @@ def test_fetch_station_overview_filters_by_classe_recente_min():
 
 
 @pytest.mark.django_db
-def test_fetch_station_overview_filters_by_classe_recente_max():
+def test_fetch_station_overview_filters_by_classe_recente_max() -> None:
     """
     GIVEN  STATION_ID_1 classe 1, STATION_ID_2 classe 3
     WHEN   classe_recente_max=2
@@ -137,7 +137,7 @@ def test_fetch_station_overview_filters_by_classe_recente_max():
 
 
 @pytest.mark.django_db
-def test_fetch_station_overview_filters_by_classe_recente_range():
+def test_fetch_station_overview_filters_by_classe_recente_range() -> None:
     """
     GIVEN  STATION_ID_1 classe 1, STATION_ID_2 classe 3
     WHEN   classe_recente_min=2, classe_recente_max=4
@@ -164,7 +164,7 @@ def test_fetch_station_overview_filters_by_classe_recente_range():
 
 
 @pytest.mark.django_db
-def test_fetch_station_overview_filters_by_date_de_creation_max():
+def test_fetch_station_overview_filters_by_date_de_creation_max() -> None:
     """
     GIVEN  STATION_ID_1 créée en 1920, STATION_ID_2 créée en 1980
     WHEN   date_de_creation_max=1950-01-01 (→ année 1950)
@@ -191,7 +191,7 @@ def test_fetch_station_overview_filters_by_date_de_creation_max():
 
 
 @pytest.mark.django_db
-def test_fetch_station_overview_filters_by_date_de_creation_min():
+def test_fetch_station_overview_filters_by_date_de_creation_min() -> None:
     """
     GIVEN  STATION_ID_1 créée en 1920, STATION_ID_2 créée en 1980
     WHEN   date_de_creation_min=1950-01-01 (→ année 1950)
@@ -223,7 +223,7 @@ def test_fetch_station_overview_filters_by_date_de_creation_min():
 
 
 @pytest.mark.django_db
-def test_fetch_station_overview_fermeture_max_excludes_open_stations():
+def test_fetch_station_overview_fermeture_max_excludes_open_stations() -> None:
     """
     GIVEN  STATION_ID_1 fermée en 2000, STATION_ID_2 toujours ouverte (date_de_fermeture NULL)
     WHEN   date_de_fermeture_max=2010-01-01
@@ -265,7 +265,7 @@ def test_fetch_station_overview_fermeture_max_excludes_open_stations():
 
 
 @pytest.mark.django_db
-def test_fetch_station_overview_fermeture_min_alone_includes_open_stations():
+def test_fetch_station_overview_fermeture_min_alone_includes_open_stations() -> None:
     """
     GIVEN  STATION_ID_1 fermée en 1990, STATION_ID_2 toujours ouverte (annee_de_fermeture NULL)
     WHEN   date_de_fermeture_min=2000-01-01 seul
@@ -310,7 +310,7 @@ def test_fetch_station_overview_fermeture_min_alone_includes_open_stations():
 
 
 @pytest.mark.django_db
-def test_fetch_station_overview_fermeture_min_and_max_excludes_open_stations():
+def test_fetch_station_overview_fermeture_min_and_max_excludes_open_stations() -> None:
     """
     GIVEN  STATION_ID_1 fermée en 2005, STATION_ID_2 toujours ouverte (annee_de_fermeture NULL)
     WHEN   date_de_fermeture_min=2000-01-01 ET date_de_fermeture_max=2010-01-01

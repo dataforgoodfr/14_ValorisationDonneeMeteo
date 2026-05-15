@@ -150,7 +150,7 @@ def _station_name(station_id: str) -> str:
     return f"Station {station_id}"
 
 
-def _get_all_stations():
+def _get_all_stations() -> tuple[str, str, str]:
     return "07231149", "07937156", "130013456"
 
 

@@ -41,7 +41,7 @@ def _utc_midnight(date: dt.date) -> dt.datetime:
 # ---------------------------------------------------------------------------
 
 
-def test_v_quotidienne_returns_recent_data_from_realtime_mv():
+def test_v_quotidienne_returns_recent_data_from_realtime_mv() -> None:
     """Les jours récents (dans les 3 derniers jours) viennent du MV temps réel."""
     today = _utc_today()
     insert_mv_quotidienne_realtime(STATION, _utc_midnight(today), tn=8.0, tx=17.0)
@@ -55,7 +55,7 @@ def test_v_quotidienne_returns_recent_data_from_realtime_mv():
     assert float(rows[0]["tx"]) == pytest.approx(17.0)
 
 
-def test_v_quotidienne_returns_old_data_from_raw_quotidienne():
+def test_v_quotidienne_returns_old_data_from_raw_quotidienne() -> None:
     """Les jours anciens (> 3 jours) viennent de la table brute `Quotidienne`."""
     five_days_ago = _utc_today() - dt.timedelta(days=5)
     insert_quotidienne(_utc_midnight(five_days_ago), STATION, tx=20.0, tn=10.0)
@@ -72,7 +72,7 @@ def test_v_quotidienne_returns_old_data_from_raw_quotidienne():
 # ---------------------------------------------------------------------------
 
 
-def test_v_quotidienne_excludes_raw_within_last_3_days():
+def test_v_quotidienne_excludes_raw_within_last_3_days() -> None:
     """
     Les lignes brutes (Quotidienne) avec `AAAAMMJJ` dans les 3 derniers jours
     sont exclues — on attend que la donnée vienne du MV temps réel.
@@ -85,7 +85,7 @@ def test_v_quotidienne_excludes_raw_within_last_3_days():
     assert rows == []
 
 
-def test_v_quotidienne_excludes_raw_at_exact_3_day_boundary():
+def test_v_quotidienne_excludes_raw_at_exact_3_day_boundary() -> None:
     """
     Frontière stricte : `AAAAMMJJ < now() - 3 jours`.
     Une ligne brute datée d'exactement 3 jours (00:00) est EXCLUE.
@@ -103,7 +103,7 @@ def test_v_quotidienne_excludes_raw_at_exact_3_day_boundary():
 # ---------------------------------------------------------------------------
 
 
-def test_v_quotidienne_combines_mv_and_raw_in_same_query():
+def test_v_quotidienne_combines_mv_and_raw_in_same_query() -> None:
     """Un jour récent (MV) et un jour ancien (brut) cohabitent dans la vue."""
     today = _utc_today()
     five_days_ago = today - dt.timedelta(days=5)
@@ -119,7 +119,7 @@ def test_v_quotidienne_combines_mv_and_raw_in_same_query():
     assert dates[1] == today
 
 
-def test_v_quotidienne_returns_all_stations_independently():
+def test_v_quotidienne_returns_all_stations_independently() -> None:
     other = "31069001"
     today_midnight = _utc_midnight(_utc_today())
 

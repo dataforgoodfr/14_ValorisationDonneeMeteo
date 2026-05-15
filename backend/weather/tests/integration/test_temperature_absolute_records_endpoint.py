@@ -42,7 +42,7 @@ def given_this_data(result: TemperatureRecordsResult) -> None:
 
 
 @pytest.fixture(autouse=True)
-def _reset_absolute_records_dep():
+def _reset_absolute_records_dep() -> None:
     yield
     TemperatureAbsoluteRecordsDependencyProvider.reset()
 
@@ -82,7 +82,7 @@ def _result(entries: list[TemperatureRecordEntry]) -> TemperatureRecordsResult:
 # =========================
 
 
-def test_records_happy_path_all_time_hot(client: APIClient):
+def test_records_happy_path_all_time_hot(client: APIClient) -> None:
     given_this_data(
         _result(
             [
@@ -111,7 +111,7 @@ def test_records_happy_path_all_time_hot(client: APIClient):
     assert body["results"][0]["record_date"] == "2019-07-25"
 
 
-def test_records_happy_path_month_with_specific_month(client: APIClient):
+def test_records_happy_path_month_with_specific_month(client: APIClient) -> None:
     given_this_data(_result([_entry(record_value=38.0)]))
 
     resp = client.get(
@@ -125,7 +125,7 @@ def test_records_happy_path_month_with_specific_month(client: APIClient):
     assert body["results"][0]["record_value"] == 38.0
 
 
-def test_records_happy_path_season_with_specific_season(client: APIClient):
+def test_records_happy_path_season_with_specific_season(client: APIClient) -> None:
     given_this_data(_result([_entry(record_value=44.0)]))
 
     resp = client.get(
@@ -139,7 +139,7 @@ def test_records_happy_path_season_with_specific_season(client: APIClient):
     assert body["results"][0]["record_value"] == 44.0
 
 
-def test_records_defaults_apply_when_no_params(client: APIClient):
+def test_records_defaults_apply_when_no_params(client: APIClient) -> None:
     """period_type=all_time et type_records=hot ont des defaults : l'endpoint accepte une requête vide."""
     given_this_data(_result([]))
 
@@ -153,7 +153,7 @@ def test_records_defaults_apply_when_no_params(client: APIClient):
 # =========================
 
 
-def test_records_period_type_month_without_month_returns_200(client: APIClient):
+def test_records_period_type_month_without_month_returns_200(client: APIClient) -> None:
     """period_type=month sans month est supporté (records de tous les mois)."""
     given_this_data(_result([]))
 
@@ -162,7 +162,9 @@ def test_records_period_type_month_without_month_returns_200(client: APIClient):
     assert resp.status_code == 200
 
 
-def test_records_period_type_season_without_season_returns_200(client: APIClient):
+def test_records_period_type_season_without_season_returns_200(
+    client: APIClient,
+) -> None:
     """period_type=season sans season est supporté (records de toutes les saisons)."""
     given_this_data(_result([]))
 
@@ -171,7 +173,7 @@ def test_records_period_type_season_without_season_returns_200(client: APIClient
     assert resp.status_code == 200
 
 
-def test_records_type_records_cold_accepts_param(client: APIClient):
+def test_records_type_records_cold_accepts_param(client: APIClient) -> None:
     given_this_data(_result([_entry(record_value=-20.5)]))
 
     resp = client.get(ENDPOINT, {"type_records": "cold"})
@@ -186,7 +188,7 @@ def test_records_type_records_cold_accepts_param(client: APIClient):
 # =========================
 
 
-def test_records_territoire_department_accepts_param(client: APIClient):
+def test_records_territoire_department_accepts_param(client: APIClient) -> None:
     given_this_data(_result([]))
 
     resp = client.get(
@@ -197,7 +199,7 @@ def test_records_territoire_department_accepts_param(client: APIClient):
     assert resp.status_code == 200
 
 
-def test_records_territoire_station_accepts_param(client: APIClient):
+def test_records_territoire_station_accepts_param(client: APIClient) -> None:
     given_this_data(_result([]))
 
     resp = client.get(
@@ -208,7 +210,7 @@ def test_records_territoire_station_accepts_param(client: APIClient):
     assert resp.status_code == 200
 
 
-def test_records_territoire_region_accepts_param(client: APIClient):
+def test_records_territoire_region_accepts_param(client: APIClient) -> None:
     given_this_data(_result([]))
 
     resp = client.get(
@@ -224,7 +226,7 @@ def test_records_territoire_region_accepts_param(client: APIClient):
 # =========================
 
 
-def test_records_serializes_entry_with_expected_fields(client: APIClient):
+def test_records_serializes_entry_with_expected_fields(client: APIClient) -> None:
     given_this_data(
         _result(
             [
@@ -262,7 +264,7 @@ def test_records_serializes_entry_with_expected_fields(client: APIClient):
     assert r["date_de_fermeture"] is None
 
 
-def test_records_serializes_date_de_fermeture_when_present(client: APIClient):
+def test_records_serializes_date_de_fermeture_when_present(client: APIClient) -> None:
     given_this_data(_result([_entry(date_de_fermeture=dt.date(2010, 6, 30))]))
 
     resp = client.get(ENDPOINT)
@@ -271,7 +273,7 @@ def test_records_serializes_date_de_fermeture_when_present(client: APIClient):
     assert resp.json()["results"][0]["date_de_fermeture"] == "2010-06-30"
 
 
-def test_records_serializes_pagination(client: APIClient):
+def test_records_serializes_pagination(client: APIClient) -> None:
     given_this_data(
         TemperatureRecordsResult(
             entries=[],
@@ -291,7 +293,7 @@ def test_records_serializes_pagination(client: APIClient):
     assert p["total_pages"] == 13
 
 
-def test_records_serializes_empty_results(client: APIClient):
+def test_records_serializes_empty_results(client: APIClient) -> None:
     given_this_data(_result([]))
 
     resp = client.get(ENDPOINT)
@@ -307,7 +309,7 @@ def test_records_serializes_empty_results(client: APIClient):
 # =========================
 
 
-def test_records_territoire_without_id_returns_400(client: APIClient):
+def test_records_territoire_without_id_returns_400(client: APIClient) -> None:
     resp = client.get(ENDPOINT, {"territoire": "department"})
 
     assert resp.status_code == 400
@@ -316,43 +318,45 @@ def test_records_territoire_without_id_returns_400(client: APIClient):
     assert "territoire_id" in body["error"]["details"]
 
 
-def test_records_invalid_period_type_returns_400(client: APIClient):
+def test_records_invalid_period_type_returns_400(client: APIClient) -> None:
     resp = client.get(ENDPOINT, {"period_type": "week"})
 
     assert resp.status_code == 400
 
 
-def test_records_invalid_type_records_returns_400(client: APIClient):
+def test_records_invalid_type_records_returns_400(client: APIClient) -> None:
     resp = client.get(ENDPOINT, {"type_records": "tepid"})
 
     assert resp.status_code == 400
 
 
-def test_records_invalid_sort_field_returns_400(client: APIClient):
+def test_records_invalid_sort_field_returns_400(client: APIClient) -> None:
     resp = client.get(ENDPOINT, {"sort": "bad_field"})
 
     assert resp.status_code == 400
 
 
-def test_records_invalid_month_returns_400(client: APIClient):
+def test_records_invalid_month_returns_400(client: APIClient) -> None:
     resp = client.get(ENDPOINT, {"period_type": "month", "month": "13"})
 
     assert resp.status_code == 400
 
 
-def test_records_invalid_season_returns_400(client: APIClient):
+def test_records_invalid_season_returns_400(client: APIClient) -> None:
     resp = client.get(ENDPOINT, {"period_type": "season", "season": "monsoon"})
 
     assert resp.status_code == 400
 
 
-def test_records_date_start_without_date_end_returns_400(client: APIClient):
+def test_records_date_start_without_date_end_returns_400(client: APIClient) -> None:
     resp = client.get(ENDPOINT, {"date_start": "2019-01-01"})
 
     assert resp.status_code == 400
 
 
-def test_records_classe_recente_min_greater_than_max_returns_400(client: APIClient):
+def test_records_classe_recente_min_greater_than_max_returns_400(
+    client: APIClient,
+) -> None:
     resp = client.get(
         ENDPOINT,
         {"classe_recente_min": "3", "classe_recente_max": "1"},

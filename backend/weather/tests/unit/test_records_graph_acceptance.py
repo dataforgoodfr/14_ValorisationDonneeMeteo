@@ -23,7 +23,7 @@ def _req(**kwargs) -> RecordsGraphRequest:
     return RecordsGraphRequest(**defaults)
 
 
-def test_records_graph_acceptance_result_has_buckets_and_records():
+def test_records_graph_acceptance_result_has_buckets_and_records() -> None:
     ds = FakeRecordsGraphDataSource()
     result = get_records_graph(request=_req(), data_source=ds)
 
@@ -33,7 +33,7 @@ def test_records_graph_acceptance_result_has_buckets_and_records():
     assert isinstance(result.records, list)
 
 
-def test_records_graph_acceptance_year_granularity_bucket_keys_are_years():
+def test_records_graph_acceptance_year_granularity_bucket_keys_are_years() -> None:
     ds = FakeRecordsGraphDataSource()
     result = get_records_graph(
         request=_req(
@@ -48,7 +48,7 @@ def test_records_graph_acceptance_year_granularity_bucket_keys_are_years():
     assert [b.bucket for b in result.buckets] == ["2020", "2021", "2022"]
 
 
-def test_records_graph_acceptance_all_buckets_present_even_empty_ones():
+def test_records_graph_acceptance_all_buckets_present_even_empty_ones() -> None:
     ds = FakeRecordsGraphDataSource()
     result = get_records_graph(
         request=_req(
@@ -63,21 +63,21 @@ def test_records_graph_acceptance_all_buckets_present_even_empty_ones():
     assert all(b.nb_records_battus == 0 for b in result.buckets)
 
 
-def test_records_graph_acceptance_hot_type_records_only_contains_hot():
+def test_records_graph_acceptance_hot_type_records_only_contains_hot() -> None:
     ds = FakeRecordsGraphDataSource()
     result = get_records_graph(request=_req(type_records="hot"), data_source=ds)
 
     assert all(r.type_records == "hot" for r in result.records)
 
 
-def test_records_graph_acceptance_cold_type_records_only_contains_cold():
+def test_records_graph_acceptance_cold_type_records_only_contains_cold() -> None:
     ds = FakeRecordsGraphDataSource()
     result = get_records_graph(request=_req(type_records="cold"), data_source=ds)
 
     assert all(r.type_records == "cold" for r in result.records)
 
 
-def test_records_graph_acceptance_all_type_records_contains_both():
+def test_records_graph_acceptance_all_type_records_contains_both() -> None:
     ds = FakeRecordsGraphDataSource()
     result = get_records_graph(request=_req(type_records="all"), data_source=ds)
 
@@ -86,7 +86,7 @@ def test_records_graph_acceptance_all_type_records_contains_both():
     assert "cold" in types
 
 
-def test_records_graph_acceptance_records_within_date_range():
+def test_records_graph_acceptance_records_within_date_range() -> None:
     ds = FakeRecordsGraphDataSource()
     date_start = dt.date(2000, 1, 1)
     date_end = dt.date(2005, 12, 31)
@@ -99,7 +99,9 @@ def test_records_graph_acceptance_records_within_date_range():
         assert date_start <= r.date <= date_end
 
 
-def test_records_graph_acceptance_month_granularity_bucket_keys_are_year_month():
+def test_records_graph_acceptance_month_granularity_bucket_keys_are_year_month() -> (
+    None
+):
     ds = FakeRecordsGraphDataSource()
     result = get_records_graph(
         request=_req(

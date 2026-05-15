@@ -4,6 +4,7 @@ DRF ViewSets for weather data API endpoints.
 
 from drf_spectacular.utils import OpenApiParameter, extend_schema, extend_schema_view
 from rest_framework import status, viewsets
+from rest_framework.request import Request
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
@@ -19,7 +20,10 @@ from weather.bootstrap_temperature_deviation import (
 )
 from weather.bootstrap_temperature_minmax import TemperatureMinMaxDependencyProvider
 from weather.bootstrap_temperature_records import TemperatureRecordsDependencyProvider
-from weather.services.national_indicator.kpi_use_case import get_national_indicator_kpi
+from weather.services.national_indicator.kpi_use_case import (
+    NationalIndicatorKpiResult,
+    get_national_indicator_kpi,
+)
 from weather.services.national_indicator.use_case import get_national_indicator
 from weather.services.records_graph.types import RecordsGraphRequest
 from weather.services.records_graph.use_case import (
@@ -197,7 +201,7 @@ class NationalIndicatorAPIView(CacheControlMixin, APIView):
     permission_classes = []
     cache_profile = "by_date_end"
 
-    def get(self, request):
+    def get(self, request: Request) -> dict:
         q = NationalIndicatorQuerySerializer(data=request.query_params)
         if not q.is_valid():
             return Response(
@@ -251,7 +255,7 @@ class TemperatureDeviationGraphAPIView(CacheControlMixin, APIView):
     permission_classes = []
     cache_profile = "by_date_end"
 
-    def get(self, request):
+    def get(self, request: Request) -> dict:
         q = TemperatureDeviationGraphQuerySerializer(data=request.query_params)
         if not q.is_valid():
             return Response(
@@ -360,7 +364,7 @@ class TemperatureRecordsAPIView(CacheControlMixin, APIView):
             )
         ],
     )
-    def get(self, request):
+    def get(self, request: Request) -> Response:
         q = TemperatureRecordsQuerySerializer(data=request.query_params)
         if not q.is_valid():
             return Response(
@@ -497,7 +501,7 @@ class TemperatureAbsoluteRecordsAPIView(CacheControlMixin, APIView):
             )
         ],
     )
-    def get(self, request):
+    def get(self, request: Request) -> Response:
         q = TemperatureRecordsQuerySerializer(data=request.query_params)
         if not q.is_valid():
             return Response(
@@ -607,7 +611,7 @@ class TemperatureMinMaxGraphAPIView(CacheControlMixin, APIView):
             OpenApiParameter("regions", str, OpenApiParameter.QUERY, required=False),
         ]
     )
-    def get(self, request):
+    def get(self, request: Request) -> Response:
         q = TemperatureMinMaxGraphQuerySerializer(data=request.query_params)
         if not q.is_valid():
             return Response(
@@ -647,7 +651,7 @@ class TemperatureDeviationOverviewAPIView(CacheControlMixin, APIView):
     permission_classes = []
     cache_profile = "by_date_end"
 
-    def get(self, request):
+    def get(self, request: Request) -> Response:
         q = TemperatureDeviationOverviewQuerySerializer(data=request.query_params)
         if not q.is_valid():
             return Response(
@@ -713,7 +717,7 @@ class NationalIndicatorKpiAPIView(CacheControlMixin, APIView):
     permission_classes = []
     cache_profile = "by_date_end"
 
-    def get(self, request):
+    def get(self, request: Request) -> Response:
         q = NationalIndicatorKpiQuerySerializer(data=request.query_params)
         if not q.is_valid():
             return Response(
@@ -734,7 +738,7 @@ class NationalIndicatorKpiAPIView(CacheControlMixin, APIView):
             date_end=params["date_end"],
         )
 
-        def period_payload(stats):
+        def period_payload(stats: NationalIndicatorKpiResult) -> Response:
             return {
                 "hot_peak_count": stats.hot_peak_count,
                 "cold_peak_count": stats.cold_peak_count,
@@ -767,7 +771,7 @@ class RecordsGraphAPIView(CacheControlMixin, APIView):
     # `date_end` est requis ici (le fallback ne se déclenche jamais).
     cache_profile = "by_date_end"
 
-    def get(self, request):
+    def get(self, request: Request) -> Response:
         q = RecordsGraphQuerySerializer(data=request.query_params)
         if not q.is_valid():
             return Response(
@@ -838,7 +842,7 @@ class AbsoluteRecordsGraphAPIView(CacheControlMixin, APIView):
     permission_classes = []
     cache_profile = "by_date_end"
 
-    def get(self, request):
+    def get(self, request: Request) -> Response:
         q = RecordsGraphQuerySerializer(data=request.query_params)
         if not q.is_valid():
             return Response(

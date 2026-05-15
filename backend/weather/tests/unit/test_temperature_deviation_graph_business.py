@@ -12,7 +12,7 @@ from weather.services.temperature_deviation.types import (
 from weather.services.temperature_deviation.use_case import get_temperature_deviation
 
 
-def test_temperature_deviation_graph_business_day_happy_path():
+def test_temperature_deviation_graph_business_day_happy_path() -> None:
     ds = FakeTemperatureDeviationDailyDataSource()
 
     out = get_temperature_deviation(
@@ -37,7 +37,9 @@ def test_temperature_deviation_graph_business_day_happy_path():
     assert len(station["data"]) == 3
 
 
-def test_temperature_deviation_graph__business_month_aggregates_to_one_point_per_month():
+def test_temperature_deviation_graph__business_month_aggregates_to_one_point_per_month() -> (
+    None
+):
     ds = FakeTemperatureDeviationDailyDataSource()
 
     out = get_temperature_deviation(
@@ -62,7 +64,9 @@ def test_temperature_deviation_graph__business_month_aggregates_to_one_point_per
     ]
 
 
-def test_temperature_deviation_graph__business_without_national_returns_only_stations():
+def test_temperature_deviation_graph__business_without_national_returns_only_stations() -> (
+    None
+):
     ds = FakeTemperatureDeviationDailyDataSource()
 
     out = get_temperature_deviation(
@@ -79,7 +83,9 @@ def test_temperature_deviation_graph__business_without_national_returns_only_sta
     assert [s["station_id"] for s in out["stations"]] == ["07149", "07222"]
 
 
-def test_temperature_deviation_graph__business_deviation_equals_temperature_minus_baseline_mean():
+def test_temperature_deviation_graph__business_deviation_equals_temperature_minus_baseline_mean() -> (
+    None
+):
     ds = FakeTemperatureDeviationDailyDataSource()
 
     out = get_temperature_deviation(
@@ -101,29 +107,31 @@ def test_temperature_deviation_graph__business_deviation_equals_temperature_minu
         assert point["deviation"] == expected
 
 
-def test_temperature_deviation_graph_business_national_month_partial_uses_daily_baseline():
+def test_temperature_deviation_graph_business_national_month_partial_uses_daily_baseline() -> (
+    None
+):
     class DS:
-        def fetch_national_observed_series(self, query):
+        def fetch_national_observed_series(self, query) -> list:
             return [
                 ObservedPoint(date=dt.date(2024, 1, 1), temperature=10.0),
                 ObservedPoint(date=dt.date(2024, 1, 2), temperature=14.0),
             ]
 
-        def fetch_national_daily_baseline(self):
+        def fetch_national_daily_baseline(self) -> list:
             return [
                 DailyBaselinePoint(month=1, day_of_month=1, mean=1.0),
                 DailyBaselinePoint(month=1, day_of_month=2, mean=3.0),
             ]
 
-        def fetch_national_monthly_baseline(self):
+        def fetch_national_monthly_baseline(self) -> list:
             return [
                 MonthlyBaselinePoint(month=1, mean=20.0),
             ]
 
-        def fetch_national_yearly_baseline(self):
+        def fetch_national_yearly_baseline(self) -> YearlyBaselinePoint:
             return YearlyBaselinePoint(mean=999.0)
 
-        def fetch_stations_daily_series(self, query):
+        def fetch_stations_daily_series(self, query) -> list:
             return []
 
     out = get_temperature_deviation(
@@ -151,28 +159,28 @@ def test_temperature_deviation_graph_business_national_month_partial_uses_daily_
     assert point["deviation"] == 10.0
 
 
-def test_national_month_full_bucket_uses_monthly_baseline():
+def test_national_month_full_bucket_uses_monthly_baseline() -> None:
     class DS:
-        def fetch_national_observed_series(self, query):
+        def fetch_national_observed_series(self, query) -> list:
             # mois complet
             return [
                 ObservedPoint(date=dt.date(2024, 1, d), temperature=10.0)
                 for d in range(1, 32)
             ]
 
-        def fetch_national_daily_baseline(self):
+        def fetch_national_daily_baseline(self) -> list:
             return [
                 DailyBaselinePoint(month=1, day_of_month=d, mean=1.0)
                 for d in range(1, 32)
             ]
 
-        def fetch_national_monthly_baseline(self):
+        def fetch_national_monthly_baseline(self) -> list:
             return [MonthlyBaselinePoint(month=1, mean=20.0)]
 
-        def fetch_national_yearly_baseline(self):
+        def fetch_national_yearly_baseline(self) -> YearlyBaselinePoint:
             return YearlyBaselinePoint(mean=999.0)
 
-        def fetch_stations_daily_series(self, query):
+        def fetch_stations_daily_series(self, query) -> list:
             return []
 
     out = get_temperature_deviation(
@@ -189,27 +197,27 @@ def test_national_month_full_bucket_uses_monthly_baseline():
     assert point["baseline_mean"] == 20.0
 
 
-def test_national_month_partial_bucket_uses_daily_baseline():
+def test_national_month_partial_bucket_uses_daily_baseline() -> None:
     class DS:
-        def fetch_national_observed_series(self, query):
+        def fetch_national_observed_series(self, query) -> list:
             return [
                 ObservedPoint(date=dt.date(2024, 1, 1), temperature=10.0),
                 ObservedPoint(date=dt.date(2024, 1, 2), temperature=14.0),
             ]
 
-        def fetch_national_daily_baseline(self):
+        def fetch_national_daily_baseline(self) -> list:
             return [
                 DailyBaselinePoint(month=1, day_of_month=1, mean=1.0),
                 DailyBaselinePoint(month=1, day_of_month=2, mean=3.0),
             ]
 
-        def fetch_national_monthly_baseline(self):
+        def fetch_national_monthly_baseline(self) -> list:
             return [MonthlyBaselinePoint(month=1, mean=20.0)]
 
-        def fetch_national_yearly_baseline(self):
+        def fetch_national_yearly_baseline(self) -> YearlyBaselinePoint:
             return YearlyBaselinePoint(mean=999.0)
 
-        def fetch_stations_daily_series(self, query):
+        def fetch_stations_daily_series(self, query) -> list:
             return []
 
     out = get_temperature_deviation(
@@ -226,9 +234,9 @@ def test_national_month_partial_bucket_uses_daily_baseline():
     assert point["baseline_mean"] == 2.0
 
 
-def test_national_year_full_bucket_uses_yearly_baseline():
+def test_national_year_full_bucket_uses_yearly_baseline() -> None:
     class DS:
-        def fetch_national_observed_series(self, query):
+        def fetch_national_observed_series(self, query) -> list:
             return [
                 ObservedPoint(
                     date=dt.date(2024, 1, 1) + dt.timedelta(days=i), temperature=10.0
@@ -236,7 +244,7 @@ def test_national_year_full_bucket_uses_yearly_baseline():
                 for i in range(366)  # 2024 bissextile
             ]
 
-        def fetch_national_daily_baseline(self):
+        def fetch_national_daily_baseline(self) -> list:
             return [
                 DailyBaselinePoint(
                     month=(dt.date(2024, 1, 1) + dt.timedelta(days=i)).month,
@@ -246,13 +254,13 @@ def test_national_year_full_bucket_uses_yearly_baseline():
                 for i in range(366)
             ]
 
-        def fetch_national_monthly_baseline(self):
+        def fetch_national_monthly_baseline(self) -> list:
             return []
 
-        def fetch_national_yearly_baseline(self):
+        def fetch_national_yearly_baseline(self) -> YearlyBaselinePoint:
             return YearlyBaselinePoint(mean=50.0)
 
-        def fetch_stations_daily_series(self, query):
+        def fetch_stations_daily_series(self, query) -> list:
             return []
 
     out = get_temperature_deviation(
@@ -269,27 +277,27 @@ def test_national_year_full_bucket_uses_yearly_baseline():
     assert point["baseline_mean"] == 50.0
 
 
-def test_national_year_partial_bucket_uses_daily_baseline():
+def test_national_year_partial_bucket_uses_daily_baseline() -> None:
     class DS:
-        def fetch_national_observed_series(self, query):
+        def fetch_national_observed_series(self, query) -> list:
             return [
                 ObservedPoint(date=dt.date(2024, 1, 1), temperature=10.0),
                 ObservedPoint(date=dt.date(2024, 1, 2), temperature=14.0),
             ]
 
-        def fetch_national_daily_baseline(self):
+        def fetch_national_daily_baseline(self) -> list:
             return [
                 DailyBaselinePoint(month=1, day_of_month=1, mean=1.0),
                 DailyBaselinePoint(month=1, day_of_month=2, mean=3.0),
             ]
 
-        def fetch_national_monthly_baseline(self):
+        def fetch_national_monthly_baseline(self) -> list:
             return []
 
-        def fetch_national_yearly_baseline(self):
+        def fetch_national_yearly_baseline(self) -> YearlyBaselinePoint:
             return YearlyBaselinePoint(mean=999.0)
 
-        def fetch_stations_daily_series(self, query):
+        def fetch_stations_daily_series(self, query) -> list:
             return []
 
     out = get_temperature_deviation(
@@ -306,9 +314,11 @@ def test_national_year_partial_bucket_uses_daily_baseline():
     assert point["baseline_mean"] == 2.0
 
 
-def test_temperature_deviation_graph__business_month_extends_source_window_to_full_month():
+def test_temperature_deviation_graph__business_month_extends_source_window_to_full_month() -> (
+    None
+):
     class DS:
-        def fetch_national_observed_series(self, query):
+        def fetch_national_observed_series(self, query) -> list:
             assert query.date_start == dt.date(2024, 1, 1)
             assert query.date_end == dt.date(2024, 1, 31)
 
@@ -317,19 +327,19 @@ def test_temperature_deviation_graph__business_month_extends_source_window_to_fu
                 ObservedPoint(date=dt.date(2024, 1, 31), temperature=14.0),
             ]
 
-        def fetch_national_daily_baseline(self):
+        def fetch_national_daily_baseline(self) -> list:
             return [
                 DailyBaselinePoint(month=1, day_of_month=1, mean=1.0),
                 DailyBaselinePoint(month=1, day_of_month=31, mean=3.0),
             ]
 
-        def fetch_national_monthly_baseline(self):
+        def fetch_national_monthly_baseline(self) -> list:
             return [MonthlyBaselinePoint(month=1, mean=20.0)]
 
-        def fetch_national_yearly_baseline(self):
+        def fetch_national_yearly_baseline(self) -> YearlyBaselinePoint:
             return YearlyBaselinePoint(mean=999.0)
 
-        def fetch_stations_daily_series(self, query):
+        def fetch_stations_daily_series(self, query) -> list:
             assert query.date_start == dt.date(2024, 1, 1)
             assert query.date_end == dt.date(2024, 1, 31)
             return []
@@ -350,9 +360,11 @@ def test_temperature_deviation_graph__business_month_extends_source_window_to_fu
     assert point["temperature"] == 12.0
 
 
-def test_temperature_deviation_graph_business_year_extends_source_window_to_full_year():
+def test_temperature_deviation_graph_business_year_extends_source_window_to_full_year() -> (
+    None
+):
     class DS:
-        def fetch_national_observed_series(self, query):
+        def fetch_national_observed_series(self, query) -> list:
             assert query.date_start == dt.date(2024, 1, 1)
             assert query.date_end == dt.date(2024, 12, 31)
 
@@ -361,19 +373,19 @@ def test_temperature_deviation_graph_business_year_extends_source_window_to_full
                 ObservedPoint(date=dt.date(2024, 12, 31), temperature=14.0),
             ]
 
-        def fetch_national_daily_baseline(self):
+        def fetch_national_daily_baseline(self) -> list:
             return [
                 DailyBaselinePoint(month=1, day_of_month=1, mean=1.0),
                 DailyBaselinePoint(month=12, day_of_month=31, mean=3.0),
             ]
 
-        def fetch_national_monthly_baseline(self):
+        def fetch_national_monthly_baseline(self) -> list:
             return []
 
-        def fetch_national_yearly_baseline(self):
+        def fetch_national_yearly_baseline(self) -> YearlyBaselinePoint:
             return YearlyBaselinePoint(mean=50.0)
 
-        def fetch_stations_daily_series(self, query):
+        def fetch_stations_daily_series(self, query) -> list:
             assert query.date_start == dt.date(2024, 1, 1)
             assert query.date_end == dt.date(2024, 12, 31)
             return []
@@ -393,26 +405,28 @@ def test_temperature_deviation_graph_business_year_extends_source_window_to_full
     assert point["temperature"] == 12.0
 
 
-def test_temperature_deviation_graph_business_full_slice_keeps_target_dates_none():
+def test_temperature_deviation_graph_business_full_slice_keeps_target_dates_none() -> (
+    None
+):
     class CaptureDS:
-        def __init__(self):
+        def __init__(self) -> None:
             self.last_query = None
 
-        def fetch_national_observed_series(self, query):
+        def fetch_national_observed_series(self, query) -> list:
             self.last_query = query
             return []
 
-        def fetch_stations_daily_series(self, query):
+        def fetch_stations_daily_series(self, query) -> list:
             self.last_query = query
             return []
 
-        def fetch_national_daily_baseline(self):
+        def fetch_national_daily_baseline(self) -> list:
             return []
 
-        def fetch_national_monthly_baseline(self):
+        def fetch_national_monthly_baseline(self) -> list:
             return []
 
-        def fetch_national_yearly_baseline(self):
+        def fetch_national_yearly_baseline(self) -> None:
             return None
 
     ds = CaptureDS()
@@ -427,26 +441,28 @@ def test_temperature_deviation_graph_business_full_slice_keeps_target_dates_none
     assert ds.last_query.target_dates is None
 
 
-def test_temperature_deviation_graph_business_month_day_of_month_sets_target_dates():
+def test_temperature_deviation_graph_business_month_day_of_month_sets_target_dates() -> (
+    None
+):
     class CaptureDS:
-        def __init__(self):
+        def __init__(self) -> None:
             self.last_query = None
 
-        def fetch_national_observed_series(self, query):
+        def fetch_national_observed_series(self, query) -> list:
             self.last_query = query
             return []
 
-        def fetch_stations_daily_series(self, query):
+        def fetch_stations_daily_series(self, query) -> list:
             self.last_query = query
             return []
 
-        def fetch_national_daily_baseline(self):
+        def fetch_national_daily_baseline(self) -> list:
             return []
 
-        def fetch_national_monthly_baseline(self):
+        def fetch_national_monthly_baseline(self) -> list:
             return []
 
-        def fetch_national_yearly_baseline(self):
+        def fetch_national_yearly_baseline(self) -> None:
             return None
 
     ds = CaptureDS()
@@ -464,9 +480,11 @@ def test_temperature_deviation_graph_business_month_day_of_month_sets_target_dat
     assert len(ds.last_query.target_dates) == 3
 
 
-def test_temperature_deviation_graph_business_year_month_of_year_anchors_points():
+def test_temperature_deviation_graph_business_year_month_of_year_anchors_points() -> (
+    None
+):
     class DS:
-        def fetch_national_observed_series(self, query):
+        def fetch_national_observed_series(self, query) -> list:
             return [
                 ObservedPoint(dt.date(2023, 2, 1), 10),
                 ObservedPoint(dt.date(2023, 2, 2), 20),
@@ -474,19 +492,19 @@ def test_temperature_deviation_graph_business_year_month_of_year_anchors_points(
                 ObservedPoint(dt.date(2024, 2, 2), 40),
             ]
 
-        def fetch_national_daily_baseline(self):
+        def fetch_national_daily_baseline(self) -> list:
             return [
                 DailyBaselinePoint(2, 1, 0),
                 DailyBaselinePoint(2, 2, 0),
             ]
 
-        def fetch_national_monthly_baseline(self):
+        def fetch_national_monthly_baseline(self) -> list:
             return [MonthlyBaselinePoint(2, 5)]
 
-        def fetch_national_yearly_baseline(self):
+        def fetch_national_yearly_baseline(self) -> YearlyBaselinePoint:
             return YearlyBaselinePoint(100)
 
-        def fetch_stations_daily_series(self, query):
+        def fetch_stations_daily_series(self, query) -> list:
             return []
 
     ds = DS()
@@ -505,29 +523,31 @@ def test_temperature_deviation_graph_business_year_month_of_year_anchors_points(
     assert dates == [dt.date(2023, 2, 1), dt.date(2024, 2, 1)]
 
 
-def test_temperature_deviation_graph_business_month_day_of_month_returns_exact_day():
+def test_temperature_deviation_graph_business_month_day_of_month_returns_exact_day() -> (
+    None
+):
     class DS:
-        def fetch_national_observed_series(self, query):
+        def fetch_national_observed_series(self, query) -> list:
             return [
                 ObservedPoint(dt.date(2024, 1, 31), 10),
                 ObservedPoint(dt.date(2024, 2, 29), 20),
                 ObservedPoint(dt.date(2024, 3, 31), 30),
             ]
 
-        def fetch_national_daily_baseline(self):
+        def fetch_national_daily_baseline(self) -> list:
             return [
                 DailyBaselinePoint(1, 31, 1),
                 DailyBaselinePoint(2, 29, 1),
                 DailyBaselinePoint(3, 31, 1),
             ]
 
-        def fetch_national_monthly_baseline(self):
+        def fetch_national_monthly_baseline(self) -> list:
             return []
 
-        def fetch_national_yearly_baseline(self):
+        def fetch_national_yearly_baseline(self) -> None:
             return None
 
-        def fetch_stations_daily_series(self, query):
+        def fetch_stations_daily_series(self, query) -> list:
             return []
 
     ds = DS()
@@ -550,27 +570,27 @@ def test_temperature_deviation_graph_business_month_day_of_month_returns_exact_d
     ]
 
 
-def test_temperature_deviation_graph_business_year_day_of_month_clamps():
+def test_temperature_deviation_graph_business_year_day_of_month_clamps() -> None:
     class DS:
-        def fetch_national_observed_series(self, query):
+        def fetch_national_observed_series(self, query) -> list:
             return [
                 ObservedPoint(dt.date(2020, 2, 29), 10),
                 ObservedPoint(dt.date(2021, 2, 28), 20),
             ]
 
-        def fetch_national_daily_baseline(self):
+        def fetch_national_daily_baseline(self) -> list:
             return [
                 DailyBaselinePoint(2, 29, 1),
                 DailyBaselinePoint(2, 28, 1),
             ]
 
-        def fetch_national_monthly_baseline(self):
+        def fetch_national_monthly_baseline(self) -> list:
             return []
 
-        def fetch_national_yearly_baseline(self):
+        def fetch_national_yearly_baseline(self) -> None:
             return None
 
-        def fetch_stations_daily_series(self, query):
+        def fetch_stations_daily_series(self, query) -> list:
             return []
 
     ds = DS()

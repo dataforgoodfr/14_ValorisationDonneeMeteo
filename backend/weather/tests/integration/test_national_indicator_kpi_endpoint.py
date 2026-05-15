@@ -58,7 +58,7 @@ def _stats(
 
 
 @pytest.fixture(autouse=True)
-def reset_itn_kpi_dependency_provider():
+def reset_itn_kpi_dependency_provider() -> None:
     ITNKpiDependencyProvider.reset()
     yield
     ITNKpiDependencyProvider.reset()
@@ -69,7 +69,7 @@ def reset_itn_kpi_dependency_provider():
 # ---------------------------------------------------------------------------
 
 
-def test_kpi_endpoint_serializes_current_period_stats(client: APIClient):
+def test_kpi_endpoint_serializes_current_period_stats(client: APIClient) -> None:
     _register(
         NationalIndicatorKpiResult(
             current=_stats(
@@ -99,7 +99,7 @@ def test_kpi_endpoint_serializes_current_period_stats(client: APIClient):
     assert data["deviation_from_normal"] == pytest.approx(1.0)
 
 
-def test_kpi_endpoint_response_contains_previous_field(client: APIClient):
+def test_kpi_endpoint_response_contains_previous_field(client: APIClient) -> None:
     _register(
         NationalIndicatorKpiResult(
             current=_stats(),
@@ -127,7 +127,7 @@ def test_kpi_endpoint_response_contains_previous_field(client: APIClient):
 
 def test_kpi_endpoint_null_itn_mean_and_deviation_are_serialized_as_null(
     client: APIClient,
-):
+) -> None:
     _register(
         NationalIndicatorKpiResult(
             current=_stats(itn_mean=None, deviation=None),
@@ -153,7 +153,7 @@ def test_kpi_endpoint_null_itn_mean_and_deviation_are_serialized_as_null(
 # ---------------------------------------------------------------------------
 
 
-def test_kpi_endpoint_missing_date_start_returns_400(client: APIClient):
+def test_kpi_endpoint_missing_date_start_returns_400(client: APIClient) -> None:
     resp = client.get(
         reverse("temperature-national-indicator-kpi"),
         {"date_end": "2024-01-31"},
@@ -163,7 +163,7 @@ def test_kpi_endpoint_missing_date_start_returns_400(client: APIClient):
     assert resp.json()["error"]["code"] == "INVALID_PARAMETER"
 
 
-def test_kpi_endpoint_date_start_after_date_end_returns_400(client: APIClient):
+def test_kpi_endpoint_date_start_after_date_end_returns_400(client: APIClient) -> None:
     resp = client.get(
         reverse("temperature-national-indicator-kpi"),
         {"date_start": "2024-02-01", "date_end": "2024-01-01"},

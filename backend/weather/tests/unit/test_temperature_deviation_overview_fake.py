@@ -8,7 +8,7 @@ from weather.services.temperature_deviation.types import (
 )
 
 
-def test_fake_overview_national_mean_deviation_is_stable():
+def test_fake_overview_national_mean_deviation_is_stable() -> None:
     ds = FakeTemperatureDeviationOverviewDataSource()
 
     out = ds.fetch_national_mean_deviation(
@@ -19,7 +19,7 @@ def test_fake_overview_national_mean_deviation_is_stable():
     assert out == 1.5
 
 
-def test_fake_overview_returns_first_page_with_default_ordering():
+def test_fake_overview_returns_first_page_with_default_ordering() -> None:
     ds = FakeTemperatureDeviationOverviewDataSource()
 
     query = TemperatureDeviationOverviewQuery(
@@ -48,7 +48,7 @@ def test_fake_overview_returns_first_page_with_default_ordering():
     assert station.region is not None
 
 
-def test_fake_overview_pagination_returns_second_page():
+def test_fake_overview_pagination_returns_second_page() -> None:
     ds = FakeTemperatureDeviationOverviewDataSource()
 
     query_page_1 = TemperatureDeviationOverviewQuery(
@@ -74,7 +74,7 @@ def test_fake_overview_pagination_returns_second_page():
     assert result_page_1.stations != result_page_2.stations
 
 
-def test_fake_overview_station_search_filters_results():
+def test_fake_overview_station_search_filters_results() -> None:
     ds = FakeTemperatureDeviationOverviewDataSource()
 
     query = TemperatureDeviationOverviewQuery(
@@ -91,7 +91,7 @@ def test_fake_overview_station_search_filters_results():
     assert all("70010" in s.station_name for s in result.stations)
 
 
-def test_fake_overview_temperature_mean_min_filters_results():
+def test_fake_overview_temperature_mean_min_filters_results() -> None:
     ds = FakeTemperatureDeviationOverviewDataSource()
 
     query = TemperatureDeviationOverviewQuery(
@@ -108,7 +108,7 @@ def test_fake_overview_temperature_mean_min_filters_results():
     assert all(s.temperature_mean >= 25.0 for s in result.stations)
 
 
-def test_fake_overview_temperature_mean_max_filters_results():
+def test_fake_overview_temperature_mean_max_filters_results() -> None:
     ds = FakeTemperatureDeviationOverviewDataSource()
 
     query = TemperatureDeviationOverviewQuery(
@@ -125,7 +125,7 @@ def test_fake_overview_temperature_mean_max_filters_results():
     assert all(s.temperature_mean <= 12.0 for s in result.stations)
 
 
-def test_fake_overview_deviation_min_filters_results():
+def test_fake_overview_deviation_min_filters_results() -> None:
     ds = FakeTemperatureDeviationOverviewDataSource()
 
     query = TemperatureDeviationOverviewQuery(
@@ -142,7 +142,7 @@ def test_fake_overview_deviation_min_filters_results():
     assert all(s.deviation >= 2.0 for s in result.stations)
 
 
-def test_fake_overview_deviation_max_filters_results():
+def test_fake_overview_deviation_max_filters_results() -> None:
     ds = FakeTemperatureDeviationOverviewDataSource()
 
     query = TemperatureDeviationOverviewQuery(
@@ -159,7 +159,7 @@ def test_fake_overview_deviation_max_filters_results():
     assert all(s.deviation <= 0.0 for s in result.stations)
 
 
-def test_fake_overview_ordering_by_deviation_ascending():
+def test_fake_overview_ordering_by_deviation_ascending() -> None:
     ds = FakeTemperatureDeviationOverviewDataSource()
 
     query = TemperatureDeviationOverviewQuery(
@@ -176,7 +176,7 @@ def test_fake_overview_ordering_by_deviation_ascending():
     assert result.stations[0].deviation <= result.stations[1].deviation
 
 
-def test_fake_overview_ordering_by_station_name_ascending():
+def test_fake_overview_ordering_by_station_name_ascending() -> None:
     ds = FakeTemperatureDeviationOverviewDataSource()
 
     query = TemperatureDeviationOverviewQuery(
@@ -193,7 +193,7 @@ def test_fake_overview_ordering_by_station_name_ascending():
     assert result.stations[0].station_name <= result.stations[1].station_name
 
 
-def test_fake_overview_returns_empty_page_when_filters_match_nothing():
+def test_fake_overview_returns_empty_page_when_filters_match_nothing() -> None:
     ds = FakeTemperatureDeviationOverviewDataSource()
 
     query = TemperatureDeviationOverviewQuery(
@@ -211,7 +211,7 @@ def test_fake_overview_returns_empty_page_when_filters_match_nothing():
     assert result.stations == []
 
 
-def test_fake_overview_offset_changes_returned_slice():
+def test_fake_overview_offset_changes_returned_slice() -> None:
     ds = FakeTemperatureDeviationOverviewDataSource()
 
     result_1 = ds.fetch_station_overview(
@@ -238,7 +238,7 @@ def test_fake_overview_offset_changes_returned_slice():
     assert result_1.stations != result_2.stations
 
 
-def test_fake_overview_station_ids_filters_results():
+def test_fake_overview_station_ids_filters_results() -> None:
     ds = FakeTemperatureDeviationOverviewDataSource()
 
     query = TemperatureDeviationOverviewQuery(
@@ -256,7 +256,7 @@ def test_fake_overview_station_ids_filters_results():
     assert {s.station_id for s in result.stations} == {"70000", "70001"}
 
 
-def test_fake_overview_station_ids_and_station_search_are_combined():
+def test_fake_overview_station_ids_and_station_search_are_combined() -> None:
     ds = FakeTemperatureDeviationOverviewDataSource()
 
     query = TemperatureDeviationOverviewQuery(
@@ -275,7 +275,7 @@ def test_fake_overview_station_ids_and_station_search_are_combined():
     assert result.stations[0].station_id == "70010"
 
 
-def test_fake_overview_ordering_by_department_ascending():
+def test_fake_overview_ordering_by_department_ascending() -> None:
     ds = FakeTemperatureDeviationOverviewDataSource()
 
     query = TemperatureDeviationOverviewQuery(
@@ -292,7 +292,7 @@ def test_fake_overview_ordering_by_department_ascending():
     assert result.stations[0].department <= result.stations[1].department
 
 
-def test_fake_overview_ordering_by_region_ascending():
+def test_fake_overview_ordering_by_region_ascending() -> None:
     ds = FakeTemperatureDeviationOverviewDataSource()
 
     query = TemperatureDeviationOverviewQuery(

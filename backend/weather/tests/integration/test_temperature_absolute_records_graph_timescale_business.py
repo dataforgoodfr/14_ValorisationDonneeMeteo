@@ -55,7 +55,7 @@ def insert_mv_records_absolus_par_mois(
 
 
 @pytest.mark.django_db
-def test_fetch_graph_returns_one_bucket_per_year():
+def test_fetch_graph_returns_one_bucket_per_year() -> None:
     ds = TimescaleAbsoluteRecordsGraphDataSource()
     result = ds.fetch_graph(
         _req(
@@ -69,7 +69,7 @@ def test_fetch_graph_returns_one_bucket_per_year():
 
 
 @pytest.mark.django_db
-def test_fetch_graph_counts_hot_records():
+def test_fetch_graph_counts_hot_records() -> None:
     insert_station("76116001")
     insert_station("76116002")
     insert_mv_records_absolus_par_mois(
@@ -105,7 +105,7 @@ def test_fetch_graph_counts_hot_records():
 
 
 @pytest.mark.django_db
-def test_fetch_graph_cold_records_not_counted_as_hot():
+def test_fetch_graph_cold_records_not_counted_as_hot() -> None:
     insert_station("76116003")
     insert_mv_records_absolus_par_mois(
         station_code="76116003",
@@ -132,7 +132,7 @@ def test_fetch_graph_cold_records_not_counted_as_hot():
 
 
 @pytest.mark.django_db
-def test_fetch_graph_month_granularity_buckets():
+def test_fetch_graph_month_granularity_buckets() -> None:
     ds = TimescaleAbsoluteRecordsGraphDataSource()
     result = ds.fetch_graph(
         _req(
@@ -147,7 +147,7 @@ def test_fetch_graph_month_granularity_buckets():
 
 
 @pytest.mark.django_db
-def test_fetch_graph_day_granularity_buckets():
+def test_fetch_graph_day_granularity_buckets() -> None:
     ds = TimescaleAbsoluteRecordsGraphDataSource()
     result = ds.fetch_graph(
         _req(
@@ -162,7 +162,7 @@ def test_fetch_graph_day_granularity_buckets():
 
 
 @pytest.mark.django_db
-def test_fetch_graph_empty_buckets_return_zero():
+def test_fetch_graph_empty_buckets_return_zero() -> None:
     ds = TimescaleAbsoluteRecordsGraphDataSource()
     result = ds.fetch_graph(
         _req(
@@ -178,7 +178,7 @@ def test_fetch_graph_empty_buckets_return_zero():
 
 
 @pytest.mark.django_db
-def test_fetch_graph_filter_by_department():
+def test_fetch_graph_filter_by_department() -> None:
     insert_station("94003001", departement=94)
     insert_station("75116001", departement=75)
     insert_mv_records_absolus_par_mois(
@@ -216,7 +216,7 @@ def test_fetch_graph_filter_by_department():
 
 
 @pytest.mark.django_db
-def test_fetch_graph_filter_by_station():
+def test_fetch_graph_filter_by_station() -> None:
     """
     GIVEN  Deux stations, chacune avec un record en juillet 2019
     WHEN   territoire="station", territoire_id=<une station>
@@ -260,7 +260,7 @@ def test_fetch_graph_filter_by_station():
 
 
 @pytest.mark.django_db
-def test_fetch_graph_excludes_stations_younger_than_50_years():
+def test_fetch_graph_excludes_stations_younger_than_50_years() -> None:
     """
     GIVEN  Une station ancienne (50+ ans) et une station jeune (< 50 ans)
     WHEN   fetch_graph
@@ -305,7 +305,7 @@ def test_fetch_graph_excludes_stations_younger_than_50_years():
 
 
 @pytest.mark.django_db
-def test_fetch_graph_all_aggregates_hot_and_cold():
+def test_fetch_graph_all_aggregates_hot_and_cold() -> None:
     insert_station("76116004")
     insert_station("76116005")
     insert_mv_records_absolus_par_mois(
@@ -341,7 +341,7 @@ def test_fetch_graph_all_aggregates_hot_and_cold():
 
 
 @pytest.mark.django_db
-def test_fetch_graph_records_match_inserted_data():
+def test_fetch_graph_records_match_inserted_data() -> None:
     insert_station("76116006", "TestStation", departement=76)
     insert_mv_records_absolus_par_mois(
         station_code="76116006",
@@ -373,7 +373,7 @@ def test_fetch_graph_records_match_inserted_data():
 
 
 @pytest.mark.django_db
-def test_fetch_graph_period_type_month():
+def test_fetch_graph_period_type_month() -> None:
     insert_station("76116007")
     insert_mv_records_absolus_par_mois(
         station_code="76116007",
@@ -409,7 +409,7 @@ def test_fetch_graph_period_type_month():
 
 
 @pytest.mark.django_db
-def test_fetch_graph_period_type_month_all_months():
+def test_fetch_graph_period_type_month_all_months() -> None:
     insert_station("76116008")
     insert_station("76116009")
     insert_mv_records_absolus_par_mois(
@@ -445,7 +445,7 @@ def test_fetch_graph_period_type_month_all_months():
 
 
 @pytest.mark.django_db
-def test_fetch_graph_period_type_season_all_seasons():
+def test_fetch_graph_period_type_season_all_seasons() -> None:
     insert_station("76116011")
     insert_station("76116012")
     insert_mv_records_absolus_par_mois(
@@ -481,7 +481,7 @@ def test_fetch_graph_period_type_season_all_seasons():
 
 
 @pytest.mark.django_db
-def test_fetch_graph_period_type_season_specific_winter():
+def test_fetch_graph_period_type_season_specific_winter() -> None:
     """
     GIVEN  Un record en décembre (winter), un en janvier (winter), un en juillet (summer)
     WHEN   period_type=season, season="winter"
@@ -531,7 +531,7 @@ def test_fetch_graph_period_type_season_specific_winter():
 
 
 @pytest.mark.django_db
-def test_fetch_graph_period_type_month_specific_excludes_other_months():
+def test_fetch_graph_period_type_month_specific_excludes_other_months() -> None:
     insert_station("76116014")
     insert_station("76116015")
     insert_mv_records_absolus_par_mois(
@@ -567,7 +567,7 @@ def test_fetch_graph_period_type_month_specific_excludes_other_months():
 
 
 @pytest.mark.django_db
-def test_fetch_graph_season_keeps_only_best_record_per_station():
+def test_fetch_graph_season_keeps_only_best_record_per_station() -> None:
     """
     GIVEN  Une station avec 3 records dans les 3 mois d'hiver (déc, jan, fév),
            valeurs hot croissantes 10°C → 12°C → 15°C
@@ -619,7 +619,7 @@ def test_fetch_graph_season_keeps_only_best_record_per_station():
 
 
 @pytest.mark.django_db
-def test_fetch_graph_all_time_keeps_only_best_record_per_station():
+def test_fetch_graph_all_time_keeps_only_best_record_per_station() -> None:
     """
     GIVEN  Une station avec 3 records dans 3 mois différents (mars, juillet, novembre),
            valeurs hot : 20°C, 42°C, 25°C
@@ -670,7 +670,7 @@ def test_fetch_graph_all_time_keeps_only_best_record_per_station():
 
 
 @pytest.mark.django_db
-def test_fetch_graph_season_keeps_only_coldest_record_per_station():
+def test_fetch_graph_season_keeps_only_coldest_record_per_station() -> None:
     """
     GIVEN  Une station avec 3 records dans les 3 mois d'hiver (déc, jan, fév),
            valeurs cold décroissantes -10°C → -12°C → -15°C
@@ -722,7 +722,7 @@ def test_fetch_graph_season_keeps_only_coldest_record_per_station():
 
 
 @pytest.mark.django_db
-def test_fetch_graph_all_time_keeps_only_coldest_record_per_station():
+def test_fetch_graph_all_time_keeps_only_coldest_record_per_station() -> None:
     """
     GIVEN  Une station avec 3 records dans 3 mois différents (mars, juillet, novembre),
            valeurs cold : -20°C, -42°C, -25°C
@@ -773,7 +773,7 @@ def test_fetch_graph_all_time_keeps_only_coldest_record_per_station():
 
 
 @pytest.mark.django_db
-def test_fetch_graph_all_months_returns_one_row_per_month():
+def test_fetch_graph_all_months_returns_one_row_per_month() -> None:
     """
     GIVEN  Une station avec 3 records dans 3 mois différents (avril, juillet, novembre)
     WHEN   period_type=month, month=None (tous les mois)
@@ -826,7 +826,7 @@ def test_fetch_graph_all_months_returns_one_row_per_month():
 
 
 @pytest.mark.django_db
-def test_fetch_graph_all_seasons_returns_one_row_per_season():
+def test_fetch_graph_all_seasons_returns_one_row_per_season() -> None:
     """
     GIVEN  Une station avec 3 records dans 3 saisons différentes
            (avril=printemps, juillet=été, novembre=automne)

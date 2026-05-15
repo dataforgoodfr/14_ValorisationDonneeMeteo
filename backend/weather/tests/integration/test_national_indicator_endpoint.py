@@ -23,7 +23,7 @@ from weather.utils.date_range import iter_days_intersecting
 
 
 @pytest.fixture(autouse=True)
-def reset_itn_dependency_provider():
+def reset_itn_dependency_provider() -> None:
     ITNDependencyProvider.reset()
     yield
     ITNDependencyProvider.reset()
@@ -179,7 +179,7 @@ def test_get_national_indicator_peak_flags_in_response(client: APIClient):
 
 def test_get_national_indicator_missing_required_parameter_returns_400(
     client: APIClient,
-):
+) -> None:
     url = reverse("temperature-national-indicator")
 
     resp = client.get(
@@ -200,7 +200,9 @@ def test_get_national_indicator_missing_required_parameter_returns_400(
     assert "granularity" in data["error"]["details"]
 
 
-def test_get_national_indicator_invalid_combination_returns_400(client: APIClient):
+def test_get_national_indicator_invalid_combination_returns_400(
+    client: APIClient,
+) -> None:
     url = reverse("temperature-national-indicator")
 
     resp = client.get(

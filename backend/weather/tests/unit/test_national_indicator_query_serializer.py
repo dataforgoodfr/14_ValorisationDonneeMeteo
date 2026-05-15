@@ -12,8 +12,8 @@ from weather.serializers import NationalIndicatorQuerySerializer
     ],
 )
 def test_date_start_must_be_before_or_equal_date_end(
-    date_start, date_end, should_be_valid
-):
+    date_start: str, date_end: str, should_be_valid: bool
+) -> None:
     s = NationalIndicatorQuerySerializer(
         data={
             "date_start": date_start,
@@ -29,7 +29,7 @@ def test_date_start_must_be_before_or_equal_date_end(
         assert "date_end" in s.errors
 
 
-def test_granularity_must_be_valid_choice():
+def test_granularity_must_be_valid_choice() -> None:
     s = NationalIndicatorQuerySerializer(
         data={
             "date_start": "2024-01-01",
@@ -43,7 +43,7 @@ def test_granularity_must_be_valid_choice():
     assert "granularity" in s.errors
 
 
-def test_granularity_day_rejects_non_full_slice_type():
+def test_granularity_day_rejects_non_full_slice_type() -> None:
     s = NationalIndicatorQuerySerializer(
         data={
             "date_start": "2024-01-01",
@@ -59,7 +59,7 @@ def test_granularity_day_rejects_non_full_slice_type():
     assert "slice_type" in s.errors
 
 
-def test_granularity_day_defaults_slice_type_to_full():
+def test_granularity_day_defaults_slice_type_to_full() -> None:
     s = NationalIndicatorQuerySerializer(
         data={
             "date_start": "2024-01-01",
@@ -72,7 +72,7 @@ def test_granularity_day_defaults_slice_type_to_full():
     assert s.validated_data["slice_type"] == "full"
 
 
-def test_granularity_day_forbids_month_of_year():
+def test_granularity_day_forbids_month_of_year() -> None:
     s = NationalIndicatorQuerySerializer(
         data={
             "date_start": "2024-01-01",
@@ -87,7 +87,7 @@ def test_granularity_day_forbids_month_of_year():
     assert "month_of_year" in s.errors
 
 
-def test_granularity_day_forbids_day_of_month():
+def test_granularity_day_forbids_day_of_month() -> None:
     s = NationalIndicatorQuerySerializer(
         data={
             "date_start": "2024-01-01",
@@ -102,7 +102,7 @@ def test_granularity_day_forbids_day_of_month():
     assert "day_of_month" in s.errors
 
 
-def test_slice_type_full_forbids_month_of_year():
+def test_slice_type_full_forbids_month_of_year() -> None:
     s = NationalIndicatorQuerySerializer(
         data={
             "date_start": "2024-01-01",
@@ -118,7 +118,7 @@ def test_slice_type_full_forbids_month_of_year():
     assert "month_of_year" in s.errors
 
 
-def test_slice_type_full_forbids_day_of_month():
+def test_slice_type_full_forbids_day_of_month() -> None:
     s = NationalIndicatorQuerySerializer(
         data={
             "date_start": "2024-01-01",
@@ -135,7 +135,9 @@ def test_slice_type_full_forbids_day_of_month():
 
 
 @pytest.mark.parametrize("invalid_granularity", ["month", "day"])
-def test_slice_type_month_of_year_requires_granularity_year(invalid_granularity):
+def test_slice_type_month_of_year_requires_granularity_year(
+    invalid_granularity: str,
+) -> None:
     s = NationalIndicatorQuerySerializer(
         data={
             "date_start": "2024-01-01",
@@ -151,7 +153,7 @@ def test_slice_type_month_of_year_requires_granularity_year(invalid_granularity)
     assert "slice_type" in s.errors
 
 
-def test_slice_type_month_of_year_requires_month_of_year():
+def test_slice_type_month_of_year_requires_month_of_year() -> None:
     s = NationalIndicatorQuerySerializer(
         data={
             "date_start": "2024-01-01",
@@ -167,7 +169,7 @@ def test_slice_type_month_of_year_requires_month_of_year():
     assert "month_of_year" in s.errors
 
 
-def test_slice_type_month_of_year_forbids_day_of_month():
+def test_slice_type_month_of_year_forbids_day_of_month() -> None:
     s = NationalIndicatorQuerySerializer(
         data={
             "date_start": "2024-01-01",
@@ -184,7 +186,7 @@ def test_slice_type_month_of_year_forbids_day_of_month():
     assert "day_of_month" in s.errors
 
 
-def test_slice_type_day_of_month_requires_day_of_month():
+def test_slice_type_day_of_month_requires_day_of_month() -> None:
     s = NationalIndicatorQuerySerializer(
         data={
             "date_start": "2024-01-01",
@@ -200,7 +202,7 @@ def test_slice_type_day_of_month_requires_day_of_month():
     assert "day_of_month" in s.errors
 
 
-def test_day_of_month_with_granularity_year_requires_month_of_year():
+def test_day_of_month_with_granularity_year_requires_month_of_year() -> None:
     s = NationalIndicatorQuerySerializer(
         data={
             "date_start": "2020-01-01",
@@ -217,7 +219,7 @@ def test_day_of_month_with_granularity_year_requires_month_of_year():
     assert "month_of_year" in s.errors
 
 
-def test_day_of_month_with_granularity_month_forbids_month_of_year():
+def test_day_of_month_with_granularity_month_forbids_month_of_year() -> None:
     s = NationalIndicatorQuerySerializer(
         data={
             "date_start": "2024-01-01",
@@ -234,7 +236,7 @@ def test_day_of_month_with_granularity_month_forbids_month_of_year():
     assert "month_of_year" in s.errors
 
 
-def test_valid_month_full_defaults():
+def test_valid_month_full_defaults() -> None:
     s = NationalIndicatorQuerySerializer(
         data={
             "date_start": "2024-01-01",
@@ -247,7 +249,7 @@ def test_valid_month_full_defaults():
     assert s.validated_data["slice_type"] == "full"
 
 
-def test_valid_month_day_of_month():
+def test_valid_month_day_of_month() -> None:
     s = NationalIndicatorQuerySerializer(
         data={
             "date_start": "2024-01-01",
@@ -261,7 +263,7 @@ def test_valid_month_day_of_month():
     assert s.is_valid(), s.errors
 
 
-def test_valid_year_month_of_year():
+def test_valid_year_month_of_year() -> None:
     s = NationalIndicatorQuerySerializer(
         data={
             "date_start": "2020-01-01",
@@ -275,7 +277,7 @@ def test_valid_year_month_of_year():
     assert s.is_valid(), s.errors
 
 
-def test_valid_year_specific_day_of_year():
+def test_valid_year_specific_day_of_year() -> None:
     s = NationalIndicatorQuerySerializer(
         data={
             "date_start": "2020-01-01",

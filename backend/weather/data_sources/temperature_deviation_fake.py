@@ -245,8 +245,8 @@ class FakeTemperatureDeviationOverviewDataSource(
     def fetch_national_mean_deviation(
         self,
         *,
-        date_start,
-        date_end,
+        date_start: dt.date,
+        date_end: dt.date,
     ) -> float:
         # valeur fixe simple
         return 1.5

@@ -12,7 +12,7 @@ class TimestampAsDateField(models.DateField):
 
     def from_db_value(
         self,
-        value,
+        value: dt.date | dt.datetime | None,
         expression,
         connection,
     ) -> dt.date | None:
@@ -20,7 +20,7 @@ class TimestampAsDateField(models.DateField):
             return value.date()
         return value
 
-    def get_prep_value(self, value) -> dt.datetime | None:
+    def get_prep_value(self, value: dt.date | dt.datetime) -> dt.datetime | None:
         value = super().get_prep_value(value)
         if isinstance(value, dt.date) and not isinstance(value, dt.datetime):
             return dt.datetime.combine(value, dt.time.min)

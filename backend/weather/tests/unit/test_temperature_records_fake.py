@@ -6,7 +6,7 @@ from weather.data_sources.temperature_records_fake import (
 from weather.services.temperature_records.types import TemperatureRecordsRequest
 
 
-def test_fake_records_hot_returns_non_empty_list():
+def test_fake_records_hot_returns_non_empty_list() -> None:
     ds = FakeTemperatureRecordsDataSource()
     req = TemperatureRecordsRequest(period_type="all_time", type_records="hot")
     result = ds.fetch_records(req)
@@ -15,7 +15,7 @@ def test_fake_records_hot_returns_non_empty_list():
     assert all(e.record_value >= 30 for e in result.entries)
 
 
-def test_fake_records_cold_returns_non_empty_list():
+def test_fake_records_cold_returns_non_empty_list() -> None:
     ds = FakeTemperatureRecordsDataSource()
     req = TemperatureRecordsRequest(period_type="all_time", type_records="cold")
     result = ds.fetch_records(req)
@@ -24,7 +24,7 @@ def test_fake_records_cold_returns_non_empty_list():
     assert all(e.record_value <= 0 for e in result.entries)
 
 
-def test_fake_records_month_period_type_does_not_raise():
+def test_fake_records_month_period_type_does_not_raise() -> None:
     ds = FakeTemperatureRecordsDataSource()
     req = TemperatureRecordsRequest(period_type="month", type_records="hot", month=7)
     result = ds.fetch_records(req)
@@ -32,7 +32,7 @@ def test_fake_records_month_period_type_does_not_raise():
     assert len(result.entries) >= 1
 
 
-def test_fake_records_season_period_type_does_not_raise():
+def test_fake_records_season_period_type_does_not_raise() -> None:
     ds = FakeTemperatureRecordsDataSource()
     req = TemperatureRecordsRequest(
         period_type="season", type_records="cold", season="winter"
@@ -42,7 +42,7 @@ def test_fake_records_season_period_type_does_not_raise():
     assert len(result.entries) >= 1
 
 
-def test_fake_records_all_time_period_type_does_not_raise():
+def test_fake_records_all_time_period_type_does_not_raise() -> None:
     ds = FakeTemperatureRecordsDataSource()
     req = TemperatureRecordsRequest(period_type="all_time", type_records="hot")
     result = ds.fetch_records(req)
@@ -50,7 +50,7 @@ def test_fake_records_all_time_period_type_does_not_raise():
     assert len(result.entries) >= 1
 
 
-def test_fake_records_entries_have_correct_shape():
+def test_fake_records_entries_have_correct_shape() -> None:
     ds = FakeTemperatureRecordsDataSource()
     req = TemperatureRecordsRequest(period_type="all_time", type_records="hot")
     result = ds.fetch_records(req)
@@ -63,7 +63,7 @@ def test_fake_records_entries_have_correct_shape():
         assert isinstance(entry.record_date, dt.date)
 
 
-def test_fake_records_is_deterministic():
+def test_fake_records_is_deterministic() -> None:
     ds = FakeTemperatureRecordsDataSource()
     req = TemperatureRecordsRequest(period_type="all_time", type_records="hot")
 
@@ -80,7 +80,7 @@ def test_fake_records_is_deterministic():
 # Les stations fake ont toutes classe_recente=1 et date_de_fermeture=None.
 
 
-def test_fake_records_classe_recente_min_filters_out_lower():
+def test_fake_records_classe_recente_min_filters_out_lower() -> None:
     """classe_recente_min=2 → toutes les stations (classe 1) sont exclues."""
     ds = FakeTemperatureRecordsDataSource()
     req = TemperatureRecordsRequest(
@@ -91,7 +91,7 @@ def test_fake_records_classe_recente_min_filters_out_lower():
     assert result.entries == []
 
 
-def test_fake_records_classe_recente_min_includes_matching():
+def test_fake_records_classe_recente_min_includes_matching() -> None:
     """classe_recente_min=1 → toutes les stations (classe 1) sont incluses."""
     ds = FakeTemperatureRecordsDataSource()
     req = TemperatureRecordsRequest(
@@ -102,7 +102,7 @@ def test_fake_records_classe_recente_min_includes_matching():
     assert len(result.entries) >= 5
 
 
-def test_fake_records_classe_recente_max_includes_matching():
+def test_fake_records_classe_recente_max_includes_matching() -> None:
     """classe_recente_max=1 → toutes les stations (classe 1) sont incluses."""
     ds = FakeTemperatureRecordsDataSource()
     req = TemperatureRecordsRequest(
@@ -113,7 +113,7 @@ def test_fake_records_classe_recente_max_includes_matching():
     assert len(result.entries) >= 5
 
 
-def test_fake_records_classe_recente_range_no_match():
+def test_fake_records_classe_recente_range_no_match() -> None:
     """classe_recente_min=2, classe_recente_max=5 → toutes exclues (toutes classe 1)."""
     ds = FakeTemperatureRecordsDataSource()
     req = TemperatureRecordsRequest(
@@ -132,7 +132,7 @@ def test_fake_records_classe_recente_range_no_match():
 # ---------------------------------------------------------------------------
 
 
-def test_fake_records_date_de_creation_max_filters_recent_stations():
+def test_fake_records_date_de_creation_max_filters_recent_stations() -> None:
     """
     date_de_creation_max=1900-01-01 → seule LYON-BRON (1888) est incluse.
     ORLY (1921), BOURGES (1945), TOULOUSE (1947) sont exclues.
@@ -149,7 +149,7 @@ def test_fake_records_date_de_creation_max_filters_recent_stations():
     assert station_ids == {"07481"}  # LYON-BRON uniquement
 
 
-def test_fake_records_date_de_creation_min_filters_old_stations():
+def test_fake_records_date_de_creation_min_filters_old_stations() -> None:
     """
     date_de_creation_min=1940-01-01 → BOURGES (1945) et TOULOUSE (1947) incluses.
     ORLY (1921) et LYON-BRON (1888) exclues.
@@ -171,7 +171,7 @@ def test_fake_records_date_de_creation_min_filters_old_stations():
 # ---------------------------------------------------------------------------
 
 
-def test_fake_records_fermeture_max_excludes_open_stations():
+def test_fake_records_fermeture_max_excludes_open_stations() -> None:
     """
     Toutes les stations fake ont date_de_fermeture=None.
     date_de_fermeture_max → stations NULL exclues → liste vide.
@@ -187,7 +187,7 @@ def test_fake_records_fermeture_max_excludes_open_stations():
     assert result.entries == []
 
 
-def test_fake_records_fermeture_min_alone_includes_open_stations():
+def test_fake_records_fermeture_min_alone_includes_open_stations() -> None:
     """
     date_de_fermeture_min seul → stations NULL incluses.
     Toutes les stations fake ont date_de_fermeture=None → toutes incluses.
@@ -203,7 +203,7 @@ def test_fake_records_fermeture_min_alone_includes_open_stations():
     assert len(result.entries) >= 5
 
 
-def test_fake_records_fermeture_min_and_max_excludes_open_stations():
+def test_fake_records_fermeture_min_and_max_excludes_open_stations() -> None:
     """
     date_de_fermeture_min + date_de_fermeture_max → stations NULL exclues → liste vide.
     """

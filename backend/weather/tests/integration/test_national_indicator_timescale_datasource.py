@@ -58,7 +58,7 @@ def seed_itn_day() -> Callable[..., None]:
 # ----------------------------
 def test_fetch_daily_series_happy_path(
     seed_itn_day: Callable[..., None],
-):
+) -> None:
     day = dt.date(2025, 1, 1)
     seed_itn_day(day)
 
@@ -78,7 +78,7 @@ def test_fetch_daily_series_happy_path(
 
 def test_fetch_daily_series_accepts_one_missing_station(
     seed_itn_day: Callable[..., None],
-):
+) -> None:
     day = dt.date(2025, 1, 1)
     seed_itn_day(day, n_missing=1)
 
@@ -99,7 +99,7 @@ def test_fetch_daily_series_accepts_one_missing_station(
 
 def test_fetch_daily_series_drops_day_with_two_missing_stations(
     seed_itn_day: Callable[..., None],
-):
+) -> None:
     day = dt.date(2025, 1, 1)
     seed_itn_day(day, n_missing=2)
 
@@ -117,7 +117,7 @@ def test_fetch_daily_series_drops_day_with_two_missing_stations(
 
 def test_fetch_daily_series_multiple_days(
     seed_itn_day: Callable[..., None],
-):
+) -> None:
     d1 = dt.date(2025, 1, 1)
     d2 = dt.date(2025, 1, 2)
     seed_itn_day(d1)
@@ -141,7 +141,7 @@ def test_fetch_daily_series_multiple_days(
 # ----------------------------
 
 
-def test_fetch_daily_baseline_happy_path():
+def test_fetch_daily_baseline_happy_path() -> None:
     ds = TimescaleNationalIndicatorBaselineDataSource()
 
     insert_daily_baseline(month=1, day=15, mean=10.0, std=2.0)
@@ -153,7 +153,7 @@ def test_fetch_daily_baseline_happy_path():
     assert result.baseline_std_dev_lower == 8.0
 
 
-def test_fetch_monthly_baseline_happy_path():
+def test_fetch_monthly_baseline_happy_path() -> None:
     ds = TimescaleNationalIndicatorBaselineDataSource()
 
     insert_monthly_baseline(month=2, mean=20.0, std=3.0)
@@ -165,7 +165,7 @@ def test_fetch_monthly_baseline_happy_path():
     assert result.baseline_std_dev_lower == 17.0
 
 
-def test_fetch_yearly_baseline_happy_path():
+def test_fetch_yearly_baseline_happy_path() -> None:
     ds = TimescaleNationalIndicatorBaselineDataSource()
 
     insert_yearly_baseline(sample_size=30, mean=30.0, std=4.0)

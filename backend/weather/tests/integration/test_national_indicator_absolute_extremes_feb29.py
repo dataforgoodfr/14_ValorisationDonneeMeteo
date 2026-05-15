@@ -25,7 +25,7 @@ pytestmark = pytest.mark.django_db
 ds = TimescaleNationalIndicatorAbsoluteExtremesDataSource()
 
 
-def test_monthly_absolute_max_excludes_synthetic_feb29():
+def test_monthly_absolute_max_excludes_synthetic_feb29() -> None:
     """
     Année 2023 (non-bissextile) :
       - fév 28 réel   itn = 10.0
@@ -43,7 +43,7 @@ def test_monthly_absolute_max_excludes_synthetic_feb29():
     assert result[2].absolute_min == pytest.approx(10.0)
 
 
-def test_daily_absolute_extremes_include_synthetic_feb29():
+def test_daily_absolute_extremes_include_synthetic_feb29() -> None:
     """
     Le jour calendaire (2, 29) doit avoir des extrêmes même en année non-bissextile.
     Les lignes fictives sont intentionnellement incluses dans le calcul journalier.
@@ -58,7 +58,7 @@ def test_daily_absolute_extremes_include_synthetic_feb29():
     assert result[(2, 29)].absolute_max == pytest.approx(5.0)
 
 
-def test_absolute_extremes_ignore_data_before_1947():
+def test_absolute_extremes_ignore_data_before_1947() -> None:
     """
     Les données antérieures à 1947 ne doivent pas être prises en compte.
     Le filtrage est effectué en amont dans mv_itn_daily_all_years (006) via

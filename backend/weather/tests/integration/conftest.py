@@ -50,7 +50,7 @@ def get_drop_mv_or_table_sql(
 
 
 @pytest.fixture(scope="session", autouse=True)
-def setup_db_schema_and_views(django_db_setup, django_db_blocker):
+def setup_db_schema_and_views(django_db_setup, django_db_blocker) -> None:
     """
     Crée les tables sources + views dans la DB de test.
     """

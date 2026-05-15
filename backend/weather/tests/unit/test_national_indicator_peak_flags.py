@@ -26,7 +26,7 @@ class FixedBaselineDataSource(
     NationalIndicatorObservedDataSource,
     NationalIndicatorBaselineDataSource,
 ):
-    def __init__(self, day_to_temp: dict[dt.date, float]):
+    def __init__(self, day_to_temp: dict[dt.date, float]) -> None:
         self._temps = day_to_temp
 
     def fetch_daily_series(self, query: DailySeriesQuery) -> list[ObservedPoint]:
@@ -64,40 +64,40 @@ def _run(temps: dict[dt.date, float]) -> list[dict]:
     return res["time_series"]
 
 
-def test_temperature_above_upper_is_hot_peak():
+def test_temperature_above_upper_is_hot_peak() -> None:
     day = dt.date(2025, 6, 1)
     ts = _run({day: _UPPER + 0.01})
     assert ts[0]["is_hot_peak"] is True
     assert ts[0]["is_cold_peak"] is False
 
 
-def test_temperature_below_lower_is_cold_peak():
+def test_temperature_below_lower_is_cold_peak() -> None:
     day = dt.date(2025, 6, 1)
     ts = _run({day: _LOWER - 0.01})
     assert ts[0]["is_hot_peak"] is False
     assert ts[0]["is_cold_peak"] is True
 
 
-def test_temperature_equal_upper_is_not_hot_peak():
+def test_temperature_equal_upper_is_not_hot_peak() -> None:
     day = dt.date(2025, 6, 1)
     ts = _run({day: _UPPER})
     assert ts[0]["is_hot_peak"] is False
 
 
-def test_temperature_equal_lower_is_not_cold_peak():
+def test_temperature_equal_lower_is_not_cold_peak() -> None:
     day = dt.date(2025, 6, 1)
     ts = _run({day: _LOWER})
     assert ts[0]["is_cold_peak"] is False
 
 
-def test_temperature_within_bounds_is_no_peak():
+def test_temperature_within_bounds_is_no_peak() -> None:
     day = dt.date(2025, 6, 1)
     ts = _run({day: _BASELINE_MEAN})
     assert ts[0]["is_hot_peak"] is False
     assert ts[0]["is_cold_peak"] is False
 
 
-def test_multiple_days_peaks_are_independent():
+def test_multiple_days_peaks_are_independent() -> None:
     days = {
         dt.date(2025, 6, 1): _UPPER + 1.0,  # hot
         dt.date(2025, 6, 2): _BASELINE_MEAN,  # normal
@@ -115,7 +115,7 @@ def test_multiple_days_peaks_are_independent():
     assert ts[2]["is_cold_peak"] is True
 
 
-def test_peak_flags_present_in_output_keys():
+def test_peak_flags_present_in_output_keys() -> None:
     day = dt.date(2025, 6, 1)
     ts = _run({day: _BASELINE_MEAN})
     assert "is_hot_peak" in ts[0]

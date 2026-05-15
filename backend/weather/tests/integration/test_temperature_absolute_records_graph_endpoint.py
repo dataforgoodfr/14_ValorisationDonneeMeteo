@@ -25,12 +25,12 @@ def given_this_data(result: AbsoluteRecordsGraphResult) -> None:
 
 
 @pytest.fixture(autouse=True)
-def _reset_absolute_dep():
+def _reset_absolute_dep() -> None:
     yield
     TemperatureAbsoluteRecordsGraphDependencyProvider.reset()
 
 
-def test_graph_happy_path_year(client: APIClient):
+def test_graph_happy_path_year(client: APIClient) -> None:
     given_this_data(
         AbsoluteRecordsGraphResult(
             buckets=[
@@ -60,7 +60,7 @@ def test_graph_happy_path_year(client: APIClient):
     assert first["nb_records_absolus"] == 0
 
 
-def test_graph_happy_path_month(client: APIClient):
+def test_graph_happy_path_month(client: APIClient) -> None:
     given_this_data(
         AbsoluteRecordsGraphResult(
             buckets=[
@@ -87,7 +87,7 @@ def test_graph_happy_path_month(client: APIClient):
     assert body["buckets"][-1]["bucket"] == "2019-12"
 
 
-def test_graph_passes_through_nonzero_bucket(client: APIClient):
+def test_graph_passes_through_nonzero_bucket(client: APIClient) -> None:
     given_this_data(
         AbsoluteRecordsGraphResult(
             buckets=[
@@ -117,7 +117,7 @@ def test_graph_passes_through_nonzero_bucket(client: APIClient):
     assert july["nb_records_absolus"] == 2
 
 
-def test_graph_territoire_department_accepts_param(client: APIClient):
+def test_graph_territoire_department_accepts_param(client: APIClient) -> None:
     given_this_data(
         AbsoluteRecordsGraphResult(
             buckets=[AbsoluteRecordsGraphBucket(bucket="2019", nb_records_absolus=3)],
@@ -141,7 +141,7 @@ def test_graph_territoire_department_accepts_param(client: APIClient):
     assert body["buckets"][0]["nb_records_absolus"] == 3
 
 
-def test_graph_type_records_all_accepts_param(client: APIClient):
+def test_graph_type_records_all_accepts_param(client: APIClient) -> None:
     given_this_data(
         AbsoluteRecordsGraphResult(
             buckets=[AbsoluteRecordsGraphBucket(bucket="2019", nb_records_absolus=5)],
@@ -166,7 +166,7 @@ def test_graph_type_records_all_accepts_param(client: APIClient):
     assert body["buckets"][0]["nb_records_absolus"] == 5
 
 
-def test_graph_serializes_records_with_expected_fields(client: APIClient):
+def test_graph_serializes_records_with_expected_fields(client: APIClient) -> None:
     given_this_data(
         AbsoluteRecordsGraphResult(
             buckets=[],
@@ -203,7 +203,7 @@ def test_graph_serializes_records_with_expected_fields(client: APIClient):
     assert r["valeur"] == 42.0
 
 
-def test_graph_period_type_month_without_month_returns_200(client: APIClient):
+def test_graph_period_type_month_without_month_returns_200(client: APIClient) -> None:
     given_this_data(AbsoluteRecordsGraphResult(buckets=[], records=[]))
 
     resp = client.get(
@@ -222,7 +222,7 @@ def test_graph_period_type_month_without_month_returns_200(client: APIClient):
     assert "records" in body
 
 
-def test_graph_period_type_season_without_season_returns_200(client: APIClient):
+def test_graph_period_type_season_without_season_returns_200(client: APIClient) -> None:
     given_this_data(AbsoluteRecordsGraphResult(buckets=[], records=[]))
 
     resp = client.get(
@@ -241,14 +241,14 @@ def test_graph_period_type_season_without_season_returns_200(client: APIClient):
     assert "records" in body
 
 
-def test_graph_missing_required_params(client: APIClient):
+def test_graph_missing_required_params(client: APIClient) -> None:
     resp = client.get(ENDPOINT)
     assert resp.status_code == 400
     body = resp.json()
     assert body["error"]["code"] == "INVALID_PARAMETER"
 
 
-def test_graph_missing_granularity(client: APIClient):
+def test_graph_missing_granularity(client: APIClient) -> None:
     resp = client.get(
         ENDPOINT,
         {"date_start": "2019-01-01", "date_end": "2019-12-31"},
@@ -256,7 +256,7 @@ def test_graph_missing_granularity(client: APIClient):
     assert resp.status_code == 400
 
 
-def test_graph_invalid_granularity(client: APIClient):
+def test_graph_invalid_granularity(client: APIClient) -> None:
     resp = client.get(
         ENDPOINT,
         {"date_start": "2019-01-01", "date_end": "2019-12-31", "granularity": "week"},
@@ -264,7 +264,7 @@ def test_graph_invalid_granularity(client: APIClient):
     assert resp.status_code == 400
 
 
-def test_graph_territoire_without_id_returns_400(client: APIClient):
+def test_graph_territoire_without_id_returns_400(client: APIClient) -> None:
     resp = client.get(
         ENDPOINT,
         {

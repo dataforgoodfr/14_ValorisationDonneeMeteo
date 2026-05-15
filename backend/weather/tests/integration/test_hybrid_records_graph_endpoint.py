@@ -43,7 +43,9 @@ def client() -> APIClient:
 
 
 @pytest.mark.django_db
-def test_new_record_via_v_quotidienne_appears_in_endpoint_response(client: APIClient):
+def test_new_record_via_v_quotidienne_appears_in_endpoint_response(
+    client: APIClient,
+) -> None:
     code = "75114002"
     insert_station(code, "Station Endpoint Hybrid", departement=75)
 
@@ -98,7 +100,7 @@ def test_new_record_via_v_quotidienne_appears_in_endpoint_response(client: APICl
 
 
 @pytest.mark.django_db
-def test_real_new_records_via_endpoint_with_absolute_seed(client: APIClient):
+def test_real_new_records_via_endpoint_with_absolute_seed(client: APIClient) -> None:
     """Réplique du URL staging :
     /api/v1/temperature/records/graph
         ?date_start=2025-01-01&date_end=2026-05-22
@@ -163,7 +165,7 @@ def test_real_new_records_via_endpoint_with_absolute_seed(client: APIClient):
 @pytest.mark.django_db
 def test_today_record_appears_when_period_type_month_without_month(
     client: APIClient,
-):
+) -> None:
     """
     Bug reproduit depuis :
     https://staging.dataclimat.fr/api/v1/temperature/records/graph
