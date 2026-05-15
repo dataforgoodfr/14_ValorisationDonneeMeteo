@@ -31,19 +31,31 @@ export function useMapColors() {
     return computed(() => (cm.value === "dark" ? DARK_COLORS : LIGHT_COLORS));
 }
 
+// Palette warming stripes (RdBu ColorBrewer / showyourstripes.info)
+const WARMING_STRIPES = [
+    "#053061",
+    "#2166ac",
+    "#4393c3",
+    "#92c5de",
+    "#d1e5f0",
+    "#f7f7f7",
+    "#fddbc7",
+    "#f4a582",
+    "#d6604d",
+    "#b2182b",
+    "#67001f",
+];
+
+function makeColorStops(min: number, max: number): [number, string][] {
+    const n = WARMING_STRIPES.length - 1;
+    return WARMING_STRIPES.map((color, i) => [
+        min + (i / n) * (max - min),
+        color,
+    ]);
+}
+
 function makeDeviationColors(min: number, max: number): MapColorConfig {
-    const stops: [number, string][] = [
-        [min, TEMPERATURE_COLORS.cold],
-        [min * 0.6, "hsl(210, 85%, 75%)"],
-        [min * 0.2, "hsl(180, 90%, 85%)"],
-        [min * 0.05, "hsl(160, 95%, 90%)"],
-        [0, "#ffffff"],
-        [max * 0.05, "hsl(50, 96%, 90%)"],
-        [max * 0.2, "hsl(30, 90%, 85%)"],
-        [max * 0.6, "hsl(0, 85%, 75%)"],
-        [max, TEMPERATURE_COLORS.hot],
-    ];
-    return { min, max, stops };
+    return { min, max, stops: makeColorStops(min, max) };
 }
 
 export const DEVIATION_MAP_COLORS = makeDeviationColors(-5, 5);
@@ -52,20 +64,8 @@ export const DEVIATION_MAP_MONTHLY_COLORS = makeDeviationColors(-10, 10);
 const recordsMin = -20;
 const recordsMax = 40;
 
-const recordsStops: [number, string][] = [
-    [-20, TEMPERATURE_COLORS.cold],
-    [-8, "hsl(210, 85%, 75%)"],
-    [0, "hsl(180, 90%, 85%)"],
-    [7, "hsl(160, 95%, 90%)"],
-    [12, "#ffffff"],
-    [18, "hsl(50, 96%, 90%)"],
-    [25, "hsl(30, 90%, 85%)"],
-    [33, "hsl(0, 85%, 75%)"],
-    [40, TEMPERATURE_COLORS.hot],
-];
-
 export const RECORDS_MAP_COLORS = {
     min: recordsMin,
     max: recordsMax,
-    stops: recordsStops,
+    stops: makeColorStops(recordsMin, recordsMax),
 };
