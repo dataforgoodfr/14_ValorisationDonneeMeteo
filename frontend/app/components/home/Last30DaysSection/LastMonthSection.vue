@@ -2,7 +2,7 @@
 import type { TemperatureRecordsGraphParams, TypeRecords } from "~/types/api";
 import GoToDataLink from "../GoToDataLink.vue";
 import RecordsBattusExportBar from "../RecordsBattusExportBar.vue";
-import ExtremeCard from "../ExtremeCard.vue";
+import DeviationKpiPanel from "../../charts/DeviationKpiPanel.vue";
 import Section from "../Section.vue";
 import TemperatureRecord from "../TemperatureRecord.vue";
 import HomeDeviationMap from "./HomeDeviationMap.vue";
@@ -22,35 +22,6 @@ function getLastYearLast30Days(yesterday: Date): Date {
     const lastYearLast30Days = new Date(yesterday);
     lastYearLast30Days.setDate(lastYearLast30Days.getDate() - 30);
     return lastYearLast30Days;
-}
-
-const hotParameters = computed(() => ({
-    date_start: dateToStringYMD(yesterdayLess30Days.value),
-    date_end: dateToStringYMD(yesterday.value),
-    ordering: "-deviation",
-    limit: 1,
-}));
-
-const { data: hotDeviationData, status: hotDeviationStatus } =
-    useTemperatureDeviation(hotParameters, undefined, false);
-
-const coldParameters = computed(() => ({
-    date_start: dateToStringYMD(yesterdayLess30Days.value),
-    date_end: dateToStringYMD(yesterday.value),
-    ordering: "deviation",
-    limit: 1,
-}));
-
-const { data: coldDeviationData, status: coldDeviationStatus } =
-    useTemperatureDeviation(coldParameters, undefined, false);
-const hotStation = computed(() => {
-    return hotDeviationData.value?.stations[0] ?? null;
-});
-const coldStation = computed(
-    () => coldDeviationData.value?.stations[0] ?? null,
-);
-function formatDeviation(d: number) {
-    return (d >= 0 ? "+" : "") + d.toFixed(1);
 }
 
 const hotTypeRecords = ref<TypeRecords>("hot");
@@ -149,34 +120,10 @@ const lastYearColdRecordsCount = computed(
                 class="w-full max-w-sm lg:flex-1 lg:max-w-none"
             />
             <div class="flex flex-col gap-3 flex-1 min-w-0">
-                <p class="text-sm text-muted">
-                    Stations avec écart le plus important
-                </p>
-                <ExtremeCard
-                    hot-cold="hot"
-                    :loading="hotDeviationStatus === 'pending'"
-                    :temperature="
-                        hotStation
-                            ? formatDeviation(hotStation.deviation)
-                            : undefined
-                    "
-                    :city="hotStation?.station_name"
-                    :department-string="hotStation?.region"
-                    :department-number="hotStation?.department"
-                    tag-content="Ecart max"
-                />
-                <ExtremeCard
-                    hot-cold="cold"
-                    :loading="coldDeviationStatus === 'pending'"
-                    :temperature="
-                        coldStation
-                            ? formatDeviation(coldStation.deviation)
-                            : undefined
-                    "
-                    :city="coldStation?.station_name"
-                    :department-string="coldStation?.region"
-                    :department-number="coldStation?.department"
-                    tag-content="Ecart min"
+                <DeviationKpiPanel
+                    :date-start="dateStart"
+                    :date-end="dateEnd"
+                    compact
                 />
                 <GoToDataLink
                     :data-url="'/temperature/ecart-normale?preset=30d#table'"
