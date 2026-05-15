@@ -91,6 +91,10 @@ function exportAsPngWithoutBackground() {
 
 function exportAsCSV() {
     if (!import.meta.client) return;
+    if (exportConfig.onExportCsv) {
+        exportConfig.onExportCsv();
+        return;
+    }
     const source = exportConfig.getCsvRows();
     if (!source) return;
     const headers = exportConfig.csvHeaders;

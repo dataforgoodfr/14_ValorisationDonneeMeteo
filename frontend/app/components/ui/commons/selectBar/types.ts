@@ -80,6 +80,7 @@ export interface SelectBarAdapter<
         chartName: string;
         csvHeaders: string[];
         getCsvRows: () => C[] | undefined;
+        onExportCsv?: () => void;
     };
 
     features: {
