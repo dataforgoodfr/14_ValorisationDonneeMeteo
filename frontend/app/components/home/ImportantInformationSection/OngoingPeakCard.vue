@@ -55,21 +55,23 @@ const currentStreak = computed((): Streak | null => {
     return { type: lastType, count, avgDeviation: totalDev / count };
 });
 
-function sign(n: number): string {
-    return n >= 0 ? `+${n.toFixed(1)}` : n.toFixed(1);
-}
-
 const kpiColor = computed(() => {
     if (currentStreak.value?.type === "hot") return "text-red-450";
     if (currentStreak.value?.type === "cold") return "text-blue-600";
     return "text-muted";
+});
+
+const cardTitle = computed(() => {
+    if (currentStreak.value?.type === "hot") return "Excès de chaleur en cours";
+    if (currentStreak.value?.type === "cold") return "Excès de froid en cours";
+    return "Excès de température en cours";
 });
 </script>
 
 <template>
     <Card
         :loading="pending"
-        title="Excès de température en cours"
+        :title="cardTitle"
         tooltip-text="Nombre de jours consécutifs excessivement chauds ou froids depuis hier (température au-delà de l'écart-type des normales)"
     >
         <template #kpi>
@@ -78,22 +80,20 @@ const kpiColor = computed(() => {
                     <span class="text-4xl" :class="kpiColor">
                         {{ currentStreak.count }}
                     </span>
-                    <span class="text-xl text-muted"> jours</span>
+                    <span class="text-xl text-muted"> jours consécutifs</span>
                 </template>
                 <span v-else class="text-4xl text-muted">—</span>
             </p>
         </template>
 
         <template v-if="currentStreak" #kpi-context-box>
-            consécutifs d'excès de
-            {{ currentStreak.type === "hot" ? "chaleur" : "froid" }}
+            Écart moyen : {{ currentStreak.avgDeviation > 0 ? "+" : ""
+            }}{{ currentStreak.avgDeviation?.toFixed(1) }}°C vs normales
+            1991-2020
         </template>
 
         <template #kpi-context-text>
             <template v-if="currentStreak">
-                <span :class="kpiColor">
-                    {{ sign(currentStreak.avgDeviation) }}°C
-                </span>
                 en moyenne depuis {{ currentStreak.count }} jours
             </template>
             <template v-else>Pas d'excès hier</template>
