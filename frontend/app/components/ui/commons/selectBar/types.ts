@@ -81,6 +81,7 @@ export interface SelectBarAdapter<
         csvHeaders: string[];
         getCsvRows: () => C[] | undefined;
         onExportCsv?: () => void;
+        htmlTooltipFormatter?: string;
     };
 
     features: {

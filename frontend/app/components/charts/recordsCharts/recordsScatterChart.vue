@@ -215,6 +215,7 @@ const option = computed<ECOption>(() => {
         tooltip: {
             trigger: "item",
             axisPointer: { type: "cross" },
+            borderColor: "transparent",
             formatter: (params) =>
                 recordsChartTooltipFormatter(
                     params,

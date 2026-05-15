@@ -70,6 +70,24 @@ export const useRecordsSelectBarAdapter =
                 chartName: "records",
                 csvHeaders: [],
                 getCsvRows: () => undefined,
+                get htmlTooltipFormatter(): string | undefined {
+                    if (chartType.value !== "scatter") return undefined;
+                    return `function(params) {
+                        if (!Array.isArray(params)) params = [params];
+                        if (!params.length) return '';
+                        var data = params[0].value;
+                        if (!data) return '';
+                        var date = new Date(data.date).toLocaleDateString('fr-FR', {day:'2-digit',month:'2-digit',year:'numeric'});
+                        var lines = [date];
+                        params.forEach(function(p) {
+                            var v = p.value;
+                            if (v && v.value != null) {
+                                lines.push((p.marker||'') + ' ' + (v.station||'') + ' : ' + v.value + '°C');
+                            }
+                        });
+                        return lines.join('<br/>');
+                    }`;
+                },
                 onExportCsv: () => {
                     if (!import.meta.client) return;
                     const data = processedRecordsData.value;
