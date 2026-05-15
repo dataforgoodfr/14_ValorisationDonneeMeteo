@@ -43,7 +43,7 @@ const dateEnd = computed(() => dateToStringYMD(yesterday.value));
             />
             <GoToDataLink
                 class="shrink-0"
-                :data-url="'/temperature/records?preset=365d#table'"
+                :data-url="'/temperature/records?preset=365d&view=scatter#chart'"
             />
         </div>
     </Section>

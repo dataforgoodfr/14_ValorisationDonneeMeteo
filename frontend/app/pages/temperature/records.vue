@@ -11,6 +11,7 @@ import RecordsKpiPanel from "~/components/charts/RecordsKpiPanel.vue";
 import SelectBar from "~/components/ui/commons/selectBar/selectBar.vue";
 import RecordsMap from "~/components/map/RecordsMap.vue";
 import { useRecordsTableStore } from "~/stores/recordsTableStore";
+import { useRecordsChartStore } from "~/stores/recordsChartStore";
 import { recordsHeroData, recordsSections } from "~/data/docRecords";
 import { EXPORT_BTN_UI } from "~/constants/tableUtils";
 import type { FilterField } from "~/components/ui/commons/FilterBar.vue";
@@ -36,9 +37,11 @@ const recordsFilterFields: FilterField[] = [
 const selectBarAdapter = useRecordsSelectBarAdapter();
 
 const store = useRecordsTableStore();
+const chartStore = useRecordsChartStore();
 const route = useRoute();
 
-const { today, yesterday, yesterdayLess30Days } = useCustomDate();
+const { today, yesterday, yesterdayLess30Days, yesterdayLess365Days } =
+    useCustomDate();
 
 const isLoading = ref<boolean>(true); // SSR rendering takes ~2s
 
@@ -46,6 +49,8 @@ onMounted(() => {
     isLoading.value = false;
 
     const preset = route.query.preset;
+    const view = route.query.view;
+
     if (!preset) {
         store.dateStart = undefined;
         store.dateEnd = undefined;
@@ -66,6 +71,22 @@ onMounted(() => {
         start.setFullYear(start.getFullYear() - 1);
         store.dateStart = start;
         store.dateEnd = yesterday.value;
+    }
+
+    if (view === "scatter") {
+        chartStore.setGranularity("day");
+        chartStore.setChartType("scatter");
+        chartStore.periodType = "month";
+        chartStore.month = undefined;
+        chartStore.recordKind = "historical";
+
+        if (preset === "30d") {
+            chartStore.pickedDateStart = yesterdayLess30Days.value;
+            chartStore.pickedDateEnd = yesterday.value;
+        } else if (preset === "365d") {
+            chartStore.pickedDateStart = yesterdayLess365Days.value;
+            chartStore.pickedDateEnd = yesterday.value;
+        }
     }
 });
 
@@ -93,7 +114,7 @@ function exportCSV() {
             :description="heroData.description"
         />
 
-        <ChartLayout :has-sidebar="true">
+        <ChartLayout id="chart" :has-sidebar="true">
             <template #select-bar>
                 <SelectBar :adapter="selectBarAdapter" />
             </template>

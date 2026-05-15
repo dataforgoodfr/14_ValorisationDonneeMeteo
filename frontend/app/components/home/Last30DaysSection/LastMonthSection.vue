@@ -214,7 +214,7 @@ const lastYearColdRecordsCount = computed(
             />
             <GoToDataLink
                 class="shrink-0"
-                :data-url="'/temperature/records?preset=30d#table'"
+                :data-url="'/temperature/records?preset=30d&view=scatter#chart'"
             />
         </div>
     </Section>
