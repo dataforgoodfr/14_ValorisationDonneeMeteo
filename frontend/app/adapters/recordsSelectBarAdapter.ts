@@ -75,12 +75,12 @@ export const useRecordsSelectBarAdapter =
                     return `function(params) {
                         if (!Array.isArray(params)) params = [params];
                         if (!params.length) return '';
-                        var data = params[0].value;
+                        const data = params[0].value;
                         if (!data) return '';
-                        var date = new Date(data.date).toLocaleDateString('fr-FR', {day:'2-digit',month:'2-digit',year:'numeric'});
-                        var lines = [date];
-                        params.forEach(function(p) {
-                            var v = p.value;
+                        const date = new Date(data.date).toLocaleDateString('fr-FR', {day:'2-digit',month:'2-digit',year:'numeric'});
+                        const lines = [date];
+                        params.forEach((p) => {
+                            const v = p.value;
                             if (v && v.value != null) {
                                 lines.push((p.marker||'') + ' ' + (v.station||'') + ' : ' + v.value + '°C');
                             }
