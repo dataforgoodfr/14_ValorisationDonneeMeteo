@@ -31,19 +31,31 @@ export function useMapColors() {
     return computed(() => (cm.value === "dark" ? DARK_COLORS : LIGHT_COLORS));
 }
 
+// Palette warming stripes (RdBu ColorBrewer / showyourstripes.info)
+const WARMING_STRIPES = [
+    "#053061",
+    "#2166ac",
+    "#4393c3",
+    "#92c5de",
+    "#d1e5f0",
+    "#f7f7f7",
+    "#fddbc7",
+    "#f4a582",
+    "#d6604d",
+    "#b2182b",
+    "#67001f",
+];
+
+function makeColorStops(min: number, max: number): [number, string][] {
+    const n = WARMING_STRIPES.length - 1;
+    return WARMING_STRIPES.map((color, i) => [
+        min + (i / n) * (max - min),
+        color,
+    ]);
+}
+
 function makeDeviationColors(min: number, max: number): MapColorConfig {
-    const stops: [number, string][] = [
-        [min, TEMPERATURE_COLORS.cold],
-        [min * 0.6, "hsl(210, 85%, 75%)"],
-        [min * 0.2, "hsl(180, 90%, 85%)"],
-        [min * 0.05, "hsl(160, 95%, 90%)"],
-        [0, "#ffffff"],
-        [max * 0.05, "hsl(50, 96%, 90%)"],
-        [max * 0.2, "hsl(30, 90%, 85%)"],
-        [max * 0.6, "hsl(0, 85%, 75%)"],
-        [max, TEMPERATURE_COLORS.hot],
-    ];
-    return { min, max, stops };
+    return { min, max, stops: makeColorStops(min, max) };
 }
 
 export const DEVIATION_MAP_COLORS = makeDeviationColors(-5, 5);
@@ -52,20 +64,43 @@ export const DEVIATION_MAP_MONTHLY_COLORS = makeDeviationColors(-10, 10);
 const recordsMin = -20;
 const recordsMax = 40;
 
-const recordsStops: [number, string][] = [
-    [-20, TEMPERATURE_COLORS.cold],
-    [-8, "hsl(210, 85%, 75%)"],
-    [0, "hsl(180, 90%, 85%)"],
-    [7, "hsl(160, 95%, 90%)"],
-    [12, "#ffffff"],
-    [18, "hsl(50, 96%, 90%)"],
-    [25, "hsl(30, 90%, 85%)"],
-    [33, "hsl(0, 85%, 75%)"],
-    [40, TEMPERATURE_COLORS.hot],
-];
-
 export const RECORDS_MAP_COLORS = {
     min: recordsMin,
     max: recordsMax,
-    stops: recordsStops,
+    stops: makeColorStops(recordsMin, recordsMax),
 };
+
+function hexToRgb(hex: string): [number, number, number] {
+    return [
+        parseInt(hex.slice(1, 3), 16),
+        parseInt(hex.slice(3, 5), 16),
+        parseInt(hex.slice(5, 7), 16),
+    ];
+}
+
+function rgbToHex(r: number, g: number, b: number): string {
+    return `#${[r, g, b]
+        .map((v) => Math.round(v).toString(16).padStart(2, "0"))
+        .join("")}`;
+}
+
+export function interpolateMapColor(
+    value: number,
+    stops: [number, string][],
+): string {
+    if (stops.length === 0) return "#000000";
+    const first = stops[0]!;
+    const last = stops[stops.length - 1]!;
+    if (value <= first[0]) return first[1];
+    if (value >= last[0]) return last[1];
+
+    let i = 0;
+    while (i < stops.length - 1 && stops[i + 1]![0] <= value) i++;
+
+    const [v0, c0] = stops[i]!;
+    const [v1, c1] = stops[i + 1]!;
+    const t = (value - v0) / (v1 - v0);
+    const [r0, g0, b0] = hexToRgb(c0);
+    const [r1, g1, b1] = hexToRgb(c1);
+    return rgbToHex(r0 + (r1 - r0) * t, g0 + (g1 - g0) * t, b0 + (b1 - b0) * t);
+}

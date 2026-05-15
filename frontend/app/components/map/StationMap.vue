@@ -333,7 +333,10 @@ watch(mapColors, (colors) => {
     map.setPaintProperty("france-reg-border", "line-color", colors.foreground);
 });
 
-const tooltipBg = computed(() => mapColors.value.background);
+const colorMode = useColorMode();
+const tooltipBg = computed(() =>
+    colorMode.value === "dark" ? mapColors.value.background : "#f0f0f0",
+);
 </script>
 
 <style scoped>

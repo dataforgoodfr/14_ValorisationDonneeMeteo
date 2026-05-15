@@ -1,12 +1,13 @@
-import { TEMPERATURE_COLORS } from "~/constants/colors";
+import { interpolateMapColor } from "~/constants/colors";
 
 export function formatRecordsMapTooltip(
     stationName: string,
     value: number,
     recordDate: string | null,
+    stops: [number, string][],
 ): string {
     const sign = value >= 0 ? "+" : "";
-    const color = value >= 0 ? TEMPERATURE_COLORS.hot : TEMPERATURE_COLORS.cold;
+    const color = interpolateMapColor(value, stops);
     const formattedDate = recordDate
         ? new Date(recordDate).toLocaleDateString("fr-FR")
         : null;

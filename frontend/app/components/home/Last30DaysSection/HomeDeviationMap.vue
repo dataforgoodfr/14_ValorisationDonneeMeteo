@@ -43,7 +43,11 @@ const mappableStations = computed<MappableStation[]>(
 );
 
 const tooltipFormatter: MapTooltipFormatter = (properties) =>
-    formatDeviationMapTooltip(properties.station_name, properties.value);
+    formatDeviationMapTooltip(
+        properties.station_name,
+        properties.value,
+        DEVIATION_MAP_MONTHLY_COLORS.stops,
+    );
 
 onMounted(async () => {
     await fetchStations();
