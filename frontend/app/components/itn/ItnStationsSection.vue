@@ -4,7 +4,8 @@
     >
         <p class="text-lg sm:text-xl/8 text-muted text-balance mb-6">
             Voici la liste des stations utilisées pour calculer cet indicateur
-            thermique, et les poids associés dans le calcul de la moyenne.
+            thermique, ainsi que leur classe de qualité de mesure en
+            température, altitude et année de création.
         </p>
         <div class="flex justify-center flex-wrap gap-6">
             <ItnStationMap
