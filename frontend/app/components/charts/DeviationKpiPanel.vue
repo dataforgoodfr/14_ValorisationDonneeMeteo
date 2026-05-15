@@ -1,5 +1,8 @@
 <template>
-    <div class="flex flex-col gap-3 md:w-52 md:shrink-0 py-2">
+    <div
+        class="flex flex-col gap-3 py-2"
+        :class="compact ? 'w-full' : 'md:w-52 md:shrink-0'"
+    >
         <Card
             title="Écart à la normale moyen en France"
             :tooltip-text="`Écart à la normale moyen en France métropolitaine entre le ${formattedStart} et le ${formattedEnd}.`"
@@ -25,6 +28,7 @@
         </Card>
 
         <Card
+            v-if="!compact"
             title="Nombre de jours au-dessus des normales"
             :tooltip-text="`Nombre de jours, entre le ${formattedStart} et le ${formattedEnd}, pour lesquels l'écart à la normale en France métropolitaine est supérieur à 0.`"
             :loading="pending"
@@ -41,6 +45,7 @@
         </Card>
 
         <Card
+            v-if="!compact"
             title="Nombre de jours en-dessous des normales"
             :tooltip-text="`Nombre de jours, entre le ${formattedStart} et le ${formattedEnd} pour lesquels l'écart à la normale en France métropolitaine est inférieur à 0.`"
             :loading="pending"
@@ -75,16 +80,29 @@ import HotColdRatioCard from "~/components/home/HotColdRatioCard.vue";
 import { useDeviationStore, dateToStringYMD } from "#imports";
 import type { NationalIndicatorKpiParams } from "~/types/api";
 
+interface Props {
+    dateStart?: string;
+    dateEnd?: string;
+    compact?: boolean;
+}
+const props = defineProps<Props>();
+
 const store = useDeviationStore();
 const { pickedDateStart, pickedDateEnd } = storeToRefs(store);
 
 const fmt = (d: Date) => d.toLocaleDateString("fr-FR", { dateStyle: "short" });
-const formattedStart = computed(() => fmt(pickedDateStart.value));
-const formattedEnd = computed(() => fmt(pickedDateEnd.value));
+const formattedStart = computed(() =>
+    props.dateStart
+        ? fmt(new Date(props.dateStart))
+        : fmt(pickedDateStart.value),
+);
+const formattedEnd = computed(() =>
+    props.dateEnd ? fmt(new Date(props.dateEnd)) : fmt(pickedDateEnd.value),
+);
 
 const params = computed<NationalIndicatorKpiParams>(() => ({
-    date_start: dateToStringYMD(pickedDateStart.value),
-    date_end: dateToStringYMD(pickedDateEnd.value),
+    date_start: props.dateStart ?? dateToStringYMD(pickedDateStart.value),
+    date_end: props.dateEnd ?? dateToStringYMD(pickedDateEnd.value),
 }));
 
 const { data: kpi, pending } = useNationalIndicatorKpi(params);
