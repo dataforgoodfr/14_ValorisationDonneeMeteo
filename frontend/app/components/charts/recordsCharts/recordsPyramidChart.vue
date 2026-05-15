@@ -66,14 +66,12 @@ const option = computed<ECOption>(() => {
 
     const N = territoryPlots.length;
 
+    const allPeriods = data.buckets.map((b) => b.bucket);
+
     // Agrégation par période pour chaque territoire
     const periodData = territoryPlots.map((plot) => {
         const hotByPeriod = countByPeriod(plot.hot, granularity);
         const coldByPeriod = countByPeriod(plot.cold, granularity);
-        const allPeriods = Object.keys({
-            ...hotByPeriod,
-            ...coldByPeriod,
-        }).sort();
         return { name: plot.name, hotByPeriod, coldByPeriod, allPeriods };
     });
 
