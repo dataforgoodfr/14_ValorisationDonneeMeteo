@@ -55,10 +55,6 @@ const currentStreak = computed((): Streak | null => {
     return { type: lastType, count, avgDeviation: totalDev / count };
 });
 
-function sign(n: number): string {
-    return n >= 0 ? `+${n.toFixed(1)}` : n.toFixed(1);
-}
-
 const kpiColor = computed(() => {
     if (currentStreak.value?.type === "hot") return "text-red-450";
     if (currentStreak.value?.type === "cold") return "text-blue-600";
@@ -78,22 +74,28 @@ const kpiColor = computed(() => {
                     <span class="text-4xl" :class="kpiColor">
                         {{ currentStreak.count }}
                     </span>
-                    <span class="text-xl text-muted"> jours</span>
+                    <span class="text-xl text-muted"> jours consécutifs</span>
                 </template>
                 <span v-else class="text-4xl text-muted">—</span>
             </p>
         </template>
 
         <template v-if="currentStreak" #kpi-context-box>
-            consécutifs d'excès de
-            {{ currentStreak.type === "hot" ? "chaleur" : "froid" }}
+            {{
+                currentStreak.avgDeviation?.toFixed(1) === "0.0"
+                    ? "= "
+                    : currentStreak.avgDeviation > 0
+                      ? "+"
+                      : ""
+            }}{{
+                currentStreak.avgDeviation?.toFixed(1) === "0.0"
+                    ? ""
+                    : currentStreak.avgDeviation?.toFixed(1) + "°C "
+            }}vs normales 1991-2020
         </template>
 
         <template #kpi-context-text>
             <template v-if="currentStreak">
-                <span :class="kpiColor">
-                    {{ sign(currentStreak.avgDeviation) }}°C
-                </span>
                 en moyenne depuis {{ currentStreak.count }} jours
             </template>
             <template v-else>Pas d'excès hier</template>
