@@ -2,7 +2,7 @@
 import type { NationalIndicatorParams } from "~/types/api";
 import Card from "../Card.vue";
 
-const { yesterday, yesterdayLastYear } = useCustomDate();
+const { yesterday } = useCustomDate();
 
 const yesterdayParams = computed<NationalIndicatorParams>(() => ({
     date_start: dateToStringYMD(yesterday.value),
@@ -22,29 +22,6 @@ const yesterdayTemperature = computed(() => {
 const gap = computed(() => {
     const result = yesterdayData.value?.time_series[0];
     return result ? result.temperature - result.baseline_mean : undefined;
-});
-
-const yesterdayLastYearParams = computed<NationalIndicatorParams>(() => ({
-    date_start: dateToStringYMD(yesterdayLastYear.value),
-    date_end: dateToStringYMD(yesterdayLastYear.value),
-    granularity: "day",
-    slice_type: "full",
-}));
-
-const { data: yesterdayLastYearData } = useNationalIndicator(
-    yesterdayLastYearParams,
-    true,
-);
-
-const yesterdayLastYearTemperature = computed(
-    () => yesterdayLastYearData.value?.time_series[0]?.temperature,
-);
-const temperatureChangeYearOverYear = computed<number | undefined>(() => {
-    if (!yesterdayTemperature.value || !yesterdayLastYearTemperature.value) {
-        return undefined;
-    }
-
-    return yesterdayLastYearTemperature.value - yesterdayTemperature.value;
 });
 </script>
 <template>
@@ -73,36 +50,6 @@ const temperatureChangeYearOverYear = computed<number | undefined>(() => {
                     gap?.toFixed(1) === "0.0" ? "" : gap?.toFixed(1) + "°C "
                 }}vs normales 1991-2020
             </template>
-        </template>
-        <template #variation>
-            <UIcon
-                v-if="(temperatureChangeYearOverYear ?? 0) < 0"
-                name="i-lucide-arrow-down-right font-semibold"
-                class="text-blue-600"
-            />
-            <UIcon
-                v-if="(temperatureChangeYearOverYear ?? 0) > 0"
-                name="i-lucide-arrow-up-right font-semibold"
-                class="text-red-450"
-            />
-            <span
-                v-if="temperatureChangeYearOverYear?.toFixed(1) !== '0.0'"
-                class="text-sm font-semibold"
-                :class="
-                    (temperatureChangeYearOverYear ?? 0) <= 0
-                        ? 'text-blue-600'
-                        : 'text-red-450'
-                "
-            >
-                {{ temperatureChangeYearOverYear?.toFixed(1) }}°C
-            </span>
-            <span v-else class="text-sm font-semibold text-blue-600">=</span>
-            vs
-            {{
-                toValue(yesterdayLastYear).toLocaleDateString("fr-FR", {
-                    dateStyle: "long",
-                })
-            }}
         </template>
     </Card>
 </template>
