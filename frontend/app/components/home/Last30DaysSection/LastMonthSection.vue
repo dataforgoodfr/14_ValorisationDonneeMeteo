@@ -2,7 +2,7 @@
 import type { TemperatureRecordsGraphParams, TypeRecords } from "~/types/api";
 import GoToDataLink from "../GoToDataLink.vue";
 import RecordsBattusExportBar from "../RecordsBattusExportBar.vue";
-import DeviationKpiPanel from "../../charts/DeviationKpiPanel.vue";
+import DeviationKpiPanel from "~/components/charts/DeviationKpiPanel.vue";
 import Section from "../Section.vue";
 import TemperatureRecord from "../TemperatureRecord.vue";
 import HomeDeviationMap from "./HomeDeviationMap.vue";
