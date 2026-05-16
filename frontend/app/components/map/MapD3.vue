@@ -61,7 +61,12 @@ const tooltipFormatter = (properties: {
     value: number;
     record_date: string | null;
     department: string | null;
-}) => formatDeviationMapTooltip(properties.station_name, properties.value);
+}) =>
+    formatDeviationMapTooltip(
+        properties.station_name,
+        properties.value,
+        DEVIATION_MAP_COLORS.stops,
+    );
 
 onMounted(async () => {
     await fetchStations();

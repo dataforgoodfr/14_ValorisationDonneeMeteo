@@ -39,5 +39,6 @@ const tooltipFormatter = (properties: {
         properties.station_name,
         properties.value,
         properties.record_date,
+        RECORDS_MAP_COLORS.stops,
     );
 </script>

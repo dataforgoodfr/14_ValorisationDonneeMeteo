@@ -339,6 +339,7 @@ const tooltipBg = computed(() => mapColors.value.background);
 <style scoped>
 :deep(.station-map-popup .maplibregl-popup-content) {
     background: v-bind(tooltipBg);
+    color: var(--ui-text-highlighted);
 }
 
 :deep(.station-map-popup .maplibregl-popup-tip) {

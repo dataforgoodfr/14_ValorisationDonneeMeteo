@@ -69,3 +69,10 @@ export const RECORDS_MAP_COLORS = {
     max: recordsMax,
     stops: makeColorStops(recordsMin, recordsMax),
 };
+
+export function getMapColor(value: number, stops: [number, string][]): string {
+    if (!stops.length) return "#888";
+    return stops.reduce((a, b) =>
+        Math.abs(b[0] - value) < Math.abs(a[0] - value) ? b : a,
+    )[1];
+}
