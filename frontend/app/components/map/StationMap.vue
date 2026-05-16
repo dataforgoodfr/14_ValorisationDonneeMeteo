@@ -65,10 +65,10 @@ const props = withDefaults(
         };
     }>(),
     {
-        height: "800px",
+        height: "600px",
         aspectRatio: undefined,
         showControls: true,
-        fitPadding: () => ({ top: -10, right: 50, bottom: 50, left: 40 }),
+        fitPadding: () => ({ top: 0, right: 50, bottom: 50, left: 40 }),
     },
 );
 
