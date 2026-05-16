@@ -126,6 +126,9 @@ select {
     --ui-primary: var(--ui-primary);
     --ui-secondary: var(--ui-secondary);
     --ui-error: var(--ui-error);
+}
+
+html.dark {
     --ui-bg: var(--color-dark-900);
     --ui-bg-elevated: var(--color-dark-850);
     --ui-bg-muted: var(--color-dark-850);
