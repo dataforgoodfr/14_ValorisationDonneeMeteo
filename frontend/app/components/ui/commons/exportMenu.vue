@@ -133,9 +133,8 @@ function exportAsHTML() {
     <div id="chart"></div>
     <${scriptTag}>
         const chart = echarts.init(document.getElementById('chart'));
-        const options = ${JSON.stringify(options)};
-        ${tooltipFormatterScript}
-        chart.setOption(options);
+        chart.setOption(${JSON.stringify(options)});
+        chart.setOption({ tooltip: { valueFormatter: function(v) { return typeof v === 'number' ? v.toFixed(1) : v; } } });
         window.addEventListener('resize', () => chart.resize());
     </${scriptTag}>
 </body>
