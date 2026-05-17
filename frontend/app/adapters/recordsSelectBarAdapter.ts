@@ -1,6 +1,14 @@
 import type { SelectBarAdapter } from "~/components/ui/commons/selectBar/types";
 import type { TemperatureRecordsGraphResponse } from "~/types/api";
 import { useRecordsChartStore } from "#imports";
+import { buildTerritoryPlots } from "~/utils/recordsChartUtils";
+import {
+    getRecordKindLabels,
+    buildPyramidRecordsCsv,
+    buildScatterRecordsCsv,
+} from "~/utils/recordsCsv";
+import { downloadCSV } from "~/utils/csv";
+import { useFormatFileName } from "~/composables/useFormatFilename";
 
 export const useRecordsSelectBarAdapter =
     (): SelectBarAdapter<TemperatureRecordsGraphResponse> => {
@@ -66,6 +74,73 @@ export const useRecordsSelectBarAdapter =
                 chartName: "records",
                 csvHeaders: [],
                 getCsvRows: () => undefined,
+                get htmlTooltipFormatter(): string | undefined {
+                    if (chartType.value !== "scatter") return undefined;
+                    return `function(params) {
+                        if (!Array.isArray(params)) params = [params];
+                        if (!params.length) return '';
+                        const data = params[0].value;
+                        if (!data) return '';
+                        const date = new Date(data.date).toLocaleDateString('fr-FR', {day:'2-digit',month:'2-digit',year:'numeric'});
+                        const lines = [date];
+                        params.forEach((p) => {
+                            const v = p.value;
+                            if (v && v.value != null) {
+                                lines.push((p.marker||'') + ' ' + (v.station||'') + ' : ' + v.value + '°C');
+                            }
+                        });
+                        return lines.join('<br/>');
+                    }`;
+                },
+                onExportCsv: () => {
+                    if (!import.meta.client) return;
+                    const data = processedRecordsData.value;
+                    if (!data) return;
+
+                    const { kindLabel, kindFileLabel } = getRecordKindLabels(
+                        recordKind.value,
+                    );
+
+                    if (chartType.value === "pyramid") {
+                        const territoryPlots = buildTerritoryPlots(
+                            selectedElements.value,
+                            data,
+                        );
+                        downloadCSV(
+                            buildPyramidRecordsCsv(
+                                territoryPlots,
+                                kindLabel,
+                                granularity.value,
+                            ),
+                            useFormatFileName(
+                                `records-pyramide-${kindFileLabel}`,
+                                granularity.value,
+                                "csv",
+                                pickedDateStart.value,
+                                pickedDateEnd.value,
+                            ),
+                        );
+                    } else {
+                        for (const type of ["hot", "cold"] as const) {
+                            const typeLabel =
+                                type === "hot" ? "chaleur" : "froid";
+                            downloadCSV(
+                                buildScatterRecordsCsv(
+                                    data.records,
+                                    type,
+                                    kindLabel,
+                                ),
+                                useFormatFileName(
+                                    `records-${typeLabel}-${kindFileLabel}`,
+                                    granularity.value,
+                                    "csv",
+                                    pickedDateStart.value,
+                                    pickedDateEnd.value,
+                                ),
+                            );
+                        }
+                    }
+                },
             },
         };
     };

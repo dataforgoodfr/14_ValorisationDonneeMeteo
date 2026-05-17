@@ -1,22 +1,32 @@
 import { describe, expect, test } from "vitest";
-import { buildRecordsCsv } from "./recordsCsv";
-import type { TemperatureRecordFlatEntry } from "~/types/api";
+import {
+    buildRecordsCsv,
+    getRecordKindLabels,
+    buildPyramidRecordsCsv,
+    buildScatterRecordsCsv,
+} from "./recordsCsv";
+import type {
+    TemperatureRecordFlatEntry,
+    TemperatureRecordsGraphRecord,
+} from "~/types/api";
 
-const makeRecord = (
+function makeRecord(
     overrides: Partial<TemperatureRecordFlatEntry> = {},
-): TemperatureRecordFlatEntry => ({
-    station_id: "75114001",
-    station_name: "Paris-Montsouris",
-    department: "75",
-    record_value: 42.6,
-    record_date: "2019-06-28",
-    lat: 0,
-    lon: 0,
-    alt: 75,
-    classe_recente: 1,
-    date_de_creation: "1872-01-01",
-    ...overrides,
-});
+): TemperatureRecordFlatEntry {
+    return {
+        station_id: "75114001",
+        station_name: "Paris-Montsouris",
+        department: "75",
+        record_value: 42.6,
+        record_date: "2019-06-28",
+        lat: 0,
+        lon: 0,
+        alt: 75,
+        classe_recente: 1,
+        date_de_creation: "1872-01-01",
+        ...overrides,
+    };
+}
 
 const HEADERS =
     "Station,Département,Record absolu (°C),Date du record,Classe,Altitude (m),Année de création";
@@ -64,6 +74,236 @@ describe("buildRecordsCsv", () => {
         const result = buildRecordsCsv([makeRecord()], "Record battu (°C)");
         expect(result.startsWith("Station,Département,Record battu (°C)")).toBe(
             true,
+        );
+    });
+
+    test("cas complet — plusieurs stations, virgule dans le nom, label personnalisé", () => {
+        const result = buildRecordsCsv(
+            [
+                makeRecord(),
+                makeRecord({
+                    station_name: "Lyon-Bron",
+                    department: "69",
+                    record_value: -15.2,
+                    record_date: "1985-01-05",
+                    alt: 200,
+                    classe_recente: 2,
+                    date_de_creation: "1920-03-15",
+                }),
+                makeRecord({
+                    station_name: "Saint-Jean, Haute-Loire",
+                    department: "43",
+                    record_value: 38.1,
+                    record_date: "2003-08-12",
+                    alt: 550,
+                    classe_recente: 3,
+                    date_de_creation: "1950-06-01",
+                }),
+            ],
+            "Record battu (°C)",
+        );
+        expect(result).toBe(
+            "Station,Département,Record battu (°C),Date du record,Classe,Altitude (m),Année de création\n" +
+                "Paris-Montsouris,75,42.6,2019-06-28,1,75,1872\n" +
+                "Lyon-Bron,69,-15.2,1985-01-05,2,200,1920\n" +
+                '"Saint-Jean, Haute-Loire",43,38.1,2003-08-12,3,550,1950',
+        );
+    });
+});
+
+describe("getRecordKindLabels", () => {
+    test("historical → battus", () => {
+        expect(getRecordKindLabels("historical")).toEqual({
+            kindLabel: "records battus",
+            kindFileLabel: "battus",
+        });
+    });
+
+    test("autre valeur → absolus", () => {
+        expect(getRecordKindLabels("absolute")).toEqual({
+            kindLabel: "records absolus",
+            kindFileLabel: "absolus",
+        });
+    });
+});
+
+function makePlot(name: string, hotDates: string[], coldDates: string[]) {
+    return {
+        name,
+        hot: hotDates.map((date) => ({ date, value: 40, station: "S" })),
+        cold: coldDates.map((date) => ({ date, value: -5, station: "S" })),
+    };
+}
+
+describe("buildPyramidRecordsCsv", () => {
+    test("headers corrects avec kindLabel", () => {
+        const csv = buildPyramidRecordsCsv(
+            [makePlot("IDF", ["2023-07"], [])],
+            "records battus",
+            "month",
+        );
+        expect(csv.split("\n")[0]).toBe(
+            "Territoire,Période,Records de chaleur (records battus),Records de froid (records battus)",
+        );
+    });
+
+    test("une ligne par période, triées", () => {
+        const csv = buildPyramidRecordsCsv(
+            [makePlot("IDF", ["2023-07"], ["2023-01"])],
+            "records battus",
+            "month",
+        );
+        const lines = csv.split("\n");
+        expect(lines).toHaveLength(3);
+        expect(lines[1]).toContain("2023-01");
+        expect(lines[2]).toContain("2023-07");
+    });
+
+    test("compte correctement chaud et froid par période", () => {
+        const csv = buildPyramidRecordsCsv(
+            [makePlot("IDF", ["2023-07", "2023-07"], ["2023-07"])],
+            "records battus",
+            "month",
+        );
+        const dataLine = csv.split("\n")[1];
+        expect(dataLine).toBe("IDF,2023-07,2,1");
+    });
+
+    test("nom de territoire avec virgule est entouré de guillemets", () => {
+        const csv = buildPyramidRecordsCsv(
+            [makePlot("Paris, IDF", ["2023-07"], [])],
+            "records battus",
+            "month",
+        );
+        expect(csv).toContain('"Paris, IDF"');
+    });
+
+    test("tableau vide — uniquement les en-têtes", () => {
+        const csv = buildPyramidRecordsCsv([], "records absolus", "year");
+        expect(csv).toBe(
+            "Territoire,Période,Records de chaleur (records absolus),Records de froid (records absolus)",
+        );
+    });
+
+    test("cas complet — plusieurs territoires, périodes mixtes, virgule dans le nom", () => {
+        const plots = [
+            {
+                name: "IDF",
+                hot: [
+                    { date: "2023-06-15", value: 42, station: "Paris" },
+                    { date: "2023-06-20", value: 41, station: "Versailles" },
+                    { date: "2023-07-10", value: 40, station: "Paris" },
+                ],
+                cold: [
+                    { date: "2023-01-05", value: -5, station: "Paris" },
+                    { date: "2023-07-01", value: -1, station: "Paris" },
+                ],
+            },
+            {
+                name: "Paris, Est",
+                hot: [{ date: "2023-01-15", value: 15, station: "Gare" }],
+                cold: [{ date: "2023-06-01", value: 10, station: "Gare" }],
+            },
+        ];
+        const csv = buildPyramidRecordsCsv(plots, "records battus", "month");
+        expect(csv).toBe(
+            "Territoire,Période,Records de chaleur (records battus),Records de froid (records battus)\n" +
+                "IDF,2023-01,0,1\n" +
+                "IDF,2023-06,2,0\n" +
+                "IDF,2023-07,1,1\n" +
+                '"Paris, Est",2023-01,1,0\n' +
+                '"Paris, Est",2023-06,0,1',
+        );
+    });
+});
+
+function makeGraphRecord(
+    overrides: Partial<TemperatureRecordsGraphRecord> = {},
+): TemperatureRecordsGraphRecord {
+    return {
+        date: "2023-07-14",
+        station_id: "75001",
+        station_name: "Paris",
+        department: "75",
+        type_records: "hot",
+        valeur: 42.1,
+        ...overrides,
+    };
+}
+
+describe("buildScatterRecordsCsv", () => {
+    test("header chaleur correct", () => {
+        const csv = buildScatterRecordsCsv([], "hot", "records battus");
+        expect(csv).toBe(
+            "Date,Température record de chaleur (records battus) (°C),Station,Département",
+        );
+    });
+
+    test("header froid correct", () => {
+        const csv = buildScatterRecordsCsv([], "cold", "records absolus");
+        expect(csv).toBe(
+            "Date,Température record de froid (records absolus) (°C),Station,Département",
+        );
+    });
+
+    test("filtre uniquement les records hot", () => {
+        const records = [
+            makeGraphRecord({ type_records: "hot", date: "2023-07-14" }),
+            makeGraphRecord({ type_records: "cold", date: "2023-01-10" }),
+        ];
+        const csv = buildScatterRecordsCsv(records, "hot", "records battus");
+        expect(csv).toContain("2023-07-14");
+        expect(csv).not.toContain("2023-01-10");
+    });
+
+    test("filtre uniquement les records cold", () => {
+        const records = [
+            makeGraphRecord({ type_records: "hot", date: "2023-07-14" }),
+            makeGraphRecord({ type_records: "cold", date: "2023-01-10" }),
+        ];
+        const csv = buildScatterRecordsCsv(records, "cold", "records battus");
+        expect(csv).toContain("2023-01-10");
+        expect(csv).not.toContain("2023-07-14");
+    });
+
+    test("nom de station avec virgule est entouré de guillemets", () => {
+        const csv = buildScatterRecordsCsv(
+            [makeGraphRecord({ station_name: "Paris, Gare" })],
+            "hot",
+            "records battus",
+        );
+        expect(csv).toContain('"Paris, Gare"');
+    });
+
+    test("cas complet — filtre hot, virgule dans le nom, cold ignoré", () => {
+        const records: TemperatureRecordsGraphRecord[] = [
+            makeGraphRecord({
+                date: "2023-07-14",
+                station_name: "Paris",
+                department: "75",
+                type_records: "hot",
+                valeur: 42.1,
+            }),
+            makeGraphRecord({
+                date: "2023-08-02",
+                station_name: "Gare, Lyon",
+                department: "69",
+                type_records: "hot",
+                valeur: 38.5,
+            }),
+            makeGraphRecord({
+                date: "2023-01-10",
+                station_name: "Brest",
+                department: "29",
+                type_records: "cold",
+                valeur: -3.2,
+            }),
+        ];
+        const csv = buildScatterRecordsCsv(records, "hot", "records battus");
+        expect(csv).toBe(
+            "Date,Température record de chaleur (records battus) (°C),Station,Département\n" +
+                "2023-07-14,42.1,Paris,75\n" +
+                '2023-08-02,38.5,"Gare, Lyon",69',
         );
     });
 });
