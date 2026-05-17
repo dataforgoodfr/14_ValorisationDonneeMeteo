@@ -128,12 +128,12 @@ function exportCSV() {
                             v-model="selectBarAdapter.recordKind!.value"
                             :items="[
                                 {
-                                    label: 'Records absolus',
-                                    value: 'absolute',
-                                },
-                                {
                                     label: 'Records battus',
                                     value: 'historical',
+                                },
+                                {
+                                    label: 'Records absolus',
+                                    value: 'absolute',
                                 },
                             ]"
                             class="w-fit"

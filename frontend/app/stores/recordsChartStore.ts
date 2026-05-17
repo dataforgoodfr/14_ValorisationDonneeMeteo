@@ -134,7 +134,7 @@ export const useRecordsChartStore = defineStore("recordChartStore", () => {
         error,
     } = useTemperatureRecordsGraph(params);
 
-    const recordKind = ref<"absolute" | "historical">("absolute");
+    const recordKind = ref<"absolute" | "historical">("historical");
 
     const processedRecordsData = computed<
         TemperatureRecordsGraphResponse | undefined
