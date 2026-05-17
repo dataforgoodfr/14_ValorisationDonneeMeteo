@@ -4,48 +4,6 @@ import { MONTH_SHORT } from "~/constants/months";
 import { XX } from "~/utils/string";
 import { ITN_SERIES } from "~/constants/itn";
 
-interface BaselineRow {
-    baseline_mean?: number;
-    baseline_min?: number;
-    baseline_band?: number;
-    baseline_std_dev_lower?: number;
-    baseline_std_dev_band?: number;
-}
-
-function isBaselineRow(v: unknown): v is BaselineRow {
-    return typeof v === "object" && v !== null && !Array.isArray(v);
-}
-
-interface TooltipParam {
-    value: unknown;
-    marker?: unknown;
-}
-
-function formatBaselineLines(
-    param: TooltipParam,
-    fmt: (v: number) => string,
-): string[] {
-    if (!isBaselineRow(param.value)) return [];
-    const row = param.value;
-    const lines: string[] = [];
-    if (row.baseline_mean !== undefined)
-        lines.push(
-            `${String(param.marker ?? "")}${ITN_SERIES.baseline} : ${fmt(row.baseline_mean)}`,
-        );
-    if (row.baseline_min !== undefined && row.baseline_band !== undefined)
-        lines.push(
-            `${ITN_SERIES.extremes} : [${fmt(row.baseline_min)} – ${fmt(row.baseline_min + row.baseline_band)}]`,
-        );
-    if (
-        row.baseline_std_dev_lower !== undefined &&
-        row.baseline_std_dev_band !== undefined
-    )
-        lines.push(
-            `${ITN_SERIES.stdDev} : [${fmt(row.baseline_std_dev_lower)} – ${fmt(row.baseline_std_dev_lower + row.baseline_std_dev_band)}]`,
-        );
-    return lines;
-}
-
 export function formatContinuousAxisLabel(value: number): string {
     const date = new Date(value);
     return `${XX(date.getDate())}-${MONTH_SHORT[date.getMonth()]}`;
@@ -94,8 +52,19 @@ export function itnStackedTooltipFormatter(
     const fmt = (v: number) => `${v.toFixed(1)}°C`;
     const lines: string[] = [`<strong>${header}</strong>`];
 
-    const mfParam = params.find((p) => p.seriesName === ITN_SERIES.baseline);
-    if (mfParam) lines.push(...formatBaselineLines(mfParam, fmt));
+    const baselineParam = params.find(
+        (p) => p.seriesName === ITN_SERIES.baseline,
+    );
+    if (baselineParam) {
+        const yDimIndex = baselineParam.encode?.["y"]?.[0] ?? 1;
+        const val = Array.isArray(baselineParam.value)
+            ? baselineParam.value[yDimIndex]
+            : null;
+        if (typeof val === "number")
+            lines.push(
+                `${String(baselineParam.marker ?? "")}${ITN_SERIES.baseline} : ${fmt(val)}`,
+            );
+    }
 
     // One entry per selected year (inline data: [position, temperature])
     for (const p of params) {
@@ -108,7 +77,8 @@ export function itnStackedTooltipFormatter(
             ].includes(p.seriesName)
         )
             continue;
-        const val = Array.isArray(p.value) ? p.value[1] : null;
+        const yDimIndex = p.encode?.["y"]?.[0] ?? 1;
+        const val = Array.isArray(p.value) ? p.value[yDimIndex] : null;
         if (typeof val === "number")
             lines.push(
                 `${String(p.marker ?? "")}${p.seriesName} : ${fmt(val)}`,

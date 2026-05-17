@@ -187,10 +187,11 @@ function buildStackedOption(
             areaStyle: { color: itnColors.value.ecartType },
         },
         {
-            name: ITN_SERIES.temperature,
+            name: ITN_SERIES.baseline,
             type: "line",
             encode: { x: "position", y: "baseline_mean" },
             symbol: "none",
+            color: itnColors.value.baselineLine,
             lineStyle: { width: 2, color: itnColors.value.baselineLine },
             z: 5,
         },
@@ -253,7 +254,6 @@ function buildStackedOption(
         series: [...baselineSeries, ...yearSeries],
         legend: {
             data: [
-                ITN_SERIES.temperature,
                 ITN_SERIES.baseline,
                 ITN_SERIES.stdDev,
                 ITN_SERIES.extremes,
