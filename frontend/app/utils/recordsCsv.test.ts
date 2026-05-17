@@ -10,21 +10,23 @@ import type {
     TemperatureRecordsGraphRecord,
 } from "~/types/api";
 
-const makeRecord = (
+function makeRecord(
     overrides: Partial<TemperatureRecordFlatEntry> = {},
-): TemperatureRecordFlatEntry => ({
-    station_id: "75114001",
-    station_name: "Paris-Montsouris",
-    department: "75",
-    record_value: 42.6,
-    record_date: "2019-06-28",
-    lat: 0,
-    lon: 0,
-    alt: 75,
-    classe_recente: 1,
-    date_de_creation: "1872-01-01",
-    ...overrides,
-});
+): TemperatureRecordFlatEntry {
+    return {
+        station_id: "75114001",
+        station_name: "Paris-Montsouris",
+        department: "75",
+        record_value: 42.6,
+        record_date: "2019-06-28",
+        lat: 0,
+        lon: 0,
+        alt: 75,
+        classe_recente: 1,
+        date_de_creation: "1872-01-01",
+        ...overrides,
+    };
+}
 
 const HEADERS =
     "Station,Département,Record absolu (°C),Date du record,Classe,Altitude (m),Année de création";
@@ -125,11 +127,13 @@ describe("getRecordKindLabels", () => {
     });
 });
 
-const makePlot = (name: string, hotDates: string[], coldDates: string[]) => ({
-    name,
-    hot: hotDates.map((date) => ({ date, value: 40, station: "S" })),
-    cold: coldDates.map((date) => ({ date, value: -5, station: "S" })),
-});
+function makePlot(name: string, hotDates: string[], coldDates: string[]) {
+    return {
+        name,
+        hot: hotDates.map((date) => ({ date, value: 40, station: "S" })),
+        cold: coldDates.map((date) => ({ date, value: -5, station: "S" })),
+    };
+}
 
 describe("buildPyramidRecordsCsv", () => {
     test("headers corrects avec kindLabel", () => {
@@ -213,17 +217,19 @@ describe("buildPyramidRecordsCsv", () => {
     });
 });
 
-const makeGraphRecord = (
+function makeGraphRecord(
     overrides: Partial<TemperatureRecordsGraphRecord> = {},
-): TemperatureRecordsGraphRecord => ({
-    date: "2023-07-14",
-    station_id: "75001",
-    station_name: "Paris",
-    department: "75",
-    type_records: "hot",
-    valeur: 42.1,
-    ...overrides,
-});
+): TemperatureRecordsGraphRecord {
+    return {
+        date: "2023-07-14",
+        station_id: "75001",
+        station_name: "Paris",
+        department: "75",
+        type_records: "hot",
+        valeur: 42.1,
+        ...overrides,
+    };
+}
 
 describe("buildScatterRecordsCsv", () => {
     test("header chaleur correct", () => {
