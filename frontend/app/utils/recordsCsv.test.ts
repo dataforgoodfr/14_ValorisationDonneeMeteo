@@ -74,6 +74,39 @@ describe("buildRecordsCsv", () => {
             true,
         );
     });
+
+    test("cas complet — plusieurs stations, virgule dans le nom, label personnalisé", () => {
+        const result = buildRecordsCsv(
+            [
+                makeRecord(),
+                makeRecord({
+                    station_name: "Lyon-Bron",
+                    department: "69",
+                    record_value: -15.2,
+                    record_date: "1985-01-05",
+                    alt: 200,
+                    classe_recente: 2,
+                    date_de_creation: "1920-03-15",
+                }),
+                makeRecord({
+                    station_name: "Saint-Jean, Haute-Loire",
+                    department: "43",
+                    record_value: 38.1,
+                    record_date: "2003-08-12",
+                    alt: 550,
+                    classe_recente: 3,
+                    date_de_creation: "1950-06-01",
+                }),
+            ],
+            "Record battu (°C)",
+        );
+        expect(result).toBe(
+            "Station,Département,Record battu (°C),Date du record,Classe,Altitude (m),Année de création\n" +
+                "Paris-Montsouris,75,42.6,2019-06-28,1,75,1872\n" +
+                "Lyon-Bron,69,-15.2,1985-01-05,2,200,1920\n" +
+                '"Saint-Jean, Haute-Loire",43,38.1,2003-08-12,3,550,1950',
+        );
+    });
 });
 
 describe("getRecordKindLabels", () => {
@@ -147,6 +180,37 @@ describe("buildPyramidRecordsCsv", () => {
             "Territoire,Période,Records de chaleur (records absolus),Records de froid (records absolus)",
         );
     });
+
+    test("cas complet — plusieurs territoires, périodes mixtes, virgule dans le nom", () => {
+        const plots = [
+            {
+                name: "IDF",
+                hot: [
+                    { date: "2023-06-15", value: 42, station: "Paris" },
+                    { date: "2023-06-20", value: 41, station: "Versailles" },
+                    { date: "2023-07-10", value: 40, station: "Paris" },
+                ],
+                cold: [
+                    { date: "2023-01-05", value: -5, station: "Paris" },
+                    { date: "2023-07-01", value: -1, station: "Paris" },
+                ],
+            },
+            {
+                name: "Paris, Est",
+                hot: [{ date: "2023-01-15", value: 15, station: "Gare" }],
+                cold: [{ date: "2023-06-01", value: 10, station: "Gare" }],
+            },
+        ];
+        const csv = buildPyramidRecordsCsv(plots, "records battus", "month");
+        expect(csv).toBe(
+            "Territoire,Période,Records de chaleur (records battus),Records de froid (records battus)\n" +
+                "IDF,2023-01,0,1\n" +
+                "IDF,2023-06,2,0\n" +
+                "IDF,2023-07,1,1\n" +
+                '"Paris, Est",2023-01,1,0\n' +
+                '"Paris, Est",2023-06,0,1',
+        );
+    });
 });
 
 const makeGraphRecord = (
@@ -203,5 +267,37 @@ describe("buildScatterRecordsCsv", () => {
             "records battus",
         );
         expect(csv).toContain('"Paris, Gare"');
+    });
+
+    test("cas complet — filtre hot, virgule dans le nom, cold ignoré", () => {
+        const records: TemperatureRecordsGraphRecord[] = [
+            makeGraphRecord({
+                date: "2023-07-14",
+                station_name: "Paris",
+                department: "75",
+                type_records: "hot",
+                valeur: 42.1,
+            }),
+            makeGraphRecord({
+                date: "2023-08-02",
+                station_name: "Gare, Lyon",
+                department: "69",
+                type_records: "hot",
+                valeur: 38.5,
+            }),
+            makeGraphRecord({
+                date: "2023-01-10",
+                station_name: "Brest",
+                department: "29",
+                type_records: "cold",
+                valeur: -3.2,
+            }),
+        ];
+        const csv = buildScatterRecordsCsv(records, "hot", "records battus");
+        expect(csv).toBe(
+            "Date,Température record de chaleur (records battus) (°C),Station,Département\n" +
+                "2023-07-14,42.1,Paris,75\n" +
+                '2023-08-02,38.5,"Gare, Lyon",69',
+        );
     });
 });
