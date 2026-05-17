@@ -82,6 +82,10 @@ select {
     --ui-error: var(--color-red-450);
 }
 
+.dark .maplibregl-ctrl-icon {
+    filter: invert(1);
+}
+
 :root .dark {
     --color-red-900: var(--color-red-900);
     --color-red-200: var(--color-red-200);

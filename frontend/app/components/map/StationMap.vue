@@ -221,31 +221,7 @@ onMounted(async () => {
 
     if (props.showControls) {
         map.addControl(
-            {
-                onAdd(m) {
-                    const el = document.createElement("div");
-                    el.className = "maplibregl-ctrl maplibregl-ctrl-group";
-
-                    const zoomIn = document.createElement("button");
-                    zoomIn.type = "button";
-                    zoomIn.title = "Zoomer";
-                    zoomIn.setAttribute("aria-label", "Zoomer");
-                    zoomIn.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="29" height="29" viewBox="0 0 29 29" fill="currentColor"><path d="M14.5 8.5c-.75 0-1.5.75-1.5 1.5v3h-3c-.75 0-1.5.75-1.5 1.5S9.25 16 10 16h3v3c0 .75.75 1.5 1.5 1.5S16 19.75 16 19v-3h3c.75 0 1.5-.75 1.5-1.5S19.75 13 19 13h-3v-3c0-.75-.75-1.5-1.5-1.5"/></svg>`;
-                    zoomIn.onclick = () => m.zoomIn();
-
-                    const zoomOut = document.createElement("button");
-                    zoomOut.type = "button";
-                    zoomOut.title = "Dézoomer";
-                    zoomOut.setAttribute("aria-label", "Dézoomer");
-                    zoomOut.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="29" height="29" viewBox="0 0 29 29" fill="currentColor"><path d="M10 13c-.75 0-1.5.75-1.5 1.5S9.25 16 10 16h9c.75 0 1.5-.75 1.5-1.5S19.75 13 19 13z"/></svg>`;
-                    zoomOut.onclick = () => m.zoomOut();
-
-                    el.appendChild(zoomIn);
-                    el.appendChild(zoomOut);
-                    return el;
-                },
-                onRemove() {},
-            },
+            new maplibregl.NavigationControl({ showCompass: false }),
             "top-right",
         );
 
