@@ -118,9 +118,6 @@ function exportAsHTML() {
     if (!chartRef?.value) return;
     const options = chartRef.value.getOption();
     const scriptTag = "script";
-    const tooltipFormatterScript = exportConfig.htmlTooltipFormatter
-        ? `[options.tooltip].flat().filter(Boolean).forEach(function(t){ t.formatter = ${exportConfig.htmlTooltipFormatter}; });`
-        : "";
     const html = `<!DOCTYPE html>
 <html>
 <head>
