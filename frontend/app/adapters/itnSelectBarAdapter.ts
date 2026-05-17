@@ -74,7 +74,16 @@ export const useItnSelectBarAdapter = (): SelectBarAdapter<
                 "Température maximale observée sur la période 1991-2020 en °C ",
                 "Température minimale observée sur la période 1991-2020 en °C ",
             ],
-            getCsvRows: () => itnData.value?.time_series,
+            getCsvRows: () =>
+                itnData.value?.time_series.map((p) => ({
+                    date: p.date,
+                    temperature: p.temperature.toFixed(1),
+                    baseline_mean: p.baseline_mean.toFixed(1),
+                    baseline_std_dev_upper: p.baseline_std_dev_upper.toFixed(1),
+                    baseline_std_dev_lower: p.baseline_std_dev_lower.toFixed(1),
+                    baseline_max: p.baseline_max.toFixed(1),
+                    baseline_min: p.baseline_min.toFixed(1),
+                })),
         },
     };
 };

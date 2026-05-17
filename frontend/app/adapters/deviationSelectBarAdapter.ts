@@ -83,9 +83,9 @@ export const useDeviationSelectBarAdapter =
                             serie.data.map((point) => ({
                                 station_name: serie.station_name,
                                 date: point.date,
-                                deviation: point.deviation,
-                                temperature: point.temperature,
-                                baseline_mean: point.baseline_mean,
+                                deviation: point.deviation.toFixed(1),
+                                temperature: point.temperature.toFixed(1),
+                                baseline_mean: point.baseline_mean.toFixed(1),
                             })),
                         );
                 },

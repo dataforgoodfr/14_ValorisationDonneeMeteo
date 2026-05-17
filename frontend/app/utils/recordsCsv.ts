@@ -25,7 +25,7 @@ export function buildRecordsCsv(
             [
                 escapeCsvValue(s.station_name),
                 escapeCsvValue(s.department),
-                s.record_value,
+                s.record_value.toFixed(1),
                 s.record_date,
                 s.classe_recente,
                 s.alt,
