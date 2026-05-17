@@ -6,6 +6,7 @@ export function deviationCalendarTooltipFormatter(
     params: TooltipComponentFormatterCallbackParams,
     granularity: GranularityType,
     categories: Record<"xAxis" | "yAxis", string[]>,
+    vertical = false,
 ): string {
     if (!("data" in params) || !Array.isArray(params.data)) {
         return "";
@@ -19,10 +20,11 @@ export function deviationCalendarTooltipFormatter(
     // Reconstitue la date depuis les index d'axes
     const xLabel = categories.xAxis[xIndex] ?? String(xIndex);
     const yLabel = categories.yAxis[yIndex] ?? String(yIndex);
-    const dateStr =
-        granularity === "year"
-            ? `${xLabel} · ${yLabel}`
-            : `${yLabel}/${xLabel}`;
+    const dateStr = vertical
+        ? xLabel
+        : granularity === "year"
+          ? `${xLabel} · ${yLabel}`
+          : `${yLabel}/${xLabel}`;
 
     const col = val >= 0 ? TEMPERATURE_COLORS.hot : TEMPERATURE_COLORS.cold;
     const plusSign = val >= 0 ? "+" : "";

@@ -367,10 +367,15 @@ export function useDeviationCalendarOption(
         title: titles,
         tooltip: {
             formatter: (params: TooltipComponentFormatterCallbackParams) =>
-                deviationCalendarTooltipFormatter(params, granularity, {
-                    xAxis: xCategories,
-                    yAxis: yCategories,
-                }),
+                deviationCalendarTooltipFormatter(
+                    params,
+                    granularity,
+                    {
+                        xAxis: xCategories,
+                        yAxis: yCategories,
+                    },
+                    vertical,
+                ),
         },
         visualMap,
         grid: grids,
