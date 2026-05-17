@@ -359,7 +359,7 @@ export function useDeviationCalendarOption(
 
             const num = Number(val);
 
-            return `${num >= 0 ? "+" : ""}${num} °C`;
+            return `${num >= 0 ? "+" : ""}${num.toFixed(1)} °C`;
         },
     };
 
