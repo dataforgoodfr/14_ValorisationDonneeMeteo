@@ -134,8 +134,8 @@ function exportAsHTML() {
     <${scriptTag}>
         const chart = echarts.init(document.getElementById('chart'));
         const options = ${JSON.stringify(options)};
-        chart.setOption(options);
         ${tooltipFormatterScript}
+        chart.setOption(options);
         window.addEventListener('resize', () => chart.resize());
     </${scriptTag}>
 </body>
