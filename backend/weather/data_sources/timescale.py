@@ -645,13 +645,9 @@ class TimescaleTemperatureDeviationDailyDataSource(
 
         with connection.cursor() as cur:
             cur.execute(count_sql, params)
-            print(count_sql)
-            print(params)
             total_count = cur.fetchone()[0]
 
             cur.execute(page_sql, params)
-            print(page_sql)
-            print(params)
             columns = [col[0] for col in cur.description]
             rows = [dict(zip(columns, row, strict=False)) for row in cur.fetchall()]
 
