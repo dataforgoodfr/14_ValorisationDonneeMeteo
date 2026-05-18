@@ -80,9 +80,7 @@ POINTS DE VIGILANCE
 ===============================================================================
 */
 
-DROP MATERIALIZED VIEW IF EXISTS public.mv_baseline_station_daily_mean_1991_2020;
-
-CREATE MATERIALIZED VIEW public.mv_baseline_station_daily_mean_1991_2020 AS
+CREATE OR REPLACE VIEW public.v_baseline_station_daily_mean_1991_2020 AS
 
 WITH quotidienne_1991_2020 AS (
     SELECT
@@ -180,10 +178,3 @@ GROUP BY
     nd.month,
     nd.day
 HAVING COUNT(nd.daily_value) >= 24;
-
--- ============================================================================
--- INDEX
--- ============================================================================
-
-CREATE INDEX idx_mv_baseline_station_daily_mean
-ON public.mv_baseline_station_daily_mean_1991_2020 (station_code, month, day);
