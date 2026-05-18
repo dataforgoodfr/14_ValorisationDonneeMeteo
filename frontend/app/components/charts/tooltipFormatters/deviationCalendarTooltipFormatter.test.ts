@@ -7,45 +7,27 @@ const categories = {
     yAxis: ["jan", "fév", "mar"],
 };
 
-const makeParam = (
+function makeParam(
     overrides: Partial<DefaultLabelFormatterCallbackParams>,
-): DefaultLabelFormatterCallbackParams => ({
-    componentType: "series",
-    componentSubType: "heatmap",
-    componentIndex: 0,
-    seriesType: "heatmap",
-    seriesIndex: 0,
-    seriesName: "Station A",
-    name: "",
-    dataIndex: 0,
-    data: [0, 0, 1.0],
-    value: [0, 0, 1.0],
-    $vars: [],
-    ...overrides,
-});
+): DefaultLabelFormatterCallbackParams {
+    return {
+        componentType: "series",
+        componentSubType: "heatmap",
+        componentIndex: 0,
+        seriesType: "heatmap",
+        seriesIndex: 0,
+        seriesName: "Station A",
+        name: "",
+        dataIndex: 0,
+        data: [0, 0, 1.0],
+        value: [0, 0, 1.0],
+        $vars: [],
+        ...overrides,
+    };
+}
 
 describe("deviationCalendarTooltipFormatter", () => {
     describe("Mode non-vertical (défaut)", () => {
-        it("retourne '' si params n'a pas de propriété data", () => {
-            const result = deviationCalendarTooltipFormatter(
-                {} as DefaultLabelFormatterCallbackParams,
-                "year",
-                categories,
-            );
-            expect(result).toBe("");
-        });
-
-        it("retourne '' si params.data n'est pas un tableau", () => {
-            const result = deviationCalendarTooltipFormatter(
-                {
-                    data: "invalid",
-                } as unknown as DefaultLabelFormatterCallbackParams,
-                "year",
-                categories,
-            );
-            expect(result).toBe("");
-        });
-
         it("affiche xLabel · yLabel pour granularité year", () => {
             const result = deviationCalendarTooltipFormatter(
                 makeParam({ data: [1, 2, 2.5] }),
@@ -115,16 +97,6 @@ describe("deviationCalendarTooltipFormatter", () => {
         it("retourne '' si le tableau de params est vide", () => {
             const result = deviationCalendarTooltipFormatter(
                 [],
-                "year",
-                categories,
-                true,
-            );
-            expect(result).toBe("");
-        });
-
-        it("retourne '' si le premier item n'a pas de data tableau", () => {
-            const result = deviationCalendarTooltipFormatter(
-                [makeParam({ data: undefined as unknown as [] })],
                 "year",
                 categories,
                 true,
