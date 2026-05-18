@@ -15,7 +15,7 @@ export PGPASSWORD="$DB_PASSWORD"
 
 VIEWS_DIR="${ROOT_DIR}/sql/views"
 MV_QUOTIDIENNE_REALTIME_SQL="${ROOT_DIR}/sql/materialized_views/300_001_mv_quotidienne_realtime.sql"
-MV_FIRST_TEMPERATURE_DATE_SQL="${ROOT_DIR}/sql/materialized_views/100_002_mv_first_temperature_date.sql"
+MV_FIRST_TEMPERATURE_DATE_SQL="${ROOT_DIR}/sql/materialized_views/101_002_mv_first_temperature_date.sql"
 
 apply_sql_file() {
   local sql_path="$1"
