@@ -11,7 +11,7 @@ WITH quotidienne AS (
 ),
 
 combined_quotidienne AS (
-    SELECT station_code, date, tntxm, tn, tx FROM mv_quotidienne_realtime
+    SELECT station_code, date, tntxm, tn, tx FROM public.mv_quotidienne_realtime
     UNION ALL
     SELECT station_code, date, tntxm, tn, tx FROM quotidienne
 )

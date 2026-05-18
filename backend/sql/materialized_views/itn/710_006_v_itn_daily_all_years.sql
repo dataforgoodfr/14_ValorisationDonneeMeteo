@@ -2,15 +2,15 @@
 -- Équivalent de 610_001_mv_itn_daily_1991_2020_real.sql sans la restriction de période.
 -- Accepte les jours avec au moins 29 stations sur 30 (HAVING COUNT >= 29).
 -- Le filtre date >= 1946-01-01 est appliqué ici sur la colonne indexée de v_quotidienne.
-CREATE OR REPLACE VIEW v_itn_daily_all_years AS
+CREATE OR REPLACE VIEW public.v_itn_daily_all_years AS
 WITH source AS (
     SELECT
         q.station_code AS station_code,
         q.date,
         q.tntxm        AS tntxm
-    FROM v_quotidienne q
+    FROM public.v_quotidienne q
     WHERE q.station_code IN (
-        SELECT station_code FROM v_station_itn
+        SELECT station_code FROM public.v_station_itn
     )
     AND q.date >= '1947-01-01T00:00:00+00:00'
 ),

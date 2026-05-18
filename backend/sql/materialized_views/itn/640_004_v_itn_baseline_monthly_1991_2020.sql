@@ -1,10 +1,10 @@
-CREATE OR REPLACE VIEW v_itn_baseline_monthly_1991_2020 AS
+CREATE OR REPLACE VIEW public.v_itn_baseline_monthly_1991_2020 AS
 WITH monthly_series AS (
     SELECT
         year,
         month,
         AVG(itn) AS monthly_itn
-    FROM v_itn_daily_1991_2020_with_feb29
+    FROM public.v_itn_daily_1991_2020_with_feb29
     GROUP BY year, month
 )
 SELECT

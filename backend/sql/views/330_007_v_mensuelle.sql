@@ -10,7 +10,7 @@ WITH mensuelle_climato AS (
     WHERE "AAAAMM" < date_trunc('month', now()) - interval '2 months'
 ),
 combined_mensuelle AS (
-    SELECT station_code, date, tnn, txx, tmm FROM mv_mensuelle_realtime
+    SELECT station_code, date, tnn, txx, tmm FROM public.mv_mensuelle_realtime
     UNION ALL
     SELECT station_code, date, tnn, txx, tmm FROM mensuelle_climato
 )

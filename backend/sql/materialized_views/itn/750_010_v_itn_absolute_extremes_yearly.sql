@@ -2,12 +2,12 @@
 -- Le filtrage >= 1947 est effectué en amont dans mv_itn_daily_all_years.
 -- Les jours fictifs (29 fév synthétique) sont exclus : la moyenne annuelle ne porte que sur
 -- les jours réels, cohérence avec le calcul de la température observée dans le service.
-CREATE OR REPLACE VIEW v_itn_absolute_extremes_yearly AS
+CREATE OR REPLACE VIEW public.v_itn_absolute_extremes_yearly AS
 WITH yearly_itn AS (
     SELECT
         year,
         AVG(itn) AS yearly_mean
-    FROM v_itn_daily_all_years_with_feb29
+    FROM public.v_itn_daily_all_years_with_feb29
     WHERE NOT is_fictive AND year < EXTRACT(YEAR FROM NOW())
     GROUP BY year
 )

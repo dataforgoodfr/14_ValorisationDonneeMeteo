@@ -1,4 +1,4 @@
-CREATE OR REPLACE VIEW v_itn_daily_1991_2020_real AS
+CREATE OR REPLACE VIEW public.v_itn_daily_1991_2020_real AS
 
 WITH quotidienne_1991_2020 AS (
     SELECT

@@ -93,7 +93,7 @@ WITH quotidienne_1991_2020 AS (
     WHERE '1991-01-01T00:00:00+00:00' <= "AAAAMMJJ" AND "AAAAMMJJ" < '2021-01-01T00:00:00+00:00'
         AND "TNTXM" IS NOT NULL
         AND "NUM_POSTE" IN (
-            SELECT station_code FROM v_station_deviation
+            SELECT station_code FROM public.v_station_deviation
         )
 ),
 
