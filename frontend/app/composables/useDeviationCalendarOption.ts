@@ -290,7 +290,7 @@ export function useDeviationCalendarOption(
             gridIndex: index,
             data: yCategories,
             inverse: true,
-            splitArea: { show: true },
+            splitArea: { show: !vertical },
             axisTick: { show: false },
             axisLine: {
                 lineStyle: { color: mapColors.value.chartAccentColor },
@@ -328,12 +328,15 @@ export function useDeviationCalendarOption(
             yAxisIndex: index,
             data: heatmapData,
             label: { show: false },
-            emphasis: {
-                itemStyle: {
-                    shadowBlur: 10,
-                    shadowColor: "rgba(0,0,0,0.5)",
-                },
-            },
+            ...(vertical && { itemStyle: { borderWidth: 0 } }),
+            emphasis: vertical
+                ? { itemStyle: { borderWidth: 0, opacity: 0.65 } }
+                : {
+                      itemStyle: {
+                          shadowBlur: 10,
+                          shadowColor: "rgba(0,0,0,0.5)",
+                      },
+                  },
         });
     });
 
@@ -366,11 +369,18 @@ export function useDeviationCalendarOption(
     return {
         title: titles,
         tooltip: {
+            trigger: vertical ? "axis" : "item",
+            ...(vertical && { axisPointer: { type: "shadow" } }),
             formatter: (params: TooltipComponentFormatterCallbackParams) =>
-                deviationCalendarTooltipFormatter(params, granularity, {
-                    xAxis: xCategories,
-                    yAxis: yCategories,
-                }),
+                deviationCalendarTooltipFormatter(
+                    params,
+                    granularity,
+                    {
+                        xAxis: xCategories,
+                        yAxis: yCategories,
+                    },
+                    vertical,
+                ),
         },
         visualMap,
         grid: grids,
