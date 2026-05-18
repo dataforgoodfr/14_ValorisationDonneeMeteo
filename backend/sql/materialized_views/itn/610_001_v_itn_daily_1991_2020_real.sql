@@ -1,6 +1,4 @@
-DROP MATERIALIZED VIEW IF EXISTS mv_itn_daily_1991_2020_real;
-
-CREATE MATERIALIZED VIEW mv_itn_daily_1991_2020_real AS
+CREATE OR REPLACE VIEW v_itn_daily_1991_2020_real AS
 
 WITH quotidienne_1991_2020 AS (
     SELECT
@@ -109,14 +107,4 @@ SELECT
 FROM normalized n
 INNER JOIN valid_days v
     ON v.date = n.date
-GROUP BY n.date
-ORDER BY n.date;
-
-CREATE UNIQUE INDEX idx_mv_itn_daily_1991_2020_real_date
-    ON mv_itn_daily_1991_2020_real (date);
-
-CREATE INDEX idx_mv_itn_daily_1991_2020_real_month_day
-    ON mv_itn_daily_1991_2020_real (month, day_of_month);
-
-CREATE INDEX idx_mv_itn_daily_1991_2020_real_year
-    ON mv_itn_daily_1991_2020_real (year);
+GROUP BY n.date;
