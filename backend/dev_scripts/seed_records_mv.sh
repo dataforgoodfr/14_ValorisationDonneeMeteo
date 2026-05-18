@@ -39,7 +39,7 @@ fi
 
 export PGPASSWORD="${DB_PASSWORD}"
 
-MV_SQL="${ROOT_DIR}/sql/materialized_views/records/001_mv_records_battus.sql"
+MV_SQL="${ROOT_DIR}/sql/materialized_views/records/410_001_mv_records_battus.sql"
 
 [[ -f "${MV_SQL}" ]] || { echo "Missing file: ${MV_SQL}" >&2; exit 1; }
 

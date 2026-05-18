@@ -16,8 +16,9 @@ from weather.models import (
     ITNBaselineDaily19912020,
     ITNBaselineMonthly19912020,
     ITNBaselineYearly19912020,
-    QuotidienneITN,
-    Station,
+    Quotidienne,
+    QuotidienneDeviation,
+    StationQualifieeHexagone,
 )
 from weather.regions import departments_for_region
 from weather.services.national_indicator.protocols import (
@@ -123,9 +124,9 @@ def _station_daily_baseline_subquery():
 
 
 def _station_name_subquery():
-    return Station.objects.filter(station_code=OuterRef("station_code")).values("name")[
-        :1
-    ]
+    return StationQualifieeHexagone.objects.filter(
+        station_code=OuterRef("station_code")
+    ).values("name")[:1]
 
 
 def _daily_station_queryset(
@@ -135,7 +136,7 @@ def _daily_station_queryset(
     baseline_sq = _station_daily_baseline_subquery()
 
     return (
-        QuotidienneITN.objects.filter(
+        QuotidienneDeviation.objects.filter(
             date__gte=date_start,
             date__lte=date_end,
         )
@@ -182,7 +183,7 @@ class TimescaleNationalIndicatorObservedDataSource(NationalIndicatorObservedData
         self,
         query: DailySeriesQuery,
     ) -> list[NationalObservedPoint]:
-        qs = QuotidienneITN.objects.filter(
+        qs = Quotidienne.objects.filter(
             date__gte=query.date_start,
             date__lte=query.date_end,
             station_code__in=ITN_STATION_CODES_FOR_QUERY,
@@ -195,7 +196,7 @@ class TimescaleNationalIndicatorObservedDataSource(NationalIndicatorObservedData
             "date", "station_code", "tntxm"
         )
 
-        grouped: dict[dt.date, dict[str, float]] = defaultdict(dict)
+        grouped: dict[dt.date, dict[str, float]] = defaultdict(dict[str, float])
         for row in rows:
             value = row["tntxm"]
             if value is None:
@@ -321,7 +322,7 @@ class TimescaleTemperatureDeviationDailyDataSource(
 
         baseline_sq = self._baseline_subquery()
 
-        qs = QuotidienneITN.objects.filter(
+        qs = QuotidienneDeviation.objects.filter(
             date__gte=query.date_start,
             date__lte=query.date_end,
             station_code__in=query.station_ids,
@@ -345,9 +346,9 @@ class TimescaleTemperatureDeviationDailyDataSource(
 
         station_names = {
             s.station_code: s.name
-            for s in Station.objects.filter(station_code__in=query.station_ids).only(
-                "station_code", "name"
-            )
+            for s in StationQualifieeHexagone.objects.filter(
+                station_code__in=query.station_ids
+            ).only("station_code", "name")
         }
 
         grouped: dict[str, list[DailyDeviationPoint]] = defaultdict(list)
@@ -576,8 +577,8 @@ class TimescaleTemperatureDeviationDailyDataSource(
                     q.station_code AS station_id,
                     AVG(q.tntxm)::double precision AS temperature_mean,
                     AVG(b.baseline_mean_tntxm)::double precision AS baseline_mean
-                FROM v_quotidienne_itn q
-                    JOIN baseline_station_daily_mean_1991_2020 b
+                FROM v_quotidienne q
+                    JOIN mv_baseline_station_daily_mean_1991_2020 b
                         ON b.station_code = q.station_code
                             AND b.month = EXTRACT(MONTH FROM q.date)::int
                             AND b.day = EXTRACT(DAY FROM q.date)::int
@@ -781,8 +782,8 @@ class TimescaleTemperatureRecordsDataSource:
             + f"""
             SELECT COUNT(*)
             FROM ordered o
-            JOIN public.v_station s
-              ON s.station_code = o."NUM_POSTE"
+                INNER JOIN public.v_station_qualifiee_hexagone s
+                    ON s.station_code = o."NUM_POSTE"
             WHERE o.prev_val IS NULL
                OR o."{col}" {cmp} o.prev_val
         """
@@ -813,7 +814,8 @@ class TimescaleTemperatureRecordsDataSource:
                 s.annee_de_creation,
                 s.annee_de_fermeture
             FROM ordered o
-            JOIN public.v_station_records s ON s.station_code = o."NUM_POSTE"
+                INNER JOIN public.v_station_records s
+                    ON s.station_code = o."NUM_POSTE"
             WHERE (o.prev_val IS NULL OR o."{col}" {cmp} o.prev_val)
               AND s.classe_recente BETWEEN 1 AND 3
               {extra_where_sql}
@@ -923,7 +925,7 @@ class MaterializedTemperatureRecordsDataSource:
     matérialisée mv_records_battus. Temps de réponse < 10 ms.
 
     Pré-requis : la MV doit exister en base. La créer avec :
-        psql < backend/sql/materialized_views/records/001_mv_records_battus.sql
+        psql < backend/sql/materialized_views/records/410_001_mv_records_battus.sql
 
     Rafraîchissement après import de nouvelles données :
         python manage.py refresh_records_mv
@@ -1041,7 +1043,8 @@ class MaterializedTemperatureRecordsDataSource:
                 vs.annee_de_creation,
                 vs.annee_de_fermeture
             FROM public.mv_records_battus m
-            LEFT JOIN public.v_station_records vs ON vs.station_code = m.station_code
+                INNER JOIN public.v_station_records vs
+                     ON vs.station_code = m.station_code
             WHERE {where}
               AND vs.classe_recente BETWEEN 1 AND 3
             ORDER BY {order_sql}
@@ -1246,6 +1249,7 @@ class HybridTemperatureRecordsDataSource(TemperatureRecordsDataSource):
             station_filter_extra["df_max"] = request.date_de_fermeture_max.year
         station_filter_clauses = "\n              ".join(station_filter_parts)
 
+        # TODO: Use v_quotidienne instead of Quotidienne
         sql = f"""
             WITH mv_seeds AS (
                 SELECT station_code, {agg}(record_value) AS seed_val
@@ -1494,8 +1498,8 @@ class TimescaleTemperatureMinMaxDataSource(MinMaxGraphDataSource):
                 q."TN"          AS tmin,
                 q."TX"          AS tmax
             FROM public."Quotidienne" q
-            JOIN public.v_station s
-                ON s.station_code = q."NUM_POSTE"
+                INNER JOIN public.v_station_qualifiee_hexagone s
+                    ON s.station_code = q."NUM_POSTE"
             LEFT JOIN public.ref_department_region r
                 ON r.departement = s.departement
             WHERE {where_sql}
@@ -1692,7 +1696,13 @@ class TimescaleRecordsGraphDataSource(RecordsGraphDataSource):
         """
 
         sql_records = f"""
-            SELECT station_code, station_name, department, record_value, record_date, record_type
+            SELECT
+                station_code,
+                station_name,
+                department,
+                record_value,
+                record_date,
+                record_type
             FROM public.mv_records_battus
             WHERE {where}
             ORDER BY record_date

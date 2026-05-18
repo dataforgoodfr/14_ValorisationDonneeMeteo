@@ -17,5 +17,4 @@ SELECT
     MIN(monthly_mean) AS absolute_min,
     MAX(monthly_mean) AS absolute_max
 FROM monthly_itn
-GROUP BY month
-ORDER BY month;
+GROUP BY month;

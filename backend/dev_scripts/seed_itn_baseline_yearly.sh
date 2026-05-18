@@ -13,7 +13,7 @@ ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 export PGPASSWORD="$DB_PASSWORD"
 
 CSV_PATH="${1:-${ROOT_DIR}/db_data/itn_baseline_yearly_9120.csv}"
-TABLE_NAME="${TABLE_NAME:-mv_itn_baseline_yearly_1991_2020}"
+TABLE_NAME="${TABLE_NAME:-v_itn_baseline_yearly_1991_2020}"
 # Détecte si l’objet cible existe déjà et s’il s’agit d’une table ou d’une materialized view.
 # En dev, cet objet peut avoir été créé comme une materialized view (comportement prod),
 # mais on souhaite le remplacer par une table alimentée depuis un CSV.

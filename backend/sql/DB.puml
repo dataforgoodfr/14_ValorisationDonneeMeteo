@@ -1,0 +1,152 @@
+@startuml
+
+hide empty members
+
+package Météo-France {
+    object Station #lightblue
+    object InfrahoraireTempsReel #lightblue
+    object HoraireTempsReel #lightblue
+    object Horaire #lightblue
+    object Quotidienne #lightblue
+    object Mensuelle #lightblue
+}
+
+package DataClimat {
+}
+
+package DataClimat.Métadonnées {
+    object station_creation_date #lightblue
+    object mv_first_temperature_date #orange
+    mv_first_temperature_date : À refresh à chaque nouvelle station
+
+    Mensuelle <-- mv_first_temperature_date
+}
+
+package DataClimat.TempsRéel {
+    object mv_quotidienne_realtime #orange
+    object v_quotidienne #lightgreen
+    object mv_mensuelle_realtime #orange
+    object v_mensuelle #lightgreen
+
+    mv_quotidienne_realtime : À refresh à chaque nouvelle donnée infrahoraire
+    mv_mensuelle_realtime : À refresh à chaque nouvelle donnée infrahoraire
+
+    InfrahoraireTempsReel <-- mv_quotidienne_realtime
+    HoraireTempsReel <-- mv_quotidienne_realtime
+    Horaire <-- mv_quotidienne_realtime
+
+    mv_quotidienne_realtime <-- v_quotidienne
+    Quotidienne <-- v_quotidienne
+
+    v_quotidienne <-- mv_mensuelle_realtime
+
+    mv_mensuelle_realtime <-- v_mensuelle
+    Mensuelle <-- v_mensuelle
+}
+
+package DataClimat.FiltreQualité {
+    object v_station_qualifiee_hexagone #lightgreen
+    object v_station_classe_1234 #lightgreen
+    object v_station_classe_123 #lightgreen
+
+    mv_first_temperature_date <-- v_station_qualifiee_hexagone
+    station_creation_date <-- v_station_qualifiee_hexagone
+    Station <-- v_station_qualifiee_hexagone
+
+    v_station_qualifiee_hexagone <-- v_station_classe_1234
+    v_station_classe_1234 <-- v_station_classe_123
+}
+
+package DataClimat.ITN {
+    object v_station_itn #lightgreen
+
+    v_station_qualifiee_hexagone <-- v_station_itn
+}
+
+package DataClimat.ITN.Normales {
+    object mv_itn_daily_1991_2020_real #orange
+    object v_itn_daily_1991_2020_with_feb29 #lightgreen
+    object v_itn_baseline_daily_1991_2020 #lightgreen
+    object v_itn_baseline_monthly_1991_2020 #lightgreen
+    object v_itn_baseline_yearly_1991_2020 #lightgreen
+
+    mv_itn_daily_1991_2020_real : Pas de refresh
+
+    v_station_itn <-- mv_itn_daily_1991_2020_real
+    Quotidienne <-- mv_itn_daily_1991_2020_real
+
+    mv_itn_daily_1991_2020_real <-- v_itn_daily_1991_2020_with_feb29
+    v_itn_daily_1991_2020_with_feb29 <-- v_itn_baseline_daily_1991_2020
+    v_itn_daily_1991_2020_with_feb29 <-- v_itn_baseline_monthly_1991_2020
+    v_itn_daily_1991_2020_with_feb29 <-- v_itn_baseline_yearly_1991_2020
+}
+
+package DataClimat.ITN.Extrêmes {
+    object mv_itn_daily_all_years #orange
+    object v_itn_daily_all_years_with_feb29 #lightgreen
+    object v_itn_absolute_extremes_daily #lightgreen
+    object v_itn_absolute_extremes_monthly #lightgreen
+    object v_itn_absolute_extremes_yearly #lightgreen
+
+    mv_itn_daily_all_years : À refresh à chaque nouvelle donnée infrahoraire
+
+    v_station_itn <-- mv_itn_daily_all_years
+    v_quotidienne <-- mv_itn_daily_all_years
+
+    mv_itn_daily_all_years <-- v_itn_daily_all_years_with_feb29
+    v_itn_daily_all_years_with_feb29 <-- v_itn_absolute_extremes_daily
+    v_itn_absolute_extremes_daily <-- v_itn_absolute_extremes_monthly
+    v_itn_absolute_extremes_monthly <-- v_itn_absolute_extremes_yearly
+}
+
+package DataClimat.Écart-Normales {
+    object v_station_deviation #lightgreen
+    object v_quotidienne_deviation #lightgreen
+    object mv_baseline_station_daily_mean_1991_2020 #orange
+
+    mv_baseline_station_daily_mean_1991_2020 : À refresh à chaque nouvelle station
+
+    v_station_classe_1234 <-- v_station_deviation
+
+    v_station_deviation <-- mv_baseline_station_daily_mean_1991_2020
+    Quotidienne <-- mv_baseline_station_daily_mean_1991_2020
+
+    v_station_deviation <-- v_quotidienne_deviation
+    v_quotidienne <-- v_quotidienne_deviation
+}
+
+package DataClimat.Records {
+    object v_station_records #lightgreen
+
+    v_station_classe_123 <-- v_station_records
+}
+
+package DataClimat.Records.Battus {
+    object mv_records_battus #orange
+
+    mv_records_battus : À refresh à chaque nouvelle station
+
+    v_station_records <-- mv_records_battus
+    Quotidienne <-- mv_records_battus
+}
+
+package DataClimat.Records.Absolus {
+    object mv_records_absolus_par_mois #orange
+    object v_records_absolus_par_saison #lightgreen
+    object v_records_absolus #lightgreen
+    object v_records_absolus_par_type #lightgreen
+
+    mv_records_absolus_par_mois : À refresh à chaque nouvelle donnée infrahoraire
+
+    v_station_records <-- mv_records_absolus_par_mois
+    v_mensuelle <-- mv_records_absolus_par_mois
+    mv_records_absolus_par_mois <-- v_records_absolus_par_saison
+    v_records_absolus_par_saison <-- v_records_absolus
+
+    v_station_records <-- v_records_absolus_par_type
+    mv_records_absolus_par_mois <-- v_records_absolus_par_type
+    v_records_absolus_par_saison <-- v_records_absolus_par_type
+    v_records_absolus <-- v_records_absolus_par_type
+}
+
+@enduml

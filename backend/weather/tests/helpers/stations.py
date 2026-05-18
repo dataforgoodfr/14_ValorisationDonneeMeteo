@@ -52,11 +52,14 @@ def insert_station(
         cur.execute(
             """
             INSERT INTO public."station_creation_date"
-                ("station_code", "annee_de_creation")
-            VALUES (%(code)s, %(annee)s)
+                   ("station_code", "date_de_creation")
+            VALUES (%(code)s,       %(date_de_creation)s)
             ON CONFLICT ("station_code") DO NOTHING
             """,
-            {"code": code, "annee": annee_de_creation},
+            {
+                "code": code,
+                "date_de_creation": dt.date(annee_de_creation, 1, 1),
+            },
         )
         cur.execute(
             """

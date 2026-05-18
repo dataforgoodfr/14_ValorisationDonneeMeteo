@@ -4,7 +4,7 @@ DRF Serializers for weather data models.
 
 from rest_framework import serializers
 
-from .models import Station
+from .models import StationQualifieeHexagone
 
 
 class StationSerializer(serializers.ModelSerializer):
@@ -15,7 +15,7 @@ class StationSerializer(serializers.ModelSerializer):
     poste_public = serializers.BooleanField(source="is_public", read_only=True)
 
     class Meta:
-        model = Station
+        model = StationQualifieeHexagone
         fields = [
             "code",
             "nom",

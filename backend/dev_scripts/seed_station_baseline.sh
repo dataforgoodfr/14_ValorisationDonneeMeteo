@@ -12,7 +12,7 @@ ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 export PGPASSWORD="$DB_PASSWORD"
 
 CSV_PATH="${1:-${ROOT_DIR}/db_data/baseline_stations_daily_mean_9120.csv}"
-TABLE_NAME="${TABLE_NAME:-baseline_station_daily_mean_1991_2020}"
+TABLE_NAME="${TABLE_NAME:-mv_baseline_station_daily_mean_1991_2020}"
 
 [[ -f "${CSV_PATH}" ]] || { echo "Missing CSV: ${CSV_PATH}" >&2; exit 1; }
 

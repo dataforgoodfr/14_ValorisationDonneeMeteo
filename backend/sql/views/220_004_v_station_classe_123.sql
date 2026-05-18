@@ -1,4 +1,4 @@
-CREATE OR REPLACE VIEW public.v_station_deviation AS
+CREATE OR REPLACE VIEW public.v_station_classe_123 AS
 SELECT
     s.station_code,
     s.name,
@@ -10,9 +10,10 @@ SELECT
     s.alt,
     s.is_public,
     s.classe_recente,
+    s.date_de_creation,
+    s.date_de_fermeture,
     s.annee_de_creation,
     s.annee_de_fermeture,
     s.first_temperature_date
-FROM public.v_station_classe_4 s
-WHERE s.first_temperature_date < '1997-01-01T00:00:00+00:00'
-ORDER BY s.station_code;
+FROM public.v_station_classe_1234 s
+WHERE s.classe_recente <= 3;

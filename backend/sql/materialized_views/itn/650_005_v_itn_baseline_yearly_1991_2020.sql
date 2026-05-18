@@ -1,11 +1,9 @@
-DROP MATERIALIZED VIEW IF EXISTS mv_itn_baseline_yearly_1991_2020;
-
-CREATE MATERIALIZED VIEW mv_itn_baseline_yearly_1991_2020 AS
+CREATE OR REPLACE VIEW v_itn_baseline_yearly_1991_2020 AS
 WITH yearly_series AS (
     SELECT
         year,
         AVG(itn) AS yearly_itn
-    FROM mv_itn_daily_1991_2020_with_feb29
+    FROM v_itn_daily_1991_2020_with_feb29
     GROUP BY year
 )
 SELECT

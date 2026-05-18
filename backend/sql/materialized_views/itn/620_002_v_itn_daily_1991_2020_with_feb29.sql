@@ -1,6 +1,4 @@
-DROP MATERIALIZED VIEW IF EXISTS mv_itn_daily_1991_2020_with_feb29;
-
-CREATE MATERIALIZED VIEW mv_itn_daily_1991_2020_with_feb29 AS
+CREATE OR REPLACE VIEW v_itn_daily_1991_2020_with_feb29 AS
 WITH feb29_fictive AS (
     SELECT
         NULL::date AS date,
@@ -26,5 +24,4 @@ FROM (
     SELECT * FROM mv_itn_daily_1991_2020_real
     UNION ALL
     SELECT * FROM feb29_fictive
-) x
-ORDER BY year, month, day_of_month, is_fictive;
+) x;

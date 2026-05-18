@@ -6,6 +6,9 @@ from weather.data_sources.temperature_records_fake import (
 )
 from weather.data_sources.timescale import _generate_buckets
 from weather.regions import departments_for_region
+from weather.services.records_graph.protocols import (
+    RecordsGraphDataSource,
+)
 from weather.services.records_graph.types import (
     RecordsGraphBucket,
     RecordsGraphRecord,
@@ -14,7 +17,7 @@ from weather.services.records_graph.types import (
 )
 
 
-class FakeRecordsGraphDataSource:
+class FakeRecordsGraphDataSource(RecordsGraphDataSource):
     """
     Data source fake pour le graphe de records.
     Agrège les fake records par bucket temporel.

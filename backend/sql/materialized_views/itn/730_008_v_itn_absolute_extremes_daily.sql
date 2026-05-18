@@ -7,5 +7,4 @@ SELECT
     MIN(itn) AS absolute_min,
     MAX(itn) AS absolute_max
 FROM v_itn_daily_all_years_with_feb29
-GROUP BY month, day_of_month
-ORDER BY month, day_of_month;
+GROUP BY month, day_of_month;

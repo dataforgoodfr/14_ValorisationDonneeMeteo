@@ -28,7 +28,7 @@ from weather.services.temperature_records.types import TemperatureRecordsRequest
 from weather.services.temperature_records.use_case import get_temperature_records
 
 from .filters import StationFilter
-from .models import Station
+from .models import StationQualifieeHexagone
 from .serializers import (
     ErrorSerializer,
     NationalIndicatorKpiQuerySerializer,
@@ -77,7 +77,7 @@ class StationViewSet(viewsets.ReadOnlyModelViewSet):
     Provides list and retrieve actions only (read-only).
     """
 
-    queryset = Station.objects.all()
+    queryset = StationQualifieeHexagone.objects.all()
     serializer_class = StationSerializer
     filterset_class = StationFilter
     search_fields = ["name", "departement", "station_code"]
@@ -233,13 +233,13 @@ class TemperatureRecordsAPIView(APIView):
             "- `period_type=all_time&type_records=hot&sort=-record_value,station_name`"
         ),
         parameters=[
-            {
-                "name": "sort",
-                "type": str,
-                "location": "query",
-                "required": False,
-                "default": "record_value",
-                "description": (
+            OpenApiParameter(
+                name="sort",
+                type=str,
+                location="query",
+                required=False,
+                default="record_value",
+                description=(
                     "Champ(s) de tri avec ordre. Supporte un ou plusieurs critères séparés par des virgules.\n\n"
                     "Format : `[field]` pour ascendant, `[-field]` pour descendant.\n\n"
                     "Champs disponibles :\n"
@@ -253,7 +253,7 @@ class TemperatureRecordsAPIView(APIView):
                     "- `record_value,station_name` : tri par valeur puis nom croissant\n"
                     "- `-record_value,station_name` : tri par valeur décroissante puis nom croissant"
                 ),
-            }
+            )
         ],
     )
     def get(self, request):

@@ -14,11 +14,19 @@ def insert_daily_baseline(
     with connection.cursor() as cursor:
         cursor.execute(
             """
-            INSERT INTO mv_itn_baseline_1991_2020
-                (month, day_of_month, sample_size, itn_mean, itn_stddev, itn_p20, itn_p80)
-            VALUES (%s, %s, %s, %s, %s, %s, %s)
+            INSERT INTO v_itn_baseline_daily_1991_2020
+                   (month,     day_of_month,     sample_size,     itn_mean,     itn_stddev,     itn_p20,     itn_p80)
+            VALUES (%(month)s, %(day_of_month)s, %(sample_size)s, %(itn_mean)s, %(itn_stddev)s, %(itn_p20)s, %(itn_p80)s)
             """,
-            [month, day, sample_size, mean, std, p20, p80],
+            {
+                "month": month,
+                "day_of_month": day,
+                "sample_size": sample_size,
+                "itn_mean": mean,
+                "itn_stddev": std,
+                "itn_p20": p20,
+                "itn_p80": p80,
+            },
         )
 
 
@@ -34,11 +42,18 @@ def insert_monthly_baseline(
     with connection.cursor() as cursor:
         cursor.execute(
             """
-            INSERT INTO mv_itn_baseline_monthly_1991_2020
-                (month, sample_size, itn_mean, itn_stddev, itn_p20, itn_p80)
-            VALUES (%s, %s, %s, %s, %s, %s)
+            INSERT INTO v_itn_baseline_monthly_1991_2020
+                   (month,     sample_size,     itn_mean,     itn_stddev,     itn_p20,     itn_p80)
+            VALUES (%(month)s, %(sample_size)s, %(itn_mean)s, %(itn_stddev)s, %(itn_p20)s, %(itn_p80)s)
             """,
-            [month, sample_size, mean, std, p20, p80],
+            {
+                "month": month,
+                "sample_size": sample_size,
+                "itn_mean": mean,
+                "itn_stddev": std,
+                "itn_p20": p20,
+                "itn_p80": p80,
+            },
         )
 
 
@@ -53,9 +68,15 @@ def insert_yearly_baseline(
     with connection.cursor() as cursor:
         cursor.execute(
             """
-            INSERT INTO mv_itn_baseline_yearly_1991_2020
-                (sample_size, itn_mean, itn_stddev, itn_p20, itn_p80)
-            VALUES (%s, %s, %s, %s, %s)
+            INSERT INTO v_itn_baseline_yearly_1991_2020
+                   (sample_size,     itn_mean,     itn_stddev,     itn_p20,     itn_p80)
+            VALUES (%(sample_size)s, %(itn_mean)s, %(itn_stddev)s, %(itn_p20)s, %(itn_p80)s)
             """,
-            [sample_size, mean, std, p20, p80],
+            {
+                "sample_size": sample_size,
+                "itn_mean": mean,
+                "itn_stddev": std,
+                "itn_p20": p20,
+                "itn_p80": p80,
+            },
         )

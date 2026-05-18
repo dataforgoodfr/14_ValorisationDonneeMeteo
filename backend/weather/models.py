@@ -27,7 +27,7 @@ class TimestampAsDateField(models.DateField):
         return value
 
 
-class Station(models.Model):
+class StationQualifieeHexagone(models.Model):
     station_code = models.CharField(primary_key=True, max_length=8)
     name = models.TextField()
 
@@ -42,19 +42,21 @@ class Station(models.Model):
 
     is_public = models.BooleanField(null=True, blank=True)
 
+    date_de_creation = TimestampAsDateField()
+    date_de_fermeture = TimestampAsDateField(null=True, blank=True)
     annee_de_creation = models.IntegerField()
     annee_de_fermeture = models.IntegerField(null=True, blank=True)
     first_temperature_date = TimestampAsDateField()
 
     class Meta:
         managed = False
-        db_table = "v_station"
+        db_table = "v_station_qualifiee_hexagone"
 
     def __str__(self) -> str:
         return f"{self.name} ({self.station_code})"
 
 
-class QuotidienneITN(models.Model):
+class Quotidienne(models.Model):
     pk = models.CompositePrimaryKey("station_code", "date")
 
     station_code = models.CharField(max_length=8)
@@ -63,7 +65,23 @@ class QuotidienneITN(models.Model):
 
     class Meta:
         managed = False
-        db_table = "v_quotidienne_itn"
+        db_table = "v_quotidienne"
+        ordering = ["date", "station_code"]
+
+    def __str__(self) -> str:
+        return f"{self.station_code} {self.date}"
+
+
+class QuotidienneDeviation(models.Model):
+    pk = models.CompositePrimaryKey("station_code", "date")
+
+    station_code = models.CharField(max_length=8)
+    date = TimestampAsDateField()
+    tntxm = models.FloatField()
+
+    class Meta:
+        managed = False
+        db_table = "v_quotidienne_deviation"
         ordering = ["date", "station_code"]
 
     def __str__(self) -> str:
@@ -81,7 +99,7 @@ class BaselineStationDailyMean19912020(models.Model):
 
     class Meta:
         managed = False
-        db_table = "baseline_station_daily_mean_1991_2020"
+        db_table = "mv_baseline_station_daily_mean_1991_2020"
         ordering = ["station_code", "month", "day"]
 
     def __str__(self) -> str:
@@ -97,7 +115,7 @@ class ITNBaselineDaily19912020(models.Model):
 
     class Meta:
         managed = False
-        db_table = "mv_itn_baseline_1991_2020"
+        db_table = "v_itn_baseline_daily_1991_2020"
         unique_together = ("month", "day_of_month")
 
     def __str__(self) -> str:
@@ -111,7 +129,7 @@ class ITNBaselineMonthly19912020(models.Model):
 
     class Meta:
         managed = False
-        db_table = "mv_itn_baseline_monthly_1991_2020"
+        db_table = "v_itn_baseline_monthly_1991_2020"
 
     def __str__(self) -> str:
         return f"month={self.month:02d}"
@@ -128,7 +146,7 @@ class ITNBaselineYearly19912020(models.Model):
 
     class Meta:
         managed = False
-        db_table = "mv_itn_baseline_yearly_1991_2020"
+        db_table = "v_itn_baseline_yearly_1991_2020"
 
     def __str__(self) -> str:
         return f"sample_size={self.sample_size}"

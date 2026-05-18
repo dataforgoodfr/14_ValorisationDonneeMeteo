@@ -1,4 +1,4 @@
-CREATE OR REPLACE VIEW public.v_quotidienne_itn AS
+CREATE OR REPLACE VIEW public.v_quotidienne AS
 WITH quotidienne AS (
     SELECT
         "NUM_POSTE" AS station_code,

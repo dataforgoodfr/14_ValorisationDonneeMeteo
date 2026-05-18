@@ -1,6 +1,6 @@
-DROP TABLE IF EXISTS public.baseline_station_daily_mean_1991_2020;
+DROP TABLE IF EXISTS public.mv_baseline_station_daily_mean_1991_2020;
 
-CREATE TABLE public.baseline_station_daily_mean_1991_2020 (
+CREATE TABLE public.mv_baseline_station_daily_mean_1991_2020 (
     station_code TEXT NOT NULL,
     month INTEGER NOT NULL,
     day INTEGER NOT NULL,
@@ -10,4 +10,4 @@ CREATE TABLE public.baseline_station_daily_mean_1991_2020 (
 );
 
 CREATE INDEX idx_baseline_station_daily_mean
-ON public.baseline_station_daily_mean_1991_2020 (station_code, month, day);
+ON public.mv_baseline_station_daily_mean_1991_2020 (station_code, month, day);

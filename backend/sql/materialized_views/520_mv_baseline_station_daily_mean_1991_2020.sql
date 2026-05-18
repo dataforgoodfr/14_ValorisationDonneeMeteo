@@ -35,7 +35,7 @@ PÉRIMÈTRE
 
 SOURCES
 -------
-- v_quotidienne_itn :
+- quotidienne_1991_2020 :
     - station_code
     - date
     - tntxm (température max journalière)
@@ -73,20 +73,28 @@ PERFORMANCE
 
 POINTS DE VIGILANCE
 -------------------
-- Cohérence des station_code entre v_quotidienne_itn et v_station_deviation
+- Cohérence des station_code entre quotidienne_1991_2020 et v_station_deviation
 - Complétude des données autour du 28/02 et 01/03
 - Hypothèse implicite : TNTXM disponible et fiable sur toute la période
 
 ===============================================================================
 */
 
-DROP MATERIALIZED VIEW IF EXISTS public.baseline_station_daily_mean_1991_2020;
+DROP MATERIALIZED VIEW IF EXISTS public.mv_baseline_station_daily_mean_1991_2020;
 
-CREATE MATERIALIZED VIEW public.baseline_station_daily_mean_1991_2020 AS
+CREATE MATERIALIZED VIEW public.mv_baseline_station_daily_mean_1991_2020 AS
 
-WITH allowed_stations AS (
-    SELECT s.station_code
-    FROM public.v_station_deviation s
+WITH quotidienne_1991_2020 AS (
+    SELECT
+        "NUM_POSTE" AS station_code,
+        "AAAAMMJJ" AS date,
+        "TNTXM" AS tntxm
+    FROM "Quotidienne"
+    WHERE '1991-01-01T00:00:00+00:00' <= "AAAAMMJJ" AND "AAAAMMJJ" < '2021-01-01T00:00:00+00:00'
+        AND "TNTXM" IS NOT NULL
+        AND "NUM_POSTE" IN (
+            SELECT station_code FROM v_station_deviation
+        )
 ),
 
 base AS (
@@ -97,12 +105,7 @@ base AS (
         EXTRACT(YEAR  FROM v.date)::int AS year,
         EXTRACT(MONTH FROM v.date)::int AS month,
         EXTRACT(DAY   FROM v.date)::int AS day
-    FROM public.v_quotidienne_itn v
-    WHERE v.date >= DATE '1991-01-01'
-      AND v.date <  DATE '2021-01-01'
-      AND v.station_code IN (
-          SELECT station_code FROM allowed_stations
-      )
+    FROM quotidienne_1991_2020 v
 ),
 
 normal_days AS (
@@ -182,5 +185,5 @@ HAVING COUNT(nd.daily_value) >= 24;
 -- INDEX
 -- ============================================================================
 
-CREATE INDEX idx_baseline_station_daily_mean
-ON public.baseline_station_daily_mean_1991_2020 (station_code, month, day);
+CREATE INDEX idx_mv_baseline_station_daily_mean
+ON public.mv_baseline_station_daily_mean_1991_2020 (station_code, month, day);

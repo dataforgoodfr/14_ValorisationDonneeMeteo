@@ -1,4 +1,4 @@
-CREATE OR REPLACE VIEW public.v_station_records AS
+CREATE OR REPLACE VIEW public.v_station_classe_1234 AS
 SELECT
     s.station_code,
     s.name,
@@ -10,9 +10,10 @@ SELECT
     s.alt,
     s.is_public,
     s.classe_recente,
+    s.date_de_creation,
+    s.date_de_fermeture,
     s.annee_de_creation,
     s.annee_de_fermeture,
     s.first_temperature_date
-FROM public.v_station_classe_3 s
-WHERE s.first_temperature_date <= now() - interval '50 year'
-ORDER BY s.station_code;
+FROM public.v_station_qualifiee_hexagone s
+WHERE s.classe_recente <= 4;

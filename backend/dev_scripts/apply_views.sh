@@ -14,8 +14,8 @@ ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 export PGPASSWORD="$DB_PASSWORD"
 
 VIEWS_DIR="${ROOT_DIR}/sql/views"
-MV_QUOTIDIENNE_REALTIME_SQL="${ROOT_DIR}/sql/materialized_views/001_mv_quotidienne_realtime.sql"
-MV_FIRST_TEMPERATURE_DATE_SQL="${ROOT_DIR}/sql/materialized_views/002_mv_first_temperature_date.sql"
+MV_QUOTIDIENNE_REALTIME_SQL="${ROOT_DIR}/sql/materialized_views/300_001_mv_quotidienne_realtime.sql"
+MV_FIRST_TEMPERATURE_DATE_SQL="${ROOT_DIR}/sql/materialized_views/100_002_mv_first_temperature_date.sql"
 
 apply_sql_file() {
   local sql_path="$1"
@@ -48,8 +48,8 @@ done
 
 echo "Sanity checks:"
 psql -h "$DB_HOST" -p "$DB_PORT" -U "$DB_USER" -d "$DB_NAME" <<'SQL'
-SELECT COUNT(*) AS v_station_count FROM public.v_station;
-SELECT COUNT(*) AS v_quotidienne_itn_count FROM public.v_quotidienne_itn;
+SELECT COUNT(*) AS v_station_count FROM public.v_station_qualifiee_hexagone;
+SELECT COUNT(*) AS v_quotidienne_itn_count FROM public.v_quotidienne;
 SQL
 
 echo "Views applied."

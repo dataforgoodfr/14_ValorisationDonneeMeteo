@@ -4,7 +4,7 @@ Django-filter definitions for weather API filtering.
 
 import django_filters
 
-from .models import Station
+from .models import StationQualifieeHexagone
 
 
 class StationFilter(django_filters.FilterSet):
@@ -29,7 +29,7 @@ class StationFilter(django_filters.FilterSet):
     lon_max = django_filters.NumberFilter(field_name="lon", lookup_expr="lte")
 
     class Meta:
-        model = Station
+        model = StationQualifieeHexagone
         fields = [
             "code",
             "departement",

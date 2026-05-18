@@ -1,5 +1,5 @@
 -- Vue : ITN journalier toutes années, avec 29 fév synthétique.
--- Équivalent de 002_mv_itn_daily_1991_2020_with_feb29.sql pour toutes les années.
+-- Équivalent de 620_002_v_itn_daily_1991_2020_with_feb29.sql pour toutes les années.
 -- Pour les années non bissextiles, le 29 fév est interpolé = (itn_28fév + itn_1mar) / 2.
 CREATE OR REPLACE VIEW v_itn_daily_all_years_with_feb29 AS
 WITH feb29_fictive AS (
@@ -27,5 +27,4 @@ FROM (
     SELECT * FROM mv_itn_daily_all_years
     UNION ALL
     SELECT * FROM feb29_fictive
-) x
-ORDER BY year, month, day_of_month, is_fictive;
+) x;

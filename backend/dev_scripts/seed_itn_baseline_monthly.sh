@@ -13,7 +13,7 @@ ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 export PGPASSWORD="$DB_PASSWORD"
 
 CSV_PATH="${1:-${ROOT_DIR}/db_data/itn_baseline_monthly_9120.csv}"
-TABLE_NAME="${TABLE_NAME:-mv_itn_baseline_monthly_1991_2020}"
+TABLE_NAME="${TABLE_NAME:-v_itn_baseline_monthly_1991_2020}"
 
 if [[ ! -f "$CSV_PATH" ]]; then
   echo "ERROR: CSV file not found: ${CSV_PATH}" >&2

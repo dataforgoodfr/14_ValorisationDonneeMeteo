@@ -90,10 +90,10 @@ Ce que fait le script
 - importe les données : stations, données quotidiennes
 - applique les vues SQL utilisées par l’API
 - importe les baselines climatologiques depuis des CSV :
-  - baseline ITN → mv_itn_baseline_1991_2020
-  - baseline ITN par mois → mv_itn_baseline_monthly_1991_2020
-  - baseline ITN par an → mv_itn_baseline_yearly_1991_2020
-  - baseline par station → baseline_station_daily_mean_1991_2020
+  - baseline ITN → v_itn_baseline_daily_1991_2020
+  - baseline ITN par mois → v_itn_baseline_monthly_1991_2020
+  - baseline ITN par an → v_itn_baseline_yearly_1991_2020
+  - baseline par station → mv_baseline_station_daily_mean_1991_2020
 
 ## Lancer le serveur
 
@@ -115,8 +115,8 @@ Station (table source)
 Quotidienne (table source)
 
       ↓
-v_station
-v_quotidienne_itn
+v_station_qualifiee_hexagone
+v_quotidienne
 
       ↓
 
@@ -155,7 +155,7 @@ npx swagger-ui-watcher openapi/target-specs/openapi.yaml
 La documentation est alors disponible sur `http://localhost:8000`
 
 | Endpoint                                 | Description                        |
-| ---------------------------------------- | ---------------------------------- |
+|------------------------------------------|------------------------------------|
 | `/api/v1/stations/`                      | Liste des stations meteo           |
 | `/api/v1/temperature/national-indicator` | Indicateur thermique national      |
 | `/api/v1/temperature/deviation`          | Écart à la normale                 |
@@ -262,7 +262,7 @@ uv run ruff format .
 Les variables d'environnement sont definies dans `.env` :
 
 | Variable               | Description        | Defaut                  |
-| ---------------------- | ------------------ | ----------------------- |
+|------------------------|--------------------|-------------------------|
 | `DEBUG`                | Mode debug         | `true`                  |
 | `SECRET_KEY`           | Cle secrete Django | -                       |
 | `DB_HOST`              | Hote PostgreSQL    | `localhost`             |

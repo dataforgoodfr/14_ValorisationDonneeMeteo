@@ -17,7 +17,7 @@ def insert_itn_daily(
     day_of_month: int,
     itn: float,
 ) -> None:
-    """Insère une ligne dans mv_itn_daily_all_years_with_feb29.
+    """Insère une ligne dans mv_itn_daily_all_years.
 
     Reproduit l'invariant de mv_itn_daily_all_years (006) : les données
     antérieures au 1er janvier 1947 sont ignorées.
@@ -29,7 +29,7 @@ def insert_itn_daily(
         cur.execute(
             """
             INSERT INTO public.mv_itn_daily_all_years
-                (date, year, month, day_of_month, itn)
+                   (date,     year,     month,     day_of_month,     itn)
             VALUES (%(date)s, %(year)s, %(month)s, %(day_of_month)s, %(itn)s)
             """,
             {
@@ -47,9 +47,9 @@ def insert_quotidienne(day: dt.date, code: str, tntxm: float) -> None:
         cur.execute(
             """
             INSERT INTO public."Quotidienne"
-                ("NUM_POSTE","NOM_USUEL","LAT","LON","ALTI","AAAAMMJJ","TNTXM")
+                ("NUM_POSTE", "NOM_USUEL", "LAT", "LON", "ALTI", "AAAAMMJJ", "TNTXM")
             VALUES
-                (%(code)s, %(name)s, 0, 0, 0, %(day)s, %(tntxm)s)
+                (%(code)s,    %(name)s,    0,     0,     0,      %(day)s,    %(tntxm)s)
             ON CONFLICT ("NUM_POSTE","AAAAMMJJ")
             DO UPDATE SET "TNTXM" = EXCLUDED."TNTXM"
             """,

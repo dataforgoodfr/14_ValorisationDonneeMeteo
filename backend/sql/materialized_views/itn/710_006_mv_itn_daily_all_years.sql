@@ -1,7 +1,7 @@
--- Vue matérialisée : ITN journalier sur toutes les années disponibles (>= 1947).
--- Équivalent de 001_mv_itn_daily_1991_2020_real.sql sans la restriction de période.
+-- Vue matérialisée : ITN journalier sur toutes les années disponibles (>= 1946).
+-- Équivalent de 610_001_mv_itn_daily_1991_2020_real.sql sans la restriction de période.
 -- Accepte les jours avec au moins 29 stations sur 30 (HAVING COUNT >= 29).
--- Le filtre date >= 1947-01-01 est appliqué ici sur la colonne indexée de v_quotidienne_itn.
+-- Le filtre date >= 1946-01-01 est appliqué ici sur la colonne indexée de v_quotidienne.
 DROP MATERIALIZED VIEW IF EXISTS mv_itn_daily_all_years;
 
 CREATE MATERIALIZED VIEW mv_itn_daily_all_years AS
@@ -10,24 +10,18 @@ WITH source AS (
         q.station_code AS station_code,
         q.date,
         q.tntxm        AS tntxm
-    FROM v_quotidienne_itn q
+    FROM v_quotidienne q
     WHERE q.station_code IN (
-        '47091001','20148001','25056001','33281001','73054001',
-        '29075001','14137001','36063001','63113001','16089001',
-        '21473001','72181001','59343001','69029001','13054001',
-        '26198001','54526001','44020001','58160001','06088001',
-        '30189001','45055001','75114001','64549001','66136001',
-        '86027001','35281001','67124001','31069001',
-        '51183001','51449002'
+        SELECT station_code FROM v_station_itn
     )
-    AND q.date >= DATE '1947-01-01'
+    AND q.date >= '1947-01-01T00:00:00+00:00'
 ),
 normalized AS (
     SELECT *
     FROM source
     WHERE NOT (
         station_code = CASE
-            WHEN date < DATE '2012-05-08' THEN '51449002'
+            WHEN date < '2012-05-08T00:00:00+00:00' THEN '51449002'
             ELSE '51183001'
         END
     )

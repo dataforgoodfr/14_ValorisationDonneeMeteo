@@ -68,27 +68,28 @@ class ReadTemperaturesDatabase:
         temp_daily: pandas.core.frame.DataFrame
               daily record of the min, max and 'mean' temperature
         """
-        sql_request = """SELECT station_code as id,
-                                station_code as code,
-                                name as nom
-                         FROM v_station
-                      """
+        sql_request = """
+            SELECT
+                station_code AS id,
+                station_code AS code,
+                name AS nom
+            FROM v_station_qualifiee_hexagone
+        """
         if stations_itn is not None:
             sql_request += f"""WHERE
                                 station_code in {stations_itn}"""
         stations = self.sql2pandas(sql_request)
 
-        sql_request = f"""SELECT
-                            \"NUM_POSTE\" as station_id,
-                            \"AAAAMMJJ\" as date,
-                            \"TX\" as temp_max,
-                            \"TN\" as temp_min,
-                            \"TNTXM\" as tntxm
-                         FROM
-                            \"Quotidienne\"
-                         WHERE
-                            \"NUM_POSTE\" in {tuple(stations["id"])}
-                     """
+        sql_request = f"""
+            SELECT
+                \"NUM_POSTE\" AS station_id,
+                \"AAAAMMJJ\" AS date,
+                \"TX\" AS temp_max,
+                \"TN\" AS temp_min,
+                \"TNTXM\" AS tntxm
+            FROM \"Quotidienne\"
+            WHERE \"NUM_POSTE\" in {tuple(stations["id"])}
+        """
         if (start_date is not None) and (end_date is not None):
             sql_request += (
                 f"and '{start_date}' <= \"AAAAMMJJ\" and \"AAAAMMJJ\" <= '{end_date}' "

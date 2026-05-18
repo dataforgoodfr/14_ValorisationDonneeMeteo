@@ -19,12 +19,12 @@ from weather.tests.helpers.stations import insert_station
 
 @pytest.mark.django_db
 def test_fetch_records_hot_month_happy_path():
-    station_code = "99001001"
+    station_code = "95001001"
 
     insert_station(
         station_code,
         "Station Records Test",
-        departement=99,
+        departement=95,
         lat=48.0,
         lon=2.0,
         alt=100.0,
@@ -60,7 +60,7 @@ def test_fetch_records_hot_month_happy_path():
     assert station_entries[-1].record_value == 42.6
     assert station_entries[-1].record_date == dt.date(2019, 7, 25)
     assert station_entries[0].station_name == "Station Records Test"
-    assert station_entries[0].department == "99"
+    assert station_entries[0].department == "95"
     assert station_entries[0].lat == 48.0
     assert station_entries[0].lon == 2.0
     assert station_entries[0].alt == 100.0
@@ -68,10 +68,10 @@ def test_fetch_records_hot_month_happy_path():
 
 @pytest.mark.django_db
 def test_fetch_records_cold_month_happy_path():
-    station_code = "99002001"
+    station_code = "95002001"
 
     insert_station(
-        station_code, "Station Cold Test", departement=99, lat=48.0, lon=2.0, alt=100.0
+        station_code, "Station Cold Test", departement=95, lat=48.0, lon=2.0, alt=100.0
     )
 
     insert_quotidienne(dt.date(1985, 1, 16), station_code, tx=0.0, tn=-20.5)
@@ -93,12 +93,12 @@ def test_fetch_records_cold_month_happy_path():
 
 @pytest.mark.django_db
 def test_fetch_records_season_aggregates_across_months():
-    station_code = "99003001"
+    station_code = "95003001"
 
     insert_station(
         station_code,
         "Station Season Test",
-        departement=99,
+        departement=95,
         lat=48.0,
         lon=2.0,
         alt=100.0,
@@ -137,10 +137,10 @@ def test_fetch_records_season_aggregates_across_months():
 
 @pytest.mark.django_db
 def test_fetch_records_all_time_returns_entries():
-    station_code = "99004001"
+    station_code = "95004001"
 
     insert_station(
-        station_code, "Station All Time", departement=99, lat=48.0, lon=2.0, alt=100.0
+        station_code, "Station All Time", departement=95, lat=48.0, lon=2.0, alt=100.0
     )
 
     # Ordre chronologique :
@@ -163,10 +163,10 @@ def test_fetch_records_all_time_returns_entries():
 
 @pytest.mark.django_db
 def test_fetch_records_returns_correct_types():
-    station_code = "99005001"
+    station_code = "95005001"
 
     insert_station(
-        station_code, "Station Types Test", departement=99, lat=48.0, lon=2.0, alt=100.0
+        station_code, "Station Types Test", departement=95, lat=48.0, lon=2.0, alt=100.0
     )
     insert_quotidienne(dt.date(2019, 7, 25), station_code, tx=42.6, tn=22.0)
 
@@ -192,8 +192,8 @@ def test_fetch_records_returns_correct_types():
 
 @pytest.mark.django_db
 def test_fetch_records_pagination_logic():
-    station_code = "99006001"
-    insert_station(station_code, "Station Pagination", departement=99)
+    station_code = "95006001"
+    insert_station(station_code, "Station Pagination", departement=95)
 
     insert_quotidienne(dt.date(2000, 1, 1), station_code, tx=10.0, tn=0.0)
     insert_quotidienne(dt.date(2001, 1, 1), station_code, tx=20.0, tn=0.0)
@@ -221,8 +221,8 @@ def test_fetch_records_pagination_logic():
 @pytest.mark.django_db
 def test_fetch_records_pagination_limit_and_offset():
     """Teste que la pagination (page/page_size) fonctionne comme limit/offset."""
-    station_code = "99008001"
-    insert_station(station_code, "Station Pagination", departement=99)
+    station_code = "95008001"
+    insert_station(station_code, "Station Pagination", departement=95)
 
     #  insert 3 records
     insert_quotidienne(dt.date(2000, 1, 1), station_code, tx=10.0, tn=0.0)
@@ -272,10 +272,10 @@ def test_fetch_records_sorting_by_value_desc():
 @pytest.mark.django_db
 def test_fetch_records_sorting_by_station_name_desc():
     """Teste le tri inversé sur un champ texte (important pour valider ta logique chr(255-ord))."""
-    s1 = "99010001"
-    s2 = "99010002"
-    insert_station(s1, "Antibes", departement=6)
-    insert_station(s2, "Zubiri", departement=99)
+    s1 = "55001001"
+    s2 = "62906001"
+    insert_station(s1, "ABAINVILLE", departement=55)
+    insert_station(s2, "ZUTKERQUE", departement=62)
 
     insert_quotidienne(dt.date(2020, 1, 1), s1, tx=20.0, tn=0.0)
     insert_quotidienne(dt.date(2020, 1, 1), s2, tx=20.0, tn=0.0)
@@ -288,7 +288,7 @@ def test_fetch_records_sorting_by_station_name_desc():
     result = ds.fetch_records(req)
 
     names = [e.station_name for e in result.entries if e.station_id in [s1, s2]]
-    assert names == ["Zubiri", "Antibes"]
+    assert names == ["ZUTKERQUE", "ABAINVILLE"]
 
 
 @pytest.mark.django_db

@@ -69,8 +69,17 @@ def _setup_two_stations(
     ):
         with connection.cursor() as cur:
             cur.execute(
-                'UPDATE public."station_creation_date" SET "annee_de_fermeture" = %(annee)s WHERE station_code = %(code)s',
-                {"annee": annee, "code": code},
+                """
+                UPDATE public."station_creation_date"
+                SET "date_de_fermeture" = %(date_de_fermeture)s
+                WHERE station_code = %(code)s
+                """,
+                {
+                    "date_de_fermeture": dt.date(annee, 1, 1)
+                    if annee is not None
+                    else None,
+                    "code": code,
+                },
             )
 
 
@@ -216,7 +225,7 @@ def test_fetch_station_overview_filters_by_date_de_creation_min():
 @pytest.mark.django_db
 def test_fetch_station_overview_fermeture_max_excludes_open_stations():
     """
-    GIVEN  STATION_ID_1 fermée en 2000, STATION_ID_2 toujours ouverte (annee_de_fermeture NULL)
+    GIVEN  STATION_ID_1 fermée en 2000, STATION_ID_2 toujours ouverte (date_de_fermeture NULL)
     WHEN   date_de_fermeture_max=2010-01-01
     THEN   Seule STATION_ID_1 (fermée en 2000 ≤ 2010) est retournée ;
            STATION_ID_2 (NULL) est exclue car on cherche les fermées avant la date
@@ -235,8 +244,15 @@ def test_fetch_station_overview_fermeture_max_excludes_open_stations():
 
     with connection.cursor() as cur:
         cur.execute(
-            'UPDATE public."station_creation_date" SET "annee_de_fermeture" = %(annee)s WHERE station_code = %(code)s',
-            {"annee": 2000, "code": STATION_ID_1},
+            """
+            UPDATE public."station_creation_date"
+            SET "date_de_fermeture" = %(date_de_fermeture)s
+            WHERE station_code = %(code)s
+            """,
+            {
+                "date_de_fermeture": dt.date(2000, 1, 1),
+                "code": STATION_ID_1,
+            },
         )
 
     result = TimescaleTemperatureDeviationDailyDataSource().fetch_station_overview(
@@ -273,8 +289,15 @@ def test_fetch_station_overview_fermeture_min_alone_includes_open_stations():
 
     with connection.cursor() as cur:
         cur.execute(
-            'UPDATE public."station_creation_date" SET "annee_de_fermeture" = %(annee)s WHERE station_code = %(code)s',
-            {"annee": 1990, "code": STATION_ID_1},
+            """
+            UPDATE public."station_creation_date"
+            SET "date_de_fermeture" = %(date_de_fermeture)s
+            WHERE station_code = %(code)s
+            """,
+            {
+                "date_de_fermeture": dt.date(1990, 1, 1),
+                "code": STATION_ID_1,
+            },
         )
 
     result = TimescaleTemperatureDeviationDailyDataSource().fetch_station_overview(
@@ -311,8 +334,15 @@ def test_fetch_station_overview_fermeture_min_and_max_excludes_open_stations():
 
     with connection.cursor() as cur:
         cur.execute(
-            'UPDATE public."station_creation_date" SET "annee_de_fermeture" = %(annee)s WHERE station_code = %(code)s',
-            {"annee": 2005, "code": STATION_ID_1},
+            """
+            UPDATE public."station_creation_date"
+            SET "date_de_fermeture" = %(date_de_fermeture)s
+            WHERE station_code = %(code)s
+            """,
+            {
+                "date_de_fermeture": dt.date(2005, 1, 1),
+                "code": STATION_ID_1,
+            },
         )
 
     result = TimescaleTemperatureDeviationDailyDataSource().fetch_station_overview(
