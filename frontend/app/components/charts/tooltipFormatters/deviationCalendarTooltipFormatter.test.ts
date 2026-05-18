@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { deviationCalendarTooltipFormatter } from "./deviationCalendarTooltipFormatter";
-import type { CallbackDataParams } from "echarts/types/src/util/types";
+import type { DefaultLabelFormatterCallbackParams } from "echarts";
 
 const categories = {
     xAxis: ["2023", "2024", "2025"],
@@ -8,8 +8,8 @@ const categories = {
 };
 
 const makeParam = (
-    overrides: Partial<CallbackDataParams>,
-): CallbackDataParams => ({
+    overrides: Partial<DefaultLabelFormatterCallbackParams>,
+): DefaultLabelFormatterCallbackParams => ({
     componentType: "series",
     componentSubType: "heatmap",
     componentIndex: 0,
@@ -28,7 +28,7 @@ describe("deviationCalendarTooltipFormatter", () => {
     describe("Mode non-vertical (défaut)", () => {
         it("retourne '' si params n'a pas de propriété data", () => {
             const result = deviationCalendarTooltipFormatter(
-                {} as CallbackDataParams,
+                {} as DefaultLabelFormatterCallbackParams,
                 "year",
                 categories,
             );
@@ -37,7 +37,9 @@ describe("deviationCalendarTooltipFormatter", () => {
 
         it("retourne '' si params.data n'est pas un tableau", () => {
             const result = deviationCalendarTooltipFormatter(
-                { data: "invalid" } as unknown as CallbackDataParams,
+                {
+                    data: "invalid",
+                } as unknown as DefaultLabelFormatterCallbackParams,
                 "year",
                 categories,
             );
