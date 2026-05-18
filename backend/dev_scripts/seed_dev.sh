@@ -86,6 +86,9 @@ bash "${ROOT_DIR}/dev_scripts/seed_itn_absolute_extremes.sh"
 echo "== Create records materialized view =="
 bash "${ROOT_DIR}/dev_scripts/seed_records_mv.sh"
 
+echo "== Create completeness materialized view =="
+bash "${ROOT_DIR}/dev_scripts/seed_completeness_mv.sh"
+
 echo "== Sanity checks =="
 "${psql_base[@]}" -c 'SELECT COUNT(*) AS ref_department_region_count FROM public.ref_department_region;'
 "${psql_base[@]}" -c 'SELECT * FROM public.ref_department_region ORDER BY departement LIMIT 5;'
@@ -94,6 +97,7 @@ echo "== Sanity checks =="
 "${psql_base[@]}" -c 'SELECT COUNT(*) AS station_classe_count FROM public.station_classe;'
 "${psql_base[@]}" -c 'SELECT COUNT(*) AS station_creation_date_count FROM public.station_creation_date;'
 "${psql_base[@]}" -c 'SELECT COUNT(*) AS v_station_count FROM public.v_station;'
+"${psql_base[@]}" -c 'SELECT COUNT(*) AS v_station_classe_retroactive_count FROM public.v_station_classe_retroactive;'
 "${psql_base[@]}" -c 'SELECT COUNT(*) AS v_quotidienne_itn_count FROM public.v_quotidienne_itn;'
 "${psql_base[@]}" -c 'SELECT MIN(date), MAX(date) FROM public.v_quotidienne_itn;'
 "${psql_base[@]}" -c 'SELECT COUNT(*) AS baseline_station_daily_mean_1991_2020_count FROM public.baseline_station_daily_mean_1991_2020;'
@@ -104,5 +108,9 @@ echo "== Sanity checks =="
 "${psql_base[@]}" -c 'SELECT * FROM public.mv_itn_baseline_monthly_1991_2020 ORDER BY month LIMIT 5;'
 "${psql_base[@]}" -c 'SELECT * FROM public.mv_itn_baseline_yearly_1991_2020;'
 "${psql_base[@]}" -c 'SELECT period_type, record_type, COUNT(*) FROM public.mv_records_battus GROUP BY period_type, record_type ORDER BY period_type, record_type;'
+"${psql_base[@]}" -c 'SELECT COUNT(*) AS station_completeness_count FROM public.mv_completeness_par_station_classe_1234;'
+"${psql_base[@]}" -c 'SELECT * FROM public.mv_completeness_par_station_classe_1234 LIMIT 5;'
+"${psql_base[@]}" -c 'SELECT COUNT(*) AS station_classe_completeness_count FROM public.mv_completeness_par_station_classe;'
+"${psql_base[@]}" -c 'SELECT * FROM public.mv_completeness_par_station_classe LIMIT 5;'
 
 echo "Seed done."
