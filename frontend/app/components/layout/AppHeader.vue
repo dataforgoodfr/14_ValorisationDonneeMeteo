@@ -60,7 +60,7 @@ const items = computed<NavigationMenuItem[]>(() => [
         ],
     },
     {
-        label: "À propos",
+        label: "A propos",
         children: [
             {
                 label: "Qui sommes nous ?",
