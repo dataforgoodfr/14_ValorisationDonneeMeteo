@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import type { TemperatureRecordsGraphParams, TypeRecords } from "~/types/api";
 import GoToDataLink from "../GoToDataLink.vue";
-import RecordsBattusExportBar from "../RecordsBattusExportBar.vue";
 import DeviationKpiPanel from "~/components/charts/DeviationKpiPanel.vue";
 import Section from "../Section.vue";
 import TemperatureRecord from "../TemperatureRecord.vue";
@@ -154,13 +153,8 @@ const lastYearColdRecordsCount = computed(
                 compare-to="année dernière"
             />
         </div>
-        <div class="flex items-center justify-between gap-2">
-            <RecordsBattusExportBar
-                :date-start="dateStart"
-                :date-end="dateEnd"
-            />
+        <div class="flex justify-end">
             <GoToDataLink
-                class="shrink-0"
                 :data-url="'/temperature/records?preset=30d&view=scatter#chart'"
             />
         </div>
