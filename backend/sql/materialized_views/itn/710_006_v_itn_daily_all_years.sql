@@ -2,9 +2,7 @@
 -- Équivalent de 610_001_mv_itn_daily_1991_2020_real.sql sans la restriction de période.
 -- Accepte les jours avec au moins 29 stations sur 30 (HAVING COUNT >= 29).
 -- Le filtre date >= 1946-01-01 est appliqué ici sur la colonne indexée de v_quotidienne.
-DROP MATERIALIZED VIEW IF EXISTS mv_itn_daily_all_years;
-
-CREATE MATERIALIZED VIEW mv_itn_daily_all_years AS
+CREATE OR REPLACE VIEW v_itn_daily_all_years AS
 WITH source AS (
     SELECT
         q.station_code AS station_code,
@@ -35,14 +33,4 @@ SELECT
     AVG(n.tntxm)                    AS itn
 FROM normalized n
 GROUP BY n.date
-HAVING COUNT(DISTINCT n.station_code) >= 29
-ORDER BY n.date;
-
-CREATE UNIQUE INDEX idx_mv_itn_daily_all_years_date
-    ON mv_itn_daily_all_years (date);
-
-CREATE INDEX idx_mv_itn_daily_all_years_month_day
-    ON mv_itn_daily_all_years (month, day_of_month);
-
-CREATE INDEX idx_mv_itn_daily_all_years_year
-    ON mv_itn_daily_all_years (year);
+HAVING COUNT(DISTINCT n.station_code) >= 29;
