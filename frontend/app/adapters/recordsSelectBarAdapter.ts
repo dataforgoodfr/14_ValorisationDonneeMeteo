@@ -75,6 +75,17 @@ export const useRecordsSelectBarAdapter =
                 csvHeaders: [],
                 getCsvRows: () => undefined,
                 get htmlTooltipFormatter(): string | undefined {
+                    if (chartType.value === "pyramid") {
+                        return `function(params) {
+                        if (!Array.isArray(params)) params = [params];
+                        if (!params.length) return '';
+                        const toBar = (v) => Array.isArray(v) ? {period: v[0], hot: v[1], cold: v[2]} : v;
+                        const d = toBar(params[0].value);
+                        const hotMarker = '<span style="display:inline-block;margin-right:4px;border-radius:10px;width:10px;height:10px;background-color:#d32F2F;"></span>';
+                        const coldMarker = '<span style="display:inline-block;margin-right:4px;border-radius:10px;width:10px;height:10px;background-color:#1976D2;"></span>';
+                        return ['<b>' + d.period + '</b>', hotMarker + ' Records de chaleur : ' + d.hot, coldMarker + ' Records de froid : ' + d.cold].join('<br/>');
+                    }`;
+                    }
                     if (chartType.value !== "scatter") return undefined;
                     return `function(params) {
                         if (!Array.isArray(params)) params = [params];
