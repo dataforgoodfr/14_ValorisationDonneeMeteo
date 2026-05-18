@@ -1,7 +1,9 @@
 <script setup lang="ts">
+import type { DropdownMenuItem } from "@nuxt/ui";
 import Card from "./Card.vue";
 
 interface Props {
+    options?: DropdownMenuItem[];
     title: string;
     tooltipText: string;
     hotValue: number;
@@ -16,6 +18,7 @@ interface Props {
 }
 
 const props = withDefaults(defineProps<Props>(), {
+    options: undefined,
     hotLabel: "chaud",
     coldLabel: "froid",
     unitLabel: "records de",
@@ -82,6 +85,27 @@ const hotPercent = computed(() =>
         <template #kpi-context-text>
             {{ props.hotValue }} {{ props.unitLabel }} {{ props.hotLabel }} vs
             {{ props.coldValue }} {{ props.unitLabel }} {{ props.coldLabel }}
+        </template>
+        <template v-if="props.options" #custom-export-button>
+            <div class="flex justify-end mt-2">
+                <UDropdownMenu
+                    class="flex justify-end mt-2"
+                    :items="props.options"
+                    :content="{
+                        align: 'start',
+                        side: 'bottom',
+                    }"
+                >
+                    <UButton
+                        label="Exporter en csv"
+                        size="xs"
+                        icon="i-lucide-download"
+                        :ui="{
+                            base: 'bg-slate-450 ring-1 ring-blue-350 text-white',
+                        }"
+                    />
+                </UDropdownMenu>
+            </div>
         </template>
     </Card>
 </template>

@@ -1,8 +1,10 @@
 <script setup lang="ts">
+import type { DropdownMenuItem } from "@nuxt/ui";
 import HotColdRatioCard from "~/components/home/HotColdRatioCard.vue";
 import type { TemperatureRecordsGraphParams } from "~/types/api";
 
 const { yesterday, yesterdayLess365Days, yesterdayLastYear } = useCustomDate();
+const { exportRecords } = useExportRecordsBattus();
 
 const yesterdayLastYearLess365Days = computed(() => {
     const d = new Date(yesterdayLastYear.value);
@@ -57,6 +59,31 @@ const variation = computed(() =>
         ? hotPercent.value - previousHotPercent.value
         : undefined,
 );
+
+function exportInCsv(type: "hot" | "cold") {
+    exportRecords(
+        type,
+        dateToStringYMD(yesterdayLess365Days.value),
+        dateToStringYMD(yesterday.value),
+        "all_time",
+    );
+}
+const exportOptions = ref<DropdownMenuItem[]>([
+    {
+        label: "Exporter la liste des records de chaleur",
+        onSelect(e: Event) {
+            e.preventDefault();
+            exportInCsv("hot");
+        },
+    },
+    {
+        label: "Exporter la liste des records de froid",
+        onSelect(e: Event) {
+            e.preventDefault();
+            exportInCsv("cold");
+        },
+    },
+]);
 </script>
 
 <template>
@@ -69,5 +96,6 @@ const variation = computed(() =>
         hot-label="chaleur"
         cold-label="froid"
         :pending="pending"
+        :options="exportOptions"
     />
 </template>

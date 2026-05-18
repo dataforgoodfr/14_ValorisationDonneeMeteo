@@ -142,6 +142,8 @@ const lastYearColdRecordsCount = computed(
                 title="Records de chaleur mensuels"
                 tooltip-text="Nombre de stations ayant battu un record de chaleur mensuel au cours des 30 derniers jours"
                 compare-to="année dernière"
+                export-button-title="Exporter la liste des records de chaleur"
+                period-type="month"
             />
             <TemperatureRecord
                 :records="coldRecordsCount"
@@ -151,6 +153,8 @@ const lastYearColdRecordsCount = computed(
                 title="Records de froid mensuels"
                 tooltip-text="Nombre de stations ayant battu un record de froid mensuel au cours des 30 derniers jours"
                 compare-to="année dernière"
+                export-button-title="Exporter la liste des records de froid"
+                period-type="month"
             />
         </div>
         <div class="flex justify-end">

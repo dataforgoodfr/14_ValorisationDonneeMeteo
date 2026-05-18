@@ -1,4 +1,5 @@
 import type {
+    PeriodType,
     TemperatureRecordsPaginatedResponse,
     TypeRecords,
 } from "~/types/api";
@@ -10,6 +11,7 @@ export function useExportRecordsBattus() {
         typeRecords: TypeRecords,
         dateStart: string,
         dateEnd: string,
+        period: PeriodType,
     ) {
         if (!import.meta.client) return;
 
@@ -18,7 +20,7 @@ export function useExportRecordsBattus() {
             {
                 query: {
                     type_records: typeRecords,
-                    period_type: "month",
+                    period_type: period,
                     date_start: dateStart,
                     date_end: dateEnd,
                     page_size: 9999,
