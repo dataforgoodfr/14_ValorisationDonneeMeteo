@@ -27,6 +27,64 @@ function makeParam(
 }
 
 describe("deviationCalendarTooltipFormatter", () => {
+    describe("Whole returned string", () => {
+        it("retourne la chaîne complète pour granularité year", () => {
+            const result = deviationCalendarTooltipFormatter(
+                makeParam({ seriesName: "Station A", data: [1, 2, 2.5] }),
+                "year",
+                categories,
+            );
+            expect(result).toBe(
+                '<b style="color:#000">Station A</b><br/>' +
+                    '<span style="color:#aaa">2024 · mar</span><br/>' +
+                    '<span style="color:#d32F2F">● +2.5 °C</span>',
+            );
+        });
+
+        it("retourne la chaîne complète pour granularité day", () => {
+            const result = deviationCalendarTooltipFormatter(
+                makeParam({ seriesName: "Station A", data: [0, 1, -1.0] }),
+                "day",
+                categories,
+            );
+            expect(result).toBe(
+                '<b style="color:#000">Station A</b><br/>' +
+                    '<span style="color:#aaa">fév/2023</span><br/>' +
+                    '<span style="color:#1976D2">● -1.0 °C</span>',
+            );
+        });
+
+        it("retourne la chaîne complète en mode vertical pour plusieurs séries", () => {
+            const params = [
+                makeParam({
+                    seriesIndex: 0,
+                    seriesName: "Lyon",
+                    data: [0, 0, 1.5],
+                }),
+                makeParam({
+                    seriesIndex: 1,
+                    seriesName: "Paris",
+                    data: [0, 1, -0.8],
+                }),
+            ];
+            const result = deviationCalendarTooltipFormatter(
+                params,
+                "year",
+                categories,
+                true,
+            );
+            expect(result).toBe(
+                '<b style="color:#000">Lyon</b><br/>' +
+                    '<span style="color:#aaa">2023</span><br/>' +
+                    '<span style="color:#d32F2F">● +1.5 °C</span>' +
+                    "<br/><br/>" +
+                    '<b style="color:#000">Paris</b><br/>' +
+                    '<span style="color:#aaa">2023</span><br/>' +
+                    '<span style="color:#1976D2">● -0.8 °C</span>',
+            );
+        });
+    });
+
     describe("Mode non-vertical (défaut)", () => {
         it("affiche xLabel · yLabel pour granularité year", () => {
             const result = deviationCalendarTooltipFormatter(
