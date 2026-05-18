@@ -39,8 +39,8 @@ class StationDailyExtremesSeries:
 @dataclass(frozen=True)
 class ExtremesGraphPoint:
     date: dt.date
-    tn_mean: float
-    tx_mean: float
+    tnm: float
+    txm: float
 
 
 @dataclass(frozen=True)
@@ -70,10 +70,10 @@ class ExtremesOverviewQuery:
     station_search: str | None = None
     tmean_min: float | None = None
     tmean_max: float | None = None
-    tx_min: float | None = None
-    tx_max: float | None = None
-    tn_min: float | None = None
-    tn_max: float | None = None
+    txn: float | None = None
+    txx: float | None = None
+    tnn: float | None = None
+    tnx: float | None = None
     alt_min: float | None = None
     alt_max: float | None = None
     classe_recente_min: int | None = None
@@ -84,7 +84,7 @@ class ExtremesOverviewQuery:
     date_de_fermeture_max: dt.date | None = None
     departments: tuple[str, ...] = ()
     regions: tuple[str, ...] = ()
-    ordering: str = "-tx_mean"
+    ordering: str = "-txm"
     limit: int = 50
     offset: int = 0
 
@@ -93,9 +93,9 @@ class ExtremesOverviewQuery:
 class ExtremesOverviewStation:
     station_id: str
     station_name: str
-    tx_mean: float
-    tn_mean: float
-    tmean_mean: float
+    txm: float
+    tnm: float
+    tmm: float
     lat: float | None
     lon: float | None
     alt: float | None

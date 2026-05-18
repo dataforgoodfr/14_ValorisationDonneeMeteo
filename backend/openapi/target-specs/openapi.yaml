@@ -593,7 +593,7 @@ paths:
           description: Filtre textuel sur le nom de la station.
           example: "Lyon"
 
-        - name: tx_min
+        - name: txn
           in: query
           required: false
           schema:
@@ -602,7 +602,7 @@ paths:
           description: Valeur minimale incluse de la moyenne de Tx sur la période (°C).
           example: 25.0
 
-        - name: tx_max
+        - name: txx
           in: query
           required: false
           schema:
@@ -611,7 +611,7 @@ paths:
           description: Valeur maximale incluse de la moyenne de Tx sur la période (°C).
           example: 40.0
 
-        - name: tn_min
+        - name: tnn
           in: query
           required: false
           schema:
@@ -620,7 +620,7 @@ paths:
           description: Valeur minimale incluse de la moyenne de Tn sur la période (°C).
           example: 0.0
 
-        - name: tn_max
+        - name: tnx
           in: query
           required: false
           schema:
@@ -740,19 +740,19 @@ paths:
             enum:
               - station_name
               - -station_name
-              - tx_mean
-              - -tx_mean
-              - tn_mean
-              - -tn_mean
-              - tmean_mean
-              - -tmean_mean
+              - txm
+              - -txm
+              - tnm
+              - -tnm
+              - tmm
+              - -tmm
               - department
               - -department
               - region
               - -region
               - alt
               - -alt
-            default: -tx_mean
+            default: -txm
           description: >
             Champ de tri du tableau. Le préfixe '-' indique un tri décroissant.
 
@@ -792,10 +792,10 @@ paths:
                       filters:
                         station_search: null
                         station_ids: []
-                        tx_min: null
-                        tx_max: null
-                        tn_min: null
-                        tn_max: null
+                        txn: null
+                        txx: null
+                        tnn: null
+                        tnx: null
                         tmean_min: null
                         tmean_max: null
                         alt_min: null
@@ -808,7 +808,7 @@ paths:
                         date_de_fermeture_max: null
                         departments: []
                         regions: []
-                      ordering: "-tx_mean"
+                      ordering: "-txm"
                     pagination:
                       total_count: 2158
                       limit: 50
@@ -816,9 +816,9 @@ paths:
                     stations:
                       - station_id: "83042001"
                         station_name: "COGOLIN_SAPC"
-                        tx_mean: 35.32
-                        tn_mean: 8.41
-                        tmean_mean: 26.75
+                        txm: 35.32
+                        tnm: 8.41
+                        tmm: 26.75
                         lat: 43.26
                         lon: 6.51
                         alt: 31.0
@@ -921,11 +921,11 @@ paths:
                     national:
                       data:
                         - date: "2024-01-01"
-                          tn_mean: -1.2
-                          tx_mean: 7.4
+                          tnm: -1.2
+                          txm: 7.4
                         - date: "2024-02-01"
-                          tn_mean: 0.5
-                          tx_mean: 9.1
+                          tnm: 0.5
+                          txm: 9.1
                     stations: []
                 by_stations:
                   summary: Deux stations spécifiques
@@ -935,14 +935,14 @@ paths:
                         station_name: "Orly"
                         data:
                           - date: "2024-01-01"
-                            tn_mean: -2.1
-                            tx_mean: 6.8
+                            tnm: -2.1
+                            txm: 6.8
                       - station_id: "07255"
                         station_name: "Marseille-Marignane"
                         data:
                           - date: "2024-01-01"
-                            tn_mean: 3.5
-                            tx_mean: 12.0
+                            tnm: 3.5
+                            txm: 12.0
         "400":
           $ref: "#/components/responses/BadRequest"
 
@@ -1881,8 +1881,8 @@ components:
       type: object
       required:
         - date
-        - tn_mean
-        - tx_mean
+        - tnm
+        - txm
       properties:
         date:
           type: string
@@ -1890,11 +1890,11 @@ components:
           description: >
             Date du point selon la granularité :
             jour exact, premier jour du mois, ou premier jour de l'année.
-        tn_mean:
+        tnm:
           type: number
           format: float
           description: Moyenne des températures minimales sur la période.
-        tx_mean:
+        txm:
           type: number
           format: float
           description: Moyenne des températures maximales sur la période.
@@ -2103,16 +2103,16 @@ components:
             station_search:
               type: string
               nullable: true
-            tx_min:
+            txn:
               type: number
               nullable: true
-            tx_max:
+            txx:
               type: number
               nullable: true
-            tn_min:
+            tnn:
               type: number
               nullable: true
-            tn_max:
+            tnx:
               type: number
               nullable: true
             tmean_min:
@@ -2143,9 +2143,9 @@ components:
       required:
         - station_id
         - station_name
-        - tx_mean
-        - tn_mean
-        - tmean_mean
+        - txm
+        - tnm
+        - tmm
         - date_de_creation
       properties:
         station_id:
@@ -2154,15 +2154,15 @@ components:
         station_name:
           type: string
           description: Nom de la station.
-        tx_mean:
+        txm:
           type: number
           format: float
           description: Moyenne de Tx sur la période.
-        tn_mean:
+        tnm:
           type: number
           format: float
           description: Moyenne de Tn sur la période.
-        tmean_mean:
+        tmm:
           type: number
           format: float
           description: Moyenne de la température journalière ((Tn+Tx)/2) sur la période.

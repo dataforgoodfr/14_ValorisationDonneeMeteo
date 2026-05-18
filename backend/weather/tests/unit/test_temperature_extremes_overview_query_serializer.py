@@ -16,7 +16,7 @@ def test_happy_path_minimal():
     assert s.validated_data["date_start"] == dt.date(2024, 1, 1)
     assert s.validated_data["date_end"] == dt.date(2024, 12, 31)
     assert s.validated_data["type"] == "tx"
-    assert s.validated_data["ordering"] == "-tx_mean"
+    assert s.validated_data["ordering"] == "-txm"
     assert s.validated_data["limit"] == 50
     assert s.validated_data["offset"] == 0
     assert s.validated_data["station_ids"] == ()
@@ -66,18 +66,18 @@ def test_rejects_missing_date_end():
     assert "date_end" in s.errors
 
 
-def test_rejects_tx_min_greater_than_max():
-    s = _valid(tx_min=30, tx_max=20)
+def test_rejects_txn_greater_than_max():
+    s = _valid(txn=30, txx=20)
 
     assert not s.is_valid()
-    assert "tx_max" in s.errors
+    assert "txx" in s.errors
 
 
-def test_rejects_tn_min_greater_than_max():
-    s = _valid(tn_min=30, tn_max=20)
+def test_rejects_tnn_greater_than_max():
+    s = _valid(tnn=30, tnx=20)
 
     assert not s.is_valid()
-    assert "tn_max" in s.errors
+    assert "tnx" in s.errors
 
 
 def test_rejects_tmean_min_greater_than_max():
@@ -154,12 +154,12 @@ def test_ordering_choices_accepted():
     valid_orderings = [
         "station_name",
         "-station_name",
-        "tx_mean",
-        "-tx_mean",
-        "tn_mean",
-        "-tn_mean",
-        "tmean_mean",
-        "-tmean_mean",
+        "txm",
+        "-txm",
+        "tnm",
+        "-tnm",
+        "tmm",
+        "-tmm",
         "department",
         "-department",
         "region",
@@ -170,7 +170,7 @@ def test_ordering_choices_accepted():
 
     for ordering in valid_orderings:
         s = _valid(ordering=ordering)
-        assert s.is_valid(), f"ordering={ordering!r} devrait Ãªtre valide: {s.errors}"
+        assert s.is_valid(), f"ordering={ordering!r} devrait être valide: {s.errors}"
 
 
 def test_ordering_invalid_rejected():
@@ -187,14 +187,14 @@ def test_all_optional_filters_accepted():
         station_search="lyon",
         tmean_min=10.0,
         tmean_max=20.0,
-        tx_min=15.0,
-        tx_max=30.0,
-        tn_min=5.0,
-        tn_max=20.0,
+        txn=15.0,
+        txx=30.0,
+        tnn=5.0,
+        tnx=20.0,
         alt_min=100.0,
         alt_max=500.0,
         departments="69",
-        regions="Auvergne-RhÃ´ne-Alpes",
+        regions="Auvergne-Rhône-Alpes",
         ordering="station_name",
         limit=25,
         offset=50,
@@ -205,10 +205,10 @@ def test_all_optional_filters_accepted():
     assert d["type"] == "tn"
     assert d["tmean_min"] == 10.0
     assert d["tmean_max"] == 20.0
-    assert d["tx_min"] == 15.0
-    assert d["tx_max"] == 30.0
-    assert d["tn_min"] == 5.0
-    assert d["tn_max"] == 20.0
+    assert d["txn"] == 15.0
+    assert d["txx"] == 30.0
+    assert d["tnn"] == 5.0
+    assert d["tnx"] == 20.0
     assert d["alt_min"] == 100.0
     assert d["alt_max"] == 500.0
     assert d["limit"] == 25

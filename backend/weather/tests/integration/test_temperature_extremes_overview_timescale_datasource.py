@@ -37,9 +37,9 @@ def test_fetch_station_overview_happy_path():
     s = result.stations[0]
     assert s.station_id == code
     assert s.station_name == "Station Lyon"
-    assert s.tx_mean == pytest.approx(11.0)
-    assert s.tn_mean == pytest.approx(1.0)
-    assert s.tmean_mean == pytest.approx(6.0)
+    assert s.txm == pytest.approx(11.0)
+    assert s.tnm == pytest.approx(1.0)
+    assert s.tmm == pytest.approx(6.0)
     assert s.alt == pytest.approx(200.0)
     assert s.department == "69"
 
@@ -54,8 +54,8 @@ def test_fetch_station_overview_type_tn_uses_tn_as_textreme():
     ds = TimescaleTemperatureExtremesOverviewDataSource()
     result = ds.fetch_station_overview(_query(type="tn"))
 
-    assert result.stations[0].tn_mean == pytest.approx(1.0)
-    assert result.stations[0].tx_mean == pytest.approx(11.0)
+    assert result.stations[0].tnm == pytest.approx(1.0)
+    assert result.stations[0].txm == pytest.approx(11.0)
 
 
 @pytest.mark.django_db
@@ -74,7 +74,7 @@ def test_fetch_station_overview_filters_by_department():
 
 
 @pytest.mark.django_db
-def test_fetch_station_overview_filters_by_tx_min():
+def test_fetch_station_overview_filters_by_txn():
     s1, s2 = "07149001", "07500001"
     insert_station(s1, "A", departement=69)
     insert_station(s2, "B", departement=75)
@@ -82,7 +82,7 @@ def test_fetch_station_overview_filters_by_tx_min():
     insert_quotidienne(dt.date(2024, 1, 1), s2, tn=0.0, tx=30.0)
 
     ds = TimescaleTemperatureExtremesOverviewDataSource()
-    result = ds.fetch_station_overview(_query(tx_min=20.0))
+    result = ds.fetch_station_overview(_query(txn=20.0))
 
     assert result.pagination.total_count == 1
     assert result.stations[0].station_id == s2
@@ -97,7 +97,7 @@ def test_fetch_station_overview_orders_by_textreme_desc():
     insert_quotidienne(dt.date(2024, 1, 1), s2, tn=0.0, tx=30.0)
 
     ds = TimescaleTemperatureExtremesOverviewDataSource()
-    result = ds.fetch_station_overview(_query(type="tx", ordering="-tx_mean"))
+    result = ds.fetch_station_overview(_query(type="tx", ordering="-txm"))
 
     assert [s.station_id for s in result.stations] == [s2, s1]
 

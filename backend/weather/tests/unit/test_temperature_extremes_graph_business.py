@@ -112,8 +112,8 @@ def test_aggregation_granularity_month():
     data = result["national"]["data"]
     assert len(data) == 2
     assert data[0]["date"] == dt.date(2020, 1, 1)
-    assert data[0]["tn_mean"] == -1.0
-    assert data[0]["tx_mean"] == 7.0
+    assert data[0]["tnm"] == -1.0
+    assert data[0]["txm"] == 7.0
 
 
 def test_aggregation_granularity_year():
@@ -135,8 +135,8 @@ def test_aggregation_granularity_year():
     data = result["national"]["data"]
     assert len(data) == 2
     assert data[0]["date"] == dt.date(2020, 1, 1)
-    assert data[0]["tn_mean"] == 6.0
-    assert data[0]["tx_mean"] == 16.5
+    assert data[0]["tnm"] == 6.0
+    assert data[0]["txm"] == 16.5
 
 
 def test_none_values_are_ignored():

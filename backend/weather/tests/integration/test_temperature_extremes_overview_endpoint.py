@@ -62,9 +62,9 @@ def test_station_fields_present(client: APIClient):
 
     assert "station_id" in s
     assert "station_name" in s
-    assert "tx_mean" in s
-    assert "tn_mean" in s
-    assert "tmean_mean" in s
+    assert "txm" in s
+    assert "tnm" in s
+    assert "tmm" in s
     assert "lat" in s
     assert "lon" in s
     assert "alt" in s
@@ -106,19 +106,19 @@ def test_returns_400_invalid_type(client: APIClient):
     assert "type" in resp.json()["error"]["details"]
 
 
-def test_returns_400_tx_min_greater_than_max(client: APIClient):
+def test_returns_400_txn_greater_than_max(client: APIClient):
     resp = client.get(
         URL,
         {
             "date_start": "2024-01-01",
             "date_end": "2024-12-31",
-            "tx_min": 30,
-            "tx_max": 20,
+            "txn": 30,
+            "txx": 20,
         },
     )
 
     assert resp.status_code == 400
-    assert "tx_max" in resp.json()["error"]["details"]
+    assert "txx" in resp.json()["error"]["details"]
 
 
 def test_returns_400_negative_offset(client: APIClient):
@@ -168,7 +168,7 @@ def test_filters_echoed_in_metadata(client: APIClient):
             "date_end": "2024-12-31",
             "station_ids": "07149,07222",
             "departments": "69,75",
-            "tx_min": 20,
+            "txn": 20,
         },
     )
 
@@ -177,7 +177,7 @@ def test_filters_echoed_in_metadata(client: APIClient):
 
     assert filters["station_ids"] == ["07149", "07222"]
     assert filters["departments"] == ["69", "75"]
-    assert filters["tx_min"] == 20.0
+    assert filters["txn"] == 20.0
 
 
 def test_ordering_echoed_in_metadata(client: APIClient):

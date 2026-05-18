@@ -58,8 +58,8 @@ def _average_buckets(buckets: dict, valid_starts: set) -> list[ExtremesGraphPoin
         result.append(
             ExtremesGraphPoint(
                 date=start_date,
-                tn_mean=round(sum(tn_vals) / len(tn_vals), 2),
-                tx_mean=round(sum(tx_vals) / len(tx_vals), 2),
+                tnm=round(sum(tn_vals) / len(tn_vals), 2),
+                txm=round(sum(tx_vals) / len(tx_vals), 2),
             )
         )
     return result
@@ -106,10 +106,7 @@ def compute_extremes_graph(
             {
                 "station_id": s.station_id,
                 "station_name": s.station_name,
-                "data": [
-                    {"date": p.date, "tn_mean": p.tn_mean, "tx_mean": p.tx_mean}
-                    for p in s.data
-                ],
+                "data": [{"date": p.date, "tnm": p.tnm, "txm": p.txm} for p in s.data],
             }
             for s in result.stations
         ]
@@ -118,7 +115,7 @@ def compute_extremes_graph(
     if result.national is not None:
         payload["national"] = {
             "data": [
-                {"date": p.date, "tn_mean": p.tn_mean, "tx_mean": p.tx_mean}
+                {"date": p.date, "tnm": p.tnm, "txm": p.txm}
                 for p in result.national.data
             ]
         }
@@ -143,9 +140,9 @@ def compute_extremes_overview(
             {
                 "station_id": s.station_id,
                 "station_name": s.station_name,
-                "tx_mean": round(s.tx_mean, 2),
-                "tn_mean": round(s.tn_mean, 2),
-                "tmean_mean": round(s.tmean_mean, 2),
+                "txm": round(s.txm, 2),
+                "tnm": round(s.tnm, 2),
+                "tmm": round(s.tmm, 2),
                 "lat": s.lat,
                 "lon": s.lon,
                 "alt": s.alt,

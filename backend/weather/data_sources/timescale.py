@@ -1819,12 +1819,12 @@ def _date_de_fermeture(annee: int | None) -> dt.date | None:
 _EXTREMES_OVERVIEW_ORDERING_MAP = {
     "station_name": "station_name ASC, station_id ASC",
     "-station_name": "station_name DESC, station_id ASC",
-    "tx_mean": "tx_mean ASC, station_id ASC",
-    "-tx_mean": "tx_mean DESC, station_id ASC",
-    "tn_mean": "tn_mean ASC, station_id ASC",
-    "-tn_mean": "tn_mean DESC, station_id ASC",
-    "tmean_mean": "tmean_mean ASC, station_id ASC",
-    "-tmean_mean": "tmean_mean DESC, station_id ASC",
+    "txm": "txm ASC, station_id ASC",
+    "-txm": "txm DESC, station_id ASC",
+    "tnm": "tnm ASC, station_id ASC",
+    "-tnm": "tnm DESC, station_id ASC",
+    "tmm": "tmm ASC, station_id ASC",
+    "-tmm": "tmm DESC, station_id ASC",
     "department": "department ASC NULLS LAST, station_id ASC",
     "-department": "department DESC NULLS LAST, station_id ASC",
     "region": "region ASC NULLS LAST, station_id ASC",
@@ -1836,15 +1836,15 @@ _EXTREMES_OVERVIEW_ORDERING_MAP = {
 _EXTREMES_OVERVIEW_BASE_CTE = """
     WITH station_agg AS (
         SELECT
-            TRIM(q."NUM_POSTE") AS station_id,
-            AVG(q."TN")::double precision AS tn_mean,
-            AVG(q."TX")::double precision AS tx_mean,
-            ((AVG(q."TN") + AVG(q."TX")) / 2.0)::double precision AS tmean_mean
+            q."NUM_POSTE" AS station_id,
+            AVG(q."TN")::double precision AS tnm,
+            AVG(q."TX")::double precision AS txm,
+            ((AVG(q."TN") + AVG(q."TX")) / 2.0)::double precision AS tmm
         FROM public."Quotidienne" q
         WHERE q."AAAAMMJJ" BETWEEN %(date_start)s AND %(date_end)s
           AND q."TN" IS NOT NULL
           AND q."TX" IS NOT NULL
-        GROUP BY TRIM(q."NUM_POSTE")
+        GROUP BY q."NUM_POSTE"
     ),
     station_enriched AS (
         SELECT
@@ -1858,10 +1858,10 @@ _EXTREMES_OVERVIEW_BASE_CTE = """
             s.classe_recente AS classe,
             s.annee_de_creation AS annee_de_creation,
             s.annee_de_fermeture AS annee_de_fermeture,
-            a.tn_mean,
-            a.tx_mean,
-            a.tmean_mean,
-            CASE WHEN %(type)s = 'tn' THEN a.tn_mean ELSE a.tx_mean END
+            a.tnm,
+            a.txm,
+            a.tmm,
+            CASE WHEN %(type)s = 'tn' THEN a.tnm ELSE a.txm END
                 AS textreme_mean
         FROM station_agg a
             INNER JOIN public.v_station s
@@ -1891,28 +1891,28 @@ def _build_extremes_overview_where(
         params["station_ids"] = list(query.station_ids)
 
     if query.tmean_min is not None:
-        clauses.append("tmean_mean >= %(tmean_min)s")
+        clauses.append("tmm >= %(tmean_min)s")
         params["tmean_min"] = query.tmean_min
 
     if query.tmean_max is not None:
-        clauses.append("tmean_mean <= %(tmean_max)s")
+        clauses.append("tmm <= %(tmean_max)s")
         params["tmean_max"] = query.tmean_max
 
-    if query.tx_min is not None:
-        clauses.append("tx_mean >= %(tx_min)s")
-        params["tx_min"] = query.tx_min
+    if query.txn is not None:
+        clauses.append("txm >= %(txn)s")
+        params["txn"] = query.txn
 
-    if query.tx_max is not None:
-        clauses.append("tx_mean <= %(tx_max)s")
-        params["tx_max"] = query.tx_max
+    if query.txx is not None:
+        clauses.append("txm <= %(txx)s")
+        params["txx"] = query.txx
 
-    if query.tn_min is not None:
-        clauses.append("tn_mean >= %(tn_min)s")
-        params["tn_min"] = query.tn_min
+    if query.tnn is not None:
+        clauses.append("tnm >= %(tnn)s")
+        params["tnn"] = query.tnn
 
-    if query.tn_max is not None:
-        clauses.append("tn_mean <= %(tn_max)s")
-        params["tn_max"] = query.tn_max
+    if query.tnx is not None:
+        clauses.append("tnm <= %(tnx)s")
+        params["tnx"] = query.tnx
 
     if query.alt_min is not None:
         clauses.append("alt >= %(alt_min)s")
@@ -1974,11 +1974,11 @@ def _build_extremes_overview_where(
 
 def _row_to_extremes_overview_station(row: dict) -> ExtremesOverviewStation:
     return ExtremesOverviewStation(
-        station_id=row["station_id"],
+        station_id=row["station_id"].strip(),
         station_name=row["station_name"],
-        tx_mean=float(row["tx_mean"]),
-        tn_mean=float(row["tn_mean"]),
-        tmean_mean=float(row["tmean_mean"]),
+        txm=float(row["txm"]),
+        tnm=float(row["tnm"]),
+        tmm=float(row["tmm"]),
         lat=_float_or_none(row["lat"]),
         lon=_float_or_none(row["lon"]),
         alt=_float_or_none(row["alt"]),
@@ -2009,7 +2009,7 @@ class TimescaleTemperatureExtremesOverviewDataSource(ExtremesOverviewDataSource)
                 station_id, station_name, lat, lon, alt,
                 department, region, classe,
                 annee_de_creation, annee_de_fermeture,
-                tx_mean, tn_mean, tmean_mean
+                txm, tnm, tmm
             FROM station_enriched
             {where_sql}
             ORDER BY {order_sql}

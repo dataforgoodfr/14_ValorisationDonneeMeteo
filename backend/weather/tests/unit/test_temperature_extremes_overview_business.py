@@ -21,14 +21,14 @@ class DummyDataSource:
                 ExtremesOverviewStation(
                     station_id="07156",
                     station_name="Station A",
-                    tx_mean=25.1234,
-                    tn_mean=12.0122,
-                    tmean_mean=18.5678,
+                    txm=25.1234,
+                    tnm=12.0122,
+                    tmm=18.5678,
                     lat=48.8,
                     lon=2.3,
                     alt=42.0,
                     department="75",
-                    region="ÃŽle-de-France",
+                    region="Île-de-France",
                     classe_recente=1,
                     date_de_creation=dt.date(1948, 1, 1),
                     date_de_fermeture=None,
@@ -36,14 +36,14 @@ class DummyDataSource:
                 ExtremesOverviewStation(
                     station_id="07157",
                     station_name="Station B",
-                    tx_mean=30.9876,
-                    tn_mean=13.9012,
-                    tmean_mean=22.4444,
+                    txm=30.9876,
+                    tnm=13.9012,
+                    tmm=22.4444,
                     lat=43.3,
                     lon=5.4,
                     alt=15.0,
                     department="13",
-                    region="Provence-Alpes-CÃ´te d'Azur",
+                    region="Provence-Alpes-Côte d'Azur",
                     classe_recente=2,
                     date_de_creation=dt.date(2000, 1, 1),
                     date_de_fermeture=dt.date(2020, 12, 31),
@@ -77,9 +77,9 @@ def test_compute_overview_rounds_floats_to_two_decimals():
     out = compute_extremes_overview(data_source=ds, query=_default_query())
 
     s = out["stations"][0]
-    assert s["tx_mean"] == 25.12
-    assert s["tn_mean"] == 12.01
-    assert s["tmean_mean"] == 18.57
+    assert s["txm"] == 25.12
+    assert s["tnm"] == 12.01
+    assert s["tmm"] == 18.57
 
 
 def test_compute_overview_propagates_pagination():
@@ -105,7 +105,7 @@ def test_compute_overview_returns_all_station_fields():
     assert s["lon"] == 2.3
     assert s["alt"] == 42.0
     assert s["department"] == "75"
-    assert s["region"] == "ÃŽle-de-France"
+    assert s["region"] == "Île-de-France"
     assert s["classe_recente"] == 1
     assert s["date_de_creation"] == dt.date(1948, 1, 1)
     assert s["date_de_fermeture"] is None
@@ -118,7 +118,7 @@ def test_compute_overview_passes_query_to_datasource():
         type="tn",
         station_ids=("07149", "07255"),
         departments=("75",),
-        tx_min=10.0,
+        txn=10.0,
         ordering="station_name",
         limit=25,
         offset=50,
