@@ -118,6 +118,9 @@ function exportAsHTML() {
     if (!chartRef?.value) return;
     const options = chartRef.value.getOption();
     const scriptTag = "script";
+    const tooltipFormatterScript = exportConfig.htmlTooltipFormatter
+        ? `[options.tooltip].flat().filter(Boolean).forEach(function(t){ t.formatter = ${exportConfig.htmlTooltipFormatter}; });`
+        : `chart.setOption({ tooltip: { valueFormatter: function(v) { return typeof v === 'number' ? v.toFixed(1) : v; } } });`;
     const html = `<!DOCTYPE html>
 <html>
 <head>
@@ -130,8 +133,9 @@ function exportAsHTML() {
     <div id="chart"></div>
     <${scriptTag}>
         const chart = echarts.init(document.getElementById('chart'));
-        chart.setOption(${JSON.stringify(options)});
-        chart.setOption({ tooltip: { valueFormatter: function(v) { return typeof v === 'number' ? v.toFixed(1) : v; } } });
+        const options = ${JSON.stringify(options)};
+        chart.setOption(options);
+        ${tooltipFormatterScript}
         window.addEventListener('resize', () => chart.resize());
     </${scriptTag}>
 </body>
