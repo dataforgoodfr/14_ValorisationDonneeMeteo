@@ -38,11 +38,11 @@ def test_fetch_daily_series_happy_path():
     assert s.station_name == "Station Lyon"
     assert len(s.points) == 2
     assert s.points[0].date == dt.date(2024, 1, 1)
-    assert s.points[0].tmin == pytest.approx(-2.0)
-    assert s.points[0].tmax == pytest.approx(8.0)
+    assert s.points[0].tn == pytest.approx(-2.0)
+    assert s.points[0].tx == pytest.approx(8.0)
     assert s.points[1].date == dt.date(2024, 1, 2)
-    assert s.points[1].tmin == pytest.approx(-1.0)
-    assert s.points[1].tmax == pytest.approx(9.5)
+    assert s.points[1].tn == pytest.approx(-1.0)
+    assert s.points[1].tx == pytest.approx(9.5)
 
 
 @pytest.mark.django_db
@@ -115,5 +115,5 @@ def test_fetch_national_daily_series_happy_path():
 
     assert len(result) == 1
     assert result[0].date == dt.date(2024, 3, 1)
-    assert result[0].tmin == pytest.approx(5.0)
-    assert result[0].tmax == pytest.approx(17.0)
+    assert result[0].tn == pytest.approx(5.0)
+    assert result[0].tx == pytest.approx(17.0)

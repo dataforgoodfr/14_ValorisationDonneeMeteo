@@ -819,9 +819,7 @@ class TemperatureExtremesOverviewQuerySerializer(serializers.Serializer):
     date_start = serializers.DateField(required=True)
     date_end = serializers.DateField(required=True)
 
-    type = serializers.ChoiceField(
-        choices=["tmin", "tmax"], required=False, default="tmax"
-    )
+    type = serializers.ChoiceField(choices=["tn", "tx"], required=False, default="tx")
 
     station_ids = CommaSeparatedStringListField(required=False)
     station_search = serializers.CharField(required=False, allow_blank=True)
@@ -829,10 +827,10 @@ class TemperatureExtremesOverviewQuerySerializer(serializers.Serializer):
     tmean_min = serializers.FloatField(required=False, allow_null=True)
     tmean_max = serializers.FloatField(required=False, allow_null=True)
 
-    tmax_min = serializers.FloatField(required=False, allow_null=True)
-    tmax_max = serializers.FloatField(required=False, allow_null=True)
-    tmin_min = serializers.FloatField(required=False, allow_null=True)
-    tmin_max = serializers.FloatField(required=False, allow_null=True)
+    tx_min = serializers.FloatField(required=False, allow_null=True)
+    tx_max = serializers.FloatField(required=False, allow_null=True)
+    tn_min = serializers.FloatField(required=False, allow_null=True)
+    tn_max = serializers.FloatField(required=False, allow_null=True)
 
     alt_min = serializers.FloatField(required=False, allow_null=True)
     alt_max = serializers.FloatField(required=False, allow_null=True)
@@ -855,10 +853,10 @@ class TemperatureExtremesOverviewQuerySerializer(serializers.Serializer):
         choices=[
             "station_name",
             "-station_name",
-            "tmax_mean",
-            "-tmax_mean",
-            "tmin_mean",
-            "-tmin_mean",
+            "tx_mean",
+            "-tx_mean",
+            "tn_mean",
+            "-tn_mean",
             "tmean_mean",
             "-tmean_mean",
             "department",
@@ -869,7 +867,7 @@ class TemperatureExtremesOverviewQuerySerializer(serializers.Serializer):
             "-alt",
         ],
         required=False,
-        default="-tmax_mean",
+        default="-tx_mean",
     )
 
     limit = serializers.IntegerField(required=False, min_value=1, default=50)
@@ -890,19 +888,15 @@ class TemperatureExtremesOverviewQuerySerializer(serializers.Serializer):
                 {"tmean_max": "tmean_max doit être >= tmean_min."}
             )
 
-        tmax_min = attrs.get("tmax_min")
-        tmax_max = attrs.get("tmax_max")
-        if tmax_min is not None and tmax_max is not None and tmax_min > tmax_max:
-            raise serializers.ValidationError(
-                {"tmax_max": "tmax_max doit être >= tmax_min."}
-            )
+        tx_min = attrs.get("tx_min")
+        tx_max = attrs.get("tx_max")
+        if tx_min is not None and tx_max is not None and tx_min > tx_max:
+            raise serializers.ValidationError({"tx_max": "tx_max doit être >= tx_min."})
 
-        tmin_min = attrs.get("tmin_min")
-        tmin_max = attrs.get("tmin_max")
-        if tmin_min is not None and tmin_max is not None and tmin_min > tmin_max:
-            raise serializers.ValidationError(
-                {"tmin_max": "tmin_max doit être >= tmin_min."}
-            )
+        tn_min = attrs.get("tn_min")
+        tn_max = attrs.get("tn_max")
+        if tn_min is not None and tn_max is not None and tn_min > tn_max:
+            raise serializers.ValidationError({"tn_max": "tn_max doit être >= tn_min."})
 
         alt_min = attrs.get("alt_min")
         alt_max = attrs.get("alt_max")
@@ -917,10 +911,10 @@ class TemperatureExtremesOverviewQuerySerializer(serializers.Serializer):
         attrs["regions"] = attrs.get("regions", ())
         attrs["tmean_min"] = tmean_min if "tmean_min" in attrs else None
         attrs["tmean_max"] = tmean_max if "tmean_max" in attrs else None
-        attrs["tmax_min"] = tmax_min if "tmax_min" in attrs else None
-        attrs["tmax_max"] = tmax_max if "tmax_max" in attrs else None
-        attrs["tmin_min"] = tmin_min if "tmin_min" in attrs else None
-        attrs["tmin_max"] = tmin_max if "tmin_max" in attrs else None
+        attrs["tx_min"] = tx_min if "tx_min" in attrs else None
+        attrs["tx_max"] = tx_max if "tx_max" in attrs else None
+        attrs["tn_min"] = tn_min if "tn_min" in attrs else None
+        attrs["tn_max"] = tn_max if "tn_max" in attrs else None
         attrs["alt_min"] = alt_min if "alt_min" in attrs else None
         attrs["alt_max"] = alt_max if "alt_max" in attrs else None
 
@@ -964,8 +958,8 @@ class TemperatureExtremesOverviewQuerySerializer(serializers.Serializer):
 class TemperatureExtremesOverviewStationSerializer(serializers.Serializer):
     station_id = serializers.CharField()
     station_name = serializers.CharField()
-    tmax_mean = serializers.FloatField()
-    tmin_mean = serializers.FloatField()
+    tx_mean = serializers.FloatField()
+    tn_mean = serializers.FloatField()
     tmean_mean = serializers.FloatField()
     lat = serializers.FloatField(allow_null=True)
     lon = serializers.FloatField(allow_null=True)
@@ -980,7 +974,7 @@ class TemperatureExtremesOverviewStationSerializer(serializers.Serializer):
 class TemperatureExtremesOverviewMetadataSerializer(serializers.Serializer):
     date_start = serializers.DateField()
     date_end = serializers.DateField()
-    type = serializers.ChoiceField(choices=["tmin", "tmax"])
+    type = serializers.ChoiceField(choices=["tn", "tx"])
     filters = serializers.DictField()
     ordering = serializers.CharField()
 
@@ -1049,8 +1043,8 @@ class TemperatureExtremesGraphQuerySerializer(serializers.Serializer):
 
 class TemperatureExtremesGraphPointSerializer(serializers.Serializer):
     date = serializers.DateField()
-    tmin_mean = serializers.FloatField()
-    tmax_mean = serializers.FloatField()
+    tn_mean = serializers.FloatField()
+    tx_mean = serializers.FloatField()
 
 
 class TemperatureExtremesGraphNationalSerializer(serializers.Serializer):

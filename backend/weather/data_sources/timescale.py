@@ -1728,8 +1728,8 @@ class TimescaleTemperatureExtremesDataSource(ExtremesGraphDataSource):
                 q."NUM_POSTE"   AS station_id,
                 s.name          AS station_name,
                 q."AAAAMMJJ"    AS date,
-                q."TN"          AS tmin,
-                q."TX"          AS tmax
+                q."TN"          AS tn,
+                q."TX"          AS tx
             FROM public."Quotidienne" q
                 INNER JOIN public.v_station_qualifiee_hexagone s
                     ON s.station_code = q."NUM_POSTE"
@@ -1755,8 +1755,8 @@ class TimescaleTemperatureExtremesDataSource(ExtremesGraphDataSource):
                     date=row["date"].date()
                     if isinstance(row["date"], dt.datetime)
                     else row["date"],
-                    tmin=_float_or_none(row["tmin"]),
-                    tmax=_float_or_none(row["tmax"]),
+                    tn=_float_or_none(row["tn"]),
+                    tx=_float_or_none(row["tx"]),
                 )
             )
 
@@ -1775,8 +1775,8 @@ class TimescaleTemperatureExtremesDataSource(ExtremesGraphDataSource):
         sql = """
             SELECT
                 q."AAAAMMJJ"    AS date,
-                AVG(q."TN")     AS tmin,
-                AVG(q."TX")     AS tmax
+                AVG(q."TN")     AS tn,
+                AVG(q."TX")     AS tx
             FROM public."Quotidienne" q
             WHERE q."AAAAMMJJ" BETWEEN %(date_start)s AND %(date_end)s
                 AND q."TN" IS NOT NULL
@@ -1797,8 +1797,8 @@ class TimescaleTemperatureExtremesDataSource(ExtremesGraphDataSource):
                 date=row["date"].date()
                 if isinstance(row["date"], dt.datetime)
                 else row["date"],
-                tmin=_float_or_none(row["tmin"]),
-                tmax=_float_or_none(row["tmax"]),
+                tn=_float_or_none(row["tn"]),
+                tx=_float_or_none(row["tx"]),
             )
             for row in rows
         ]
@@ -1819,10 +1819,10 @@ def _date_de_fermeture(annee: int | None) -> dt.date | None:
 _EXTREMES_OVERVIEW_ORDERING_MAP = {
     "station_name": "station_name ASC, station_id ASC",
     "-station_name": "station_name DESC, station_id ASC",
-    "tmax_mean": "tmax_mean ASC, station_id ASC",
-    "-tmax_mean": "tmax_mean DESC, station_id ASC",
-    "tmin_mean": "tmin_mean ASC, station_id ASC",
-    "-tmin_mean": "tmin_mean DESC, station_id ASC",
+    "tx_mean": "tx_mean ASC, station_id ASC",
+    "-tx_mean": "tx_mean DESC, station_id ASC",
+    "tn_mean": "tn_mean ASC, station_id ASC",
+    "-tn_mean": "tn_mean DESC, station_id ASC",
     "tmean_mean": "tmean_mean ASC, station_id ASC",
     "-tmean_mean": "tmean_mean DESC, station_id ASC",
     "department": "department ASC NULLS LAST, station_id ASC",
@@ -1837,8 +1837,8 @@ _EXTREMES_OVERVIEW_BASE_CTE = """
     WITH station_agg AS (
         SELECT
             TRIM(q."NUM_POSTE") AS station_id,
-            AVG(q."TN")::double precision AS tmin_mean,
-            AVG(q."TX")::double precision AS tmax_mean,
+            AVG(q."TN")::double precision AS tn_mean,
+            AVG(q."TX")::double precision AS tx_mean,
             ((AVG(q."TN") + AVG(q."TX")) / 2.0)::double precision AS tmean_mean
         FROM public."Quotidienne" q
         WHERE q."AAAAMMJJ" BETWEEN %(date_start)s AND %(date_end)s
@@ -1858,10 +1858,10 @@ _EXTREMES_OVERVIEW_BASE_CTE = """
             s.classe_recente AS classe,
             s.annee_de_creation AS annee_de_creation,
             s.annee_de_fermeture AS annee_de_fermeture,
-            a.tmin_mean,
-            a.tmax_mean,
+            a.tn_mean,
+            a.tx_mean,
             a.tmean_mean,
-            CASE WHEN %(type)s = 'tmin' THEN a.tmin_mean ELSE a.tmax_mean END
+            CASE WHEN %(type)s = 'tn' THEN a.tn_mean ELSE a.tx_mean END
                 AS textreme_mean
         FROM station_agg a
             INNER JOIN public.v_station s
@@ -1898,21 +1898,21 @@ def _build_extremes_overview_where(
         clauses.append("tmean_mean <= %(tmean_max)s")
         params["tmean_max"] = query.tmean_max
 
-    if query.tmax_min is not None:
-        clauses.append("tmax_mean >= %(tmax_min)s")
-        params["tmax_min"] = query.tmax_min
+    if query.tx_min is not None:
+        clauses.append("tx_mean >= %(tx_min)s")
+        params["tx_min"] = query.tx_min
 
-    if query.tmax_max is not None:
-        clauses.append("tmax_mean <= %(tmax_max)s")
-        params["tmax_max"] = query.tmax_max
+    if query.tx_max is not None:
+        clauses.append("tx_mean <= %(tx_max)s")
+        params["tx_max"] = query.tx_max
 
-    if query.tmin_min is not None:
-        clauses.append("tmin_mean >= %(tmin_min)s")
-        params["tmin_min"] = query.tmin_min
+    if query.tn_min is not None:
+        clauses.append("tn_mean >= %(tn_min)s")
+        params["tn_min"] = query.tn_min
 
-    if query.tmin_max is not None:
-        clauses.append("tmin_mean <= %(tmin_max)s")
-        params["tmin_max"] = query.tmin_max
+    if query.tn_max is not None:
+        clauses.append("tn_mean <= %(tn_max)s")
+        params["tn_max"] = query.tn_max
 
     if query.alt_min is not None:
         clauses.append("alt >= %(alt_min)s")
@@ -1976,8 +1976,8 @@ def _row_to_extremes_overview_station(row: dict) -> ExtremesOverviewStation:
     return ExtremesOverviewStation(
         station_id=row["station_id"],
         station_name=row["station_name"],
-        tmax_mean=float(row["tmax_mean"]),
-        tmin_mean=float(row["tmin_mean"]),
+        tx_mean=float(row["tx_mean"]),
+        tn_mean=float(row["tn_mean"]),
         tmean_mean=float(row["tmean_mean"]),
         lat=_float_or_none(row["lat"]),
         lon=_float_or_none(row["lon"]),
@@ -2009,7 +2009,7 @@ class TimescaleTemperatureExtremesOverviewDataSource(ExtremesOverviewDataSource)
                 station_id, station_name, lat, lon, alt,
                 department, region, classe,
                 annee_de_creation, annee_de_fermeture,
-                tmax_mean, tmin_mean, tmean_mean
+                tx_mean, tn_mean, tmean_mean
             FROM station_enriched
             {where_sql}
             ORDER BY {order_sql}

@@ -537,7 +537,7 @@ paths:
       summary: Vue synthétique des températures extrêmes par station
       description: >
         Retourne une liste paginée de stations avec leurs températures moyennes
-        extrêmes (Tmax ou Tmin selon le paramètre `type`) sur une période donnée.
+        extrêmes (Tx ou Tn selon le paramètre `type`) sur une période donnée.
 
         Le tableau peut être filtré par recherche textuelle, plages numériques,
         zone géographique ou liste explicite d'identifiants de stations.
@@ -569,12 +569,12 @@ paths:
           schema:
             type: string
             enum:
-              - tmax
-              - tmin
-            default: tmax
+              - tx
+              - tn
+            default: tx
           description: >
-            Type d'extrême à calculer : `tmax` pour la température maximale,
-            `tmin` pour la température minimale.
+            Type d'extrême à calculer : `tx` pour la température maximale,
+            `tn` pour la température minimale.
 
         - name: station_ids
           in: query
@@ -593,40 +593,40 @@ paths:
           description: Filtre textuel sur le nom de la station.
           example: "Lyon"
 
-        - name: tmax_min
+        - name: tx_min
           in: query
           required: false
           schema:
             type: number
             format: float
-          description: Valeur minimale incluse de la moyenne de Tmax sur la période (°C).
+          description: Valeur minimale incluse de la moyenne de Tx sur la période (°C).
           example: 25.0
 
-        - name: tmax_max
+        - name: tx_max
           in: query
           required: false
           schema:
             type: number
             format: float
-          description: Valeur maximale incluse de la moyenne de Tmax sur la période (°C).
+          description: Valeur maximale incluse de la moyenne de Tx sur la période (°C).
           example: 40.0
 
-        - name: tmin_min
+        - name: tn_min
           in: query
           required: false
           schema:
             type: number
             format: float
-          description: Valeur minimale incluse de la moyenne de Tmin sur la période (°C).
+          description: Valeur minimale incluse de la moyenne de Tn sur la période (°C).
           example: 0.0
 
-        - name: tmin_max
+        - name: tn_max
           in: query
           required: false
           schema:
             type: number
             format: float
-          description: Valeur maximale incluse de la moyenne de Tmin sur la période (°C).
+          description: Valeur maximale incluse de la moyenne de Tn sur la période (°C).
           example: 15.0
 
         - name: tmean_min
@@ -740,10 +740,10 @@ paths:
             enum:
               - station_name
               - -station_name
-              - tmax_mean
-              - -tmax_mean
-              - tmin_mean
-              - -tmin_mean
+              - tx_mean
+              - -tx_mean
+              - tn_mean
+              - -tn_mean
               - tmean_mean
               - -tmean_mean
               - department
@@ -752,7 +752,7 @@ paths:
               - -region
               - alt
               - -alt
-            default: -tmax_mean
+            default: -tx_mean
           description: >
             Champ de tri du tableau. Le préfixe '-' indique un tri décroissant.
 
@@ -783,19 +783,19 @@ paths:
                 $ref: "#/components/schemas/TemperatureMinMaxOverviewResponse"
               examples:
                 sample:
-                  summary: Top stations par Tmax moyenne sur l'été 2024
+                  summary: Top stations par Tx moyenne sur l'été 2024
                   value:
                     metadata:
                       date_start: "2024-06-01"
                       date_end: "2024-08-31"
-                      type: "tmax"
+                      type: "tx"
                       filters:
                         station_search: null
                         station_ids: []
-                        tmax_min: null
-                        tmax_max: null
-                        tmin_min: null
-                        tmin_max: null
+                        tx_min: null
+                        tx_max: null
+                        tn_min: null
+                        tn_max: null
                         tmean_min: null
                         tmean_max: null
                         alt_min: null
@@ -808,7 +808,7 @@ paths:
                         date_de_fermeture_max: null
                         departments: []
                         regions: []
-                      ordering: "-tmax_mean"
+                      ordering: "-tx_mean"
                     pagination:
                       total_count: 2158
                       limit: 50
@@ -816,8 +816,8 @@ paths:
                     stations:
                       - station_id: "83042001"
                         station_name: "COGOLIN_SAPC"
-                        tmax_mean: 35.32
-                        tmin_mean: 8.41
+                        tx_mean: 35.32
+                        tn_mean: 8.41
                         tmean_mean: 26.75
                         lat: 43.26
                         lon: 6.51
@@ -832,9 +832,9 @@ paths:
 
   /temperature/extremes/graph:
     get:
-      summary: Moyennes Tmin/Tmax pour les graphes
+      summary: Moyennes Tn/Tx pour les graphes
       description: >
-        Retourne les moyennes de température minimale (Tmin) et maximale (Tmax) par période.
+        Retourne les moyennes de température minimale (Tn) et maximale (Tx) par période.
         La granularité temporelle est ajustable (jour, mois, année).
 
         Selon les filtres fournis :
@@ -909,7 +909,7 @@ paths:
 
       responses:
         "200":
-          description: Séries temporelles Tmin/Tmax selon le filtre appliqué.
+          description: Séries temporelles Tn/Tx selon le filtre appliqué.
           content:
             application/json:
               schema:
@@ -921,11 +921,11 @@ paths:
                     national:
                       data:
                         - date: "2024-01-01"
-                          tmin_mean: -1.2
-                          tmax_mean: 7.4
+                          tn_mean: -1.2
+                          tx_mean: 7.4
                         - date: "2024-02-01"
-                          tmin_mean: 0.5
-                          tmax_mean: 9.1
+                          tn_mean: 0.5
+                          tx_mean: 9.1
                     stations: []
                 by_stations:
                   summary: Deux stations spécifiques
@@ -935,14 +935,14 @@ paths:
                         station_name: "Orly"
                         data:
                           - date: "2024-01-01"
-                            tmin_mean: -2.1
-                            tmax_mean: 6.8
+                            tn_mean: -2.1
+                            tx_mean: 6.8
                       - station_id: "07255"
                         station_name: "Marseille-Marignane"
                         data:
                           - date: "2024-01-01"
-                            tmin_mean: 3.5
-                            tmax_mean: 12.0
+                            tn_mean: 3.5
+                            tx_mean: 12.0
         "400":
           $ref: "#/components/responses/BadRequest"
 
@@ -1881,8 +1881,8 @@ components:
       type: object
       required:
         - date
-        - tmin_mean
-        - tmax_mean
+        - tn_mean
+        - tx_mean
       properties:
         date:
           type: string
@@ -1890,11 +1890,11 @@ components:
           description: >
             Date du point selon la granularité :
             jour exact, premier jour du mois, ou premier jour de l'année.
-        tmin_mean:
+        tn_mean:
           type: number
           format: float
           description: Moyenne des températures minimales sur la période.
-        tmax_mean:
+        tx_mean:
           type: number
           format: float
           description: Moyenne des températures maximales sur la période.
@@ -2090,8 +2090,8 @@ components:
         type:
           type: string
           enum:
-            - tmax
-            - tmin
+            - tx
+            - tn
           description: Type d'extrême calculé.
         filters:
           type: object
@@ -2103,16 +2103,16 @@ components:
             station_search:
               type: string
               nullable: true
-            tmax_min:
+            tx_min:
               type: number
               nullable: true
-            tmax_max:
+            tx_max:
               type: number
               nullable: true
-            tmin_min:
+            tn_min:
               type: number
               nullable: true
-            tmin_max:
+            tn_max:
               type: number
               nullable: true
             tmean_min:
@@ -2143,8 +2143,8 @@ components:
       required:
         - station_id
         - station_name
-        - tmax_mean
-        - tmin_mean
+        - tx_mean
+        - tn_mean
         - tmean_mean
         - date_de_creation
       properties:
@@ -2154,18 +2154,18 @@ components:
         station_name:
           type: string
           description: Nom de la station.
-        tmax_mean:
+        tx_mean:
           type: number
           format: float
-          description: Moyenne de Tmax sur la période.
-        tmin_mean:
+          description: Moyenne de Tx sur la période.
+        tn_mean:
           type: number
           format: float
-          description: Moyenne de Tmin sur la période.
+          description: Moyenne de Tn sur la période.
         tmean_mean:
           type: number
           format: float
-          description: Moyenne de la température journalière ((Tmin+Tmax)/2) sur la période.
+          description: Moyenne de la température journalière ((Tn+Tx)/2) sur la période.
         lat:
           type: number
           format: double

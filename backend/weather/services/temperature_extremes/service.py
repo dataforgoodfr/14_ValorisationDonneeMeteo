@@ -34,15 +34,15 @@ def _bucket_starts(query: ExtremesGraphQuery) -> set:
 def _bucket_points_by_period(
     points: list[DailyExtremesPoint], granularity: str
 ) -> dict:
-    buckets: dict = defaultdict(lambda: {"tmin": [], "tmax": []})
+    buckets: dict = defaultdict(lambda: {"tn": [], "tx": []})
     for p in points:
-        if p.tmin is None and p.tmax is None:
+        if p.tn is None and p.tx is None:
             continue
         start = period_start(p.date, granularity)
-        if p.tmin is not None:
-            buckets[start]["tmin"].append(p.tmin)
-        if p.tmax is not None:
-            buckets[start]["tmax"].append(p.tmax)
+        if p.tn is not None:
+            buckets[start]["tn"].append(p.tn)
+        if p.tx is not None:
+            buckets[start]["tx"].append(p.tx)
     return buckets
 
 
@@ -51,15 +51,15 @@ def _average_buckets(buckets: dict, valid_starts: set) -> list[ExtremesGraphPoin
     for start_date in sorted(buckets.keys()):
         if start_date not in valid_starts:
             continue
-        tmin_vals = buckets[start_date]["tmin"]
-        tmax_vals = buckets[start_date]["tmax"]
-        if not tmin_vals or not tmax_vals:
+        tn_vals = buckets[start_date]["tn"]
+        tx_vals = buckets[start_date]["tx"]
+        if not tn_vals or not tx_vals:
             continue
         result.append(
             ExtremesGraphPoint(
                 date=start_date,
-                tmin_mean=round(sum(tmin_vals) / len(tmin_vals), 2),
-                tmax_mean=round(sum(tmax_vals) / len(tmax_vals), 2),
+                tn_mean=round(sum(tn_vals) / len(tn_vals), 2),
+                tx_mean=round(sum(tx_vals) / len(tx_vals), 2),
             )
         )
     return result
@@ -107,7 +107,7 @@ def compute_extremes_graph(
                 "station_id": s.station_id,
                 "station_name": s.station_name,
                 "data": [
-                    {"date": p.date, "tmin_mean": p.tmin_mean, "tmax_mean": p.tmax_mean}
+                    {"date": p.date, "tn_mean": p.tn_mean, "tx_mean": p.tx_mean}
                     for p in s.data
                 ],
             }
@@ -118,7 +118,7 @@ def compute_extremes_graph(
     if result.national is not None:
         payload["national"] = {
             "data": [
-                {"date": p.date, "tmin_mean": p.tmin_mean, "tmax_mean": p.tmax_mean}
+                {"date": p.date, "tn_mean": p.tn_mean, "tx_mean": p.tx_mean}
                 for p in result.national.data
             ]
         }
@@ -143,8 +143,8 @@ def compute_extremes_overview(
             {
                 "station_id": s.station_id,
                 "station_name": s.station_name,
-                "tmax_mean": round(s.tmax_mean, 2),
-                "tmin_mean": round(s.tmin_mean, 2),
+                "tx_mean": round(s.tx_mean, 2),
+                "tn_mean": round(s.tn_mean, 2),
                 "tmean_mean": round(s.tmean_mean, 2),
                 "lat": s.lat,
                 "lon": s.lon,

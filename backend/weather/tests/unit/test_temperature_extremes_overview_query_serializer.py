@@ -15,8 +15,8 @@ def test_happy_path_minimal():
     assert s.is_valid(), s.errors
     assert s.validated_data["date_start"] == dt.date(2024, 1, 1)
     assert s.validated_data["date_end"] == dt.date(2024, 12, 31)
-    assert s.validated_data["type"] == "tmax"
-    assert s.validated_data["ordering"] == "-tmax_mean"
+    assert s.validated_data["type"] == "tx"
+    assert s.validated_data["ordering"] == "-tx_mean"
     assert s.validated_data["limit"] == 50
     assert s.validated_data["offset"] == 0
     assert s.validated_data["station_ids"] == ()
@@ -25,11 +25,11 @@ def test_happy_path_minimal():
     assert s.validated_data["station_search"] is None
 
 
-def test_type_tmin_accepted():
-    s = _valid(type="tmin")
+def test_type_tn_accepted():
+    s = _valid(type="tn")
 
     assert s.is_valid(), s.errors
-    assert s.validated_data["type"] == "tmin"
+    assert s.validated_data["type"] == "tn"
 
 
 def test_type_invalid_rejected():
@@ -66,18 +66,18 @@ def test_rejects_missing_date_end():
     assert "date_end" in s.errors
 
 
-def test_rejects_tmax_min_greater_than_max():
-    s = _valid(tmax_min=30, tmax_max=20)
+def test_rejects_tx_min_greater_than_max():
+    s = _valid(tx_min=30, tx_max=20)
 
     assert not s.is_valid()
-    assert "tmax_max" in s.errors
+    assert "tx_max" in s.errors
 
 
-def test_rejects_tmin_min_greater_than_max():
-    s = _valid(tmin_min=30, tmin_max=20)
+def test_rejects_tn_min_greater_than_max():
+    s = _valid(tn_min=30, tn_max=20)
 
     assert not s.is_valid()
-    assert "tmin_max" in s.errors
+    assert "tn_max" in s.errors
 
 
 def test_rejects_tmean_min_greater_than_max():
@@ -154,10 +154,10 @@ def test_ordering_choices_accepted():
     valid_orderings = [
         "station_name",
         "-station_name",
-        "tmax_mean",
-        "-tmax_mean",
-        "tmin_mean",
-        "-tmin_mean",
+        "tx_mean",
+        "-tx_mean",
+        "tn_mean",
+        "-tn_mean",
         "tmean_mean",
         "-tmean_mean",
         "department",
@@ -170,7 +170,7 @@ def test_ordering_choices_accepted():
 
     for ordering in valid_orderings:
         s = _valid(ordering=ordering)
-        assert s.is_valid(), f"ordering={ordering!r} devrait être valide: {s.errors}"
+        assert s.is_valid(), f"ordering={ordering!r} devrait Ãªtre valide: {s.errors}"
 
 
 def test_ordering_invalid_rejected():
@@ -182,19 +182,19 @@ def test_ordering_invalid_rejected():
 
 def test_all_optional_filters_accepted():
     s = _valid(
-        type="tmin",
+        type="tn",
         station_ids="07149",
         station_search="lyon",
         tmean_min=10.0,
         tmean_max=20.0,
-        tmax_min=15.0,
-        tmax_max=30.0,
-        tmin_min=5.0,
-        tmin_max=20.0,
+        tx_min=15.0,
+        tx_max=30.0,
+        tn_min=5.0,
+        tn_max=20.0,
         alt_min=100.0,
         alt_max=500.0,
         departments="69",
-        regions="Auvergne-Rhône-Alpes",
+        regions="Auvergne-RhÃ´ne-Alpes",
         ordering="station_name",
         limit=25,
         offset=50,
@@ -202,13 +202,13 @@ def test_all_optional_filters_accepted():
 
     assert s.is_valid(), s.errors
     d = s.validated_data
-    assert d["type"] == "tmin"
+    assert d["type"] == "tn"
     assert d["tmean_min"] == 10.0
     assert d["tmean_max"] == 20.0
-    assert d["tmax_min"] == 15.0
-    assert d["tmax_max"] == 30.0
-    assert d["tmin_min"] == 5.0
-    assert d["tmin_max"] == 20.0
+    assert d["tx_min"] == 15.0
+    assert d["tx_max"] == 30.0
+    assert d["tn_min"] == 5.0
+    assert d["tn_max"] == 20.0
     assert d["alt_min"] == 100.0
     assert d["alt_max"] == 500.0
     assert d["limit"] == 25

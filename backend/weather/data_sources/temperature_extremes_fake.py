@@ -35,12 +35,12 @@ def _stable_int(value: str) -> int:
 
 def _generate_point(d: dt.date, rng: random.Random, bias: float) -> DailyExtremesPoint:
     mean = _seasonal_mean(d)
-    tmin = mean - 4.0 + bias + rng.gauss(0.0, 1.5)
-    tmax = mean + 4.0 + bias + rng.gauss(0.0, 1.5)
+    tn = mean - 4.0 + bias + rng.gauss(0.0, 1.5)
+    tx = mean + 4.0 + bias + rng.gauss(0.0, 1.5)
     return DailyExtremesPoint(
         date=d,
-        tmin=round(tmin, 1),
-        tmax=round(tmax, 1),
+        tn=round(tn, 1),
+        tx=round(tx, 1),
     )
 
 
@@ -86,8 +86,8 @@ _FAKE_OVERVIEW_STATIONS = [
     ExtremesOverviewStation(
         station_id="07149",
         station_name="Marseille-Marignane",
-        tmax_mean=29.8,
-        tmin_mean=2.6,
+        tx_mean=29.8,
+        tn_mean=2.6,
         tmean_mean=16.2,
         lat=43.44,
         lon=5.22,
@@ -101,8 +101,8 @@ _FAKE_OVERVIEW_STATIONS = [
     ExtremesOverviewStation(
         station_id="07222",
         station_name="Lyon-Bron",
-        tmax_mean=26.3,
-        tmin_mean=1.3,
+        tx_mean=26.3,
+        tn_mean=1.3,
         tmean_mean=13.8,
         lat=45.73,
         lon=5.08,
@@ -116,8 +116,8 @@ _FAKE_OVERVIEW_STATIONS = [
     ExtremesOverviewStation(
         station_id="07156",
         station_name="Paris-Montsouris",
-        tmax_mean=23.1,
-        tmin_mean=1.9,
+        tx_mean=23.1,
+        tn_mean=1.9,
         tmean_mean=12.5,
         lat=48.82,
         lon=2.34,

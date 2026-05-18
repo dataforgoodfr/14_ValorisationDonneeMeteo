@@ -84,8 +84,8 @@ def test_france_returns_national_series(client: APIClient):
     data = body["national"]["data"]
     assert len(data) == 3
     assert data[0]["date"] == "2020-01-01"
-    assert "tmin_mean" in data[0]
-    assert "tmax_mean" in data[0]
+    assert "tn_mean" in data[0]
+    assert "tx_mean" in data[0]
 
 
 @pytest.mark.usefixtures("fake_extremes_dep")
@@ -110,8 +110,8 @@ def test_station_filter_returns_station_series(client: APIClient):
 
     data = body["stations"][0]["data"]
     assert len(data) == 3
-    assert "tmin_mean" in data[0]
-    assert "tmax_mean" in data[0]
+    assert "tn_mean" in data[0]
+    assert "tx_mean" in data[0]
 
 
 @pytest.mark.usefixtures("fake_extremes_dep")
@@ -134,8 +134,8 @@ def test_department_filter_returns_aggregated_series(client: APIClient):
 
     data = body["national"]["data"]
     assert len(data) == 3
-    assert "tmin_mean" in data[0]
-    assert "tmax_mean" in data[0]
+    assert "tn_mean" in data[0]
+    assert "tx_mean" in data[0]
 
 
 @pytest.mark.usefixtures("fake_extremes_dep")

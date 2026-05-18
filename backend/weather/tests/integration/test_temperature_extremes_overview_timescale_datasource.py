@@ -30,32 +30,32 @@ def test_fetch_station_overview_happy_path():
 
     ds = TimescaleTemperatureExtremesOverviewDataSource()
 
-    result = ds.fetch_station_overview(_query(type="tmax"))
+    result = ds.fetch_station_overview(_query(type="tx"))
 
     assert result.pagination.total_count == 1
     assert len(result.stations) == 1
     s = result.stations[0]
     assert s.station_id == code
     assert s.station_name == "Station Lyon"
-    assert s.tmax_mean == pytest.approx(11.0)
-    assert s.tmin_mean == pytest.approx(1.0)
+    assert s.tx_mean == pytest.approx(11.0)
+    assert s.tn_mean == pytest.approx(1.0)
     assert s.tmean_mean == pytest.approx(6.0)
     assert s.alt == pytest.approx(200.0)
     assert s.department == "69"
 
 
 @pytest.mark.django_db
-def test_fetch_station_overview_type_tmin_uses_tmin_as_textreme():
+def test_fetch_station_overview_type_tn_uses_tn_as_textreme():
     code = "07149001"
     insert_station(code, "Station Lyon", departement=69)
     insert_quotidienne(dt.date(2024, 1, 1), code, tn=0.0, tx=10.0)
     insert_quotidienne(dt.date(2024, 1, 2), code, tn=2.0, tx=12.0)
 
     ds = TimescaleTemperatureExtremesOverviewDataSource()
-    result = ds.fetch_station_overview(_query(type="tmin"))
+    result = ds.fetch_station_overview(_query(type="tn"))
 
-    assert result.stations[0].tmin_mean == pytest.approx(1.0)
-    assert result.stations[0].tmax_mean == pytest.approx(11.0)
+    assert result.stations[0].tn_mean == pytest.approx(1.0)
+    assert result.stations[0].tx_mean == pytest.approx(11.0)
 
 
 @pytest.mark.django_db
@@ -74,7 +74,7 @@ def test_fetch_station_overview_filters_by_department():
 
 
 @pytest.mark.django_db
-def test_fetch_station_overview_filters_by_tmax_min():
+def test_fetch_station_overview_filters_by_tx_min():
     s1, s2 = "07149001", "07500001"
     insert_station(s1, "A", departement=69)
     insert_station(s2, "B", departement=75)
@@ -82,7 +82,7 @@ def test_fetch_station_overview_filters_by_tmax_min():
     insert_quotidienne(dt.date(2024, 1, 1), s2, tn=0.0, tx=30.0)
 
     ds = TimescaleTemperatureExtremesOverviewDataSource()
-    result = ds.fetch_station_overview(_query(tmax_min=20.0))
+    result = ds.fetch_station_overview(_query(tx_min=20.0))
 
     assert result.pagination.total_count == 1
     assert result.stations[0].station_id == s2
@@ -97,7 +97,7 @@ def test_fetch_station_overview_orders_by_textreme_desc():
     insert_quotidienne(dt.date(2024, 1, 1), s2, tn=0.0, tx=30.0)
 
     ds = TimescaleTemperatureExtremesOverviewDataSource()
-    result = ds.fetch_station_overview(_query(type="tmax", ordering="-tmax_mean"))
+    result = ds.fetch_station_overview(_query(type="tx", ordering="-tx_mean"))
 
     assert [s.station_id for s in result.stations] == [s2, s1]
 

@@ -41,7 +41,7 @@ def test_happy_path(client: APIClient):
 def test_metadata_fields(client: APIClient):
     resp = client.get(
         URL,
-        {"date_start": "2024-01-01", "date_end": "2024-12-31", "type": "tmin"},
+        {"date_start": "2024-01-01", "date_end": "2024-12-31", "type": "tn"},
     )
 
     assert resp.status_code == 200
@@ -49,7 +49,7 @@ def test_metadata_fields(client: APIClient):
 
     assert meta["date_start"] == "2024-01-01"
     assert meta["date_end"] == "2024-12-31"
-    assert meta["type"] == "tmin"
+    assert meta["type"] == "tn"
     assert "filters" in meta
     assert "ordering" in meta
 
@@ -62,8 +62,8 @@ def test_station_fields_present(client: APIClient):
 
     assert "station_id" in s
     assert "station_name" in s
-    assert "tmax_mean" in s
-    assert "tmin_mean" in s
+    assert "tx_mean" in s
+    assert "tn_mean" in s
     assert "tmean_mean" in s
     assert "lat" in s
     assert "lon" in s
@@ -106,19 +106,19 @@ def test_returns_400_invalid_type(client: APIClient):
     assert "type" in resp.json()["error"]["details"]
 
 
-def test_returns_400_tmax_min_greater_than_max(client: APIClient):
+def test_returns_400_tx_min_greater_than_max(client: APIClient):
     resp = client.get(
         URL,
         {
             "date_start": "2024-01-01",
             "date_end": "2024-12-31",
-            "tmax_min": 30,
-            "tmax_max": 20,
+            "tx_min": 30,
+            "tx_max": 20,
         },
     )
 
     assert resp.status_code == 400
-    assert "tmax_max" in resp.json()["error"]["details"]
+    assert "tx_max" in resp.json()["error"]["details"]
 
 
 def test_returns_400_negative_offset(client: APIClient):
@@ -144,20 +144,20 @@ def test_pagination_fields(client: APIClient):
     assert len(resp.json()["stations"]) <= 2
 
 
-def test_type_tmax_default(client: APIClient):
+def test_type_tx_default(client: APIClient):
     resp = client.get(URL, {"date_start": "2024-01-01", "date_end": "2024-12-31"})
 
     assert resp.status_code == 200
-    assert resp.json()["metadata"]["type"] == "tmax"
+    assert resp.json()["metadata"]["type"] == "tx"
 
 
-def test_type_tmin_accepted(client: APIClient):
+def test_type_tn_accepted(client: APIClient):
     resp = client.get(
-        URL, {"date_start": "2024-01-01", "date_end": "2024-12-31", "type": "tmin"}
+        URL, {"date_start": "2024-01-01", "date_end": "2024-12-31", "type": "tn"}
     )
 
     assert resp.status_code == 200
-    assert resp.json()["metadata"]["type"] == "tmin"
+    assert resp.json()["metadata"]["type"] == "tn"
 
 
 def test_filters_echoed_in_metadata(client: APIClient):
@@ -168,7 +168,7 @@ def test_filters_echoed_in_metadata(client: APIClient):
             "date_end": "2024-12-31",
             "station_ids": "07149,07222",
             "departments": "69,75",
-            "tmax_min": 20,
+            "tx_min": 20,
         },
     )
 
@@ -177,7 +177,7 @@ def test_filters_echoed_in_metadata(client: APIClient):
 
     assert filters["station_ids"] == ["07149", "07222"]
     assert filters["departments"] == ["69", "75"]
-    assert filters["tmax_min"] == 20.0
+    assert filters["tx_min"] == 20.0
 
 
 def test_ordering_echoed_in_metadata(client: APIClient):

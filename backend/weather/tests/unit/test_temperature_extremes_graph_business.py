@@ -33,8 +33,8 @@ class StubExtremesDataSource:
 def test_without_territoire_filter_returns_national():
     ds = StubExtremesDataSource(
         national_points=[
-            DailyExtremesPoint(date=dt.date(2020, 1, 1), tmin=-2.0, tmax=5.0),
-            DailyExtremesPoint(date=dt.date(2020, 1, 2), tmin=0.0, tmax=7.0),
+            DailyExtremesPoint(date=dt.date(2020, 1, 1), tn=-2.0, tx=5.0),
+            DailyExtremesPoint(date=dt.date(2020, 1, 2), tn=0.0, tx=7.0),
         ]
     )
     query = ExtremesGraphQuery(
@@ -56,9 +56,7 @@ def test_with_station_ids_returns_stations():
             StationDailyExtremesSeries(
                 station_id="07149",
                 station_name="Paris",
-                points=[
-                    DailyExtremesPoint(date=dt.date(2020, 1, 1), tmin=-2.0, tmax=5.0)
-                ],
+                points=[DailyExtremesPoint(date=dt.date(2020, 1, 1), tn=-2.0, tx=5.0)],
             )
         ]
     )
@@ -79,7 +77,7 @@ def test_with_station_ids_returns_stations():
 def test_with_departments_filter_returns_aggregated_series():
     ds = StubExtremesDataSource(
         national_points=[
-            DailyExtremesPoint(date=dt.date(2020, 1, 1), tmin=-2.0, tmax=5.0),
+            DailyExtremesPoint(date=dt.date(2020, 1, 1), tn=-2.0, tx=5.0),
         ]
     )
     query = ExtremesGraphQuery(
@@ -98,9 +96,9 @@ def test_with_departments_filter_returns_aggregated_series():
 def test_aggregation_granularity_month():
     ds = StubExtremesDataSource(
         national_points=[
-            DailyExtremesPoint(date=dt.date(2020, 1, 1), tmin=-2.0, tmax=5.0),
-            DailyExtremesPoint(date=dt.date(2020, 1, 15), tmin=0.0, tmax=9.0),
-            DailyExtremesPoint(date=dt.date(2020, 2, 1), tmin=1.0, tmax=11.0),
+            DailyExtremesPoint(date=dt.date(2020, 1, 1), tn=-2.0, tx=5.0),
+            DailyExtremesPoint(date=dt.date(2020, 1, 15), tn=0.0, tx=9.0),
+            DailyExtremesPoint(date=dt.date(2020, 2, 1), tn=1.0, tx=11.0),
         ]
     )
     query = ExtremesGraphQuery(
@@ -114,16 +112,16 @@ def test_aggregation_granularity_month():
     data = result["national"]["data"]
     assert len(data) == 2
     assert data[0]["date"] == dt.date(2020, 1, 1)
-    assert data[0]["tmin_mean"] == -1.0
-    assert data[0]["tmax_mean"] == 7.0
+    assert data[0]["tn_mean"] == -1.0
+    assert data[0]["tx_mean"] == 7.0
 
 
 def test_aggregation_granularity_year():
     ds = StubExtremesDataSource(
         national_points=[
-            DailyExtremesPoint(date=dt.date(2020, 1, 1), tmin=-2.0, tmax=5.0),
-            DailyExtremesPoint(date=dt.date(2020, 6, 15), tmin=14.0, tmax=28.0),
-            DailyExtremesPoint(date=dt.date(2021, 3, 1), tmin=3.0, tmax=12.0),
+            DailyExtremesPoint(date=dt.date(2020, 1, 1), tn=-2.0, tx=5.0),
+            DailyExtremesPoint(date=dt.date(2020, 6, 15), tn=14.0, tx=28.0),
+            DailyExtremesPoint(date=dt.date(2021, 3, 1), tn=3.0, tx=12.0),
         ]
     )
     query = ExtremesGraphQuery(
@@ -137,15 +135,15 @@ def test_aggregation_granularity_year():
     data = result["national"]["data"]
     assert len(data) == 2
     assert data[0]["date"] == dt.date(2020, 1, 1)
-    assert data[0]["tmin_mean"] == 6.0
-    assert data[0]["tmax_mean"] == 16.5
+    assert data[0]["tn_mean"] == 6.0
+    assert data[0]["tx_mean"] == 16.5
 
 
 def test_none_values_are_ignored():
     ds = StubExtremesDataSource(
         national_points=[
-            DailyExtremesPoint(date=dt.date(2020, 1, 1), tmin=None, tmax=None),
-            DailyExtremesPoint(date=dt.date(2020, 1, 2), tmin=-1.0, tmax=6.0),
+            DailyExtremesPoint(date=dt.date(2020, 1, 1), tn=None, tx=None),
+            DailyExtremesPoint(date=dt.date(2020, 1, 2), tn=-1.0, tx=6.0),
         ]
     )
     query = ExtremesGraphQuery(
