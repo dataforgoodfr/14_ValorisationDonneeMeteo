@@ -925,7 +925,7 @@ class MaterializedTemperatureRecordsDataSource:
     matérialisée mv_records_battus. Temps de réponse < 10 ms.
 
     Pré-requis : la MV doit exister en base. La créer avec :
-        psql < backend/sql/materialized_views/records/410_001_mv_records_battus.sql
+        psql < backend/sql/materialized_views/records/411_001_mv_records_battus.sql
 
     Rafraîchissement après import de nouvelles données :
         python manage.py refresh_records_mv

@@ -42,9 +42,7 @@ PERFORMANCE
 ===============================================================================
 */
 
-DROP MATERIALIZED VIEW IF EXISTS public.mv_records_battus;
-
-CREATE MATERIALIZED VIEW public.mv_records_battus AS
+CREATE OR REPLACE VIEW public.v_records_battus AS
 
 WITH
 
@@ -271,15 +269,3 @@ FROM tn_seasonal r
 JOIN public.v_station_records s ON s.station_code = r."NUM_POSTE"
 WHERE (r.prev_val IS NULL OR r.val < r.prev_val)
   AND r."AAAAMMJJ" >= s.first_temperature_date + interval '50 years';
-
--- ============================================================================
--- INDEX
--- ============================================================================
-
--- Index principal utilisé par l'endpoint (filtre sur les 3 colonnes de recherche)
-CREATE INDEX idx_mv_records_battus_query
-ON public.mv_records_battus (record_type, period_type, period_value);
-
--- Index secondaire pour les requêtes par station (diagnostic, admin)
-CREATE INDEX idx_mv_records_battus_station
-ON public.mv_records_battus (station_code);
