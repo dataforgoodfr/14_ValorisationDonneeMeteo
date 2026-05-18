@@ -14,7 +14,9 @@ ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 export PGPASSWORD="$DB_PASSWORD"
 
 VIEWS_DIR="${ROOT_DIR}/sql/views"
-MV_QUOTIDIENNE_REALTIME_SQL="${ROOT_DIR}/sql/materialized_views/300_001_mv_quotidienne_realtime.sql"
+V_QUOTIDIENNE_REALTIME_SQL="${ROOT_DIR}/sql/materialized_views/300_001_v_quotidienne_realtime.sql"
+MV_QUOTIDIENNE_REALTIME_SQL="${ROOT_DIR}/sql/materialized_views/301_001_mv_quotidienne_realtime.sql"
+V_FIRST_TEMPERATURE_DATE_SQL="${ROOT_DIR}/sql/materialized_views/100_002_v_first_temperature_date.sql"
 MV_FIRST_TEMPERATURE_DATE_SQL="${ROOT_DIR}/sql/materialized_views/101_002_mv_first_temperature_date.sql"
 
 apply_sql_file() {
@@ -39,7 +41,9 @@ if [[ ! -d "$VIEWS_DIR" ]]; then
   exit 1
 fi
 
+apply_sql_file "$V_QUOTIDIENNE_REALTIME_SQL"
 apply_sql_file "$MV_QUOTIDIENNE_REALTIME_SQL"
+apply_sql_file "$V_FIRST_TEMPERATURE_DATE_SQL"
 apply_sql_file "$MV_FIRST_TEMPERATURE_DATE_SQL"
 
 for f in "${VIEWS_DIR}"/*.sql; do

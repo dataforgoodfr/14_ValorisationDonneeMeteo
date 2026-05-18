@@ -1,6 +1,4 @@
-DROP MATERIALIZED VIEW IF EXISTS public.mv_quotidienne_realtime;
-
-CREATE MATERIALIZED VIEW public.mv_quotidienne_realtime AS
+CREATE OR REPLACE VIEW public.v_quotidienne_realtime AS
 WITH horaire_from_infrahoraire AS (
     SELECT
         geo_id_insee                                                                AS station_id,
@@ -89,6 +87,3 @@ SELECT
     tx AS tx
 FROM quotidienne_temps_reel
 WHERE tntxm IS NOT NULL;
-
-CREATE UNIQUE INDEX IF NOT EXISTS mv_quotidienne_realtime_uq
-    ON mv_quotidienne_realtime (station_code, date);
