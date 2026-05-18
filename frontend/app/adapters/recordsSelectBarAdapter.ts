@@ -79,12 +79,21 @@ export const useRecordsSelectBarAdapter =
                     return `function(params) {
                         if (!Array.isArray(params)) params = [params];
                         if (!params.length) return '';
-                        const data = params[0].value;
+                        const first = params[0];
+                        const toScatter = (v) => Array.isArray(v) ? {date: v[0], value: v[1], station: v[2]} : v;
+                        const toBar = (v) => Array.isArray(v) ? {period: v[0], hot: v[1], cold: v[2]} : v;
+                        if (first.seriesType === 'bar') {
+                            const d = toBar(first.value);
+                            const hotMarker = '<span style="display:inline-block;margin-right:4px;border-radius:10px;width:10px;height:10px;background-color:#d32F2F;"></span>';
+                            const coldMarker = '<span style="display:inline-block;margin-right:4px;border-radius:10px;width:10px;height:10px;background-color:#1976D2;"></span>';
+                            return ['<b>' + d.period + '</b>', hotMarker + ' Records de chaleur : ' + d.hot, coldMarker + ' Records de froid : ' + d.cold].join('<br/>');
+                        }
+                        const data = toScatter(first.value);
                         if (!data) return '';
                         const date = new Date(data.date).toLocaleDateString('fr-FR', {day:'2-digit',month:'2-digit',year:'numeric'});
                         const lines = [date];
                         params.forEach((p) => {
-                            const v = p.value;
+                            const v = toScatter(p.value);
                             if (v && v.value != null) {
                                 lines.push((p.marker||'') + ' ' + (v.station||'') + ' : ' + v.value + '°C');
                             }
