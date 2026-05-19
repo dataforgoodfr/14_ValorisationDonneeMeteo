@@ -16,9 +16,20 @@ const { data: yesterdayData, pending } = useNationalIndicator(
     true,
 );
 
-const yesterdayTemperature = computed(() => {
-    return yesterdayData.value?.time_series[0]?.temperature;
+const yesterdayTemperature = computed(
+    () => yesterdayData.value?.time_series[0]?.temperature,
+);
+
+const itnColorClass = computed(() => {
+    const point = yesterdayData.value?.time_series[0];
+    if (!point || yesterdayTemperature.value == null) return "text-green-400";
+    if (yesterdayTemperature.value > point.baseline_std_dev_upper)
+        return "text-red-400";
+    if (yesterdayTemperature.value < point.baseline_std_dev_lower)
+        return "text-blue-400";
+    return "text-green-400";
 });
+
 const gap = computed(() => {
     const result = yesterdayData.value?.time_series[0];
     return result ? result.temperature - result.baseline_mean : undefined;
@@ -34,11 +45,7 @@ const gap = computed(() => {
             <p
                 v-if="yesterdayTemperature"
                 class="font-semibold text-4xl mb-1"
-                :class="
-                    (yesterdayTemperature ?? 0) <= 0
-                        ? 'text-blue-600'
-                        : 'text-red-450'
-                "
+                :class="itnColorClass"
             >
                 {{ yesterdayTemperature?.toFixed(1) }} °C
             </p>
