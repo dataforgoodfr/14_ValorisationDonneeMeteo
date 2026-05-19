@@ -37,7 +37,7 @@ export type SelectedItem = {
 export const useRecordsChartStore = defineStore("recordChartStore", () => {
     const recordsChartRef = shallowRef();
 
-    const pickedDateStart = ref(dates.absoluteMinDataDate.value);
+    const pickedDateStart = ref(dates.recordsMinDataDate.value);
     const pickedDateEnd = ref(dates.today.value);
     const maxDate = ref(dates.today.value);
 
@@ -175,7 +175,7 @@ export const useRecordsChartStore = defineStore("recordChartStore", () => {
             pickedDateStart.value = dates.last10Year.value;
         }
         if (value === "year") {
-            pickedDateStart.value = dates.absoluteMinDataDate.value;
+            pickedDateStart.value = dates.recordsMinDataDate.value;
         }
     };
 

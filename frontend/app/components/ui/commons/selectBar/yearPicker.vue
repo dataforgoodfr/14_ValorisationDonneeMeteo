@@ -10,6 +10,9 @@ const adapter = inject<SelectBarAdapter>("selectBarAdapter")!;
 const dates = useCustomDate();
 
 const maxDate = computed(() => adapter.maxDate?.value ?? dates.yesterday.value);
+const minDate = computed(
+    () => adapter.minDate?.value ?? dates.absoluteMinDataDate.value,
+);
 
 const pt = {
     root: { class: "relative w-36" },
@@ -63,7 +66,7 @@ const pt = {
     <div id="container-year-picker" class="flex gap-2 items-center">
         <DatePicker
             v-model="localStartDate"
-            :min-date="dates.absoluteMinDataDate.value"
+            :min-date="minDate"
             :max-date="localEndDate"
             view="year"
             date-format="yy"

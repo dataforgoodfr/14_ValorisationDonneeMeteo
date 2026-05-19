@@ -1,6 +1,6 @@
 import type { SelectBarAdapter } from "~/components/ui/commons/selectBar/types";
 import type { TemperatureRecordsGraphResponse } from "~/types/api";
-import { useRecordsChartStore } from "#imports";
+import { useCustomDate, useRecordsChartStore } from "#imports";
 import { buildTerritoryPlots } from "~/utils/recordsChartUtils";
 import {
     getRecordKindLabels,
@@ -13,6 +13,7 @@ import { useFormatFileName } from "~/composables/useFormatFilename";
 export const useRecordsSelectBarAdapter =
     (): SelectBarAdapter<TemperatureRecordsGraphResponse> => {
         const store = useRecordsChartStore();
+        const dates = useCustomDate();
 
         const {
             recordsChartRef,
@@ -36,6 +37,7 @@ export const useRecordsSelectBarAdapter =
             pickedDateStart,
             pickedDateEnd,
             maxDate,
+            minDate: dates.recordsMinDataDate,
             sliceTypeSwitchEnabled,
             sliceTypeSwitchLabel: "Records mensuels/saisonniers",
             analysisPeriodInfoText:

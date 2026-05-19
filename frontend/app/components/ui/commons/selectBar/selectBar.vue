@@ -88,7 +88,10 @@ const calendarAveragingOptions = computed(() => {
                             v-if="adapter.granularity.value === 'day'"
                             v-model:start-date="localStartDate"
                             v-model:end-date="localEndDate"
-                            :min-date="dates.absoluteMinDataDate.value"
+                            :min-date="
+                                adapter.minDate?.value ??
+                                dates.absoluteMinDataDate.value
+                            "
                             :max-date="
                                 adapter.maxDate?.value ?? dates.today.value
                             "
@@ -97,7 +100,10 @@ const calendarAveragingOptions = computed(() => {
                             v-if="adapter.granularity.value === 'month'"
                             v-model:start-date="localStartDate"
                             v-model:end-date="localEndDate"
-                            :min-date="dates.absoluteMinDataDate.value"
+                            :min-date="
+                                adapter.minDate?.value ??
+                                dates.absoluteMinDataDate.value
+                            "
                             :max-date="
                                 adapter.maxDate?.value ?? dates.today.value
                             "
@@ -106,7 +112,10 @@ const calendarAveragingOptions = computed(() => {
                             v-if="adapter.granularity.value === 'year'"
                             v-model:start-date="localStartDate"
                             v-model:end-date="localEndDate"
-                            :min-date="dates.absoluteMinDataDate.value"
+                            :min-date="
+                                adapter.minDate?.value ??
+                                dates.absoluteMinDataDate.value
+                            "
                             :max-date="
                                 adapter.maxDate?.value ?? dates.today.value
                             "

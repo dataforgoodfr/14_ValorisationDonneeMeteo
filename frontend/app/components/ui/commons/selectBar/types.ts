@@ -32,6 +32,7 @@ export interface SelectBarAdapter<
     pickedDateStart: Ref<Date>;
     pickedDateEnd: Ref<Date>;
     maxDate?: Ref<Date>;
+    minDate?: Ref<Date>;
 
     // Deviation-style slice type (specific day/month)
     sliceTypeSwitchEnabled?: Ref<boolean>;
