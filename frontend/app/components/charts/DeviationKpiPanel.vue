@@ -84,21 +84,21 @@ interface Props {
 const props = defineProps<Props>();
 
 const store = useDeviationStore();
-const { pickedDateStart, pickedDateEnd } = storeToRefs(store);
+const { effectiveDateStart, effectiveDateEnd } = storeToRefs(store);
 
 const fmt = (d: Date) => d.toLocaleDateString("fr-FR", { dateStyle: "short" });
 const formattedStart = computed(() =>
     props.dateStart
         ? fmt(new Date(props.dateStart))
-        : fmt(pickedDateStart.value),
+        : fmt(effectiveDateStart.value),
 );
 const formattedEnd = computed(() =>
-    props.dateEnd ? fmt(new Date(props.dateEnd)) : fmt(pickedDateEnd.value),
+    props.dateEnd ? fmt(new Date(props.dateEnd)) : fmt(effectiveDateEnd.value),
 );
 
 const params = computed<NationalIndicatorKpiParams>(() => ({
-    date_start: props.dateStart ?? dateToStringYMD(pickedDateStart.value),
-    date_end: props.dateEnd ?? dateToStringYMD(pickedDateEnd.value),
+    date_start: props.dateStart ?? dateToStringYMD(effectiveDateStart.value),
+    date_end: props.dateEnd ?? dateToStringYMD(effectiveDateEnd.value),
 }));
 
 const { data: kpi, pending } = useNationalIndicatorKpi(params);

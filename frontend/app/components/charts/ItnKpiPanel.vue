@@ -142,15 +142,15 @@ import { dateToStringYMD } from "#imports";
 import type { NationalIndicatorKpiParams } from "~/types/api";
 
 const store = useItnStore();
-const { pickedDateStart, pickedDateEnd } = storeToRefs(store);
+const { effectiveDateStart, effectiveDateEnd } = storeToRefs(store);
 
 const fmt = (d: Date) => d.toLocaleDateString("fr-FR", { dateStyle: "short" });
-const formattedStart = computed(() => fmt(pickedDateStart.value));
-const formattedEnd = computed(() => fmt(pickedDateEnd.value));
+const formattedStart = computed(() => fmt(effectiveDateStart.value));
+const formattedEnd = computed(() => fmt(effectiveDateEnd.value));
 
 const params = computed<NationalIndicatorKpiParams>(() => ({
-    date_start: dateToStringYMD(pickedDateStart.value),
-    date_end: dateToStringYMD(pickedDateEnd.value),
+    date_start: dateToStringYMD(effectiveDateStart.value),
+    date_end: dateToStringYMD(effectiveDateEnd.value),
 }));
 
 const { data: kpi, pending } = useNationalIndicatorKpi(params);

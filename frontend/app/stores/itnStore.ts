@@ -181,6 +181,8 @@ export const useItnStore = defineStore("itnStore", () => {
         itnData,
         effectiveData,
         effectivePending,
+        effectiveDateStart,
+        effectiveDateEnd,
         pending,
         error,
     };

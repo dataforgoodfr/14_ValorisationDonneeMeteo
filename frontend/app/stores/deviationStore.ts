@@ -263,6 +263,8 @@ export const useDeviationStore = defineStore("deviationStore", () => {
         stationIds,
         selectedStations,
         selectedStationsAndNational,
+        effectiveDateStart,
+        effectiveDateEnd,
         deviationData,
         pending,
         error,
