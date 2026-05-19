@@ -6,7 +6,7 @@
             :loading="pending"
         >
             <template #kpi>
-                <p class="font-semibold text-4xl mb-1 text-red-400">
+                <p class="font-semibold text-4xl mb-1" :class="itnColorClass">
                     <span v-if="kpi != null"
                         >{{ kpi.itn_mean?.toFixed(1) }} °C</span
                     >
@@ -154,6 +154,14 @@ const params = computed<NationalIndicatorKpiParams>(() => ({
 }));
 
 const { data: kpi, pending } = useNationalIndicatorKpi(params);
+
+const itnColorClass = computed(() => {
+    const deviation = kpi.value?.deviation_from_normal;
+    if (deviation == null) return "text-green-400";
+    if (deviation > 0) return "text-red-400";
+    if (deviation < 0) return "text-blue-400";
+    return "text-green-400";
+});
 
 const hotDiff = computed(() => {
     if (kpi.value == null) return null;
