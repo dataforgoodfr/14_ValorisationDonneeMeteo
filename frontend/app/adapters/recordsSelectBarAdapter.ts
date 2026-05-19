@@ -25,7 +25,7 @@ export const useRecordsSelectBarAdapter =
             month,
             season,
             selectedElements,
-            processedRecordsData,
+            recordsData,
             recordKind,
             pending,
             chartType,
@@ -45,7 +45,7 @@ export const useRecordsSelectBarAdapter =
             season,
             selectedElements,
             chartRef: recordsChartRef,
-            data: processedRecordsData,
+            data: recordsData,
             recordKind,
             pending,
             chartType,
@@ -114,7 +114,7 @@ export const useRecordsSelectBarAdapter =
                 },
                 onExportCsv: () => {
                     if (!import.meta.client) return;
-                    const data = processedRecordsData.value;
+                    const data = recordsData.value;
                     if (!data) return;
 
                     const { kindLabel, kindFileLabel } = getRecordKindLabels(

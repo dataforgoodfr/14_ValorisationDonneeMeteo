@@ -128,6 +128,36 @@ export function useTemperatureRecordsGraph(
     return result;
 }
 
+export function useTemperatureAbsoluteRecordsGraph(
+    params: MaybeRef<TemperatureRecordsGraphParams>,
+    enabled?: MaybeRef<boolean>,
+) {
+    const { useApiFetch } = useApiClient();
+
+    const isEnabled = computed(() => toValue(enabled) ?? true);
+
+    const result = useApiFetch<TemperatureRecordsGraphResponse>(
+        "/temperature/records/absolute/graph",
+        {
+            query: params,
+            immediate: false,
+            watch: false,
+        },
+    );
+
+    watch(
+        [isEnabled, params],
+        ([enabled]) => {
+            if (enabled) {
+                result.execute();
+            }
+        },
+        { immediate: true },
+    );
+
+    return result;
+}
+
 export function useTemperatureExtremes(
     params?: MaybeRef<Record<string, unknown>>,
 ) {
@@ -142,6 +172,20 @@ export function useTemperatureRecords(
 
     return useApiFetch<TemperatureRecordsPaginatedResponse>(
         "/temperature/records",
+        {
+            query: params,
+            server: false,
+        },
+    );
+}
+
+export function useTemperatureAbsoluteRecords(
+    params: MaybeRef<TemperatureRecordsParams>,
+) {
+    const { useApiFetch } = useApiClient();
+
+    return useApiFetch<TemperatureRecordsPaginatedResponse>(
+        "/temperature/records/absolute",
         {
             query: params,
             server: false,

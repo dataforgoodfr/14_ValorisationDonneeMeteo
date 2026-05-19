@@ -1,6 +1,6 @@
 import { refDebounced } from "@vueuse/core";
 import { MONTH_LONG } from "~/constants/months";
-import { useTemperatureRecords } from "~/composables/useTemperature";
+import { useTemperatureAbsoluteRecords } from "~/composables/useTemperature";
 import { departements } from "~/data/records/departements";
 import { dateToStringYMD } from "~/utils/date";
 import { expandClasseRange } from "~/utils/classeFilter";
@@ -42,7 +42,7 @@ const debounceDuration = 300;
 export function computeAbsoluteRecords(
     rawRecords: TemperatureRecordFlatEntry[],
     typeRecords: TypeRecords,
-) {
+): TemperatureRecordFlatEntry[] {
     const stationMap = new Map<string, TemperatureRecordFlatEntry>();
     for (const record of rawRecords) {
         const currentRecord = stationMap.get(record.station_id)?.record_value;
@@ -275,16 +275,13 @@ export const useRecordsTableStore = defineStore("recordsTableStore", () => {
         data: rawRecords,
         pending,
         error,
-    } = useTemperatureRecords(
+    } = useTemperatureAbsoluteRecords(
         computed(() => ({ ...params.value, page_size: 9999 })),
     );
 
-    const absoluteRecords = computed<TemperatureRecordFlatEntry[]>(() => {
-        return computeAbsoluteRecords(
-            rawRecords.value?.results ?? [],
-            typeRecords.value,
-        );
-    });
+    const absoluteRecords = computed<TemperatureRecordFlatEntry[]>(
+        () => rawRecords.value?.results ?? [],
+    );
 
     // Apply client-side filters (debounced to avoid filtering on every keystroke)
     const filteredRecords = computed<TemperatureRecordFlatEntry[]>(() => {

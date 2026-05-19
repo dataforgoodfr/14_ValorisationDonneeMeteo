@@ -10,14 +10,13 @@ import type {
     Season,
     Station,
     TemperatureRecordsGraphParams,
-    TemperatureRecordsGraphRecord,
     TemperatureRecordsGraphResponse,
     TypeRecords,
 } from "~/types/api";
 import { useCustomDate } from "#imports";
 import type {
-    GranularityType,
     ChartType,
+    GranularityType,
 } from "~/components/ui/commons/selectBar/types";
 
 const dates = useCustomDate();
@@ -128,33 +127,41 @@ export const useRecordsChartStore = defineStore("recordChartStore", () => {
         territoire_id: territoireId.value,
     }));
 
-    const {
-        data: recordsData,
-        pending,
-        error,
-    } = useTemperatureRecordsGraph(params);
-
     const recordKind = ref<"absolute" | "historical">("historical");
+    const isHistoricalRecordKind = computed(
+        () => recordKind.value === "historical",
+    );
+    const isAbsoluteRecordKind = computed(
+        () => recordKind.value === "absolute",
+    );
 
-    const processedRecordsData = computed<
-        TemperatureRecordsGraphResponse | undefined
-    >(() => {
-        if (!recordsData.value) return undefined;
-        if (recordKind.value === "historical") return recordsData.value;
+    const {
+        data: historicalRecordsData,
+        pending: historicalPending,
+        error: historicalError,
+    } = useTemperatureRecordsGraph(params, isHistoricalRecordKind);
+    const {
+        data: absoluteRecordsData,
+        pending: absolutePending,
+        error: absoluteError,
+    } = useTemperatureAbsoluteRecordsGraph(params, isAbsoluteRecordKind);
 
-        const latestByKey = new Map<string, TemperatureRecordsGraphRecord>();
-        for (const record of recordsData.value.records) {
-            const key = `${record.station_id}__${record.type_records}`;
-            const existing = latestByKey.get(key);
-            if (!existing || record.date > existing.date) {
-                latestByKey.set(key, record);
-            }
-        }
-        return {
-            buckets: recordsData.value.buckets,
-            records: Array.from(latestByKey.values()),
-        };
-    });
+    const recordsData = computed<TemperatureRecordsGraphResponse | undefined>(
+        () =>
+            isHistoricalRecordKind.value
+                ? historicalRecordsData.value
+                : absoluteRecordsData.value,
+    );
+    const pending = computed(() =>
+        isHistoricalRecordKind.value
+            ? historicalPending.value
+            : absolutePending.value,
+    );
+    const error = computed(() =>
+        isHistoricalRecordKind.value
+            ? historicalError.value
+            : absoluteError.value,
+    );
 
     const setGranularity = (value: GranularityType) => {
         granularity.value = value;
@@ -275,7 +282,6 @@ export const useRecordsChartStore = defineStore("recordChartStore", () => {
         addTerritoryFilter,
         removeItemFromFilter,
         recordsData,
-        processedRecordsData,
         recordKind,
         pending,
         error,
