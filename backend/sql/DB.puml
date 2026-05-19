@@ -95,8 +95,8 @@ package DataClimat.ITN.Extrêmes {
 
     mv_itn_daily_all_years <-- v_itn_daily_all_years_with_feb29
     v_itn_daily_all_years_with_feb29 <-- v_itn_absolute_extremes_daily
-    v_itn_absolute_extremes_daily <-- v_itn_absolute_extremes_monthly
-    v_itn_absolute_extremes_monthly <-- v_itn_absolute_extremes_yearly
+    v_itn_daily_all_years_with_feb29 <-- v_itn_absolute_extremes_monthly
+    v_itn_daily_all_years_with_feb29 <-- v_itn_absolute_extremes_yearly
 }
 
 package DataClimat.Écart-Normales {

@@ -781,20 +781,48 @@ class RecordsGraphQuerySerializer(serializers.Serializer):
     )
     territoire_id = serializers.CharField(required=False)
 
-    def validate(self, attrs):
-        territoire = attrs.get("territoire", "france")
+    @staticmethod
+    def check_date_range(
+        *,
+        date_start,
+        date_end,
+    ) -> None:
+        if date_start > date_end:
+            raise serializers.ValidationError(
+                {"date_end": "date_end doit être >= date_start."}
+            )
 
-        if territoire != "france" and not attrs.get("territoire_id"):
+    @staticmethod
+    def check_territoire(
+        *,
+        territoire: str,
+        territoire_id: str | None,
+    ) -> None:
+        if territoire != "france" and not territoire_id:
             raise serializers.ValidationError(
                 {"territoire_id": f"Requis si territoire={territoire}."}
             )
 
+    def validate(self, attrs):
+        self.check_date_range(
+            date_start=attrs["date_start"],
+            date_end=attrs["date_end"],
+        )
+        self.check_territoire(
+            territoire=attrs.get("territoire", "france"),
+            territoire_id=attrs.get("territoire_id"),
+        )
         return attrs
 
 
 class RecordsGraphBucketSerializer(serializers.Serializer):
     bucket = serializers.CharField()
     nb_records_battus = serializers.IntegerField()
+
+
+class AbsoluteRecordsGraphBucketSerializer(serializers.Serializer):
+    bucket = serializers.CharField()
+    nb_records_absolus = serializers.IntegerField()
 
 
 class RecordsGraphRecordSerializer(serializers.Serializer):
@@ -808,6 +836,11 @@ class RecordsGraphRecordSerializer(serializers.Serializer):
 
 class RecordsGraphResponseSerializer(serializers.Serializer):
     buckets = RecordsGraphBucketSerializer(many=True)
+    records = RecordsGraphRecordSerializer(many=True)
+
+
+class AbsoluteRecordsGraphResponseSerializer(serializers.Serializer):
+    buckets = AbsoluteRecordsGraphBucketSerializer(many=True)
     records = RecordsGraphRecordSerializer(many=True)
 
 

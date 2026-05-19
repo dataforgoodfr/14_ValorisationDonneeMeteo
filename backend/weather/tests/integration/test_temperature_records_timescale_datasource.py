@@ -294,10 +294,15 @@ def test_fetch_records_sorting_by_station_name_desc():
 @pytest.mark.django_db
 def test_fetch_records_all_months_returns_records_for_each_month():
     """period_type='month' sans month → retourne les records de tous les mois via la MV."""
-    station_code = "99011001"
+    station_code = "95011001"
 
     insert_station(
-        station_code, "Station All Months", departement=99, lat=48.0, lon=2.0, alt=100.0
+        station_code,
+        "Station All Months",
+        departement=95,
+        lat=48.0,
+        lon=2.0,
+        alt=100.0,
     )
 
     insert_mv_record(
@@ -342,12 +347,12 @@ def test_fetch_records_all_months_returns_records_for_each_month():
 @pytest.mark.django_db
 def test_fetch_records_all_seasons_returns_records_for_each_season():
     """period_type='season' sans season → retourne les records de toutes les saisons via la MV."""
-    station_code = "99012001"
+    station_code = "95012001"
 
     insert_station(
         station_code,
         "Station All Seasons",
-        departement=99,
+        departement=95,
         lat=48.0,
         lon=2.0,
         alt=100.0,
@@ -387,12 +392,12 @@ def test_fetch_records_all_seasons_returns_records_for_each_season():
 @pytest.mark.django_db
 def test_fetch_records_date_filter_excludes_outside_range():
     """date_start/date_end filtre les records dont record_date est hors fenêtre."""
-    station_code = "99013001"
+    station_code = "95013001"
 
     insert_station(
         station_code,
         "Station Date Filter",
-        departement=99,
+        departement=95,
         lat=48.0,
         lon=2.0,
         alt=100.0,

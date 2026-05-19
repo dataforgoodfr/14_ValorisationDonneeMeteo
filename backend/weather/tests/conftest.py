@@ -188,6 +188,27 @@ def setup_db_schema_and_views(django_db_setup, django_db_blocker):
         / "itn"
         / "750_010_v_itn_absolute_extremes_yearly.sql"
     ).read_text()
+    v_records_absolus_par_saison_sql = (
+        BASE_DIR
+        / "sql"
+        / "materialized_views"
+        / "records"
+        / "430_004_v_records_absolus_par_saison.sql"
+    ).read_text()
+    v_records_absolus_sql = (
+        BASE_DIR
+        / "sql"
+        / "materialized_views"
+        / "records"
+        / "440_005_v_records_absolus.sql"
+    ).read_text()
+    v_records_absolus_par_type_sql = (
+        BASE_DIR
+        / "sql"
+        / "materialized_views"
+        / "records"
+        / "450_006_v_records_absolus_par_type.sql"
+    ).read_text()
 
     with django_db_blocker.unblock():
         with connection.cursor() as cur:
@@ -257,3 +278,17 @@ def setup_db_schema_and_views(django_db_setup, django_db_blocker):
                     record_date   timestamp
                 );
             """)
+            cur.execute("""
+                CREATE TABLE public.mv_records_absolus_par_mois (
+                    station_code  char(8),
+                    month         integer,
+                    txx_max       double precision,
+                    txx_max_date  timestamp,
+                    tnn_min       double precision,
+                    tnn_min_date  timestamp,
+                    CONSTRAINT "mv_records_absolus_par_mois_pkey" PRIMARY KEY (station_code, month)
+                );
+            """)
+            cur.execute(v_records_absolus_par_saison_sql)
+            cur.execute(v_records_absolus_sql)
+            cur.execute(v_records_absolus_par_type_sql)

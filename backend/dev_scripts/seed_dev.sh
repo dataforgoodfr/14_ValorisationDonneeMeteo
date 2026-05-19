@@ -80,9 +80,6 @@ bash "${ROOT_DIR}/dev_scripts/seed_itn_baseline_monthly.sh"
 echo "== Seed ITN yearly baseline (dev CSV) =="
 bash "${ROOT_DIR}/dev_scripts/seed_itn_baseline_yearly.sh"
 
-echo "== Seed ITN absolute extremes (dev CSV) =="
-bash "${ROOT_DIR}/dev_scripts/seed_itn_absolute_extremes.sh"
-
 echo "== Create records materialized view =="
 bash "${ROOT_DIR}/dev_scripts/seed_records_mv.sh"
 

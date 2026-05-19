@@ -12,3 +12,9 @@ class TemperatureRecordsDataSource(Protocol):
     def fetch_records(
         self, request: TemperatureRecordsRequest
     ) -> TemperatureRecordsResult: ...
+
+
+class TemperatureAbsoluteRecordsDataSource(Protocol):
+    def fetch_records(
+        self, request: TemperatureRecordsRequest
+    ) -> TemperatureRecordsResult: ...

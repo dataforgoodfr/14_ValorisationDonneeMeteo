@@ -28,7 +28,7 @@ dev = [
     "ruff>=0.5.0",
     "pre-commit>=3.7.0",
     "ipython>=8.26.0",
-    "django-extensions>=3.2.0",
+    "djangorestframework-stubs>=3.17.0",
     "factory-boy>=3.3.0",
     "pandas>=2.0",
 ]

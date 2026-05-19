@@ -172,100 +172,106 @@ tn_seasonal AS (
 
 -- All-time chaud
 SELECT
-    'all_time'   AS period_type,
-    NULL::text   AS period_value,
-    'TX'         AS record_type,
-    r."NUM_POSTE"    AS station_code,
-    s.name           AS station_name,
-    s.departement    AS department,
-    r.val            AS record_value,
-    r."AAAAMMJJ"     AS record_date
+    'all_time'    AS period_type,
+    NULL::text    AS period_value,
+    'TX'          AS record_type,
+    r."NUM_POSTE" AS station_code,
+    s.name        AS station_name,
+    s.departement AS department,
+    r.val         AS record_value,
+    r."AAAAMMJJ"  AS record_date
 FROM tx_all r
-JOIN public.v_station_records s ON s.station_code = r."NUM_POSTE"
+    INNER JOIN public.v_station_records s
+        ON s.station_code = r."NUM_POSTE"
 WHERE (r.prev_val IS NULL OR r.val > r.prev_val)
-  AND r."AAAAMMJJ" >= s.first_temperature_date + interval '50 years'
+    AND r."AAAAMMJJ" >= s.first_temperature_date + interval '50 years'
 
 UNION ALL
 
 -- All-time froid
 SELECT
-    'all_time'       AS period_type,
-    NULL::text       AS period_value,
-    'TN'             AS record_type,
-    r."NUM_POSTE"    AS station_code,
-    s.name           AS station_name,
-    s.departement    AS department,
-    r.val            AS record_value,
-    r."AAAAMMJJ"     AS record_date
+    'all_time'    AS period_type,
+    NULL::text    AS period_value,
+    'TN'          AS record_type,
+    r."NUM_POSTE" AS station_code,
+    s.name        AS station_name,
+    s.departement AS department,
+    r.val         AS record_value,
+    r."AAAAMMJJ"  AS record_date
 FROM tn_all r
-JOIN public.v_station_records s ON s.station_code = r."NUM_POSTE"
+    INNER JOIN public.v_station_records s
+        ON s.station_code = r."NUM_POSTE"
 WHERE (r.prev_val IS NULL OR r.val < r.prev_val)
-  AND r."AAAAMMJJ" >= s.first_temperature_date + interval '50 years'
+    AND r."AAAAMMJJ" >= s.first_temperature_date + interval '50 years'
 
 UNION ALL
 
 -- Monthly chaud
 SELECT
-    'month'              AS period_type,
-    r.month_num::text    AS period_value,
-    'TX'                 AS record_type,
-    r."NUM_POSTE"        AS station_code,
-    s.name               AS station_name,
-    s.departement        AS department,
-    r.val                AS record_value,
-    r."AAAAMMJJ"         AS record_date
+    'month'           AS period_type,
+    r.month_num::text AS period_value,
+    'TX'              AS record_type,
+    r."NUM_POSTE"     AS station_code,
+    s.name            AS station_name,
+    s.departement     AS department,
+    r.val             AS record_value,
+    r."AAAAMMJJ"      AS record_date
 FROM tx_monthly r
-JOIN public.v_station_records s ON s.station_code = r."NUM_POSTE"
+    INNER JOIN public.v_station_records s
+        ON s.station_code = r."NUM_POSTE"
 WHERE (r.prev_val IS NULL OR r.val > r.prev_val)
-  AND r."AAAAMMJJ" >= s.first_temperature_date + interval '50 years'
+    AND r."AAAAMMJJ" >= s.first_temperature_date + interval '50 years'
 
 UNION ALL
 
 -- Monthly froid
 SELECT
-    'month'              AS period_type,
-    r.month_num::text    AS period_value,
-    'TN'                 AS record_type,
-    r."NUM_POSTE"        AS station_code,
-    s.name               AS station_name,
-    s.departement        AS department,
-    r.val                AS record_value,
-    r."AAAAMMJJ"         AS record_date
+    'month'           AS period_type,
+    r.month_num::text AS period_value,
+    'TN'              AS record_type,
+    r."NUM_POSTE"     AS station_code,
+    s.name            AS station_name,
+    s.departement     AS department,
+    r.val             AS record_value,
+    r."AAAAMMJJ"      AS record_date
 FROM tn_monthly r
-JOIN public.v_station_records s ON s.station_code = r."NUM_POSTE"
+    INNER JOIN public.v_station_records s
+        ON s.station_code = r."NUM_POSTE"
 WHERE (r.prev_val IS NULL OR r.val < r.prev_val)
-  AND r."AAAAMMJJ" >= s.first_temperature_date + interval '50 years'
+    AND r."AAAAMMJJ" >= s.first_temperature_date + interval '50 years'
 
 UNION ALL
 
 -- Seasonal chaud
 SELECT
-    'season'         AS period_type,
-    r.season_val     AS period_value,
-    'TX'             AS record_type,
-    r."NUM_POSTE"    AS station_code,
-    s.name           AS station_name,
-    s.departement    AS department,
-    r.val            AS record_value,
-    r."AAAAMMJJ"     AS record_date
+    'season'      AS period_type,
+    r.season_val  AS period_value,
+    'TX'          AS record_type,
+    r."NUM_POSTE" AS station_code,
+    s.name        AS station_name,
+    s.departement AS department,
+    r.val         AS record_value,
+    r."AAAAMMJJ"  AS record_date
 FROM tx_seasonal r
-JOIN public.v_station_records s ON s.station_code = r."NUM_POSTE"
+    INNER JOIN public.v_station_records s
+        ON s.station_code = r."NUM_POSTE"
 WHERE (r.prev_val IS NULL OR r.val > r.prev_val)
-  AND r."AAAAMMJJ" >= s.first_temperature_date + interval '50 years'
+    AND r."AAAAMMJJ" >= s.first_temperature_date + interval '50 years'
 
 UNION ALL
 
 -- Seasonal froid
 SELECT
-    'season'         AS period_type,
-    r.season_val     AS period_value,
-    'TN'             AS record_type,
-    r."NUM_POSTE"    AS station_code,
-    s.name           AS station_name,
-    s.departement    AS department,
-    r.val            AS record_value,
-    r."AAAAMMJJ"     AS record_date
+    'season'      AS period_type,
+    r.season_val  AS period_value,
+    'TN'          AS record_type,
+    r."NUM_POSTE" AS station_code,
+    s.name        AS station_name,
+    s.departement AS department,
+    r.val         AS record_value,
+    r."AAAAMMJJ"  AS record_date
 FROM tn_seasonal r
-JOIN public.v_station_records s ON s.station_code = r."NUM_POSTE"
+    INNER JOIN public.v_station_records s
+        ON s.station_code = r."NUM_POSTE"
 WHERE (r.prev_val IS NULL OR r.val < r.prev_val)
-  AND r."AAAAMMJJ" >= s.first_temperature_date + interval '50 years';
+    AND r."AAAAMMJJ" >= s.first_temperature_date + interval '50 years';

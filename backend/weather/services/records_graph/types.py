@@ -24,6 +24,12 @@ class RecordsGraphBucket:
 
 
 @dataclass(frozen=True)
+class AbsoluteRecordsGraphBucket:
+    bucket: str  # formatted date string (YYYY-MM-DD / YYYY-MM / YYYY)
+    nb_records_absolus: int
+
+
+@dataclass(frozen=True)
 class RecordsGraphRecord:
     date: dt.date
     station_id: str
@@ -36,4 +42,10 @@ class RecordsGraphRecord:
 @dataclass(frozen=True)
 class RecordsGraphResult:
     buckets: list[RecordsGraphBucket]
+    records: list[RecordsGraphRecord]
+
+
+@dataclass(frozen=True)
+class AbsoluteRecordsGraphResult:
+    buckets: list[AbsoluteRecordsGraphBucket]
     records: list[RecordsGraphRecord]

@@ -9,6 +9,9 @@ from rest_framework.views import APIView
 
 from weather.bootstrap_itn import ITNDependencyProvider
 from weather.bootstrap_records_graph import RecordsGraphDependencyProvider
+from weather.bootstrap_temperature_absolute_records import (
+    TemperatureAbsoluteRecordsDependencyProvider,
+)
 from weather.bootstrap_temperature_deviation import (
     TemperatureDeviationDependencyProvider,
     TemperatureDeviationOverviewDependencyProvider,
@@ -18,18 +21,28 @@ from weather.bootstrap_temperature_records import TemperatureRecordsDependencyPr
 from weather.services.national_indicator.kpi_use_case import get_national_indicator_kpi
 from weather.services.national_indicator.use_case import get_national_indicator
 from weather.services.records_graph.types import RecordsGraphRequest
-from weather.services.records_graph.use_case import get_records_graph
+from weather.services.records_graph.use_case import (
+    get_absolute_records_graph,
+    get_records_graph,
+)
 from weather.services.temperature_deviation.use_case import (
     get_temperature_deviation,
     get_temperature_deviation_overview,
 )
 from weather.services.temperature_minmax.use_case import get_minmax_graph
 from weather.services.temperature_records.types import TemperatureRecordsRequest
-from weather.services.temperature_records.use_case import get_temperature_records
+from weather.services.temperature_records.use_case import (
+    get_temperature_absolute_records,
+    get_temperature_records,
+)
 
+from .bootstrap_temperature_absolute_records_graph import (
+    TemperatureAbsoluteRecordsGraphDependencyProvider,
+)
 from .filters import StationFilter
 from .models import StationQualifieeHexagone
 from .serializers import (
+    AbsoluteRecordsGraphResponseSerializer,
     ErrorSerializer,
     NationalIndicatorKpiQuerySerializer,
     NationalIndicatorKpiResponseSerializer,
@@ -335,6 +348,140 @@ class TemperatureRecordsAPIView(APIView):
         return Response(out.data, status=status.HTTP_200_OK)
 
 
+class TemperatureAbsoluteRecordsAPIView(APIView):
+    """
+    GET /api/v1/temperature/records/absolute
+    Retourne les records absolus de température par station.
+    """
+
+    authentication_classes = []
+    permission_classes = []
+
+    @extend_schema(
+        summary="Records de température",
+        description=(
+            "Liste les records de température par station avec support de la pagination et du tri.\n\n"
+            "L'endpoint permet de filtrer :\n"
+            "- le découpage temporel (`period_type`) : tous les temps, par mois ou par saison\n"
+            "- le type de record (`hot` ou `cold`)\n"
+            "- le tri des résultats (`sort`)\n\n"
+            "**Comportement de `period_type`**\n\n"
+            "- `all_time` (défaut) : liste des records absolus toutes périodes confondues.\n"
+            "- `month` + `month=N` (1–12) : record du mois N uniquement.\n"
+            "- `month` sans `month` : records de **tous les mois** (une ligne par station et par mois).\n"
+            "- `season` + `season=<saison>` : record de la saison indiquée.\n"
+            "- `season` sans `season` : records de **toutes les saisons** (une ligne par station et par saison).\n\n"
+            "Exemples de requêtes :\n"
+            "- `period_type=all_time&type_records=hot&sort=-record_value`\n"
+            "- `period_type=month&month=7&type_records=hot&page=1&page_size=50`\n"
+            "- `period_type=month&type_records=hot` (tous les mois)\n"
+            "- `period_type=season&season=summer&type_records=cold&sort=station_name`\n"
+            "- `period_type=season&type_records=cold` (toutes les saisons)\n"
+            "- `period_type=all_time&type_records=hot&sort=-record_value,station_name`"
+        ),
+        parameters=[
+            OpenApiParameter(
+                name="sort",
+                type=str,
+                location="query",
+                required=False,
+                default="record_value",
+                description=(
+                    "Champ(s) de tri avec ordre. Supporte un ou plusieurs critères séparés par des virgules.\n\n"
+                    "Format : `[field]` pour ascendant, `[-field]` pour descendant.\n\n"
+                    "Champs disponibles :\n"
+                    "- `record_value` : valeur du record (défaut)\n"
+                    "- `station_name` : nom de la station\n"
+                    "- `record_date` : date du record\n"
+                    "- `department` : département\n\n"
+                    "Exemples :\n"
+                    "- `record_value` : tri par valeur croissante\n"
+                    "- `-record_value` : tri par valeur décroissante\n"
+                    "- `record_value,station_name` : tri par valeur puis nom croissant\n"
+                    "- `-record_value,station_name` : tri par valeur décroissante puis nom croissant"
+                ),
+            )
+        ],
+    )
+    def get(self, request):
+        q = TemperatureRecordsQuerySerializer(data=request.query_params)
+        if not q.is_valid():
+            return Response(
+                ErrorSerializer.build(
+                    code="INVALID_PARAMETER",
+                    message="Paramètre invalide ou manquant",
+                    details=q.errors,
+                ),
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        params = q.validated_data
+        ds = TemperatureAbsoluteRecordsDependencyProvider.get_dep()
+
+        req = TemperatureRecordsRequest(
+            period_type=params["period_type"],
+            type_records=params["type_records"],
+            month=params.get("month"),
+            season=params.get("season"),
+            date_start=params.get("date_start"),
+            date_end=params.get("date_end"),
+            territoire=params.get("territoire"),
+            territoire_id=params.get("territoire_id"),
+            classe_recente_min=params.get("classe_recente_min"),
+            classe_recente_max=params.get("classe_recente_max"),
+            date_de_creation_min=params.get("date_de_creation_min"),
+            date_de_creation_max=params.get("date_de_creation_max"),
+            date_de_fermeture_min=params.get("date_de_fermeture_min"),
+            date_de_fermeture_max=params.get("date_de_fermeture_max"),
+            page=params.get("page", 1),
+            page_size=params.get("page_size", 50),
+            sort=params.get("sort", "record_value"),
+        )
+
+        try:
+            result = get_temperature_absolute_records(
+                request=req,
+                data_source=ds,
+            )
+        except ValueError as exc:
+            return Response(
+                ErrorSerializer.build(
+                    code="INVALID_PARAMETER",
+                    message=str(exc),
+                ),
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        out = TemperatureRecordsResponseSerializer(
+            {
+                "pagination": {
+                    "total_count": result.pagination.total_count,
+                    "page": result.pagination.page,
+                    "page_size": result.pagination.page_size,
+                    "total_pages": result.pagination.total_pages,
+                },
+                "results": [
+                    {
+                        "station_id": e.station_id,
+                        "station_name": e.station_name,
+                        "department": e.department,
+                        "record_value": e.record_value,
+                        "record_date": e.record_date,
+                        "lat": e.lat,
+                        "lon": e.lon,
+                        "alt": e.alt,
+                        "classe_recente": e.classe_recente,
+                        "date_de_creation": e.date_de_creation,
+                        "date_de_fermeture": e.date_de_fermeture,
+                    }
+                    for e in result.entries
+                ],
+            }
+        )
+
+        return Response(out.data, status=status.HTTP_200_OK)
+
+
 class TemperatureMinMaxGraphAPIView(APIView):
     """
     GET /api/v1/temperature/extremes/graph
@@ -564,6 +711,79 @@ class RecordsGraphAPIView(APIView):
             {
                 "buckets": [
                     {"bucket": b.bucket, "nb_records_battus": b.nb_records_battus}
+                    for b in result.buckets
+                ],
+                "records": [
+                    {
+                        "date": r.date,
+                        "station_id": r.station_id,
+                        "station_name": r.station_name,
+                        "department": r.department,
+                        "type_records": r.type_records,
+                        "valeur": r.valeur,
+                    }
+                    for r in result.records
+                ],
+            }
+        )
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+
+class AbsoluteRecordsGraphAPIView(APIView):
+    """
+    GET /api/v1/temperature/records/absolute/graph
+    Retourne les records de température absolus : compte par bucket (histogramme)
+    et liste des records individuels (scatter plot).
+    """
+
+    authentication_classes = []
+    permission_classes = []
+
+    def get(self, request):
+        q = RecordsGraphQuerySerializer(data=request.query_params)
+        if not q.is_valid():
+            return Response(
+                ErrorSerializer.build(
+                    code="INVALID_PARAMETER",
+                    message="Paramètre invalide ou manquant",
+                    details=q.errors,
+                ),
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        params = q.validated_data
+        ds = TemperatureAbsoluteRecordsGraphDependencyProvider.get_dep()
+
+        req = RecordsGraphRequest(
+            date_start=params["date_start"],
+            date_end=params["date_end"],
+            granularity=params["granularity"],
+            period_type=params["period_type"],
+            type_records=params["type_records"],
+            month=params.get("month"),
+            season=params.get("season"),
+            territoire=params.get("territoire"),
+            territoire_id=params.get("territoire_id"),
+        )
+
+        try:
+            result = get_absolute_records_graph(request=req, data_source=ds)
+        except ValueError as exc:
+            return Response(
+                ErrorSerializer.build(
+                    code="INVALID_PARAMETER",
+                    message=str(exc),
+                ),
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        serializer = AbsoluteRecordsGraphResponseSerializer(
+            {
+                "buckets": [
+                    {
+                        "bucket": b.bucket,
+                        "nb_records_absolus": b.nb_records_absolus,
+                    }
                     for b in result.buckets
                 ],
                 "records": [

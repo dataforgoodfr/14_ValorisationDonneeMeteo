@@ -51,8 +51,13 @@ from weather.services.records.types import (
     StationRecords,
     TemperatureRecord,
 )
-from weather.services.records_graph.protocols import RecordsGraphDataSource
+from weather.services.records_graph.protocols import (
+    AbsoluteRecordsGraphDataSource,
+    RecordsGraphDataSource,
+)
 from weather.services.records_graph.types import (
+    AbsoluteRecordsGraphBucket,
+    AbsoluteRecordsGraphResult,
     RecordsGraphBucket,
     RecordsGraphRecord,
     RecordsGraphRequest,
@@ -81,7 +86,10 @@ from weather.services.temperature_minmax.types import (
     MinMaxGraphQuery,
     StationDailyMinMaxSeries,
 )
-from weather.services.temperature_records.protocols import TemperatureRecordsDataSource
+from weather.services.temperature_records.protocols import (
+    TemperatureAbsoluteRecordsDataSource,
+    TemperatureRecordsDataSource,
+)
 from weather.services.temperature_records.types import (
     SEASON_MONTHS,
     TemperatureRecordEntry,
@@ -817,7 +825,6 @@ class TimescaleTemperatureRecordsDataSource:
                 INNER JOIN public.v_station_records s
                     ON s.station_code = o."NUM_POSTE"
             WHERE (o.prev_val IS NULL OR o."{col}" {cmp} o.prev_val)
-              AND s.classe_recente BETWEEN 1 AND 3
               {extra_where_sql}
             ORDER BY {order_sql}
             LIMIT %(page_size)s OFFSET %(offset)s
@@ -894,12 +901,13 @@ def _temperature_records_period_clause(
 ) -> tuple[str, list]:
     if request.period_type == "month" and request.month is not None:
         return 'EXTRACT(MONTH FROM q."AAAAMMJJ") = %s', [request.month]
-    elif request.period_type == "season" and request.season is not None:
+
+    if request.period_type == "season" and request.season is not None:
         months = list(SEASON_MONTHS[request.season])
         placeholders = ", ".join(["%s"] * len(months))
         return f'EXTRACT(MONTH FROM q."AAAAMMJJ") IN ({placeholders})', months
-    else:
-        return "TRUE", []
+
+    return "TRUE", []
 
 
 def _temperature_records_period_clause_named(
@@ -910,13 +918,14 @@ def _temperature_records_period_clause_named(
         return 'EXTRACT(MONTH FROM q."AAAAMMJJ") = %(period_month)s', {
             "period_month": request.month
         }
-    elif request.period_type == "season" and request.season is not None:
+
+    if request.period_type == "season" and request.season is not None:
         months = list(SEASON_MONTHS[request.season])
         named = {f"period_season_{i}": m for i, m in enumerate(months)}
         placeholders = ", ".join(f"%(period_season_{i})s" for i in range(len(months)))
         return f'EXTRACT(MONTH FROM q."AAAAMMJJ") IN ({placeholders})', named
-    else:
-        return "TRUE", {}
+
+    return "TRUE", {}
 
 
 class MaterializedTemperatureRecordsDataSource:
@@ -1046,7 +1055,6 @@ class MaterializedTemperatureRecordsDataSource:
                 INNER JOIN public.v_station_records vs
                      ON vs.station_code = m.station_code
             WHERE {where}
-              AND vs.classe_recente BETWEEN 1 AND 3
             ORDER BY {order_sql}
             """
         with connection.cursor() as cur:
@@ -1276,10 +1284,11 @@ class HybridTemperatureRecordsDataSource(TemperatureRecordsDataSource):
                         )
                     ) AS prev_val
                 FROM public."Quotidienne" q
-                LEFT JOIN mv_seeds s ON s.station_code = q."NUM_POSTE"
+                    LEFT JOIN mv_seeds s
+                        ON s.station_code = q."NUM_POSTE"
                 WHERE q."AAAAMMJJ" > %(cutoff_date)s
-                  AND {period_clause}
-                  AND q."{col}" IS NOT NULL
+                    AND {period_clause}
+                    AND q."{col}" IS NOT NULL
             )
             SELECT
                 o."NUM_POSTE",
@@ -1294,12 +1303,13 @@ class HybridTemperatureRecordsDataSource(TemperatureRecordsDataSource):
                 vs.annee_de_creation,
                 vs.annee_de_fermeture
             FROM ordered o
-            JOIN public.v_station_records vs ON vs.station_code = o."NUM_POSTE"
+                INNER JOIN public.v_station_records vs
+                    ON vs.station_code = o."NUM_POSTE"
             WHERE o."{col}" {cmp} o.prev_val
-              AND o."AAAAMMJJ" >= vs.first_temperature_date + interval '50 years'
-              {date_filter_clauses}
-              {terr_filter_clause}
-              {station_filter_clauses}
+                AND o."AAAAMMJJ" >= vs.first_temperature_date + interval '50 years'
+                {date_filter_clauses}
+                {terr_filter_clause}
+                {station_filter_clauses}
             ORDER BY vs.name, o."AAAAMMJJ"
         """
 
@@ -1340,6 +1350,220 @@ class HybridTemperatureRecordsDataSource(TemperatureRecordsDataSource):
             )
             for row in rows
         ]
+
+
+class TimescaleTemperatureAbsoluteRecordsDataSource(
+    TemperatureAbsoluteRecordsDataSource
+):
+    """
+    Data source : lit les records pré-calculés depuis v_records_absolus_par_type
+    (refresh toutes les 6 minutes)
+
+    Pré-requis : la MV doit exister en base. La créer avec :
+        psql < backend/sql/materialized_views/records/450_006_v_records_absolus_par_type.sql
+    """
+
+    def fetch_records(
+        self, request: TemperatureRecordsRequest
+    ) -> TemperatureRecordsResult:
+        record_type = "TX" if request.type_records == "hot" else "TN"
+
+        if request.period_type == "month":
+            period_value: str | None = str(request.month)
+        elif request.period_type == "season":
+            period_value = request.season
+        else:
+            period_value = None
+
+        sort_parts = [s.strip() for s in request.sort.split(",")]
+
+        field_mapping = {
+            "record_value": "record_value",
+            "station_name": "station_name",
+            "record_date": "record_date",
+            "department": "department",
+        }
+
+        order_clauses = []
+        for sort_part in sort_parts:
+            sort_field = sort_part.lstrip("-")
+            sort_order = "DESC" if sort_part.startswith("-") else "ASC"
+
+            if sort_field in field_mapping:
+                order_clauses.append(f"{field_mapping[sort_field]} {sort_order}")
+
+        if order_clauses:
+            order_sql = ", ".join(order_clauses)
+        else:
+            order_sql = "record_value DESC, station_name ASC, record_date ASC"
+        clauses = [
+            "record_type = %(record_type)s",
+            "period_type = %(period_type)s",
+            "period_value IS NOT DISTINCT FROM %(period_value)s",
+        ]
+        params: dict = {
+            "record_type": record_type,
+            "period_type": request.period_type,
+            "period_value": period_value,
+        }
+
+        if request.date_start:
+            clauses.append("record_date >= %(date_start)s")
+            params["date_start"] = request.date_start
+        if request.date_end:
+            clauses.append("record_date <= %(date_end)s")
+            params["date_end"] = request.date_end
+
+        terr_clause, terr_params = _territoire_clause_named(
+            request.territoire,
+            request.territoire_id,
+            dept_col="r.department",
+            station_col="r.station_code",
+        )
+        if terr_clause:
+            clauses.append(terr_clause)
+            params.update(terr_params)
+
+        if request.classe_recente_min is not None:
+            clauses.append("vs.classe_recente >= %(cr_min)s")
+            params["cr_min"] = request.classe_recente_min
+        if request.classe_recente_max is not None:
+            clauses.append("vs.classe_recente <= %(cr_max)s")
+            params["cr_max"] = request.classe_recente_max
+        if request.date_de_creation_min is not None:
+            clauses.append("vs.annee_de_creation >= %(dc_min)s")
+            params["dc_min"] = request.date_de_creation_min.year
+        if request.date_de_creation_max is not None:
+            clauses.append("vs.annee_de_creation <= %(dc_max)s")
+            params["dc_max"] = request.date_de_creation_max.year
+        if (
+            request.date_de_fermeture_min is not None
+            and request.date_de_fermeture_max is not None
+        ):
+            clauses.append(
+                "(vs.annee_de_fermeture IS NOT NULL"
+                " AND vs.annee_de_fermeture >= %(df_min)s"
+                " AND vs.annee_de_fermeture <= %(df_max)s)"
+            )
+            params["df_min"] = request.date_de_fermeture_min.year
+            params["df_max"] = request.date_de_fermeture_max.year
+        elif request.date_de_fermeture_min is not None:
+            clauses.append(
+                "(vs.annee_de_fermeture IS NULL OR vs.annee_de_fermeture >= %(df_min)s)"
+            )
+            params["df_min"] = request.date_de_fermeture_min.year
+        elif request.date_de_fermeture_max is not None:
+            clauses.append(
+                "(vs.annee_de_fermeture IS NOT NULL AND vs.annee_de_fermeture <= %(df_max)s)"
+            )
+            params["df_max"] = request.date_de_fermeture_max.year
+
+        where = " AND ".join(clauses)
+
+        sql = f"""
+            SELECT
+                r.station_code,
+                r.station_name,
+                r.department,
+                r.record_value,
+                r.record_date,
+                vs.lat,
+                vs.lon,
+                vs.alt,
+                vs.classe_recente,
+                vs.annee_de_creation,
+                vs.annee_de_fermeture
+            FROM public.v_records_absolus_par_type r
+                INNER JOIN public.v_station_records vs
+                    ON vs.station_code = r.station_code
+            WHERE {where}
+            ORDER BY {order_sql}
+            """
+        with connection.cursor() as cur:
+            cur.execute(sql, params)
+
+            cols = [c.name for c in cur.description]
+            rows = [dict(zip(cols, row, strict=False)) for row in cur.fetchall()]
+        entries = [
+            TemperatureRecordEntry(
+                station_id=row["station_code"].strip(),
+                station_name=row["station_name"],
+                department=normalize_department(row["department"]),
+                record_value=float(row["record_value"]),
+                record_date=row["record_date"].date()
+                if isinstance(row["record_date"], dt.datetime)
+                else row["record_date"],
+                lat=row["lat"],
+                lon=row["lon"],
+                alt=row["alt"],
+                classe_recente=row["classe_recente"],
+                date_de_creation=_date_de_creation(row["annee_de_creation"]),
+                date_de_fermeture=_date_de_fermeture(row["annee_de_fermeture"]),
+            )
+            for row in rows
+        ]
+        return self._paginate(entries, request)
+
+    def _paginate(
+        self,
+        entries: list[TemperatureRecordEntry],
+        request: TemperatureRecordsRequest,
+    ) -> TemperatureRecordsResult:
+        if request.sort:
+            sort_parts = [s.strip() for s in request.sort.split(",")]
+
+            def _sort_key(entry: TemperatureRecordEntry) -> tuple[Any, ...]:
+                sort_values = []
+                for sort_part in sort_parts:
+                    sort_field = sort_part.lstrip("-")
+                    reverse = sort_part.startswith("-")
+
+                    if sort_field == "station_name":
+                        value = entry.station_name
+                    elif sort_field == "record_date":
+                        value = entry.record_date
+                    elif sort_field == "department":
+                        value = entry.department
+                    else:  # record_value
+                        value = entry.record_value
+
+                    if reverse:
+                        if isinstance(value, str):
+                            value = "".join(chr(255 - ord(c)) for c in value)
+                        elif isinstance(value, int | float):
+                            value = -value
+                        elif hasattr(value, "__neg__"):
+                            try:
+                                value = -value
+                            except TypeError:
+                                pass
+
+                    sort_values.append(value)
+
+                return tuple(sort_values)
+
+            entries = sorted(entries, key=_sort_key)
+
+        total_count = len(entries)
+        page = request.page
+        page_size = request.page_size
+
+        start = (page - 1) * page_size
+        end = start + page_size
+
+        paginated = entries[start:end]
+
+        total_pages = (total_count + page_size - 1) // page_size
+
+        return TemperatureRecordsResult(
+            entries=paginated,
+            pagination=PaginationRecord(
+                total_count=total_count,
+                page=page,
+                page_size=page_size,
+                total_pages=total_pages,
+            ),
+        )
 
 
 class TimescaleRecordsDataSource(RecordsDataSource):
@@ -1500,8 +1724,8 @@ class TimescaleTemperatureMinMaxDataSource(MinMaxGraphDataSource):
             FROM public."Quotidienne" q
                 INNER JOIN public.v_station_qualifiee_hexagone s
                     ON s.station_code = q."NUM_POSTE"
-            LEFT JOIN public.ref_department_region r
-                ON r.departement = s.departement
+                LEFT JOIN public.ref_department_region r
+                    ON r.departement = s.departement
             WHERE {where_sql}
             ORDER BY q."NUM_POSTE", q."AAAAMMJJ"
         """
@@ -1546,8 +1770,8 @@ class TimescaleTemperatureMinMaxDataSource(MinMaxGraphDataSource):
                 AVG(q."TX")     AS tmax
             FROM public."Quotidienne" q
             WHERE q."AAAAMMJJ" BETWEEN %(date_start)s AND %(date_end)s
-              AND q."TN" IS NOT NULL
-              AND q."TX" IS NOT NULL
+                AND q."TN" IS NOT NULL
+                AND q."TX" IS NOT NULL
             GROUP BY q."AAAAMMJJ"
             ORDER BY q."AAAAMMJJ"
         """
@@ -1746,3 +1970,117 @@ class TimescaleRecordsGraphDataSource(RecordsGraphDataSource):
             for row in record_rows
         ]
         return RecordsGraphResult(buckets=buckets, records=records)
+
+
+class TimescaleAbsoluteRecordsGraphDataSource(AbsoluteRecordsGraphDataSource):
+    """
+    Data source pour le graphe de records.
+    Lit depuis v_records_absolus_par_type et agrège par bucket temporel.
+    Retourne un point par unité de granularité, y compris les buckets à 0.
+    """
+
+    _GRANULARITY_TO_DATE_TRUNC = {"day": "day", "month": "month", "year": "year"}
+
+    def fetch_graph(self, request: RecordsGraphRequest) -> AbsoluteRecordsGraphResult:
+        date_trunc = self._GRANULARITY_TO_DATE_TRUNC[request.granularity]
+
+        clauses = [
+            "period_type = %(period_type)s",
+            "record_date >= %(date_start)s",
+            "record_date <= %(date_end)s",
+        ]
+        params: dict = {
+            "period_type": request.period_type,
+            "date_start": request.date_start,
+            "date_end": request.date_end,
+        }
+
+        if request.period_type == "all_time":
+            clauses.append("period_value IS NULL")
+        elif request.period_type == "month" and request.month is not None:
+            clauses.append("period_value = %(period_value)s")
+            params["period_value"] = str(request.month)
+        elif request.period_type == "season" and request.season is not None:
+            clauses.append("period_value = %(period_value)s")
+            params["period_value"] = request.season
+
+        if request.type_records != "all":
+            record_type = "TX" if request.type_records == "hot" else "TN"
+            clauses.insert(0, "record_type = %(record_type)s")
+            params["record_type"] = record_type
+
+        terr_clause, terr_params = _territoire_clause_named(
+            request.territoire,
+            request.territoire_id,
+            dept_col="department",
+            station_col="station_code",
+        )
+        if terr_clause:
+            clauses.append(terr_clause)
+            params.update(terr_params)
+
+        where = " AND ".join(clauses)
+        sql = f"""
+            SELECT
+                DATE_TRUNC('{date_trunc}', record_date)::date AS bucket_date,
+                COUNT(*) AS cnt
+            FROM public.v_records_absolus_par_type
+            WHERE {where}
+            GROUP BY DATE_TRUNC('{date_trunc}', record_date)
+            ORDER BY bucket_date
+        """
+
+        sql_records = f"""
+            SELECT
+                station_code,
+                station_name,
+                department,
+                record_value,
+                record_date,
+                record_type
+            FROM public.v_records_absolus_par_type
+            WHERE {where}
+            ORDER BY record_date
+        """
+
+        with connection.cursor() as cur:
+            cur.execute(sql, params)
+            cols = [c[0] for c in cur.description]
+            bucket_rows = {
+                row["bucket_date"].strftime(
+                    "%Y-%m-%d"
+                    if date_trunc == "day"
+                    else "%Y-%m"
+                    if date_trunc == "month"
+                    else "%Y"
+                ): row["cnt"]
+                for row in (dict(zip(cols, r, strict=False)) for r in cur.fetchall())
+            }
+
+            cur.execute(sql_records, params)
+            cols = [c[0] for c in cur.description]
+            record_rows = [dict(zip(cols, r, strict=False)) for r in cur.fetchall()]
+
+        all_buckets = _generate_buckets(
+            request.date_start, request.date_end, request.granularity
+        )
+        buckets = [
+            AbsoluteRecordsGraphBucket(
+                bucket=b, nb_records_absolus=bucket_rows.get(b, 0)
+            )
+            for b in all_buckets
+        ]
+        records = [
+            RecordsGraphRecord(
+                date=row["record_date"].date()
+                if hasattr(row["record_date"], "date")
+                else row["record_date"],
+                station_id=row["station_code"],
+                station_name=row["station_name"],
+                department=row["department"],
+                type_records="hot" if row["record_type"] == "TX" else "cold",
+                valeur=float(row["record_value"]),
+            )
+            for row in record_rows
+        ]
+        return AbsoluteRecordsGraphResult(buckets=buckets, records=records)

@@ -2,7 +2,10 @@ from __future__ import annotations
 
 import datetime as dt
 
-from weather.services.temperature_records.protocols import TemperatureRecordsDataSource
+from weather.services.temperature_records.protocols import (
+    TemperatureAbsoluteRecordsDataSource,
+    TemperatureRecordsDataSource,
+)
 from weather.services.temperature_records.types import (
     Pagination,
     TemperatureRecordEntry,
@@ -239,6 +242,101 @@ _FAKE_COLD_RECORDS: list[TemperatureRecordEntry] = [
 
 
 class FakeTemperatureRecordsDataSource(TemperatureRecordsDataSource):
+    """
+    Data source fake pour les records progressifs de température.
+    Retourne des données déterministes avec plusieurs lignes par station.
+    Pas de dépendances externes, pur Python.
+    """
+
+    def fetch_records(
+        self, request: TemperatureRecordsRequest
+    ) -> TemperatureRecordsResult:
+        results = list(
+            _FAKE_HOT_RECORDS if request.type_records == "hot" else _FAKE_COLD_RECORDS
+        )
+
+        if request.date_start:
+            results = [e for e in results if e.record_date >= request.date_start]
+        if request.date_end:
+            results = [e for e in results if e.record_date <= request.date_end]
+
+        if request.territoire == "department":
+            results = [e for e in results if e.department == request.territoire_id]
+        elif request.territoire == "station":
+            results = [e for e in results if e.station_id == request.territoire_id]
+        elif request.territoire == "region":
+            from weather.regions import departments_for_region
+
+            depts = set(departments_for_region(request.territoire_id or ""))
+            results = [e for e in results if e.department in depts]
+
+        if request.classe_recente_min is not None:
+            results = [
+                e for e in results if e.classe_recente >= request.classe_recente_min
+            ]
+        if request.classe_recente_max is not None:
+            results = [
+                e for e in results if e.classe_recente <= request.classe_recente_max
+            ]
+        if request.date_de_creation_min is not None:
+            results = [
+                e for e in results if e.date_de_creation >= request.date_de_creation_min
+            ]
+        if request.date_de_creation_max is not None:
+            results = [
+                e for e in results if e.date_de_creation <= request.date_de_creation_max
+            ]
+        if (
+            request.date_de_fermeture_min is not None
+            and request.date_de_fermeture_max is not None
+        ):
+            results = [
+                e
+                for e in results
+                if e.date_de_fermeture is not None
+                and request.date_de_fermeture_min
+                <= e.date_de_fermeture
+                <= request.date_de_fermeture_max
+            ]
+        elif request.date_de_fermeture_min is not None:
+            results = [
+                e
+                for e in results
+                if e.date_de_fermeture is None
+                or e.date_de_fermeture >= request.date_de_fermeture_min
+            ]
+        elif request.date_de_fermeture_max is not None:
+            results = [
+                e
+                for e in results
+                if e.date_de_fermeture is not None
+                and e.date_de_fermeture <= request.date_de_fermeture_max
+            ]
+
+        total_count = len(results)
+
+        page = request.page
+        page_size = request.page_size
+
+        start = (page - 1) * page_size
+        end = start + page_size
+
+        paginated = results[start:end]
+
+        total_pages = (total_count + page_size - 1) // page_size
+
+        return TemperatureRecordsResult(
+            entries=paginated,
+            pagination=Pagination(
+                total_count=total_count,
+                page=page,
+                page_size=page_size,
+                total_pages=total_pages,
+            ),
+        )
+
+
+class FakeTemperatureAbsoluteRecordsDataSource(TemperatureAbsoluteRecordsDataSource):
     """
     Data source fake pour les records progressifs de température.
     Retourne des données déterministes avec plusieurs lignes par station.

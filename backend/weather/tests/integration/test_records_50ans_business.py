@@ -22,12 +22,12 @@ from weather.tests.helpers.stations import insert_station
 def test_after_cutoff_record_before_50ans_is_excluded():
     """Record post-cutoff dont la date est < création+50 → exclu."""
     code = "76116001"
-    # Créée en 1980, seuil = 2030-01-01
+    # Créée en 2020, seuil = 2070-01-01
     insert_station(
         code,
         "Station Jeune",
         departement=76,
-        first_temperature_date=dt.date(1980, 1, 1),
+        first_temperature_date=dt.date(2020, 1, 1),
     )
     set_cutoff(dt.date(2025, 12, 31))
 
@@ -47,17 +47,19 @@ def test_after_cutoff_record_before_50ans_is_excluded():
 def test_after_cutoff_record_exactly_at_50ans_is_included():
     """Record post-cutoff dont la date est exactement création+50 → inclus."""
     code = "76116002"
-    # Créée en 1976, seuil = 2026-01-01
+    # Créée il y a 50 ans, seuil = YYYY-01-01
+    current_year = dt.date.today().year
+    fifty_years_ago = current_year - 50
     insert_station(
         code,
         "Station 50ans pile",
         departement=76,
-        first_temperature_date=dt.date(1976, 1, 1),
+        first_temperature_date=dt.date(fifty_years_ago, 1, 1),
     )
-    set_cutoff(dt.date(2025, 12, 31))
+    set_cutoff(dt.date(current_year - 1, 12, 31))
 
-    # 2026-01-01 == seuil → doit être inclus
-    insert_quotidienne(dt.date(2026, 1, 1), code, tx=30.0)
+    # YYYY-01-01 == seuil → doit être inclus
+    insert_quotidienne(dt.date(current_year, 1, 1), code, tx=30.0)
 
     ds = HybridTemperatureRecordsDataSource()
     result = ds.fetch_records(
@@ -107,7 +109,7 @@ def test_after_cutoff_only_recent_records_cross_50ans_threshold():
     )
     set_cutoff(dt.date(2009, 12, 31))
 
-    # 2010 < 2012 → filtré
+    # 2010 < 2012 → exclu
     insert_quotidienne(dt.date(2010, 6, 1), code, tx=38.0)
     # 2014 >= 2012 → inclus
     insert_quotidienne(dt.date(2014, 7, 20), code, tx=41.0)

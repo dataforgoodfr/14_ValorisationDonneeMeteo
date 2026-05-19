@@ -6,10 +6,12 @@ from django.urls import include, path
 from rest_framework.routers import DefaultRouter
 
 from .views import (
+    AbsoluteRecordsGraphAPIView,
     NationalIndicatorAPIView,
     NationalIndicatorKpiAPIView,
     RecordsGraphAPIView,
     StationViewSet,
+    TemperatureAbsoluteRecordsAPIView,
     TemperatureDeviationGraphAPIView,
     TemperatureDeviationOverviewAPIView,
     TemperatureMinMaxGraphAPIView,
@@ -37,9 +39,29 @@ urlpatterns = [
         name="temperature-records",
     ),
     path(
+        "temperature/records/historical",
+        TemperatureRecordsAPIView.as_view(),
+        name="temperature-records-historical",
+    ),
+    path(
+        "temperature/records/absolute",
+        TemperatureAbsoluteRecordsAPIView.as_view(),
+        name="temperature-records-absolute",
+    ),
+    path(
         "temperature/records/graph",
         RecordsGraphAPIView.as_view(),
         name="temperature-records-graph",
+    ),
+    path(
+        "temperature/records/historical/graph",
+        RecordsGraphAPIView.as_view(),
+        name="temperature-records-historical-graph",
+    ),
+    path(
+        "temperature/records/absolute/graph",
+        AbsoluteRecordsGraphAPIView.as_view(),
+        name="temperature-records-absolute-graph",
     ),
     path(
         "temperature/deviation",
