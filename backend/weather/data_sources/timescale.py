@@ -160,9 +160,9 @@ def compute_itn_for_day(
     day: dt.date, station_code_to_temp_map: dict[str, float]
 ) -> float | None:
     expected_stations_for_day = expected_station_codes(day)
-    if len(expected_stations_for_day) != 30:
+    if not len(expected_stations_for_day) >= 29:
         raise ValueError(
-            f"Expected 30 stations, got {len(expected_stations_for_day)} for {day}"
+            f"Expected at least 29 stations, got {len(expected_stations_for_day)} for {day}"
         )
     # Normalisation : ignorer l'autre Reims si elle existe
     station_code_to_temp_map = _normalize_reims(day, station_code_to_temp_map)
