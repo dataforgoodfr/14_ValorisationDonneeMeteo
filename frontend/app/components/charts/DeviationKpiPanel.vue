@@ -11,11 +11,7 @@
             <template #kpi>
                 <p
                     class="font-semibold text-4xl mb-1"
-                    :class="
-                        (kpi?.deviation_from_normal ?? 0) >= 0
-                            ? 'text-red-400'
-                            : 'text-blue-400'
-                    "
+                    :class="deviationColorClass"
                 >
                     <span v-if="kpi?.deviation_from_normal != null">
                         {{ kpi.deviation_from_normal >= 0 ? "+" : ""
@@ -106,4 +102,12 @@ const params = computed<NationalIndicatorKpiParams>(() => ({
 }));
 
 const { data: kpi, pending } = useNationalIndicatorKpi(params);
+
+const deviationColorClass = computed(() => {
+    const deviation = kpi.value?.deviation_from_normal;
+    if (deviation == null) return "text-green-400";
+    if (deviation > 0) return "text-red-400";
+    if (deviation < 0) return "text-blue-400";
+    return "text-green-400";
+});
 </script>
