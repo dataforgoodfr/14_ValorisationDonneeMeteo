@@ -125,7 +125,10 @@ function buildStackedOption(
         if (!byYear.has(year)) byYear.set(year, new Map());
         byYear.get(year)!.set(k, p.temperature);
     }
-    const years = [...byYear.keys()].sort();
+    const selectedOrder = props.adapter.selectedYears?.value;
+    const years = selectedOrder
+        ? selectedOrder.filter((y) => byYear.has(y))
+        : [...byYear.keys()].sort();
     const palette = yearColorPalette.value(years.length);
 
     const baselineSource = allPositions.map((pos) => {

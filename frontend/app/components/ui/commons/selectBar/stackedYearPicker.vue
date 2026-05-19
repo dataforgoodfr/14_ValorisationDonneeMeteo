@@ -16,9 +16,7 @@ const selectedYears = adapter.selectedYears!;
 function toggleYear(year: number) {
     const idx = selectedYears.value.indexOf(year);
     if (idx === -1) {
-        selectedYears.value = [...selectedYears.value, year].sort(
-            (a, b) => a - b,
-        );
+        selectedYears.value = [...selectedYears.value, year];
     } else {
         selectedYears.value = selectedYears.value.filter((y) => y !== year);
     }
