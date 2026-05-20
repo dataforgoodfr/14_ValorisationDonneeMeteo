@@ -1,8 +1,13 @@
 <script setup lang="ts">
 import Card from "../Card.vue";
-import type { NationalIndicatorParams } from "~/types/api";
+import type {
+    NationalIndicatorParams,
+    NationalIndicatorResponse,
+} from "~/types/api";
 
 const { yesterday, yesterdayLess365Days } = useCustomDate();
+
+const { apiFetch } = useApiClient();
 
 const { data: kpi, pending: kpiPending } = useNationalIndicatorKpi(
     computed(() => ({
@@ -51,6 +56,34 @@ const coldDiff = computed(() => {
     if (kpi.value == null) return null;
     return kpi.value.cold_peak_count - kpi.value.previous.cold_peak_count;
 });
+
+async function exportInCsv(type: "hot" | "cold") {
+    const itnDataForCsv = await apiFetch<NationalIndicatorResponse>(
+        "/temperature/national-indicator",
+        {
+            query: {
+                date_start: dateToStringYMD(yesterdayLess365Days.value),
+                date_end: dateToStringYMD(yesterday.value),
+                granularity: "day",
+                slice_type: "full",
+            },
+        },
+    );
+
+    const label =
+        type === "hot"
+            ? "jours-excessivement-chauds"
+            : "jours-excessivement-froids";
+    const dateStart = dateToStringYMD(yesterdayLess365Days.value);
+    const dateEnd = dateToStringYMD(yesterday.value);
+
+    if (!itnDataForCsv) return;
+
+    downloadCSV(
+        buildItnCsv(itnDataForCsv.time_series, type),
+        useFormatFileName(label, `${dateStart}_${dateEnd}`, "csv"),
+    );
+}
 </script>
 
 <template>
@@ -140,6 +173,8 @@ const coldDiff = computed(() => {
                     :loading="kpiPending"
                     title="Nombre de jours excessivement chauds"
                     tooltip-text="Nombre de jours parmi ces 365 derniers jours, pour lesquels l'ITN est au-delà de l'écart-type de la période des normales 1991-2020"
+                    export-button-title="Exporter la liste des jours excessivement chauds"
+                    @export="exportInCsv('hot')"
                 >
                     >
                     <template #kpi>
@@ -183,6 +218,8 @@ const coldDiff = computed(() => {
                     :loading="kpiPending"
                     title="Nombre de jours excessivement froids"
                     tooltip-text="Nombre de jours parmi ces 365 derniers jours, pour lesquels l'ITN est en-deçà de l'écart-type de la période des normales 1991-2020"
+                    export-button-title="Exporter la liste des jours excessivement froids"
+                    @export="exportInCsv('cold')"
                 >
                     <template #kpi>
                         <p class="font-semibold text-4xl mb-1 text-blue-400">

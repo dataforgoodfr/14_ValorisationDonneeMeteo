@@ -92,16 +92,15 @@ const hotPercent = computed(() =>
                     class="flex justify-end mt-2"
                     :items="props.options"
                     :content="{
-                        align: 'start',
+                        align: 'end',
                         side: 'bottom',
                     }"
                 >
                     <UButton
-                        label="Exporter en csv"
                         size="xs"
                         icon="i-lucide-download"
                         :ui="{
-                            base: 'bg-slate-450 ring-1 ring-blue-350 text-white',
+                            base: 'bg-default text-blue-350 text-xs',
                         }"
                     />
                 </UDropdownMenu>

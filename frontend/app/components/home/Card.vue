@@ -96,11 +96,10 @@ const isOpen = ref(false);
             <div v-if="props.exportButtonTitle" class="flex justify-end mt-2">
                 <UButton
                     icon="i-lucide-download"
-                    label="Exporter en csv"
                     size="xs"
                     :title="props.exportButtonTitle"
                     :ui="{
-                        base: 'bg-slate-450 ring-1 ring-blue-350 text-white text-xs',
+                        base: 'bg-default text-blue-350 text-xs',
                     }"
                     @click="emit('export')"
                 />
