@@ -138,8 +138,8 @@
 import Card from "~/components/home/Card.vue";
 import HotColdRatioCard from "~/components/home/HotColdRatioCard.vue";
 import { useItnStore } from "~/stores/itnStore";
-import { dateToStringYMD } from "#imports";
 import type { NationalIndicatorKpiParams } from "~/types/api";
+import { dateToStringYMD } from "~/utils/date";
 
 const store = useItnStore();
 const { effectiveDateStart, effectiveDateEnd } = storeToRefs(store);
