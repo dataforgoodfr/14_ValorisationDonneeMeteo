@@ -1,10 +1,10 @@
 import datetime as dt
 
-from weather.serializers import TemperatureMinMaxGraphQuerySerializer
+from weather.serializers import TemperatureExtremesGraphQuerySerializer
 
 
 def test_happy_path_minimal():
-    s = TemperatureMinMaxGraphQuerySerializer(
+    s = TemperatureExtremesGraphQuerySerializer(
         data={
             "date_start": "2020-01-01",
             "date_end": "2020-12-31",
@@ -23,7 +23,7 @@ def test_happy_path_minimal():
 
 
 def test_happy_path_with_territoire_filters():
-    s = TemperatureMinMaxGraphQuerySerializer(
+    s = TemperatureExtremesGraphQuerySerializer(
         data={
             "date_start": "2020-01-01",
             "date_end": "2020-12-31",
@@ -42,7 +42,7 @@ def test_happy_path_with_territoire_filters():
 
 def test_rejects_date_start_greater_than_date_end():
     """date_end doit être >= date_start."""
-    s = TemperatureMinMaxGraphQuerySerializer(
+    s = TemperatureExtremesGraphQuerySerializer(
         data={
             "date_start": "2020-12-31",
             "date_end": "2020-01-01",
@@ -55,7 +55,7 @@ def test_rejects_date_start_greater_than_date_end():
 
 
 def test_rejects_missing_date_start():
-    s = TemperatureMinMaxGraphQuerySerializer(
+    s = TemperatureExtremesGraphQuerySerializer(
         data={
             "date_end": "2020-12-31",
             "granularity": "day",
@@ -67,7 +67,7 @@ def test_rejects_missing_date_start():
 
 
 def test_rejects_missing_granularity():
-    s = TemperatureMinMaxGraphQuerySerializer(
+    s = TemperatureExtremesGraphQuerySerializer(
         data={
             "date_start": "2020-01-01",
             "date_end": "2020-12-31",
@@ -79,7 +79,7 @@ def test_rejects_missing_granularity():
 
 
 def test_rejects_invalid_granularity():
-    s = TemperatureMinMaxGraphQuerySerializer(
+    s = TemperatureExtremesGraphQuerySerializer(
         data={
             "date_start": "2020-01-01",
             "date_end": "2020-12-31",
@@ -92,7 +92,7 @@ def test_rejects_invalid_granularity():
 
 
 def test_empty_station_ids_normalized_to_empty_tuple():
-    s = TemperatureMinMaxGraphQuerySerializer(
+    s = TemperatureExtremesGraphQuerySerializer(
         data={
             "date_start": "2020-01-01",
             "date_end": "2020-12-31",
@@ -106,7 +106,7 @@ def test_empty_station_ids_normalized_to_empty_tuple():
 
 
 def test_same_date_start_and_date_end_is_valid():
-    s = TemperatureMinMaxGraphQuerySerializer(
+    s = TemperatureExtremesGraphQuerySerializer(
         data={
             "date_start": "2020-06-15",
             "date_end": "2020-06-15",

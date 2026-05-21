@@ -2,14 +2,14 @@ from __future__ import annotations
 
 import datetime as dt
 
-from .protocols import MinMaxGraphDataSource
-from .service import compute_minmax_graph
-from .types import MinMaxGraphQuery
+from .protocols import ExtremesGraphDataSource
+from .service import compute_extremes_graph
+from .types import ExtremesGraphQuery
 
 
-def get_minmax_graph(
+def get_extremes_graph(
     *,
-    data_source: MinMaxGraphDataSource,
+    data_source: ExtremesGraphDataSource,
     date_start: dt.date,
     date_end: dt.date,
     granularity: str,
@@ -17,7 +17,7 @@ def get_minmax_graph(
     departments: tuple[str, ...] = (),
     regions: tuple[str, ...] = (),
 ) -> dict:
-    query = MinMaxGraphQuery(
+    query = ExtremesGraphQuery(
         date_start=date_start,
         date_end=date_end,
         granularity=granularity,
@@ -25,4 +25,4 @@ def get_minmax_graph(
         departments=departments,
         regions=regions,
     )
-    return compute_minmax_graph(data_source=data_source, query=query)
+    return compute_extremes_graph(data_source=data_source, query=query)

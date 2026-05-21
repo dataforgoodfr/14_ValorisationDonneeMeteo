@@ -4,8 +4,8 @@ import datetime as dt
 
 import pytest
 
-from weather.data_sources.timescale import TimescaleTemperatureMinMaxDataSource
-from weather.services.temperature_minmax.types import MinMaxGraphQuery
+from weather.data_sources.timescale import TimescaleTemperatureExtremesDataSource
+from weather.services.temperature_extremes.types import ExtremesGraphQuery
 from weather.tests.conftest import insert_quotidienne
 from weather.tests.helpers.stations import insert_station
 
@@ -21,9 +21,9 @@ def test_fetch_daily_series_happy_path():
     insert_quotidienne(dt.date(2024, 1, 1), station_code, tn=-2.0, tx=8.0)
     insert_quotidienne(dt.date(2024, 1, 2), station_code, tn=-1.0, tx=9.5)
 
-    ds = TimescaleTemperatureMinMaxDataSource()
+    ds = TimescaleTemperatureExtremesDataSource()
 
-    query = MinMaxGraphQuery(
+    query = ExtremesGraphQuery(
         date_start=dt.date(2024, 1, 1),
         date_end=dt.date(2024, 1, 2),
         granularity="day",
@@ -38,11 +38,11 @@ def test_fetch_daily_series_happy_path():
     assert s.station_name == "Station Lyon"
     assert len(s.points) == 2
     assert s.points[0].date == dt.date(2024, 1, 1)
-    assert s.points[0].tmin == pytest.approx(-2.0)
-    assert s.points[0].tmax == pytest.approx(8.0)
+    assert s.points[0].tn == pytest.approx(-2.0)
+    assert s.points[0].tx == pytest.approx(8.0)
     assert s.points[1].date == dt.date(2024, 1, 2)
-    assert s.points[1].tmin == pytest.approx(-1.0)
-    assert s.points[1].tmax == pytest.approx(9.5)
+    assert s.points[1].tn == pytest.approx(-1.0)
+    assert s.points[1].tx == pytest.approx(9.5)
 
 
 @pytest.mark.django_db
@@ -56,9 +56,9 @@ def test_fetch_daily_series_filters_by_department():
     insert_quotidienne(dt.date(2024, 6, 1), s1, tn=14.0, tx=27.0)
     insert_quotidienne(dt.date(2024, 6, 1), s2, tn=16.0, tx=25.0)
 
-    ds = TimescaleTemperatureMinMaxDataSource()
+    ds = TimescaleTemperatureExtremesDataSource()
 
-    query = MinMaxGraphQuery(
+    query = ExtremesGraphQuery(
         date_start=dt.date(2024, 6, 1),
         date_end=dt.date(2024, 6, 1),
         granularity="day",
@@ -78,9 +78,9 @@ def test_fetch_daily_series_returns_empty_when_no_match():
     insert_station(station_code, "Station Lyon", departement=69)
     insert_quotidienne(dt.date(2024, 1, 1), station_code, tn=0.0, tx=10.0)
 
-    ds = TimescaleTemperatureMinMaxDataSource()
+    ds = TimescaleTemperatureExtremesDataSource()
 
-    query = MinMaxGraphQuery(
+    query = ExtremesGraphQuery(
         date_start=dt.date(2024, 1, 1),
         date_end=dt.date(2024, 1, 1),
         granularity="day",
@@ -103,9 +103,9 @@ def test_fetch_national_daily_series_happy_path():
     insert_quotidienne(dt.date(2024, 3, 1), s1, tn=4.0, tx=16.0)
     insert_quotidienne(dt.date(2024, 3, 1), s2, tn=6.0, tx=18.0)
 
-    ds = TimescaleTemperatureMinMaxDataSource()
+    ds = TimescaleTemperatureExtremesDataSource()
 
-    query = MinMaxGraphQuery(
+    query = ExtremesGraphQuery(
         date_start=dt.date(2024, 3, 1),
         date_end=dt.date(2024, 3, 1),
         granularity="day",
@@ -115,5 +115,5 @@ def test_fetch_national_daily_series_happy_path():
 
     assert len(result) == 1
     assert result[0].date == dt.date(2024, 3, 1)
-    assert result[0].tmin == pytest.approx(5.0)
-    assert result[0].tmax == pytest.approx(17.0)
+    assert result[0].tn == pytest.approx(5.0)
+    assert result[0].tx == pytest.approx(17.0)

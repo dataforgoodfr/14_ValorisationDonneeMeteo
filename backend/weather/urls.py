@@ -14,7 +14,8 @@ from .views import (
     TemperatureAbsoluteRecordsAPIView,
     TemperatureDeviationGraphAPIView,
     TemperatureDeviationOverviewAPIView,
-    TemperatureMinMaxGraphAPIView,
+    TemperatureExtremesGraphAPIView,
+    TemperatureExtremesOverviewAPIView,
     TemperatureRecordsAPIView,
 )
 
@@ -64,6 +65,16 @@ urlpatterns = [
         name="temperature-records-absolute-graph",
     ),
     path(
+        "temperature/extremes",
+        TemperatureExtremesOverviewAPIView.as_view(),
+        name="temperature-extremes-overview",
+    ),
+    path(
+        "temperature/extremes/graph",
+        TemperatureExtremesGraphAPIView.as_view(),
+        name="temperature-extremes-graph",
+    ),
+    path(
         "temperature/deviation",
         TemperatureDeviationOverviewAPIView.as_view(),
         name="temperature-deviation-overview",
@@ -72,10 +83,5 @@ urlpatterns = [
         "temperature/deviation/graph",
         TemperatureDeviationGraphAPIView.as_view(),
         name="temperature-deviation-graph",
-    ),
-    path(
-        "temperature/extremes/graph",
-        TemperatureMinMaxGraphAPIView.as_view(),
-        name="temperature-extremes-graph",
     ),
 ]

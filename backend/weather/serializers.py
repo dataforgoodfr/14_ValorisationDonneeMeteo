@@ -815,6 +815,174 @@ class RecordsGraphQuerySerializer(serializers.Serializer):
         return attrs
 
 
+class TemperatureExtremesOverviewQuerySerializer(serializers.Serializer):
+    date_start = serializers.DateField(required=True)
+    date_end = serializers.DateField(required=True)
+
+    type = serializers.ChoiceField(choices=["tn", "tx"], required=False, default="tx")
+
+    station_ids = CommaSeparatedStringListField(required=False)
+    station_search = serializers.CharField(required=False, allow_blank=True)
+
+    tm_min = serializers.FloatField(required=False, allow_null=True)
+    tm_max = serializers.FloatField(required=False, allow_null=True)
+
+    tx_min = serializers.FloatField(required=False, allow_null=True)
+    tx_max = serializers.FloatField(required=False, allow_null=True)
+    tn_min = serializers.FloatField(required=False, allow_null=True)
+    tn_max = serializers.FloatField(required=False, allow_null=True)
+
+    alt_min = serializers.FloatField(required=False, allow_null=True)
+    alt_max = serializers.FloatField(required=False, allow_null=True)
+
+    classe_recente_min = serializers.IntegerField(
+        required=False, allow_null=True, min_value=1, max_value=5
+    )
+    classe_recente_max = serializers.IntegerField(
+        required=False, allow_null=True, min_value=1, max_value=5
+    )
+    date_de_creation_min = serializers.DateField(required=False, allow_null=True)
+    date_de_creation_max = serializers.DateField(required=False, allow_null=True)
+    date_de_fermeture_min = serializers.DateField(required=False, allow_null=True)
+    date_de_fermeture_max = serializers.DateField(required=False, allow_null=True)
+
+    departments = CommaSeparatedStringListField(required=False)
+    regions = CommaSeparatedStringListField(required=False)
+
+    ordering = serializers.ChoiceField(
+        choices=[
+            "station_name",
+            "-station_name",
+            "txm",
+            "-txm",
+            "tnm",
+            "-tnm",
+            "tmm",
+            "-tmm",
+            "department",
+            "-department",
+            "region",
+            "-region",
+            "alt",
+            "-alt",
+        ],
+        required=False,
+        default="-txm",
+    )
+
+    limit = serializers.IntegerField(required=False, min_value=1, default=50)
+    offset = serializers.IntegerField(required=False, min_value=0, default=0)
+
+    def validate(self, attrs):
+        ds = attrs["date_start"]
+        de = attrs["date_end"]
+        if ds > de:
+            raise serializers.ValidationError(
+                {"date_end": "date_end doit être >= date_start."}
+            )
+
+        tm_min = attrs.get("tm_min")
+        tm_max = attrs.get("tm_max")
+        if tm_min is not None and tm_max is not None and tm_min > tm_max:
+            raise serializers.ValidationError({"tm_max": "tm_max doit être >= tm_min."})
+
+        tx_min = attrs.get("tx_min")
+        tx_max = attrs.get("tx_max")
+        if tx_min is not None and tx_max is not None and tx_min > tx_max:
+            raise serializers.ValidationError({"tx_max": "tx_max doit être >= tx_min."})
+
+        tn_min = attrs.get("tn_min")
+        tn_max = attrs.get("tn_max")
+        if tn_min is not None and tn_max is not None and tn_min > tn_max:
+            raise serializers.ValidationError({"tn_max": "tn_max doit être >= tn_min."})
+
+        alt_min = attrs.get("alt_min")
+        alt_max = attrs.get("alt_max")
+        if alt_min is not None and alt_max is not None and alt_min > alt_max:
+            raise serializers.ValidationError(
+                {"alt_max": "alt_max doit être >= alt_min."}
+            )
+
+        attrs["station_search"] = attrs.get("station_search") or None
+        attrs["station_ids"] = attrs.get("station_ids", ())
+        attrs["departments"] = attrs.get("departments", ())
+        attrs["regions"] = attrs.get("regions", ())
+        attrs["tm_min"] = tm_min if "tm_min" in attrs else None
+        attrs["tm_max"] = tm_max if "tm_max" in attrs else None
+        attrs["tx_min"] = tx_min if "tx_min" in attrs else None
+        attrs["tx_max"] = tx_max if "tx_max" in attrs else None
+        attrs["tn_min"] = tn_min if "tn_min" in attrs else None
+        attrs["tn_max"] = tn_max if "tn_max" in attrs else None
+        attrs["alt_min"] = alt_min if "alt_min" in attrs else None
+        attrs["alt_max"] = alt_max if "alt_max" in attrs else None
+
+        cr_min = attrs.get("classe_recente_min")
+        cr_max = attrs.get("classe_recente_max")
+        if cr_min is not None and cr_max is not None and cr_min > cr_max:
+            raise serializers.ValidationError(
+                {
+                    "classe_recente_max": "classe_recente_max doit être >= classe_recente_min."
+                }
+            )
+
+        dc_min = attrs.get("date_de_creation_min")
+        dc_max = attrs.get("date_de_creation_max")
+        if dc_min is not None and dc_max is not None and dc_min > dc_max:
+            raise serializers.ValidationError(
+                {
+                    "date_de_creation_max": "date_de_creation_max doit être >= date_de_creation_min."
+                }
+            )
+
+        df_min = attrs.get("date_de_fermeture_min")
+        df_max = attrs.get("date_de_fermeture_max")
+        if df_min is not None and df_max is not None and df_min > df_max:
+            raise serializers.ValidationError(
+                {
+                    "date_de_fermeture_max": "date_de_fermeture_max doit être >= date_de_fermeture_min."
+                }
+            )
+
+        attrs.setdefault("classe_recente_min", None)
+        attrs.setdefault("classe_recente_max", None)
+        attrs.setdefault("date_de_creation_min", None)
+        attrs.setdefault("date_de_creation_max", None)
+        attrs.setdefault("date_de_fermeture_min", None)
+        attrs.setdefault("date_de_fermeture_max", None)
+
+        return attrs
+
+
+class TemperatureExtremesOverviewStationSerializer(serializers.Serializer):
+    station_id = serializers.CharField()
+    station_name = serializers.CharField()
+    txm = serializers.FloatField()
+    tnm = serializers.FloatField()
+    tmm = serializers.FloatField()
+    lat = serializers.FloatField(allow_null=True)
+    lon = serializers.FloatField(allow_null=True)
+    alt = serializers.FloatField(allow_null=True)
+    department = serializers.CharField(allow_null=True)
+    region = serializers.CharField(allow_null=True)
+    classe_recente = serializers.IntegerField(allow_null=True)
+    date_de_creation = serializers.DateField()
+    date_de_fermeture = serializers.DateField(allow_null=True)
+
+
+class TemperatureExtremesOverviewMetadataSerializer(serializers.Serializer):
+    date_start = serializers.DateField()
+    date_end = serializers.DateField()
+    type = serializers.ChoiceField(choices=["tn", "tx"])
+    filters = serializers.DictField()
+    ordering = serializers.CharField()
+
+
+class TemperatureExtremesOverviewResponseSerializer(serializers.Serializer):
+    metadata = TemperatureExtremesOverviewMetadataSerializer()
+    pagination = PaginationMetadataSerializer()
+    stations = TemperatureExtremesOverviewStationSerializer(many=True)
+
+
 class RecordsGraphBucketSerializer(serializers.Serializer):
     bucket = serializers.CharField()
     nb_records_battus = serializers.IntegerField()
@@ -844,7 +1012,7 @@ class AbsoluteRecordsGraphResponseSerializer(serializers.Serializer):
     records = RecordsGraphRecordSerializer(many=True)
 
 
-class TemperatureMinMaxGraphQuerySerializer(serializers.Serializer):
+class TemperatureExtremesGraphQuerySerializer(serializers.Serializer):
     date_start = serializers.DateField(required=True)
     date_end = serializers.DateField(required=True)
 
@@ -871,29 +1039,29 @@ class TemperatureMinMaxGraphQuerySerializer(serializers.Serializer):
         return attrs
 
 
-class TemperatureMinMaxGraphPointSerializer(serializers.Serializer):
+class TemperatureExtremesGraphPointSerializer(serializers.Serializer):
     date = serializers.DateField()
-    tmin_mean = serializers.FloatField()
-    tmax_mean = serializers.FloatField()
+    tnm = serializers.FloatField()
+    txm = serializers.FloatField()
 
 
-class TemperatureMinMaxGraphNationalSerializer(serializers.Serializer):
-    data = TemperatureMinMaxGraphPointSerializer(many=True)
+class TemperatureExtremesGraphNationalSerializer(serializers.Serializer):
+    data = TemperatureExtremesGraphPointSerializer(many=True)
 
 
-class TemperatureMinMaxGraphStationSerializer(serializers.Serializer):
+class TemperatureExtremesGraphStationSerializer(serializers.Serializer):
     station_id = serializers.CharField()
     station_name = serializers.CharField()
-    data = TemperatureMinMaxGraphPointSerializer(many=True)
+    data = TemperatureExtremesGraphPointSerializer(many=True)
 
 
-class TemperatureMinMaxGraphMetadataSerializer(serializers.Serializer):
+class TemperatureExtremesGraphMetadataSerializer(serializers.Serializer):
     date_start = serializers.DateField()
     date_end = serializers.DateField()
     granularity = serializers.ChoiceField(choices=["day", "month", "year"])
 
 
-class TemperatureMinMaxGraphResponseSerializer(serializers.Serializer):
-    metadata = TemperatureMinMaxGraphMetadataSerializer()
-    national = TemperatureMinMaxGraphNationalSerializer(required=False)
-    stations = TemperatureMinMaxGraphStationSerializer(many=True)
+class TemperatureExtremesGraphResponseSerializer(serializers.Serializer):
+    metadata = TemperatureExtremesGraphMetadataSerializer()
+    national = TemperatureExtremesGraphNationalSerializer(required=False)
+    stations = TemperatureExtremesGraphStationSerializer(many=True)
