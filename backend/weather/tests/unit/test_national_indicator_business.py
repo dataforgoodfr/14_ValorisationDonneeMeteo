@@ -54,17 +54,22 @@ def test_compute_itn_ok_returns_mean_over_30_slots():
     assert itn == (29 * 10.0 + 40.0) / 30.0
 
 
-def test_compute_itn_drop_if_missing_any_always_station():
+def test_compute_itn_ok_if_missing_any_always_station():
+    day = dt.date(2025, 1, 1)
+    m = _build_station_code_to_fixed_temperature_map(
+        day, reims_station_temperature=40.0, always_station_temperature=10.0
+    )
+    m.pop(next(iter(ITN_ALWAYS_STATION_CODES)))
+    itn = compute_itn_for_day(day, m)
+    assert itn == (28 * 10.0 + 40.0) / 29.0
+
+
+def test_compute_itn_drop_if_missing_2_always_station():
     day = dt.date(2025, 1, 1)
     m = _build_station_code_to_fixed_temperature_map(day)
-    m.pop(next(iter(ITN_ALWAYS_STATION_CODES)))
-    assert compute_itn_for_day(day, m) is None
-
-
-def test_compute_itn_drop_if_missing_expected_reims():
-    day = dt.date(2025, 1, 1)
-    m = dict.fromkeys(ITN_ALWAYS_STATION_CODES, 10.0)
-    # pas de Reims attendue => drop
+    always_codes = iter(ITN_ALWAYS_STATION_CODES)
+    m.pop(next(always_codes))
+    m.pop(next(always_codes))
     assert compute_itn_for_day(day, m) is None
 
 
