@@ -31,14 +31,14 @@ def seed_itn_day() -> Callable[..., None]:
         *,
         always_val: float = 10.0,
         reims_val: float = 20.0,
-        incomplete: bool = False,
+        n_missing: int = 0,
         include_both_reims: bool = False,
         other_reims_val: float = 30.0,
     ) -> None:
         always_codes = list(ITN_ALWAYS_STATION_CODES)
 
-        if incomplete:
-            always_codes = always_codes[:-1]
+        if n_missing > 0:
+            always_codes = always_codes[:-n_missing]
 
         for code in always_codes:
             insert_quotidienne(day, code, always_val)
@@ -76,11 +76,32 @@ def test_fetch_daily_series_happy_path(
     assert result[0].temperature == pytest.approx((29 * 10.0 + 20.0) / 30.0)
 
 
-def test_fetch_daily_series_drop_incomplete_day(
+def test_fetch_daily_series_accepts_one_missing_station(
     seed_itn_day: Callable[..., None],
 ):
     day = dt.date(2025, 1, 1)
-    seed_itn_day(day, incomplete=True)
+    seed_itn_day(day, n_missing=1)
+
+    ds = TimescaleNationalIndicatorObservedDataSource()
+    query = DailySeriesQuery(
+        date_start=day,
+        date_end=day,
+        target_dates=None,
+    )
+
+    result = ds.fetch_daily_series(query)
+
+    assert len(result) == 1
+    assert result[0].date == day
+    # 28 always @ 10.0 + 1 Reims @ 20.0, moyenne sur les 29 stations présentes.
+    assert result[0].temperature == pytest.approx((28 * 10.0 + 20.0) / 29.0)
+
+
+def test_fetch_daily_series_drops_day_with_two_missing_stations(
+    seed_itn_day: Callable[..., None],
+):
+    day = dt.date(2025, 1, 1)
+    seed_itn_day(day, n_missing=2)
 
     ds = TimescaleNationalIndicatorObservedDataSource()
     query = DailySeriesQuery(

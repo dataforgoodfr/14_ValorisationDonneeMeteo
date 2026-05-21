@@ -169,21 +169,23 @@ def compute_itn_for_day(
     day: dt.date, station_code_to_temp_map: dict[str, float]
 ) -> float | None:
     expected_stations_for_day = expected_station_codes(day)
-    if not len(expected_stations_for_day) >= 29:
+    if len(expected_stations_for_day) != 30:
         raise ValueError(
-            f"Expected at least 29 stations, got {len(expected_stations_for_day)} for {day}"
+            f"Expected 30 stations, got {len(expected_stations_for_day)} for {day}"
         )
     # Normalisation : ignorer l'autre Reims si elle existe
     station_code_to_temp_map = _normalize_reims(day, station_code_to_temp_map)
-    # Égalité stricte sur les 30 slots
     computed_stations_codes = set(station_code_to_temp_map.keys())
 
-    if computed_stations_codes != expected_stations_for_day:
+    # Aucune station inattendue
+    if not computed_stations_codes.issubset(expected_stations_for_day):
         return None
 
-    return sum(station_code_to_temp_map[c] for c in expected_stations_for_day) / float(
-        len(expected_stations_for_day)
-    )
+    # On tolère au plus 1 station manquante sur les 30 attendues
+    if len(computed_stations_codes) < 29:
+        return None
+
+    return sum(station_code_to_temp_map.values()) / float(len(station_code_to_temp_map))
 
 
 class TimescaleNationalIndicatorObservedDataSource(NationalIndicatorObservedDataSource):
