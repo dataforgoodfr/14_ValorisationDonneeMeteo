@@ -824,13 +824,13 @@ class TemperatureExtremesOverviewQuerySerializer(serializers.Serializer):
     station_ids = CommaSeparatedStringListField(required=False)
     station_search = serializers.CharField(required=False, allow_blank=True)
 
-    tmn = serializers.FloatField(required=False, allow_null=True)
-    tmx = serializers.FloatField(required=False, allow_null=True)
+    tm_min = serializers.FloatField(required=False, allow_null=True)
+    tm_max = serializers.FloatField(required=False, allow_null=True)
 
-    txn = serializers.FloatField(required=False, allow_null=True)
-    txx = serializers.FloatField(required=False, allow_null=True)
-    tnn = serializers.FloatField(required=False, allow_null=True)
-    tnx = serializers.FloatField(required=False, allow_null=True)
+    tx_min = serializers.FloatField(required=False, allow_null=True)
+    tx_max = serializers.FloatField(required=False, allow_null=True)
+    tn_min = serializers.FloatField(required=False, allow_null=True)
+    tn_max = serializers.FloatField(required=False, allow_null=True)
 
     alt_min = serializers.FloatField(required=False, allow_null=True)
     alt_max = serializers.FloatField(required=False, allow_null=True)
@@ -881,20 +881,20 @@ class TemperatureExtremesOverviewQuerySerializer(serializers.Serializer):
                 {"date_end": "date_end doit être >= date_start."}
             )
 
-        tmn = attrs.get("tmn")
-        tmx = attrs.get("tmx")
-        if tmn is not None and tmx is not None and tmn > tmx:
-            raise serializers.ValidationError({"tmx": "tmx doit être >= tmn."})
+        tm_min = attrs.get("tm_min")
+        tm_max = attrs.get("tm_max")
+        if tm_min is not None and tm_max is not None and tm_min > tm_max:
+            raise serializers.ValidationError({"tm_max": "tm_max doit être >= tm_min."})
 
-        txn = attrs.get("txn")
-        txx = attrs.get("txx")
-        if txn is not None and txx is not None and txn > txx:
-            raise serializers.ValidationError({"txx": "txx doit être >= txn."})
+        tx_min = attrs.get("tx_min")
+        tx_max = attrs.get("tx_max")
+        if tx_min is not None and tx_max is not None and tx_min > tx_max:
+            raise serializers.ValidationError({"tx_max": "tx_max doit être >= tx_min."})
 
-        tnn = attrs.get("tnn")
-        tnx = attrs.get("tnx")
-        if tnn is not None and tnx is not None and tnn > tnx:
-            raise serializers.ValidationError({"tnx": "tnx doit être >= tnn."})
+        tn_min = attrs.get("tn_min")
+        tn_max = attrs.get("tn_max")
+        if tn_min is not None and tn_max is not None and tn_min > tn_max:
+            raise serializers.ValidationError({"tn_max": "tn_max doit être >= tn_min."})
 
         alt_min = attrs.get("alt_min")
         alt_max = attrs.get("alt_max")
@@ -907,12 +907,12 @@ class TemperatureExtremesOverviewQuerySerializer(serializers.Serializer):
         attrs["station_ids"] = attrs.get("station_ids", ())
         attrs["departments"] = attrs.get("departments", ())
         attrs["regions"] = attrs.get("regions", ())
-        attrs["tmn"] = tmn if "tmn" in attrs else None
-        attrs["tmx"] = tmx if "tmx" in attrs else None
-        attrs["txn"] = txn if "txn" in attrs else None
-        attrs["txx"] = txx if "txx" in attrs else None
-        attrs["tnn"] = tnn if "tnn" in attrs else None
-        attrs["tnx"] = tnx if "tnx" in attrs else None
+        attrs["tm_min"] = tm_min if "tm_min" in attrs else None
+        attrs["tm_max"] = tm_max if "tm_max" in attrs else None
+        attrs["tx_min"] = tx_min if "tx_min" in attrs else None
+        attrs["tx_max"] = tx_max if "tx_max" in attrs else None
+        attrs["tn_min"] = tn_min if "tn_min" in attrs else None
+        attrs["tn_max"] = tn_max if "tn_max" in attrs else None
         attrs["alt_min"] = alt_min if "alt_min" in attrs else None
         attrs["alt_max"] = alt_max if "alt_max" in attrs else None
 

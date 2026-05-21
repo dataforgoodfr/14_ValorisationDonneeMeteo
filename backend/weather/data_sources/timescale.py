@@ -1890,29 +1890,29 @@ def _build_extremes_overview_where(
         clauses.append("station_id = ANY(%(station_ids)s)")
         params["station_ids"] = list(query.station_ids)
 
-    if query.tmn is not None:
-        clauses.append("tmm >= %(tmn)s")
-        params["tmn"] = query.tmn
+    if query.tm_min is not None:
+        clauses.append("tmm >= %(tm_min)s")
+        params["tm_min"] = query.tm_min
 
-    if query.tmx is not None:
-        clauses.append("tmm <= %(tmx)s")
-        params["tmx"] = query.tmx
+    if query.tm_max is not None:
+        clauses.append("tmm <= %(tm_max)s")
+        params["tm_max"] = query.tm_max
 
-    if query.txn is not None:
-        clauses.append("txm >= %(txn)s")
-        params["txn"] = query.txn
+    if query.tx_min is not None:
+        clauses.append("txm >= %(tx_min)s")
+        params["tx_min"] = query.tx_min
 
-    if query.txx is not None:
-        clauses.append("txm <= %(txx)s")
-        params["txx"] = query.txx
+    if query.tx_max is not None:
+        clauses.append("txm <= %(tx_max)s")
+        params["tx_max"] = query.tx_max
 
-    if query.tnn is not None:
-        clauses.append("tnm >= %(tnn)s")
-        params["tnn"] = query.tnn
+    if query.tn_min is not None:
+        clauses.append("tnm >= %(tn_min)s")
+        params["tn_min"] = query.tn_min
 
-    if query.tnx is not None:
-        clauses.append("tnm <= %(tnx)s")
-        params["tnx"] = query.tnx
+    if query.tn_max is not None:
+        clauses.append("tnm <= %(tn_max)s")
+        params["tn_max"] = query.tn_max
 
     if query.alt_min is not None:
         clauses.append("alt >= %(alt_min)s")

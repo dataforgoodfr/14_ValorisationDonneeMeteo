@@ -82,7 +82,7 @@ def test_fetch_station_overview_filters_by_txn():
     insert_quotidienne(dt.date(2024, 1, 1), s2, tn=0.0, tx=30.0)
 
     ds = TimescaleTemperatureExtremesOverviewDataSource()
-    result = ds.fetch_station_overview(_query(txn=20.0))
+    result = ds.fetch_station_overview(_query(tx_min=20.0))
 
     assert result.pagination.total_count == 1
     assert result.stations[0].station_id == s2

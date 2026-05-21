@@ -112,13 +112,13 @@ def test_returns_400_txn_greater_than_max(client: APIClient):
         {
             "date_start": "2024-01-01",
             "date_end": "2024-12-31",
-            "txn": 30,
-            "txx": 20,
+            "tx_min": 30,
+            "tx_max": 20,
         },
     )
 
     assert resp.status_code == 400
-    assert "txx" in resp.json()["error"]["details"]
+    assert "tx_max" in resp.json()["error"]["details"]
 
 
 def test_returns_400_negative_offset(client: APIClient):
@@ -168,7 +168,7 @@ def test_filters_echoed_in_metadata(client: APIClient):
             "date_end": "2024-12-31",
             "station_ids": "07149,07222",
             "departments": "69,75",
-            "txn": 20,
+            "tx_min": 20,
         },
     )
 
@@ -177,7 +177,7 @@ def test_filters_echoed_in_metadata(client: APIClient):
 
     assert filters["station_ids"] == ["07149", "07222"]
     assert filters["departments"] == ["69", "75"]
-    assert filters["txn"] == 20.0
+    assert filters["tx_min"] == 20.0
 
 
 def test_ordering_echoed_in_metadata(client: APIClient):

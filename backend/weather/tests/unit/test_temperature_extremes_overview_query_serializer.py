@@ -67,24 +67,24 @@ def test_rejects_missing_date_end():
 
 
 def test_rejects_txn_greater_than_max():
-    s = _valid(txn=30, txx=20)
+    s = _valid(tx_min=30, tx_max=20)
 
     assert not s.is_valid()
-    assert "txx" in s.errors
+    assert "tx_max" in s.errors
 
 
 def test_rejects_tnn_greater_than_max():
-    s = _valid(tnn=30, tnx=20)
+    s = _valid(tn_min=30, tn_max=20)
 
     assert not s.is_valid()
-    assert "tnx" in s.errors
+    assert "tn_max" in s.errors
 
 
 def test_rejects_tmn_greater_than_max():
-    s = _valid(tmn=25, tmx=10)
+    s = _valid(tm_min=25, tm_max=10)
 
     assert not s.is_valid()
-    assert "tmx" in s.errors
+    assert "tm_max" in s.errors
 
 
 def test_rejects_alt_min_greater_than_max():
@@ -185,12 +185,12 @@ def test_all_optional_filters_accepted():
         type="tn",
         station_ids="07149",
         station_search="lyon",
-        tmn=10.0,
-        tmx=20.0,
-        txn=15.0,
-        txx=30.0,
-        tnn=5.0,
-        tnx=20.0,
+        tm_min=10.0,
+        tm_max=20.0,
+        tx_min=15.0,
+        tx_max=30.0,
+        tn_min=5.0,
+        tn_max=20.0,
         alt_min=100.0,
         alt_max=500.0,
         departments="69",
@@ -203,12 +203,12 @@ def test_all_optional_filters_accepted():
     assert s.is_valid(), s.errors
     d = s.validated_data
     assert d["type"] == "tn"
-    assert d["tmn"] == 10.0
-    assert d["tmx"] == 20.0
-    assert d["txn"] == 15.0
-    assert d["txx"] == 30.0
-    assert d["tnn"] == 5.0
-    assert d["tnx"] == 20.0
+    assert d["tm_min"] == 10.0
+    assert d["tm_max"] == 20.0
+    assert d["tx_min"] == 15.0
+    assert d["tx_max"] == 30.0
+    assert d["tn_min"] == 5.0
+    assert d["tn_max"] == 20.0
     assert d["alt_min"] == 100.0
     assert d["alt_max"] == 500.0
     assert d["limit"] == 25

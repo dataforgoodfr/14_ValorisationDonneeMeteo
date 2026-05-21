@@ -593,7 +593,7 @@ paths:
           description: Filtre textuel sur le nom de la station.
           example: "Lyon"
 
-        - name: txn
+        - name: tx_min
           in: query
           required: false
           schema:
@@ -602,7 +602,7 @@ paths:
           description: Valeur minimale incluse de la moyenne de Tx sur la période (°C).
           example: 25.0
 
-        - name: txx
+        - name: tx_max
           in: query
           required: false
           schema:
@@ -611,7 +611,7 @@ paths:
           description: Valeur maximale incluse de la moyenne de Tx sur la période (°C).
           example: 40.0
 
-        - name: tnn
+        - name: tn_min
           in: query
           required: false
           schema:
@@ -620,7 +620,7 @@ paths:
           description: Valeur minimale incluse de la moyenne de Tn sur la période (°C).
           example: 0.0
 
-        - name: tnx
+        - name: tn_max
           in: query
           required: false
           schema:
@@ -629,7 +629,7 @@ paths:
           description: Valeur maximale incluse de la moyenne de Tn sur la période (°C).
           example: 15.0
 
-        - name: tmn
+        - name: tm_min
           in: query
           required: false
           schema:
@@ -638,7 +638,7 @@ paths:
           description: Valeur minimale incluse de la température moyenne (°C).
           example: 15.0
 
-        - name: tmx
+        - name: tm_max
           in: query
           required: false
           schema:
@@ -792,12 +792,12 @@ paths:
                       filters:
                         station_search: null
                         station_ids: []
-                        txn: null
-                        txx: null
-                        tnn: null
-                        tnx: null
-                        tmn: null
-                        tmx: null
+                        tx_min: null
+                        tx_max: null
+                        tn_min: null
+                        tn_max: null
+                        tm_min: null
+                        tm_max: null
                         alt_min: null
                         alt_max: null
                         classe_recente_min: null
@@ -2103,22 +2103,22 @@ components:
             station_search:
               type: string
               nullable: true
-            txn:
+            tx_min:
               type: number
               nullable: true
-            txx:
+            tx_max:
               type: number
               nullable: true
-            tnn:
+            tn_min:
               type: number
               nullable: true
-            tnx:
+            tn_max:
               type: number
               nullable: true
-            tmn:
+            tm_min:
               type: number
               nullable: true
-            tmx:
+            tm_max:
               type: number
               nullable: true
             alt_min:

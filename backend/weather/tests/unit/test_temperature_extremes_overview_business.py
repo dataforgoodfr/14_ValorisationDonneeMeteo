@@ -118,7 +118,7 @@ def test_compute_overview_passes_query_to_datasource():
         type="tn",
         station_ids=("07149", "07255"),
         departments=("75",),
-        txn=10.0,
+        tx_min=10.0,
         ordering="station_name",
         limit=25,
         offset=50,
