@@ -65,7 +65,7 @@ function exportInCsv(type: "hot" | "cold") {
         type,
         dateToStringYMD(yesterdayLess365Days.value),
         dateToStringYMD(yesterday.value),
-        "all_time",
+        "month",
     );
 }
 const exportOptions = ref<DropdownMenuItem[]>([
