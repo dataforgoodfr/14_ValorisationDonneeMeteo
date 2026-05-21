@@ -824,8 +824,8 @@ class TemperatureExtremesOverviewQuerySerializer(serializers.Serializer):
     station_ids = CommaSeparatedStringListField(required=False)
     station_search = serializers.CharField(required=False, allow_blank=True)
 
-    tmean_min = serializers.FloatField(required=False, allow_null=True)
-    tmean_max = serializers.FloatField(required=False, allow_null=True)
+    tmn = serializers.FloatField(required=False, allow_null=True)
+    tmx = serializers.FloatField(required=False, allow_null=True)
 
     txn = serializers.FloatField(required=False, allow_null=True)
     txx = serializers.FloatField(required=False, allow_null=True)
@@ -881,12 +881,10 @@ class TemperatureExtremesOverviewQuerySerializer(serializers.Serializer):
                 {"date_end": "date_end doit être >= date_start."}
             )
 
-        tmean_min = attrs.get("tmean_min")
-        tmean_max = attrs.get("tmean_max")
-        if tmean_min is not None and tmean_max is not None and tmean_min > tmean_max:
-            raise serializers.ValidationError(
-                {"tmean_max": "tmean_max doit être >= tmean_min."}
-            )
+        tmn = attrs.get("tmn")
+        tmx = attrs.get("tmx")
+        if tmn is not None and tmx is not None and tmn > tmx:
+            raise serializers.ValidationError({"tmx": "tmx doit être >= tmn."})
 
         txn = attrs.get("txn")
         txx = attrs.get("txx")
@@ -909,8 +907,8 @@ class TemperatureExtremesOverviewQuerySerializer(serializers.Serializer):
         attrs["station_ids"] = attrs.get("station_ids", ())
         attrs["departments"] = attrs.get("departments", ())
         attrs["regions"] = attrs.get("regions", ())
-        attrs["tmean_min"] = tmean_min if "tmean_min" in attrs else None
-        attrs["tmean_max"] = tmean_max if "tmean_max" in attrs else None
+        attrs["tmn"] = tmn if "tmn" in attrs else None
+        attrs["tmx"] = tmx if "tmx" in attrs else None
         attrs["txn"] = txn if "txn" in attrs else None
         attrs["txx"] = txx if "txx" in attrs else None
         attrs["tnn"] = tnn if "tnn" in attrs else None

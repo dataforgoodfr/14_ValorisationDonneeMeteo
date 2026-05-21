@@ -80,11 +80,11 @@ def test_rejects_tnn_greater_than_max():
     assert "tnx" in s.errors
 
 
-def test_rejects_tmean_min_greater_than_max():
-    s = _valid(tmean_min=25, tmean_max=10)
+def test_rejects_tmn_greater_than_max():
+    s = _valid(tmn=25, tmx=10)
 
     assert not s.is_valid()
-    assert "tmean_max" in s.errors
+    assert "tmx" in s.errors
 
 
 def test_rejects_alt_min_greater_than_max():
@@ -185,8 +185,8 @@ def test_all_optional_filters_accepted():
         type="tn",
         station_ids="07149",
         station_search="lyon",
-        tmean_min=10.0,
-        tmean_max=20.0,
+        tmn=10.0,
+        tmx=20.0,
         txn=15.0,
         txx=30.0,
         tnn=5.0,
@@ -203,8 +203,8 @@ def test_all_optional_filters_accepted():
     assert s.is_valid(), s.errors
     d = s.validated_data
     assert d["type"] == "tn"
-    assert d["tmean_min"] == 10.0
-    assert d["tmean_max"] == 20.0
+    assert d["tmn"] == 10.0
+    assert d["tmx"] == 20.0
     assert d["txn"] == 15.0
     assert d["txx"] == 30.0
     assert d["tnn"] == 5.0

@@ -1864,7 +1864,7 @@ _EXTREMES_OVERVIEW_BASE_CTE = """
             CASE WHEN %(type)s = 'tn' THEN a.tnm ELSE a.txm END
                 AS textreme_mean
         FROM station_agg a
-            INNER JOIN public.v_station s
+            INNER JOIN public.v_station_qualifiee_hexagone s
                 ON s.station_code = a.station_id
             LEFT JOIN public.ref_department_region r
                 ON r.departement = s.departement
@@ -1890,13 +1890,13 @@ def _build_extremes_overview_where(
         clauses.append("station_id = ANY(%(station_ids)s)")
         params["station_ids"] = list(query.station_ids)
 
-    if query.tmean_min is not None:
-        clauses.append("tmm >= %(tmean_min)s")
-        params["tmean_min"] = query.tmean_min
+    if query.tmn is not None:
+        clauses.append("tmm >= %(tmn)s")
+        params["tmn"] = query.tmn
 
-    if query.tmean_max is not None:
-        clauses.append("tmm <= %(tmean_max)s")
-        params["tmean_max"] = query.tmean_max
+    if query.tmx is not None:
+        clauses.append("tmm <= %(tmx)s")
+        params["tmx"] = query.tmx
 
     if query.txn is not None:
         clauses.append("txm >= %(txn)s")

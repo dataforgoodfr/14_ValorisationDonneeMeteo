@@ -629,7 +629,7 @@ paths:
           description: Valeur maximale incluse de la moyenne de Tn sur la période (°C).
           example: 15.0
 
-        - name: tmean_min
+        - name: tmn
           in: query
           required: false
           schema:
@@ -638,7 +638,7 @@ paths:
           description: Valeur minimale incluse de la température moyenne (°C).
           example: 15.0
 
-        - name: tmean_max
+        - name: tmx
           in: query
           required: false
           schema:
@@ -796,8 +796,8 @@ paths:
                         txx: null
                         tnn: null
                         tnx: null
-                        tmean_min: null
-                        tmean_max: null
+                        tmn: null
+                        tmx: null
                         alt_min: null
                         alt_max: null
                         classe_recente_min: null
@@ -2115,10 +2115,10 @@ components:
             tnx:
               type: number
               nullable: true
-            tmean_min:
+            tmn:
               type: number
               nullable: true
-            tmean_max:
+            tmx:
               type: number
               nullable: true
             alt_min:

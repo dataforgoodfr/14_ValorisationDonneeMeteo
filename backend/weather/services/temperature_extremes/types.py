@@ -68,8 +68,8 @@ class ExtremesOverviewQuery:
     type: str = "tx"
     station_ids: tuple[str, ...] = ()
     station_search: str | None = None
-    tmean_min: float | None = None
-    tmean_max: float | None = None
+    tmn: float | None = None
+    tmx: float | None = None
     txn: float | None = None
     txx: float | None = None
     tnn: float | None = None
