@@ -1,7 +1,7 @@
 <template>
     <StationMap
         :stations="mappableStations"
-        :color-config="DEVIATION_MAP_MONTHLY_COLORS"
+        :color-config="DEVIATION_MAP_COLORS"
         :tooltip-formatter="tooltipFormatter"
         legend-label="Température (°C)"
         aspect-ratio="1"
@@ -15,7 +15,7 @@ import type {
     MappableStation,
     MapTooltipFormatter,
 } from "~/types/api";
-import { DEVIATION_MAP_MONTHLY_COLORS } from "~/constants/colors";
+import { DEVIATION_MAP_COLORS } from "~/constants/colors";
 import { formatDeviationMapTooltip } from "~/components/map/tooltipFormatters/deviationMapTooltipFormatter";
 import StationMap from "~/components/map/StationMap.vue";
 const props = defineProps<{
@@ -46,7 +46,7 @@ const tooltipFormatter: MapTooltipFormatter = (properties) =>
     formatDeviationMapTooltip(
         properties.station_name,
         properties.value,
-        DEVIATION_MAP_MONTHLY_COLORS.stops,
+        DEVIATION_MAP_COLORS.stops,
     );
 
 onMounted(async () => {

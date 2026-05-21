@@ -59,7 +59,6 @@ function makeDeviationColors(min: number, max: number): MapColorConfig {
 }
 
 export const DEVIATION_MAP_COLORS = makeDeviationColors(-5, 5);
-export const DEVIATION_MAP_MONTHLY_COLORS = makeDeviationColors(-10, 10);
 
 const recordsMin = -20;
 const recordsMax = 40;
