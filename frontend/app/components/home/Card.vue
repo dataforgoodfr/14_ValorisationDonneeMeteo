@@ -20,7 +20,7 @@ const isOpen = ref(false);
 <template>
     <UCard
         :class="[
-            'flex flex-col flex-1 justify-between',
+            'flex flex-col justify-between',
             props.withBorder && 'border border-blue-350',
             props.transparent && 'bg-transparent shadow-none ring-0',
         ]"
