@@ -29,7 +29,7 @@ export const recordsSections: InfoSection[] = [
                     " au cours du temps, après 50 années de mesures. Chaque record battu fut un record absolu" +
                     " à sa date du record, mais il existe plusieurs records battus qui ne sont plus des records" +
                     " absolus: le record absolu d'une station ou d'une région est, en fait, le dernier record battu." +
-                    "\nUne station qui n'a pas battu de records après ces 50 permières années de mesure n'a donc, par définiton," +
+                    "\nUne station qui n'a pas battu de records après ses 50 permières années de mesure n'a donc, par définiton," +
                     " aucun record battu listé.",
             },
             {
