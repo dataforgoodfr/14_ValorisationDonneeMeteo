@@ -225,34 +225,12 @@ def test_v_quotidienne_realtime_combines_htr_and_horaire_across_days():
     assert rows[1]["date"].date() == yesterday
 
 
-def test_v_quotidienne_realtime_aggregates_across_sources_on_same_day():
-    """
-    HTR et Horaire contribuent au MÊME jour météo (via UNION ALL dans
-    `combined_horaire`) : MIN/MAX sont calculés sur les deux sources.
-
-    Cible : j-2.
-    - Horaire à j-3 22:00 : tn-day = j-2 (post-frontière 18 h),
-                            tx-day = j-3 (pré-frontière 06 h le lendemain).
-    - Horaire à j-2 10:00 : tn-day = tx-day = j-2.
-    - HTR à j-1 04:00 : tn-day = j-1 (pre-18 h), tx-day = j-2 (pre-6 h).
-    j-2 reçoit donc :
-      - tn = MIN(10, 8) = 8 (Horaire seulement)
-      - tx = MAX(12, 20) = 20 (Horaire 12 vs HTR 20 → cross-source)
-    """
-    two_days_ago = _utc_today() - dt.timedelta(days=2)
-    three_days_ago = _utc_today() - dt.timedelta(days=3)
-    yesterday = _yesterday()
-
-    insert_horaire(STATION, _at(three_days_ago, 22), tn=10.0, tx=15.0)
-    insert_horaire(STATION, _at(two_days_ago, 10), tn=8.0, tx=12.0)
-    insert_horaire_temps_reel(STATION, _at(yesterday, 4), tn=5.0, tx=20.0)
-
-    rows = fetch_v_quotidienne_realtime(station_code=STATION)
-
-    target = next(r for r in rows if r["date"].date() == two_days_ago)
-    assert float(target["tn"]) == pytest.approx(8.0)
-    assert float(target["tx"]) == pytest.approx(20.0)
-    assert float(target["tntxm"]) == pytest.approx(14.0)
+# NB : pas de test "HTR + Horaire contribuent au MÊME jour météo" : la
+# fenêtre HTR (de now-36h à now-3h) et la fenêtre Horaire (de now-4j à
+# now-36h) ne se chevauchent jamais, et leurs ancres robustes (HTR à hier
+# midi, Horaire à j-3 midi) tombent dans des journées météo disjointes.
+# L'agrégation cross-sources est exercée par les tests Horaire+HTR ci-dessus
+# (`combines_htr_and_horaire_across_days`) et HTR+ITR (`infrahoraire_coexists_with_htr`).
 
 
 # ---------------------------------------------------------------------------
