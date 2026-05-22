@@ -59,6 +59,11 @@ onMounted(() => {
         store.dateStart = today.value;
         store.dateEnd = today.value;
         store.ordering = "-recordDate";
+
+        const period = route.query.period;
+        if (period && typeof period === "string") {
+            store.periodSelection = period;
+        }
     }
 
     if (view === "scatter") {

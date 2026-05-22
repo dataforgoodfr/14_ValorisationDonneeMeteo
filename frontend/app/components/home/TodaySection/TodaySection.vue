@@ -7,6 +7,8 @@ import TemperatureRecord from "../TemperatureRecord.vue";
 
 const { today, lastYear } = useCustomDate();
 
+const currentMonthParam = computed(() => `month_${today.value.getMonth() + 1}`);
+
 const hotTypeRecords = ref<TypeRecords>("hot");
 const coldTypeRecords = ref<TypeRecords>("cold");
 
@@ -105,6 +107,8 @@ const lastYearColdRecordsCount = computed(
                 period-type="today"
             />
         </div>
-        <GoToDataLink :data-url="'/temperature/records?preset=today#table'" />
+        <GoToDataLink
+            :data-url="`/temperature/records?preset=today&period=${currentMonthParam}#table`"
+        />
     </Section>
 </template>
