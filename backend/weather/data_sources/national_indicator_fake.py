@@ -16,10 +16,12 @@ from __future__ import annotations
 import datetime as dt
 import math
 import random
+from statistics import mean
 
 from weather.services.national_indicator.protocols import (
     NationalIndicatorAbsoluteExtremesDataSource,
     NationalIndicatorBaselineDataSource,
+    NationalIndicatorKpiDataSource,
     NationalIndicatorObservedDataSource,
 )
 from weather.services.national_indicator.service import compute_national_indicator
@@ -27,6 +29,8 @@ from weather.services.national_indicator.types import (
     AbsoluteExtremes,
     BaselinePoint,
     DailySeriesQuery,
+    KpiPeriodStats,
+    NationalIndicatorKpiResult,
     ObservedPoint,
 )
 from weather.utils.date_range import iter_days_intersecting
@@ -196,6 +200,70 @@ class FakeNationalIndicatorAbsoluteExtremesDataSource(
         return AbsoluteExtremes(
             absolute_min=round(min(mins), 4),
             absolute_max=round(max(maxs), 4),
+        )
+
+
+class FakeNationalIndicatorKpiDataSource(NationalIndicatorKpiDataSource):
+    """
+    KPI ITN sur données synthétiques : boucle sur l'observé + baseline
+    fournis par FakeNationalIndicatorDataSource.
+    """
+
+    def __init__(self, *, fake: FakeNationalIndicatorDataSource) -> None:
+        self._fake = fake
+
+    def compute_kpi(
+        self,
+        *,
+        current_start: dt.date,
+        current_end: dt.date,
+        previous_start: dt.date,
+        previous_end: dt.date,
+    ) -> NationalIndicatorKpiResult:
+        return NationalIndicatorKpiResult(
+            current=self._period_stats(current_start, current_end),
+            previous=self._period_stats(previous_start, previous_end),
+        )
+
+    def _period_stats(self, date_start: dt.date, date_end: dt.date) -> KpiPeriodStats:
+        observed = self._fake.fetch_daily_series(
+            DailySeriesQuery(date_start=date_start, date_end=date_end)
+        )
+
+        hot_peak_count = 0
+        cold_peak_count = 0
+        days_above_baseline = 0
+        days_below_baseline = 0
+        baseline_means: list[float] = []
+
+        for point in observed:
+            baseline = self._fake.fetch_daily_baseline(point.date)
+            baseline_means.append(baseline.baseline_mean)
+
+            if point.temperature > baseline.baseline_mean:
+                days_above_baseline += 1
+            elif point.temperature < baseline.baseline_mean:
+                days_below_baseline += 1
+
+            if point.temperature > baseline.baseline_std_dev_upper:
+                hot_peak_count += 1
+            elif point.temperature < baseline.baseline_std_dev_lower:
+                cold_peak_count += 1
+
+        if observed:
+            itn_mean = mean(p.temperature for p in observed)
+            deviation_from_normal = itn_mean - mean(baseline_means)
+        else:
+            itn_mean = None
+            deviation_from_normal = None
+
+        return KpiPeriodStats(
+            hot_peak_count=hot_peak_count,
+            cold_peak_count=cold_peak_count,
+            days_above_baseline=days_above_baseline,
+            days_below_baseline=days_below_baseline,
+            itn_mean=itn_mean,
+            deviation_from_normal=deviation_from_normal,
         )
 
 

@@ -6,8 +6,8 @@ import pytest
 
 from weather.data_sources.timescale import TimescaleTemperatureMinMaxDataSource
 from weather.services.temperature_minmax.types import MinMaxGraphQuery
-from weather.tests.conftest import insert_quotidienne
 from weather.tests.helpers.stations import insert_station
+from weather.tests.integration.conftest import insert_quotidienne
 
 
 @pytest.mark.django_db

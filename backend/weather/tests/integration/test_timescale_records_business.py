@@ -15,8 +15,8 @@ import pytest
 
 from weather.data_sources.timescale import TimescaleRecordsDataSource
 from weather.services.records.types import RecordsQuery
-from weather.tests.conftest import insert_mv_record, set_cutoff
 from weather.tests.helpers.stations import insert_station
+from weather.tests.integration.conftest import insert_mv_record, set_cutoff
 
 # ---------------------------------------------------------------------------
 # Helpers

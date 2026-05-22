@@ -24,6 +24,7 @@ from weather.regions import departments_for_region
 from weather.services.national_indicator.protocols import (
     NationalIndicatorAbsoluteExtremesDataSource,
     NationalIndicatorBaselineDataSource,
+    NationalIndicatorKpiDataSource,
     NationalIndicatorObservedDataSource,
 )
 from weather.services.national_indicator.stations import (
@@ -37,6 +38,8 @@ from weather.services.national_indicator.types import (
     AbsoluteExtremes,
     BaselinePoint,
     DailySeriesQuery,
+    KpiPeriodStats,
+    NationalIndicatorKpiResult,
 )
 from weather.services.national_indicator.types import (
     ObservedPoint as NationalObservedPoint,
@@ -310,6 +313,96 @@ class TimescaleNationalIndicatorAbsoluteExtremesDataSource(
         return AbsoluteExtremes(
             absolute_min=float(row.absolute_min),
             absolute_max=float(row.absolute_max),
+        )
+
+
+class TimescaleNationalIndicatorKpiDataSource(NationalIndicatorKpiDataSource):
+    """
+    Une requête SQL unique pour les KPI ITN courant + précédent.
+
+    Joint l'ITN journalier déjà agrégé (mv_itn_daily_all_years, refresh 6 min,
+    contient déjà la logique 29-sur-30 stations et le filtre Reims) avec la
+    baseline 1991-2020 (v_itn_baseline_daily_1991_2020) sur (month, day_of_month),
+    puis agrège par période via COUNT(*) FILTER (...) et AVG().
+    """
+
+    _SQL = """
+        WITH labelled AS (
+            SELECT
+                o.itn::double precision         AS temperature,
+                b.itn_mean::double precision    AS baseline_mean,
+                b.itn_stddev::double precision  AS baseline_stddev,
+                CASE
+                    WHEN o.date BETWEEN %(current_start)s AND %(current_end)s
+                        THEN 'current'
+                    WHEN o.date BETWEEN %(previous_start)s AND %(previous_end)s
+                        THEN 'previous'
+                END AS period
+            FROM public.mv_itn_daily_all_years o
+                INNER JOIN public.v_itn_baseline_daily_1991_2020 b
+                    ON  b.month        = o.month
+                    AND b.day_of_month = o.day_of_month
+            WHERE o.date BETWEEN %(previous_start)s AND %(current_end)s
+        )
+        SELECT
+            period,
+            COUNT(*) FILTER (
+                WHERE temperature > baseline_mean + baseline_stddev
+            )::int AS hot_peak_count,
+            COUNT(*) FILTER (
+                WHERE temperature < baseline_mean - baseline_stddev
+            )::int AS cold_peak_count,
+            COUNT(*) FILTER (WHERE temperature > baseline_mean)::int AS days_above_baseline,
+            COUNT(*) FILTER (WHERE temperature < baseline_mean)::int AS days_below_baseline,
+            AVG(temperature)                  AS itn_mean,
+            AVG(temperature - baseline_mean)  AS deviation_from_normal
+        FROM labelled
+        WHERE period IS NOT NULL
+        GROUP BY period
+    """
+
+    def compute_kpi(
+        self,
+        *,
+        current_start: dt.date,
+        current_end: dt.date,
+        previous_start: dt.date,
+        previous_end: dt.date,
+    ) -> NationalIndicatorKpiResult:
+        with connection.cursor() as cur:
+            cur.execute(
+                self._SQL,
+                {
+                    "current_start": current_start,
+                    "current_end": current_end,
+                    "previous_start": previous_start,
+                    "previous_end": previous_end,
+                },
+            )
+            rows = cur.fetchall()
+
+        stats_by_period: dict[str, KpiPeriodStats] = {}
+        for period, hot, cold, above, below, itn_mean, deviation in rows:
+            stats_by_period[period] = KpiPeriodStats(
+                hot_peak_count=hot,
+                cold_peak_count=cold,
+                days_above_baseline=above,
+                days_below_baseline=below,
+                itn_mean=_float_or_none(itn_mean),
+                deviation_from_normal=_float_or_none(deviation),
+            )
+
+        empty = KpiPeriodStats(
+            hot_peak_count=0,
+            cold_peak_count=0,
+            days_above_baseline=0,
+            days_below_baseline=0,
+            itn_mean=None,
+            deviation_from_normal=None,
+        )
+        return NationalIndicatorKpiResult(
+            current=stats_by_period.get("current", empty),
+            previous=stats_by_period.get("previous", empty),
         )
 
 

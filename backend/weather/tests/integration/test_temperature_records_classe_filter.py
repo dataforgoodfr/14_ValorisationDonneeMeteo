@@ -24,10 +24,10 @@ from weather.services.records.types import RecordsQuery
 from weather.services.temperature_deviation.types import (
     TemperatureDeviationOverviewQuery,
 )
-from weather.tests.conftest import insert_mv_record, set_cutoff
 from weather.tests.helpers.itn import insert_quotidienne
 from weather.tests.helpers.stations import insert_station
 from weather.tests.helpers.stations_baseline import insert_station_daily_baseline
+from weather.tests.integration.conftest import insert_mv_record, set_cutoff
 
 # ---------------------------------------------------------------------------
 # Helpers

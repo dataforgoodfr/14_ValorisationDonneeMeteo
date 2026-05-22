@@ -16,11 +16,11 @@ import datetime as dt
 
 import pytest
 
-from weather.tests.conftest import insert_quotidienne
 from weather.tests.helpers.horaire import (
     fetch_v_quotidienne,
     insert_mv_quotidienne_realtime,
 )
+from weather.tests.integration.conftest import insert_quotidienne
 
 pytestmark = pytest.mark.django_db
 

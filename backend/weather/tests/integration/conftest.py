@@ -1,10 +1,21 @@
+"""
+Conftest pour les tests d'intégration.
+
+Tout ce qui touche à la DB de test (utilitaires d'insertion + setup du
+schéma) vit ici plutôt que dans un conftest partagé : sinon le seul fait
+de collecter les tests unitaires (au-dessus dans `weather/tests/unit/`)
+déclencherait pytest-django et tenterait de toucher la DB.
+"""
+
+from __future__ import annotations
+
 import datetime as dt
 import pathlib
 
 import pytest
 from django.db import connection
 
-BASE_DIR = pathlib.Path(__file__).resolve().parents[2]  # ajuste selon ton arbo
+BASE_DIR = pathlib.Path(__file__).resolve().parents[3]  # = backend/
 
 
 def insert_quotidienne(

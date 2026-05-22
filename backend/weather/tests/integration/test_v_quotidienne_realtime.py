@@ -108,22 +108,10 @@ def test_v_quotidienne_realtime_separates_stations():
     assert float(rows_b[0]["tn"]) == pytest.approx(8.0)
 
 
-def test_v_quotidienne_realtime_separates_days():
-    """Lectures sur deux journées météorologiques différentes → deux lignes."""
-    yesterday = _yesterday()
-    two_days_ago = _utc_today() - dt.timedelta(days=2)
-
-    insert_horaire_temps_reel(STATION, _at(yesterday, 12), tn=5.0, tx=15.0)
-    insert_horaire_temps_reel(STATION, _at(two_days_ago, 14), tn=2.0, tx=12.0)
-
-    rows = fetch_v_quotidienne_realtime(station_code=STATION)
-
-    assert len(rows) == 2
-    # rows triées par date asc
-    assert rows[0]["date"].date() == two_days_ago
-    assert float(rows[0]["tn"]) == pytest.approx(2.0)
-    assert rows[1]["date"].date() == yesterday
-    assert float(rows[1]["tn"]) == pytest.approx(5.0)
+# NB : le test "lectures sur deux journées différentes" est couvert par
+# `combines_htr_and_horaire_across_days` plus bas, qui utilise Horaire pour
+# le jour ancien (la fenêtre HTR de 36 h ne couvre pas systématiquement la
+# veille d'avant-hier selon l'heure d'exécution).
 
 
 # ---------------------------------------------------------------------------

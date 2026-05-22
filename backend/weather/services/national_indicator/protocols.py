@@ -3,7 +3,13 @@ from __future__ import annotations
 import datetime as dt
 from typing import Protocol
 
-from .types import AbsoluteExtremes, BaselinePoint, DailySeriesQuery, ObservedPoint
+from .types import (
+    AbsoluteExtremes,
+    BaselinePoint,
+    DailySeriesQuery,
+    NationalIndicatorKpiResult,
+    ObservedPoint,
+)
 
 
 class NationalIndicatorObservedDataSource(Protocol):
@@ -61,3 +67,19 @@ class NationalIndicatorAbsoluteExtremesDataSource(Protocol):
         observée sur toutes les années disponibles.
         """
         ...
+
+
+class NationalIndicatorKpiDataSource(Protocol):
+    """
+    Chemin rapide : calcule en une seule requête SQL les KPI ITN
+    pour la période courante et la période précédente.
+    """
+
+    def compute_kpi(
+        self,
+        *,
+        current_start: dt.date,
+        current_end: dt.date,
+        previous_start: dt.date,
+        previous_end: dt.date,
+    ) -> NationalIndicatorKpiResult: ...

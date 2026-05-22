@@ -632,8 +632,7 @@ class NationalIndicatorKpiAPIView(APIView):
         deps = ITNDependencyProvider.get_dep()
 
         result = get_national_indicator_kpi(
-            observed_data_source=deps.observed_data_source,
-            baseline_data_source=deps.baseline_data_source,
+            kpi_data_source=deps.kpi_data_source,
             date_start=params["date_start"],
             date_end=params["date_end"],
         )

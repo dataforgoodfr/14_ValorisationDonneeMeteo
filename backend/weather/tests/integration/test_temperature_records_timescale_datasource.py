@@ -9,8 +9,8 @@ from weather.data_sources.timescale import (
     TimescaleTemperatureRecordsDataSource,
 )
 from weather.services.temperature_records.types import TemperatureRecordsRequest
-from weather.tests.conftest import insert_mv_record, insert_quotidienne
 from weather.tests.helpers.stations import insert_station
+from weather.tests.integration.conftest import insert_mv_record, insert_quotidienne
 
 # =========================
 # Tests

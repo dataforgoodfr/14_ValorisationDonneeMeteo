@@ -10,16 +10,26 @@ from weather.bootstrap_itn import ITNDependencies, ITNDependencyProvider
 from weather.services.national_indicator.protocols import (
     NationalIndicatorAbsoluteExtremesDataSource,
     NationalIndicatorBaselineDataSource,
+    NationalIndicatorKpiDataSource,
     NationalIndicatorObservedDataSource,
 )
 from weather.services.national_indicator.types import (
     AbsoluteExtremes,
     BaselinePoint,
     DailySeriesQuery,
+    NationalIndicatorKpiResult,
     ObservedPoint,
 )
 from weather.tests.helpers.itn_absolute_extremes import stub_absolute_extremes
 from weather.utils.date_range import iter_days_intersecting
+
+
+class _UnusedKpiDataSource(NationalIndicatorKpiDataSource):
+    """Placeholder pour ITNDependencies dans les tests qui n'exercent pas
+    l'endpoint /kpi : on échoue bruyamment si jamais on l'appelle."""
+
+    def compute_kpi(self, **_) -> NationalIndicatorKpiResult:
+        raise AssertionError("kpi_data_source not expected to be invoked in this test")
 
 
 @pytest.fixture(autouse=True)
@@ -80,6 +90,7 @@ def test_get_national_indicator_month_happy_path(client: APIClient):
             observed_data_source=InMemoryITNDependency(),
             baseline_data_source=InMemoryITNDependency(),
             absolute_extremes_data_source=stub_absolute_extremes,
+            kpi_data_source=_UnusedKpiDataSource(),
         )
     )
 
@@ -150,6 +161,7 @@ def test_get_national_indicator_peak_flags_in_response(client: APIClient):
             observed_data_source=PeakTestDependency(),
             baseline_data_source=PeakTestDependency(),
             absolute_extremes_data_source=stub_absolute_extremes,
+            kpi_data_source=_UnusedKpiDataSource(),
         )
     )
 
@@ -276,6 +288,7 @@ def test_get_national_indicator_response_contains_absolute_extremes(client: APIC
             observed_data_source=dep,
             baseline_data_source=dep,
             absolute_extremes_data_source=extremes,
+            kpi_data_source=_UnusedKpiDataSource(),
         )
     )
 
