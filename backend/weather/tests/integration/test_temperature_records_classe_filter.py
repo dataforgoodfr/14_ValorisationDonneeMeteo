@@ -186,9 +186,9 @@ def test_classe_4_excluded_from_records_but_included_in_deviation():
         )
     )
 
-    assert code not in _station_ids_in_records(
-        records_results
-    ), "classe 4 exclue des records"
-    assert code in _station_ids_in_overview(
-        deviation_result
-    ), "classe 4 incluse dans la déviation"
+    assert code not in _station_ids_in_records(records_results), (
+        "classe 4 exclue des records"
+    )
+    assert code in _station_ids_in_overview(deviation_result), (
+        "classe 4 incluse dans la déviation"
+    )

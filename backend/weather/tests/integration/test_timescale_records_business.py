@@ -291,9 +291,9 @@ def test_absolute_kind_returns_only_last_record_per_station():
 
     station = _station_by_id(results, code)
     assert station is not None
-    assert (
-        len(station.hot_records) == 1
-    ), "record_kind=absolute → un seul record par station"
+    assert len(station.hot_records) == 1, (
+        "record_kind=absolute → un seul record par station"
+    )
     assert station.hot_records[0].value == 44.0
     assert station.hot_records[0].date == dt.date(2019, 6, 28)
 
@@ -342,6 +342,6 @@ def test_department_filter_excludes_other_departments():
 
     ids = {s.id.strip() for s in results.entries}
     assert code_13 in ids
-    assert (
-        code_69 not in ids
-    ), "Station Lyon (dept 69) ne doit pas apparaître dans dept=13"
+    assert code_69 not in ids, (
+        "Station Lyon (dept 69) ne doit pas apparaître dans dept=13"
+    )
