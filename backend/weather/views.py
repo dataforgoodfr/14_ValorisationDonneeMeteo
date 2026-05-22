@@ -40,6 +40,7 @@ from weather.services.temperature_records.use_case import (
 from .bootstrap_temperature_absolute_records_graph import (
     TemperatureAbsoluteRecordsGraphDependencyProvider,
 )
+from .cache_control import CacheControlMixin
 from .filters import StationDeviationFilter, StationFilter, StationRecordsFilter
 from .models import StationDeviation, StationQualifieeHexagone, StationRecords
 from .serializers import (
@@ -68,7 +69,7 @@ from .serializers import (
 )
 
 
-class BaseStationViewSet(viewsets.ReadOnlyModelViewSet):
+class BaseStationViewSet(CacheControlMixin, viewsets.ReadOnlyModelViewSet):
     """
     ViewSet for weather station metadata.
     Provides list and retrieve actions only (read-only).
@@ -78,6 +79,11 @@ class BaseStationViewSet(viewsets.ReadOnlyModelViewSet):
     ordering_fields = ["name", "departement", "alt"]
     ordering = ["name"]
     detail_serializer_class = None
+
+    # Métadonnées stations quasi immuables ; toutes les sous-classes héritent.
+    cache_profile = "long"
+    cache_long_s_maxage = 604_800  # 7 j
+    cache_long_max_age = 3_600
 
     def get_serializer_class(self):
         if self.action == "retrieve" and self.detail_serializer_class is not None:
@@ -181,7 +187,7 @@ class StationDeviationViewSet(BaseStationViewSet):
     filterset_class = StationDeviationFilter
 
 
-class NationalIndicatorAPIView(APIView):
+class NationalIndicatorAPIView(CacheControlMixin, APIView):
     """
     GET /api/v1/temperature/national-indicator
     Implémentation mock (sans BDD), conforme au contrat OpenAPI.
@@ -189,6 +195,7 @@ class NationalIndicatorAPIView(APIView):
 
     authentication_classes = []
     permission_classes = []
+    cache_profile = "by_date_end"
 
     def get(self, request):
         q = NationalIndicatorQuerySerializer(data=request.query_params)
@@ -234,7 +241,7 @@ class NationalIndicatorAPIView(APIView):
         return Response(out.data, status=status.HTTP_200_OK)
 
 
-class TemperatureDeviationGraphAPIView(APIView):
+class TemperatureDeviationGraphAPIView(CacheControlMixin, APIView):
     """
     GET /api/v1/temperature/deviation/graph
     Implémentation mock, alignée sur le pattern ITN.
@@ -242,6 +249,7 @@ class TemperatureDeviationGraphAPIView(APIView):
 
     authentication_classes = []
     permission_classes = []
+    cache_profile = "by_date_end"
 
     def get(self, request):
         q = TemperatureDeviationGraphQuerySerializer(data=request.query_params)
@@ -292,7 +300,7 @@ class TemperatureDeviationGraphAPIView(APIView):
         return Response(out.data, status=status.HTTP_200_OK)
 
 
-class TemperatureRecordsAPIView(APIView):
+class TemperatureRecordsAPIView(CacheControlMixin, APIView):
     """
     GET /api/v1/temperature/records
     Retourne les records battus de température par station (liste progressive, pas uniquement le record absolu).
@@ -300,6 +308,8 @@ class TemperatureRecordsAPIView(APIView):
 
     authentication_classes = []
     permission_classes = []
+    # `mv_records_battus` n'est rafraîchie qu'à l'ingestion → TTL long + purge par tag.
+    cache_profile = "long"
 
     @extend_schema(
         summary="Records de température",
@@ -426,7 +436,7 @@ class TemperatureRecordsAPIView(APIView):
         return Response(out.data, status=status.HTTP_200_OK)
 
 
-class TemperatureAbsoluteRecordsAPIView(APIView):
+class TemperatureAbsoluteRecordsAPIView(CacheControlMixin, APIView):
     """
     GET /api/v1/temperature/records/absolute
     Retourne les records absolus de température par station.
@@ -434,6 +444,7 @@ class TemperatureAbsoluteRecordsAPIView(APIView):
 
     authentication_classes = []
     permission_classes = []
+    cache_profile = "long"
 
     @extend_schema(
         summary="Records de température",
@@ -560,7 +571,7 @@ class TemperatureAbsoluteRecordsAPIView(APIView):
         return Response(out.data, status=status.HTTP_200_OK)
 
 
-class TemperatureMinMaxGraphAPIView(APIView):
+class TemperatureMinMaxGraphAPIView(CacheControlMixin, APIView):
     """
     GET /api/v1/temperature/extremes/graph
     Retourne la moyenne de Tmin et Tmax sur une période,
@@ -569,6 +580,7 @@ class TemperatureMinMaxGraphAPIView(APIView):
 
     authentication_classes = []
     permission_classes = []
+    cache_profile = "by_date_end"
 
     @extend_schema(
         parameters=[
@@ -621,13 +633,14 @@ class TemperatureMinMaxGraphAPIView(APIView):
         return Response(out.data, status=status.HTTP_200_OK)
 
 
-class TemperatureDeviationOverviewAPIView(APIView):
+class TemperatureDeviationOverviewAPIView(CacheControlMixin, APIView):
     """
     GET /api/v1/temperature/deviation
     """
 
     authentication_classes = []
     permission_classes = []
+    cache_profile = "by_date_end"
 
     def get(self, request):
         q = TemperatureDeviationOverviewQuerySerializer(data=request.query_params)
@@ -684,7 +697,7 @@ class TemperatureDeviationOverviewAPIView(APIView):
         return Response(out.data, status=status.HTTP_200_OK)
 
 
-class NationalIndicatorKpiAPIView(APIView):
+class NationalIndicatorKpiAPIView(CacheControlMixin, APIView):
     """
     GET /api/v1/temperature/national-indicator/kpi
     Retourne les jours de pic chaud ou froid sur une période donnée.
@@ -693,6 +706,7 @@ class NationalIndicatorKpiAPIView(APIView):
 
     authentication_classes = []
     permission_classes = []
+    cache_profile = "by_date_end"
 
     def get(self, request):
         q = NationalIndicatorKpiQuerySerializer(data=request.query_params)
@@ -736,7 +750,7 @@ class NationalIndicatorKpiAPIView(APIView):
         return Response(out.data, status=status.HTTP_200_OK)
 
 
-class RecordsGraphAPIView(APIView):
+class RecordsGraphAPIView(CacheControlMixin, APIView):
     """
     GET /api/v1/temperature/records/graph
     Retourne les records de température battus : compte par bucket (histogramme)
@@ -745,6 +759,7 @@ class RecordsGraphAPIView(APIView):
 
     authentication_classes = []
     permission_classes = []
+    cache_profile = "long"
 
     def get(self, request):
         q = RecordsGraphQuerySerializer(data=request.query_params)
@@ -806,7 +821,7 @@ class RecordsGraphAPIView(APIView):
         return Response(serializer.data, status=status.HTTP_200_OK)
 
 
-class AbsoluteRecordsGraphAPIView(APIView):
+class AbsoluteRecordsGraphAPIView(CacheControlMixin, APIView):
     """
     GET /api/v1/temperature/records/absolute/graph
     Retourne les records de température absolus : compte par bucket (histogramme)
@@ -815,6 +830,7 @@ class AbsoluteRecordsGraphAPIView(APIView):
 
     authentication_classes = []
     permission_classes = []
+    cache_profile = "long"
 
     def get(self, request):
         q = RecordsGraphQuerySerializer(data=request.query_params)
