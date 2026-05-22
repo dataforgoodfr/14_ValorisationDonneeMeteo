@@ -1458,11 +1458,27 @@ class HybridTemperatureRecordsDataSource(TemperatureRecordsDataSource):
 
         sql = f"""
             WITH mv_seeds AS (
-                SELECT station_code, period_value, {agg}(record_value) AS seed_val
-                FROM public.mv_records_battus
-                WHERE record_type = %(record_type)s
-                  AND period_type = %(period_type)s
-                  {seeds_value_clause}
+                SELECT station_code, period_value, {agg}(seed_val) AS seed_val
+                FROM (
+                    -- Records progressifs (post-50-ans). Peut être vide pour
+                    -- une station dont le record absolu date d'avant
+                    -- first_temp + 50 ans.
+                    SELECT station_code, period_value, {agg}(record_value) AS seed_val
+                    FROM public.mv_records_battus
+                    WHERE record_type = %(record_type)s
+                      AND period_type = %(period_type)s
+                      {seeds_value_clause}
+                    GROUP BY station_code, period_value
+                    UNION ALL
+                    -- Records absolus (sans filtre 50-ans sur la date du
+                    -- record). Couvre le cas où le record absolu est trop
+                    -- ancien pour figurer dans mv_records_battus.
+                    SELECT station_code, period_value, record_value AS seed_val
+                    FROM public.v_records_absolus_par_type
+                    WHERE record_type = %(record_type)s
+                      AND period_type = %(period_type)s
+                      {seeds_value_clause}
+                ) combined
                 GROUP BY station_code, period_value
             ),
             ordered AS (
@@ -2255,11 +2271,27 @@ class HybridRecordsGraphDataSource(RecordsGraphDataSource):
 
         sql = f"""
             WITH mv_seeds AS (
-                SELECT station_code, period_value, {agg}(record_value) AS seed_val
-                FROM public.mv_records_battus
-                WHERE record_type = %(record_type)s
-                  AND period_type = %(period_type)s
-                  {seeds_value_clause}
+                SELECT station_code, period_value, {agg}(seed_val) AS seed_val
+                FROM (
+                    -- Records progressifs (post-50-ans). Peut être vide pour
+                    -- une station dont le record absolu date d'avant
+                    -- first_temp + 50 ans.
+                    SELECT station_code, period_value, {agg}(record_value) AS seed_val
+                    FROM public.mv_records_battus
+                    WHERE record_type = %(record_type)s
+                      AND period_type = %(period_type)s
+                      {seeds_value_clause}
+                    GROUP BY station_code, period_value
+                    UNION ALL
+                    -- Records absolus (sans filtre 50-ans sur la date du
+                    -- record). Couvre le cas où le record absolu est trop
+                    -- ancien pour figurer dans mv_records_battus.
+                    SELECT station_code, period_value, record_value AS seed_val
+                    FROM public.v_records_absolus_par_type
+                    WHERE record_type = %(record_type)s
+                      AND period_type = %(period_type)s
+                      {seeds_value_clause}
+                ) combined
                 GROUP BY station_code, period_value
             ),
             ordered AS (

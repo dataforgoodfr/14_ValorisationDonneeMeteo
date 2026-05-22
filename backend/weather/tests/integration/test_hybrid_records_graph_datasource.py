@@ -7,7 +7,11 @@ import pytest
 from weather.data_sources.timescale import HybridRecordsGraphDataSource
 from weather.services.records_graph.types import RecordsGraphRequest
 from weather.tests.helpers.horaire import insert_mv_quotidienne_realtime
-from weather.tests.helpers.records import insert_mv_record, set_cutoff
+from weather.tests.helpers.records import (
+    insert_mv_record,
+    insert_mv_records_absolus_par_mois,
+    set_cutoff,
+)
 from weather.tests.helpers.stations import insert_station
 
 
@@ -144,6 +148,140 @@ def test_record_present_in_mv_and_realtime_is_not_counted_twice():
         len(on_same_day) == 1
     ), f"Le record du {same_day} apparaît {len(on_same_day)} fois : {on_same_day}"
     assert on_same_day[0].valeur == 42.0
+
+
+@pytest.mark.django_db
+def test_no_false_positive_cold_records_when_above_seed():
+    """Plusieurs jours post-cutoff avec TN au-dessus du seed cold historique
+    (-20°C) ne doivent générer AUCUN nouveau record."""
+    code = "75114007"
+    insert_station(code, "Station Cold No FP", departement=75)
+    insert_mv_record(
+        station_code=code,
+        station_name="Station Cold No FP",
+        period_type="all_time",
+        period_value=None,
+        record_type="TN",
+        value=-20.0,
+        date=dt.date(1985, 1, 16),
+        department=75,
+    )
+    set_cutoff(dt.date(2025, 12, 31))
+
+    # 10 jours en 2026 avec TN qui décroît mais reste au-dessus de -20
+    for i, tn in enumerate([10, 5, 0, -3, -5, -8, -10, -12, -15, -18]):
+        insert_mv_quotidienne_realtime(
+            code,
+            dt.date(2026, 1, i + 1),
+            tn=float(tn),
+            tx=float(tn + 5),
+        )
+
+    ds = HybridRecordsGraphDataSource()
+    result = ds.fetch_graph(_req(type_records="cold"))
+
+    for_station = [r for r in result.records if r.station_id.strip() == code]
+    assert for_station == [], (
+        f"Aucun nouveau record cold ne devrait être détecté (tous au-dessus "
+        f"du seed -20°C), mais {len(for_station)} ont été trouvés : {for_station}"
+    )
+
+
+@pytest.mark.django_db
+def test_absolute_record_predates_50_year_filter_seeds_correctly():
+    """Reproduit le cas MARIGNANE (13054001) :
+    - Station créée en 1920 → first_temp + 50 ans = 1970.
+    - Record absolu cold de mai = 0.0°C le 1960-05-01 → EXCLU de
+      mv_records_battus par le filtre 50-ans.
+    - v_records_absolus_par_type (via mv_records_absolus_par_mois) contient
+      bien ce record.
+    - Une lecture du jour à TN=12.3°C ne doit PAS être détectée comme
+      nouveau record, puisque 12.3 > 0.0.
+    """
+    code = "13054001"
+    insert_station(
+        code,
+        "MARIGNANE",
+        departement=13,
+        first_temperature_date=dt.date(1920, 1, 1),
+    )
+    # mv_records_battus VIDE pour ce station/mois — le filtre 50-ans en exclut
+    # le record absolu (1960 < 1970).
+    insert_mv_records_absolus_par_mois(
+        station_code=code,
+        month=5,
+        txx_max=35.0,
+        txx_max_date=dt.date(2000, 5, 15),
+        tnn_min=0.0,
+        tnn_min_date=dt.date(1960, 5, 1),
+    )
+    set_cutoff(dt.date(2025, 12, 31))
+    insert_mv_quotidienne_realtime(code, dt.date(2026, 5, 22), tn=12.3, tx=20.0)
+
+    ds = HybridRecordsGraphDataSource()
+    result = ds.fetch_graph(
+        _req(
+            date_start=dt.date(2026, 1, 1),
+            date_end=dt.date(2026, 5, 22),
+            granularity="year",
+            type_records="cold",
+            period_type="month",
+            month=5,
+        )
+    )
+
+    for_station = [r for r in result.records if r.station_id.strip() == code]
+    assert for_station == [], (
+        "12.3°C ne doit pas battre le record May de 0°C, "
+        f"mais le hybride retourne : {for_station}"
+    )
+
+
+@pytest.mark.django_db
+def test_no_false_positive_cold_when_type_records_all():
+    """Avec type_records=all, l'enrichissement post-cutoff lance deux passes
+    (hot + cold). Les TN au-dessus du seed cold ne doivent pas être détectés
+    comme records, même si la même ligne v_quotidienne a un TX qui dépasse
+    le seed hot."""
+    code = "75114008"
+    insert_station(code, "Station All No FP", departement=75)
+    insert_mv_record(
+        station_code=code,
+        station_name="Station All No FP",
+        period_type="all_time",
+        period_value=None,
+        record_type="TN",
+        value=-20.0,
+        date=dt.date(1985, 1, 16),
+        department=75,
+    )
+    insert_mv_record(
+        station_code=code,
+        station_name="Station All No FP",
+        period_type="all_time",
+        period_value=None,
+        record_type="TX",
+        value=38.0,
+        date=dt.date(2003, 7, 15),
+        department=75,
+    )
+    set_cutoff(dt.date(2025, 12, 31))
+
+    # Plusieurs jours post-cutoff : TN au-dessus de -20, TX en-dessous de 38
+    # → AUCUN nouveau record (ni hot ni cold).
+    for i, (tn, tx) in enumerate([(2, 12), (-5, 8), (-10, 3), (-15, 1)]):
+        insert_mv_quotidienne_realtime(
+            code, dt.date(2026, 1, i + 1), tn=float(tn), tx=float(tx)
+        )
+
+    ds = HybridRecordsGraphDataSource()
+    result = ds.fetch_graph(_req(type_records="all"))
+
+    for_station = [r for r in result.records if r.station_id.strip() == code]
+    post_cutoff = [r for r in for_station if r.date.year == 2026]
+    assert (
+        post_cutoff == []
+    ), f"Aucun record post-cutoff ne devrait être détecté, mais {post_cutoff}"
 
 
 @pytest.mark.django_db

@@ -8,7 +8,11 @@ import pytest
 from weather.data_sources.timescale import HybridTemperatureRecordsDataSource
 from weather.services.temperature_records.types import TemperatureRecordsRequest
 from weather.tests.helpers.horaire import insert_mv_quotidienne_realtime
-from weather.tests.helpers.records import insert_mv_record, set_cutoff
+from weather.tests.helpers.records import (
+    insert_mv_record,
+    insert_mv_records_absolus_par_mois,
+    set_cutoff,
+)
 from weather.tests.helpers.stations import insert_station
 
 # Valeurs neutres pour remplir le côté opposé de tn/tx (v_quotidienne exige
@@ -497,3 +501,46 @@ def test_stale_mv_record_does_not_duplicate_with_fresher_realtime():
         len(on_same_day) == 1
     ), f"Le record du {same_day} apparaît {len(on_same_day)} fois : {on_same_day}"
     assert on_same_day[0].record_value == 45.0
+
+
+@pytest.mark.django_db
+def test_absolute_record_predates_50_year_filter_seeds_correctly():
+    """Cas MARIGNANE pour l'endpoint table : record absolu cold de mai (0°C
+    le 1960-05-01) absent de mv_records_battus (filtre 50-ans) mais présent
+    dans v_records_absolus_par_type. Une TN du jour à 12.3°C ne doit PAS
+    être détectée comme nouveau record."""
+    code = "13054001"
+    insert_station(
+        code,
+        "MARIGNANE",
+        departement=13,
+        first_temperature_date=dt.date(1920, 1, 1),
+    )
+    # mv_records_battus vide pour ce station/mois ; seed via les absolus
+    insert_mv_records_absolus_par_mois(
+        station_code=code,
+        month=5,
+        txx_max=35.0,
+        txx_max_date=dt.date(2000, 5, 15),
+        tnn_min=0.0,
+        tnn_min_date=dt.date(1960, 5, 1),
+    )
+    set_cutoff(dt.date(2025, 12, 31))
+    insert_mv_quotidienne_realtime(code, dt.date(2026, 5, 22), tn=12.3, tx=20.0)
+
+    ds = HybridTemperatureRecordsDataSource()
+    result = ds.fetch_records(
+        TemperatureRecordsRequest(
+            period_type="month",
+            type_records="cold",
+            month=5,
+            date_start=dt.date(2026, 1, 1),
+            date_end=dt.date(2026, 5, 22),
+        )
+    )
+
+    entries = [e for e in result.entries if e.station_id.strip() == code]
+    assert entries == [], (
+        "12.3°C ne doit pas battre le record absolu May de 0°C, "
+        f"mais le hybride retourne : {entries}"
+    )

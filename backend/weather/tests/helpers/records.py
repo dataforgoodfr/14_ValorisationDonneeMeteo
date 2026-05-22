@@ -1,8 +1,12 @@
 """
-Helpers d'insertion pour la pipeline `mv_records_battus` :
-- `mv_records_battus`       : table des records battus (recréée comme table
-  régulière par le conftest pour permettre les INSERT directs).
-- `mv_records_battus_meta`  : table de métadonnées contenant la `cutoff_date`.
+Helpers d'insertion pour les pipelines de records :
+- `mv_records_battus`              : table des records battus progressifs
+  (recréée comme table régulière par le conftest).
+- `mv_records_battus_meta`         : table de métadonnées contenant la
+  `cutoff_date`.
+- `mv_records_absolus_par_mois`    : table des records absolus mensuels
+  (recréée comme table régulière par le conftest ; source de
+  v_records_absolus_par_type pour le period_type=month).
 """
 
 from __future__ import annotations
@@ -59,3 +63,33 @@ def clear_mv() -> None:
     with connection.cursor() as cur:
         cur.execute("TRUNCATE public.mv_records_battus;")
         cur.execute("TRUNCATE public.mv_records_battus_meta;")
+
+
+def insert_mv_records_absolus_par_mois(
+    *,
+    station_code: str,
+    month: int,
+    txx_max: float | None = None,
+    txx_max_date: dt.date | None = None,
+    tnn_min: float | None = None,
+    tnn_min_date: dt.date | None = None,
+) -> None:
+    """Insère le record absolu mensuel d'une station. Source de
+    v_records_absolus_par_type (period_type='month')."""
+    with connection.cursor() as cur:
+        cur.execute(
+            """
+            INSERT INTO public.mv_records_absolus_par_mois
+                (station_code,     month,     txx_max,     txx_max_date,     tnn_min,     tnn_min_date)
+            VALUES
+                (%(station_code)s, %(month)s, %(txx_max)s, %(txx_max_date)s, %(tnn_min)s, %(tnn_min_date)s)
+            """,
+            {
+                "station_code": station_code,
+                "month": month,
+                "txx_max": txx_max,
+                "txx_max_date": txx_max_date,
+                "tnn_min": tnn_min,
+                "tnn_min_date": tnn_min_date,
+            },
+        )
