@@ -2094,10 +2094,6 @@ class HybridRecordsGraphDataSource(RecordsGraphDataSource):
             return mv_result
         if cutoff is None:
             return mv_result
-        if (request.period_type == "month" and request.month is None) or (
-            request.period_type == "season" and request.season is None
-        ):
-            return mv_result
         if request.date_end <= cutoff:
             return mv_result
 
@@ -2168,6 +2164,101 @@ class HybridRecordsGraphDataSource(RecordsGraphDataSource):
             station_col="o.station_code",
         )
         terr_filter_clause = f"AND {terr_clause}" if terr_clause else ""
+
+        all_periods = (request.period_type == "month" and request.month is None) or (
+            request.period_type == "season" and request.season is None
+        )
+
+        if all_periods:
+            if request.period_type == "month":
+                period_key_expr = "EXTRACT(MONTH FROM q.date)::int::text"
+            else:
+                period_key_expr = """CASE EXTRACT(MONTH FROM q.date)::int
+                    WHEN 12 THEN 'winter' WHEN 1 THEN 'winter' WHEN 2 THEN 'winter'
+                    WHEN  3 THEN 'spring' WHEN 4 THEN 'spring' WHEN 5 THEN 'spring'
+                    WHEN  6 THEN 'summer' WHEN 7 THEN 'summer' WHEN 8 THEN 'summer'
+                    WHEN  9 THEN 'autumn' WHEN 10 THEN 'autumn' WHEN 11 THEN 'autumn'
+                END"""
+
+            sql_all = f"""
+                WITH mv_seeds AS (
+                    SELECT station_code, period_value AS period_key, {agg}(record_value) AS seed_val
+                    FROM public.mv_records_battus
+                    WHERE record_type = %(record_type)s
+                      AND period_type = %(period_type)s
+                    GROUP BY station_code, period_value
+                ),
+                enriched AS (
+                    SELECT
+                        q.station_code,
+                        q.date,
+                        q.{col},
+                        {period_key_expr} AS period_key
+                    FROM public.v_quotidienne q
+                    WHERE q.date > %(cutoff_date)s
+                      AND q.{col} IS NOT NULL
+                ),
+                ordered AS (
+                    SELECT
+                        e.station_code,
+                        e.date,
+                        e.{col},
+                        {extremum_fn}(
+                            COALESCE(s.seed_val, {neutral_val}),
+                            COALESCE(
+                                {agg}(e.{col}) OVER (
+                                    PARTITION BY e.station_code, e.period_key
+                                    ORDER BY e.date
+                                    ROWS BETWEEN UNBOUNDED PRECEDING AND 1 PRECEDING
+                                ),
+                                {neutral_val}
+                            )
+                        ) AS prev_val
+                    FROM enriched e
+                        LEFT JOIN mv_seeds s
+                            ON s.station_code = e.station_code
+                            AND s.period_key = e.period_key
+                )
+                SELECT
+                    o.station_code,
+                    vs.name,
+                    vs.departement,
+                    o.{col} AS record_value,
+                    o.date
+                FROM ordered o
+                    INNER JOIN public.v_station_records vs
+                        ON vs.station_code = o.station_code
+                WHERE o.{col} {cmp} o.prev_val
+                    AND o.date >= vs.first_temperature_date + interval '50 years'
+                    AND o.date >= %(date_start)s
+                    AND o.date <= %(date_end)s
+                    {terr_filter_clause}
+            """
+            params_all = {
+                "record_type": record_type,
+                "period_type": request.period_type,
+                "cutoff_date": cutoff_date,
+                "date_start": request.date_start,
+                "date_end": request.date_end,
+                **terr_named_params,
+            }
+            with connection.cursor() as cur:
+                cur.execute(sql_all, params_all)
+                cols = [c.name for c in cur.description]
+                rows = [dict(zip(cols, row, strict=False)) for row in cur.fetchall()]
+            return [
+                RecordsGraphRecord(
+                    date=row["date"].date()
+                    if isinstance(row["date"], dt.datetime)
+                    else row["date"],
+                    station_id=row["station_code"].strip(),
+                    station_name=row["name"],
+                    department=normalize_department(row["departement"]),
+                    type_records="hot" if hot else "cold",
+                    valeur=float(row["record_value"]),
+                )
+                for row in rows
+            ]
 
         sql = f"""
             WITH mv_seeds AS (
