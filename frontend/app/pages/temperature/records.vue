@@ -51,26 +51,14 @@ onMounted(() => {
     const preset = route.query.preset;
     const view = route.query.view;
 
-    if (!preset) {
-        store.dateStart = undefined;
-        store.dateEnd = undefined;
-        store.ordering = "";
-        return;
-    }
-
-    store.ordering = "-recordDate";
+    store.dateStart = undefined;
+    store.dateEnd = undefined;
+    store.ordering = "";
 
     if (preset === "today") {
         store.dateStart = today.value;
         store.dateEnd = today.value;
-    } else if (preset === "30d") {
-        store.dateStart = yesterdayLess30Days.value;
-        store.dateEnd = yesterday.value;
-    } else if (preset === "365d") {
-        const start = new Date(yesterday.value);
-        start.setFullYear(start.getFullYear() - 1);
-        store.dateStart = start;
-        store.dateEnd = yesterday.value;
+        store.ordering = "-recordDate";
     }
 
     if (view === "scatter") {
