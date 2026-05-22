@@ -7,9 +7,14 @@ import pytest
 
 from weather.data_sources.timescale import HybridTemperatureRecordsDataSource
 from weather.services.temperature_records.types import TemperatureRecordsRequest
-from weather.tests.helpers.quotidienne import insert_quotidienne
+from weather.tests.helpers.horaire import insert_mv_quotidienne_realtime
 from weather.tests.helpers.records import insert_mv_record, set_cutoff
 from weather.tests.helpers.stations import insert_station
+
+# Valeurs neutres pour remplir le côté opposé de tn/tx (v_quotidienne exige
+# tntxm IS NOT NULL, donc tn ET tx doivent être présents).
+_FILLER_TN = 5.0
+_FILLER_TX = 5.0
 
 # =========================
 # Tests
@@ -47,7 +52,7 @@ def test_cutoff_future_no_new_data():
     set_cutoff(dt.date.today())
 
     # Donnée avant cutoff (2024)
-    insert_quotidienne(dt.date(2024, 7, 1), code, tx=35.0)
+    insert_mv_quotidienne_realtime(code, dt.date(2024, 7, 1), tn=_FILLER_TN, tx=35.0)
 
     ds = HybridTemperatureRecordsDataSource()
     result = ds.fetch_records(
@@ -70,7 +75,7 @@ def test_new_hot_record_after_cutoff_is_added():
     cutoff = dt.date(2025, 12, 31)
     set_cutoff(cutoff)
 
-    insert_quotidienne(dt.date(2026, 7, 15), code, tx=45.0)
+    insert_mv_quotidienne_realtime(code, dt.date(2026, 7, 15), tn=_FILLER_TN, tx=45.0)
 
     ds = HybridTemperatureRecordsDataSource()
     result = ds.fetch_records(
@@ -94,7 +99,7 @@ def test_value_below_seed_not_added():
     )
     set_cutoff(dt.date(2025, 12, 31))
 
-    insert_quotidienne(dt.date(2026, 7, 1), code, tx=39.0)
+    insert_mv_quotidienne_realtime(code, dt.date(2026, 7, 1), tn=_FILLER_TN, tx=39.0)
 
     ds = HybridTemperatureRecordsDataSource()
     result = ds.fetch_records(
@@ -113,7 +118,7 @@ def test_new_station_after_cutoff_gets_first_record():
     insert_station(code, "Station Hybrid 5", departement=76)
     set_cutoff(dt.date(2025, 12, 31))
 
-    insert_quotidienne(dt.date(2026, 3, 15), code, tx=22.0)
+    insert_mv_quotidienne_realtime(code, dt.date(2026, 3, 15), tn=_FILLER_TN, tx=22.0)
 
     ds = HybridTemperatureRecordsDataSource()
     result = ds.fetch_records(
@@ -136,7 +141,7 @@ def test_new_cold_record_after_cutoff():
     )
     set_cutoff(dt.date(2025, 12, 31))
 
-    insert_quotidienne(dt.date(2026, 1, 10), code, tn=-25.0)
+    insert_mv_quotidienne_realtime(code, dt.date(2026, 1, 10), tn=-25.0, tx=_FILLER_TX)
 
     ds = HybridTemperatureRecordsDataSource()
     result = ds.fetch_records(
@@ -159,7 +164,7 @@ def test_cold_above_seed_not_added():
     )
     set_cutoff(dt.date(2025, 12, 31))
 
-    insert_quotidienne(dt.date(2026, 1, 5), code, tn=-15.0)
+    insert_mv_quotidienne_realtime(code, dt.date(2026, 1, 5), tn=-15.0, tx=_FILLER_TX)
 
     ds = HybridTemperatureRecordsDataSource()
     result = ds.fetch_records(
@@ -182,7 +187,7 @@ def test_month_filter_respected():
     set_cutoff(dt.date(2025, 12, 31))
 
     # Donnée en août (hors mois 7)
-    insert_quotidienne(dt.date(2026, 8, 10), code, tx=50.0)
+    insert_mv_quotidienne_realtime(code, dt.date(2026, 8, 10), tn=_FILLER_TN, tx=50.0)
 
     ds = HybridTemperatureRecordsDataSource()
     result = ds.fetch_records(
@@ -205,7 +210,7 @@ def test_season_filter_respected():
     set_cutoff(dt.date(2025, 12, 31))
 
     # Donnée en janvier (hors été)
-    insert_quotidienne(dt.date(2026, 1, 5), code, tx=50.0)
+    insert_mv_quotidienne_realtime(code, dt.date(2026, 1, 5), tn=_FILLER_TN, tx=50.0)
 
     ds = HybridTemperatureRecordsDataSource()
     result = ds.fetch_records(
@@ -233,7 +238,7 @@ def test_all_months_mode_skips_cutoff_returns_mv_only():
     set_cutoff(dt.date(2025, 12, 31))
 
     # Donnée post-cutoff qui battrait le record de juillet — ne doit PAS apparaître
-    insert_quotidienne(dt.date(2026, 7, 1), code, tx=50.0)
+    insert_mv_quotidienne_realtime(code, dt.date(2026, 7, 1), tn=_FILLER_TN, tx=50.0)
 
     ds = HybridTemperatureRecordsDataSource()
     result = ds.fetch_records(
@@ -261,7 +266,7 @@ def test_all_seasons_mode_skips_cutoff_returns_mv_only():
     )
     set_cutoff(dt.date(2025, 12, 31))
 
-    insert_quotidienne(dt.date(2026, 7, 1), code, tx=55.0)
+    insert_mv_quotidienne_realtime(code, dt.date(2026, 7, 1), tn=_FILLER_TN, tx=55.0)
 
     ds = HybridTemperatureRecordsDataSource()
     result = ds.fetch_records(
@@ -324,9 +329,9 @@ def test_after_cutoff_date_filter_excludes_outside_range():
     set_cutoff(dt.date(2025, 12, 31))
 
     # Record post-cutoff hors fenêtre (avant date_start) — ne bat pas le seed
-    insert_quotidienne(dt.date(2026, 1, 5), code, tx=35.0)
+    insert_mv_quotidienne_realtime(code, dt.date(2026, 1, 5), tn=_FILLER_TN, tx=35.0)
     # Record post-cutoff dans la fenêtre — bat le seed de 38.0
-    insert_quotidienne(dt.date(2026, 6, 10), code, tx=45.0)
+    insert_mv_quotidienne_realtime(code, dt.date(2026, 6, 10), tn=_FILLER_TN, tx=45.0)
 
     ds = HybridTemperatureRecordsDataSource()
     result = ds.fetch_records(
@@ -366,3 +371,36 @@ def test_meta_table_absent_falls_back_to_mv():
     entries = [e for e in result.entries if e.station_id.strip() == code]
     assert len(entries) == 1
     assert entries[0].record_value == 38.0
+
+
+@pytest.mark.django_db
+def test_new_temperature_in_realtime_pipeline_appears_as_new_record():
+    """
+    Variante "avant/après" : un premier appel renvoie le record historique
+    de la MV figée ; une nouvelle température arrive ensuite via le pipeline
+    temps-réel (simulé par insert dans mv_quotidienne_realtime, état post-
+    refresh) ; le deuxième appel doit la voir comme nouveau record.
+    """
+    code = "76116015"
+    insert_station(code, "Station Two-Step", departement=76)
+    insert_mv_record(
+        code, "Station Two-Step", "all_time", None, "TX", 38.0, dt.date(2003, 7, 15)
+    )
+    set_cutoff(dt.date(2025, 12, 31))
+
+    ds = HybridTemperatureRecordsDataSource()
+    request = TemperatureRecordsRequest(period_type="all_time", type_records="hot")
+
+    first = ds.fetch_records(request)
+    first_for_station = [e for e in first.entries if e.station_id.strip() == code]
+    assert [(e.record_date, e.record_value) for e in first_for_station] == [
+        (dt.date(2003, 7, 15), 38.0)
+    ]
+
+    insert_mv_quotidienne_realtime(code, dt.date(2026, 7, 15), tn=_FILLER_TN, tx=45.0)
+
+    second = ds.fetch_records(request)
+    second_for_station = [e for e in second.entries if e.station_id.strip() == code]
+    values = {(e.record_date, e.record_value) for e in second_for_station}
+    assert (dt.date(2003, 7, 15), 38.0) in values
+    assert (dt.date(2026, 7, 15), 45.0) in values

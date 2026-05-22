@@ -11,9 +11,14 @@ import pytest
 
 from weather.data_sources.timescale import HybridTemperatureRecordsDataSource
 from weather.services.temperature_records.types import TemperatureRecordsRequest
-from weather.tests.helpers.quotidienne import insert_quotidienne
+from weather.tests.helpers.horaire import insert_mv_quotidienne_realtime
 from weather.tests.helpers.records import set_cutoff
 from weather.tests.helpers.stations import insert_station
+
+# v_quotidienne exige tntxm IS NOT NULL → on remplit l'autre côté de tn/tx
+# avec une valeur neutre qui ne risque pas de battre un record.
+_FILLER_TN = 5.0
+_FILLER_TX = 5.0
 
 
 @pytest.mark.django_db
@@ -30,7 +35,7 @@ def test_after_cutoff_record_before_50ans_is_excluded():
     set_cutoff(dt.date(2025, 12, 31))
 
     # 2026 < 2030 → doit être ignoré
-    insert_quotidienne(dt.date(2026, 7, 15), code, tx=45.0)
+    insert_mv_quotidienne_realtime(code, dt.date(2026, 7, 15), tn=_FILLER_TN, tx=45.0)
 
     ds = HybridTemperatureRecordsDataSource()
     result = ds.fetch_records(
@@ -57,7 +62,9 @@ def test_after_cutoff_record_exactly_at_50ans_is_included():
     set_cutoff(dt.date(current_year - 1, 12, 31))
 
     # YYYY-01-01 == seuil → doit être inclus
-    insert_quotidienne(dt.date(current_year, 1, 1), code, tx=30.0)
+    insert_mv_quotidienne_realtime(
+        code, dt.date(current_year, 1, 1), tn=_FILLER_TN, tx=30.0
+    )
 
     ds = HybridTemperatureRecordsDataSource()
     result = ds.fetch_records(
@@ -82,7 +89,7 @@ def test_after_cutoff_record_after_50ans_is_included():
     )
     set_cutoff(dt.date(2025, 12, 31))
 
-    insert_quotidienne(dt.date(2026, 8, 10), code, tx=42.0)
+    insert_mv_quotidienne_realtime(code, dt.date(2026, 8, 10), tn=_FILLER_TN, tx=42.0)
 
     ds = HybridTemperatureRecordsDataSource()
     result = ds.fetch_records(
@@ -108,9 +115,9 @@ def test_after_cutoff_only_recent_records_cross_50ans_threshold():
     set_cutoff(dt.date(2009, 12, 31))
 
     # 2010 < 2012 → exclu
-    insert_quotidienne(dt.date(2010, 6, 1), code, tx=38.0)
+    insert_mv_quotidienne_realtime(code, dt.date(2010, 6, 1), tn=_FILLER_TN, tx=38.0)
     # 2014 >= 2012 → inclus
-    insert_quotidienne(dt.date(2014, 7, 20), code, tx=41.0)
+    insert_mv_quotidienne_realtime(code, dt.date(2014, 7, 20), tn=_FILLER_TN, tx=41.0)
 
     ds = HybridTemperatureRecordsDataSource()
     result = ds.fetch_records(

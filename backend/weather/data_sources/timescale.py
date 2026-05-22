@@ -1007,10 +1007,11 @@ def _temperature_records_period_clause(
 
 def _temperature_records_period_clause_named(
     request: TemperatureRecordsRequest,
+    date_col: str = 'q."AAAAMMJJ"',
 ) -> tuple[str, dict]:
     """Variante de _temperature_records_period_clause avec placeholders nommés %(…)s."""
     if request.period_type == "month" and request.month is not None:
-        return 'EXTRACT(MONTH FROM q."AAAAMMJJ") = %(period_month)s', {
+        return f"EXTRACT(MONTH FROM {date_col}) = %(period_month)s", {
             "period_month": request.month
         }
 
@@ -1018,7 +1019,7 @@ def _temperature_records_period_clause_named(
         months = list(SEASON_MONTHS[request.season])
         named = {f"period_season_{i}": m for i, m in enumerate(months)}
         placeholders = ", ".join(f"%(period_season_{i})s" for i in range(len(months)))
-        return f'EXTRACT(MONTH FROM q."AAAAMMJJ") IN ({placeholders})', named
+        return f"EXTRACT(MONTH FROM {date_col}) IN ({placeholders})", named
 
     return "TRUE", {}
 
@@ -1283,14 +1284,14 @@ class HybridTemperatureRecordsDataSource(TemperatureRecordsDataSource):
         self, request: TemperatureRecordsRequest, cutoff_date: dt.date
     ) -> list[TemperatureRecordEntry]:
         hot = request.type_records == "hot"
-        col = "TX" if hot else "TN"
+        col = "tx" if hot else "tn"
         agg = "MAX" if hot else "MIN"
         cmp = ">" if hot else "<"
         extremum_fn = "GREATEST" if hot else "LEAST"
         neutral_val = (
             "'-Infinity'::double precision" if hot else "'Infinity'::double precision"
         )
-        record_type = col
+        record_type = "TX" if hot else "TN"
 
         if request.period_type == "month":
             period_value: str | None = str(request.month)
@@ -1300,18 +1301,20 @@ class HybridTemperatureRecordsDataSource(TemperatureRecordsDataSource):
             period_value = None
 
         period_clause, period_named_params = _temperature_records_period_clause_named(
-            request
+            request, date_col="q.date"
         )
 
         terr_clause, terr_named_params = _territoire_clause_named(
-            request.territoire, request.territoire_id
+            request.territoire,
+            request.territoire_id,
+            station_col="o.station_code",
         )
 
         date_filter_parts = []
         if request.date_start:
-            date_filter_parts.append('AND o."AAAAMMJJ" >= %(date_start)s')
+            date_filter_parts.append("AND o.date >= %(date_start)s")
         if request.date_end:
-            date_filter_parts.append('AND o."AAAAMMJJ" <= %(date_end)s')
+            date_filter_parts.append("AND o.date <= %(date_end)s")
         date_filter_clauses = "\n              ".join(date_filter_parts)
         terr_filter_clause = f"AND {terr_clause}" if terr_clause else ""
 
@@ -1352,7 +1355,6 @@ class HybridTemperatureRecordsDataSource(TemperatureRecordsDataSource):
             station_filter_extra["df_max"] = request.date_de_fermeture_max.year
         station_filter_clauses = "\n              ".join(station_filter_parts)
 
-        # TODO: Use v_quotidienne instead of Quotidienne
         sql = f"""
             WITH mv_seeds AS (
                 SELECT station_code, {agg}(record_value) AS seed_val
@@ -1364,33 +1366,33 @@ class HybridTemperatureRecordsDataSource(TemperatureRecordsDataSource):
             ),
             ordered AS (
                 SELECT
-                    q."NUM_POSTE",
-                    q."AAAAMMJJ",
-                    q."{col}",
+                    q.station_code,
+                    q.date,
+                    q.{col},
                     {extremum_fn}(
                         COALESCE(s.seed_val, {neutral_val}),
                         COALESCE(
-                            {agg}(q."{col}") OVER (
-                                PARTITION BY q."NUM_POSTE"
-                                ORDER BY q."AAAAMMJJ"
+                            {agg}(q.{col}) OVER (
+                                PARTITION BY q.station_code
+                                ORDER BY q.date
                                 ROWS BETWEEN UNBOUNDED PRECEDING AND 1 PRECEDING
                             ),
                             {neutral_val}
                         )
                     ) AS prev_val
-                FROM public."Quotidienne" q
+                FROM public.v_quotidienne q
                     LEFT JOIN mv_seeds s
-                        ON s.station_code = q."NUM_POSTE"
-                WHERE q."AAAAMMJJ" > %(cutoff_date)s
+                        ON s.station_code = q.station_code
+                WHERE q.date > %(cutoff_date)s
                     AND {period_clause}
-                    AND q."{col}" IS NOT NULL
+                    AND q.{col} IS NOT NULL
             )
             SELECT
-                o."NUM_POSTE",
+                o.station_code,
                 vs.name,
                 vs.departement,
-                o."{col}",
-                o."AAAAMMJJ",
+                o.{col} AS record_value,
+                o.date,
                 vs.lat,
                 vs.lon,
                 vs.alt,
@@ -1399,13 +1401,13 @@ class HybridTemperatureRecordsDataSource(TemperatureRecordsDataSource):
                 vs.annee_de_fermeture
             FROM ordered o
                 INNER JOIN public.v_station_records vs
-                    ON vs.station_code = o."NUM_POSTE"
-            WHERE o."{col}" {cmp} o.prev_val
-                AND o."AAAAMMJJ" >= vs.first_temperature_date + interval '50 years'
+                    ON vs.station_code = o.station_code
+            WHERE o.{col} {cmp} o.prev_val
+                AND o.date >= vs.first_temperature_date + interval '50 years'
                 {date_filter_clauses}
                 {terr_filter_clause}
                 {station_filter_clauses}
-            ORDER BY vs.name, o."AAAAMMJJ"
+            ORDER BY vs.name, o.date
         """
 
         params = {
@@ -1429,13 +1431,13 @@ class HybridTemperatureRecordsDataSource(TemperatureRecordsDataSource):
 
         return [
             TemperatureRecordEntry(
-                station_id=row["NUM_POSTE"].strip(),
+                station_id=row["station_code"].strip(),
                 station_name=row["name"],
                 department=normalize_department(row["departement"]),
-                record_value=float(row[col]),
-                record_date=row["AAAAMMJJ"].date()
-                if isinstance(row["AAAAMMJJ"], dt.datetime)
-                else row["AAAAMMJJ"],
+                record_value=float(row["record_value"]),
+                record_date=row["date"].date()
+                if isinstance(row["date"], dt.datetime)
+                else row["date"],
                 lat=row["lat"],
                 lon=row["lon"],
                 alt=row["alt"],
@@ -2065,6 +2067,208 @@ class TimescaleRecordsGraphDataSource(RecordsGraphDataSource):
             for row in record_rows
         ]
         return RecordsGraphResult(buckets=buckets, records=records)
+
+
+class HybridRecordsGraphDataSource(RecordsGraphDataSource):
+    """
+    Data source hybride pour le graphe de records : lit les records pré-calculés
+    depuis mv_records_battus (snapshot figé) et complète à chaud les nouvelles
+    données (après cutoff_date) via une window function amorcée par les records
+    actuels de la MV.
+
+    La MV n'est jamais rafraîchie. La cutoff_date est stockée dans
+    mv_records_battus_meta au moment de la création de la MV.
+
+    Fallback silencieux vers la MV seule si mv_records_battus_meta est absente
+    ou vide (env de dev sans script de seed exécuté).
+    """
+
+    def __init__(self) -> None:
+        self._mv_source = TimescaleRecordsGraphDataSource()
+
+    def fetch_graph(self, request: RecordsGraphRequest) -> RecordsGraphResult:
+        mv_result = self._mv_source.fetch_graph(request)
+        try:
+            cutoff = self._get_cutoff_date()
+        except Exception:
+            return mv_result
+        if cutoff is None:
+            return mv_result
+        if (request.period_type == "month" and request.month is None) or (
+            request.period_type == "season" and request.season is None
+        ):
+            return mv_result
+        if request.date_end <= cutoff:
+            return mv_result
+
+        if request.type_records == "all":
+            types_to_fetch = ["hot", "cold"]
+        else:
+            types_to_fetch = [request.type_records]
+
+        new_records: list[RecordsGraphRecord] = []
+        for type_records in types_to_fetch:
+            new_records.extend(
+                self._fetch_records_after_cutoff(request, cutoff, type_records)
+            )
+
+        all_records = sorted(
+            list(mv_result.records) + new_records, key=lambda r: r.date
+        )
+        buckets = self._compute_buckets(all_records, request)
+        return RecordsGraphResult(buckets=buckets, records=all_records)
+
+    def _get_cutoff_date(self) -> dt.date | None:
+        with connection.cursor() as cur:
+            cur.execute("SELECT cutoff_date FROM public.mv_records_battus_meta LIMIT 1")
+            row = cur.fetchone()
+        return row[0] if row else None
+
+    def _fetch_records_after_cutoff(
+        self,
+        request: RecordsGraphRequest,
+        cutoff_date: dt.date,
+        type_records: str,
+    ) -> list[RecordsGraphRecord]:
+        hot = type_records == "hot"
+        col = "tx" if hot else "tn"
+        agg = "MAX" if hot else "MIN"
+        cmp = ">" if hot else "<"
+        extremum_fn = "GREATEST" if hot else "LEAST"
+        neutral_val = (
+            "'-Infinity'::double precision" if hot else "'Infinity'::double precision"
+        )
+        record_type = "TX" if hot else "TN"
+
+        if request.period_type == "month":
+            period_value: str | None = str(request.month)
+        elif request.period_type == "season":
+            period_value = request.season
+        else:
+            period_value = None
+
+        period_clause = "TRUE"
+        period_named_params: dict = {}
+        if request.period_type == "month" and request.month is not None:
+            period_clause = "EXTRACT(MONTH FROM q.date) = %(period_month)s"
+            period_named_params = {"period_month": request.month}
+        elif request.period_type == "season" and request.season is not None:
+            months = list(SEASON_MONTHS[request.season])
+            period_named_params = {
+                f"period_season_{i}": m for i, m in enumerate(months)
+            }
+            placeholders = ", ".join(
+                f"%(period_season_{i})s" for i in range(len(months))
+            )
+            period_clause = f"EXTRACT(MONTH FROM q.date) IN ({placeholders})"
+
+        terr_clause, terr_named_params = _territoire_clause_named(
+            request.territoire,
+            request.territoire_id,
+            station_col="o.station_code",
+        )
+        terr_filter_clause = f"AND {terr_clause}" if terr_clause else ""
+
+        sql = f"""
+            WITH mv_seeds AS (
+                SELECT station_code, {agg}(record_value) AS seed_val
+                FROM public.mv_records_battus
+                WHERE record_type = %(record_type)s
+                  AND period_type = %(period_type)s
+                  AND period_value IS NOT DISTINCT FROM %(period_value)s
+                GROUP BY station_code
+            ),
+            ordered AS (
+                SELECT
+                    q.station_code,
+                    q.date,
+                    q.{col},
+                    {extremum_fn}(
+                        COALESCE(s.seed_val, {neutral_val}),
+                        COALESCE(
+                            {agg}(q.{col}) OVER (
+                                PARTITION BY q.station_code
+                                ORDER BY q.date
+                                ROWS BETWEEN UNBOUNDED PRECEDING AND 1 PRECEDING
+                            ),
+                            {neutral_val}
+                        )
+                    ) AS prev_val
+                FROM public.v_quotidienne q
+                    LEFT JOIN mv_seeds s
+                        ON s.station_code = q.station_code
+                WHERE q.date > %(cutoff_date)s
+                    AND {period_clause}
+                    AND q.{col} IS NOT NULL
+            )
+            SELECT
+                o.station_code,
+                vs.name,
+                vs.departement,
+                o.{col} AS record_value,
+                o.date
+            FROM ordered o
+                INNER JOIN public.v_station_records vs
+                    ON vs.station_code = o.station_code
+            WHERE o.{col} {cmp} o.prev_val
+                AND o.date >= vs.first_temperature_date + interval '50 years'
+                AND o.date >= %(date_start)s
+                AND o.date <= %(date_end)s
+                {terr_filter_clause}
+        """
+
+        params = {
+            "record_type": record_type,
+            "period_type": request.period_type,
+            "period_value": period_value,
+            "cutoff_date": cutoff_date,
+            "date_start": request.date_start,
+            "date_end": request.date_end,
+            **period_named_params,
+            **terr_named_params,
+        }
+
+        with connection.cursor() as cur:
+            cur.execute(sql, params)
+            cols = [c.name for c in cur.description]
+            rows = [dict(zip(cols, row, strict=False)) for row in cur.fetchall()]
+
+        return [
+            RecordsGraphRecord(
+                date=row["date"].date()
+                if isinstance(row["date"], dt.datetime)
+                else row["date"],
+                station_id=row["station_code"].strip(),
+                station_name=row["name"],
+                department=normalize_department(row["departement"]),
+                type_records="hot" if hot else "cold",
+                valeur=float(row["record_value"]),
+            )
+            for row in rows
+        ]
+
+    def _compute_buckets(
+        self,
+        records: list[RecordsGraphRecord],
+        request: RecordsGraphRequest,
+    ) -> list[RecordsGraphBucket]:
+        counts: dict[str, int] = {}
+        for r in records:
+            if request.granularity == "day":
+                key = r.date.strftime("%Y-%m-%d")
+            elif request.granularity == "month":
+                key = r.date.strftime("%Y-%m")
+            else:
+                key = str(r.date.year)
+            counts[key] = counts.get(key, 0) + 1
+
+        all_buckets = _generate_buckets(
+            request.date_start, request.date_end, request.granularity
+        )
+        return [
+            RecordsGraphBucket(bucket=b, nb_records_battus=counts.get(b, 0))
+            for b in all_buckets
+        ]
 
 
 class TimescaleAbsoluteRecordsGraphDataSource(AbsoluteRecordsGraphDataSource):

@@ -9,11 +9,11 @@ from weather.services.records_graph.protocols import RecordsGraphDataSource
 
 def _default_builder() -> RecordsGraphDataSource:
     from weather.data_sources.records_graph_fake import FakeRecordsGraphDataSource
-    from weather.data_sources.timescale import TimescaleRecordsGraphDataSource
+    from weather.data_sources.timescale import HybridRecordsGraphDataSource
 
     if settings.MOCKED_DATA:
         return FakeRecordsGraphDataSource()
-    return TimescaleRecordsGraphDataSource()
+    return HybridRecordsGraphDataSource()
 
 
 class RecordsGraphDependencyProvider:

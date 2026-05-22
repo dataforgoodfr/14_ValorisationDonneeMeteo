@@ -1287,6 +1287,9 @@ SELECT
     record_date
 FROM public.v_records_battus;
 
+CREATE UNIQUE INDEX IF NOT EXISTS idx_uq_mv_records_battus_query
+ON public.mv_records_battus (record_type, period_type, period_value, station_code, record_date);
+
 CREATE INDEX IF NOT EXISTS idx_mv_records_battus_query
 ON public.mv_records_battus (record_type, period_type, period_value);
 
