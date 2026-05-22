@@ -225,8 +225,9 @@ def test_season_filter_respected():
 
 
 @pytest.mark.django_db
-def test_all_months_mode_skips_cutoff_returns_mv_only():
-    """period_type='month' sans month → mode 'tous les mois', l'enrichissement post-cutoff est ignoré."""
+def test_all_months_mode_enriches_per_month_seeds():
+    """period_type='month' sans month : l'enrichissement post-cutoff compare
+    chaque ligne post-cutoff au seed du mois où elle tombe (per-month seeds)."""
     code = "76116011"
     insert_station(code, "Station Hybrid 11", departement=76)
     insert_mv_record(
@@ -237,8 +238,10 @@ def test_all_months_mode_skips_cutoff_returns_mv_only():
     )
     set_cutoff(dt.date(2025, 12, 31))
 
-    # Donnée post-cutoff qui battrait le record de juillet — ne doit PAS apparaître
+    # 2026-07-01 tx=50 : bat le seed de juillet (38) → nouveau record
     insert_mv_quotidienne_realtime(code, dt.date(2026, 7, 1), tn=_FILLER_TN, tx=50.0)
+    # 2026-08-05 tx=30 : sous le seed d'août (35) → pas un nouveau record
+    insert_mv_quotidienne_realtime(code, dt.date(2026, 8, 5), tn=_FILLER_TN, tx=30.0)
 
     ds = HybridTemperatureRecordsDataSource()
     result = ds.fetch_records(
@@ -247,15 +250,17 @@ def test_all_months_mode_skips_cutoff_returns_mv_only():
 
     entries = [e for e in result.entries if e.station_id.strip() == code]
     values = [e.record_value for e in entries]
-    # Seules les données MV (38.0 et 35.0), pas les 50.0 post-cutoff
-    assert 50.0 not in values
+    # MV : 38 et 35. Post-cutoff : 50 (juillet, bat 38) ; 30 (août, sous 35) ignoré
     assert 38.0 in values
     assert 35.0 in values
+    assert 50.0 in values
+    assert 30.0 not in values
 
 
 @pytest.mark.django_db
-def test_all_seasons_mode_skips_cutoff_returns_mv_only():
-    """period_type='season' sans season → mode 'toutes les saisons', l'enrichissement post-cutoff est ignoré."""
+def test_all_seasons_mode_enriches_per_season_seeds():
+    """period_type='season' sans season : enrichissement post-cutoff comparé au
+    seed de la saison où tombe chaque ligne (per-season seeds)."""
     code = "76116012"
     insert_station(code, "Station Hybrid 12", departement=76)
     insert_mv_record(
@@ -266,7 +271,10 @@ def test_all_seasons_mode_skips_cutoff_returns_mv_only():
     )
     set_cutoff(dt.date(2025, 12, 31))
 
+    # 2026-07-01 (summer) tx=55 : bat le seed été (40) → nouveau record
     insert_mv_quotidienne_realtime(code, dt.date(2026, 7, 1), tn=_FILLER_TN, tx=55.0)
+    # 2026-02-10 (winter) tx=8 : sous le seed hiver (12) → pas un nouveau record
+    insert_mv_quotidienne_realtime(code, dt.date(2026, 2, 10), tn=_FILLER_TN, tx=8.0)
 
     ds = HybridTemperatureRecordsDataSource()
     result = ds.fetch_records(
@@ -275,9 +283,10 @@ def test_all_seasons_mode_skips_cutoff_returns_mv_only():
 
     entries = [e for e in result.entries if e.station_id.strip() == code]
     values = [e.record_value for e in entries]
-    assert 55.0 not in values
     assert 40.0 in values
     assert 12.0 in values
+    assert 55.0 in values
+    assert 8.0 not in values
 
 
 @pytest.mark.django_db

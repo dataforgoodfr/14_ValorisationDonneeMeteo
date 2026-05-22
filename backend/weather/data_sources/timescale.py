@@ -1024,6 +1024,67 @@ def _temperature_records_period_clause_named(
     return "TRUE", {}
 
 
+_SEASON_OF_MONTH_SQL = """CASE
+            WHEN EXTRACT(MONTH FROM q.date) IN (12, 1, 2) THEN 'winter'
+            WHEN EXTRACT(MONTH FROM q.date) IN (3, 4, 5) THEN 'spring'
+            WHEN EXTRACT(MONTH FROM q.date) IN (6, 7, 8) THEN 'summer'
+            ELSE 'autumn'
+        END"""
+
+
+def _hybrid_period_sql_parts(
+    request: Any,
+) -> tuple[str, str, str, dict, str | None]:
+    """
+    Pour les data sources hybrides : retourne les morceaux SQL nécessaires
+    pour partitionner par période et filtrer le seed.
+
+    Retourne :
+      - derived_period_expr : expression SQL qui calcule la "clé de période"
+        d'une ligne q de v_quotidienne (NULL pour all_time, le numéro de
+        mois pour month, le nom de saison pour season).
+      - seeds_value_clause  : clause à injecter dans le WHERE de mv_seeds
+        pour restreindre les seeds à la valeur de période demandée. Vide
+        en mode "tous les mois" / "toutes les saisons".
+      - date_period_clause  : clause à injecter dans le WHERE de la CTE
+        ordered pour restreindre les lignes q.date à la période demandée.
+        TRUE en mode "tous les mois" / "toutes les saisons" / all_time.
+      - period_named_params : params nommés pour `date_period_clause`.
+      - period_value        : la valeur à binder pour
+        `seeds_value_clause` quand elle référence %(period_value)s
+        (None sinon — pas de paramètre à binder).
+    """
+    if request.period_type == "all_time":
+        return "NULL::text", "AND period_value IS NULL", "TRUE", {}, None
+
+    if request.period_type == "month":
+        derived = "EXTRACT(MONTH FROM q.date)::text"
+        if request.month is not None:
+            return (
+                derived,
+                "AND period_value = %(period_value)s",
+                "EXTRACT(MONTH FROM q.date) = %(period_month)s",
+                {"period_month": request.month},
+                str(request.month),
+            )
+        return derived, "", "TRUE", {}, None
+
+    # season
+    derived = _SEASON_OF_MONTH_SQL
+    if request.season is not None:
+        months = list(SEASON_MONTHS[request.season])
+        named = {f"period_season_{i}": m for i, m in enumerate(months)}
+        placeholders = ", ".join(f"%(period_season_{i})s" for i in range(len(months)))
+        return (
+            derived,
+            "AND period_value = %(period_value)s",
+            f"EXTRACT(MONTH FROM q.date) IN ({placeholders})",
+            named,
+            request.season,
+        )
+    return derived, "", "TRUE", {}, None
+
+
 class MaterializedTemperatureRecordsDataSource:
     """
     Data source optimisée : lit les records pré-calculés depuis la vue
@@ -1205,10 +1266,6 @@ class HybridTemperatureRecordsDataSource(TemperatureRecordsDataSource):
             return self._paginate(mv_entries, request)
         if cutoff is None:
             return self._paginate(mv_entries, request)
-        if (request.period_type == "month" and request.month is None) or (
-            request.period_type == "season" and request.season is None
-        ):
-            return self._paginate(mv_entries, request)
         hot_results = self._fetch_records_after_cutoff(request, cutoff)
         all_entries = mv_entries + hot_results
         return self._paginate(all_entries, request)
@@ -1293,16 +1350,13 @@ class HybridTemperatureRecordsDataSource(TemperatureRecordsDataSource):
         )
         record_type = "TX" if hot else "TN"
 
-        if request.period_type == "month":
-            period_value: str | None = str(request.month)
-        elif request.period_type == "season":
-            period_value = request.season
-        else:
-            period_value = None
-
-        period_clause, period_named_params = _temperature_records_period_clause_named(
-            request, date_col="q.date"
-        )
+        (
+            derived_period_expr,
+            seeds_value_clause,
+            date_period_clause,
+            period_named_params,
+            period_value,
+        ) = _hybrid_period_sql_parts(request)
 
         terr_clause, terr_named_params = _territoire_clause_named(
             request.territoire,
@@ -1357,12 +1411,12 @@ class HybridTemperatureRecordsDataSource(TemperatureRecordsDataSource):
 
         sql = f"""
             WITH mv_seeds AS (
-                SELECT station_code, {agg}(record_value) AS seed_val
+                SELECT station_code, period_value, {agg}(record_value) AS seed_val
                 FROM public.mv_records_battus
                 WHERE record_type = %(record_type)s
                   AND period_type = %(period_type)s
-                  AND period_value IS NOT DISTINCT FROM %(period_value)s
-                GROUP BY station_code
+                  {seeds_value_clause}
+                GROUP BY station_code, period_value
             ),
             ordered AS (
                 SELECT
@@ -1373,7 +1427,7 @@ class HybridTemperatureRecordsDataSource(TemperatureRecordsDataSource):
                         COALESCE(s.seed_val, {neutral_val}),
                         COALESCE(
                             {agg}(q.{col}) OVER (
-                                PARTITION BY q.station_code
+                                PARTITION BY q.station_code, {derived_period_expr}
                                 ORDER BY q.date
                                 ROWS BETWEEN UNBOUNDED PRECEDING AND 1 PRECEDING
                             ),
@@ -1383,8 +1437,9 @@ class HybridTemperatureRecordsDataSource(TemperatureRecordsDataSource):
                 FROM public.v_quotidienne q
                     LEFT JOIN mv_seeds s
                         ON s.station_code = q.station_code
+                        AND s.period_value IS NOT DISTINCT FROM {derived_period_expr}
                 WHERE q.date > %(cutoff_date)s
-                    AND {period_clause}
+                    AND {date_period_clause}
                     AND q.{col} IS NOT NULL
             )
             SELECT
@@ -1413,12 +1468,13 @@ class HybridTemperatureRecordsDataSource(TemperatureRecordsDataSource):
         params = {
             "record_type": record_type,
             "period_type": request.period_type,
-            "period_value": period_value,
             "cutoff_date": cutoff_date,
             **period_named_params,
             **terr_named_params,
             **station_filter_extra,
         }
+        if period_value is not None:
+            params["period_value"] = period_value
         if request.date_start:
             params["date_start"] = request.date_start
         if request.date_end:
@@ -2094,10 +2150,6 @@ class HybridRecordsGraphDataSource(RecordsGraphDataSource):
             return mv_result
         if cutoff is None:
             return mv_result
-        if (request.period_type == "month" and request.month is None) or (
-            request.period_type == "season" and request.season is None
-        ):
-            return mv_result
         if request.date_end <= cutoff:
             return mv_result
 
@@ -2140,27 +2192,13 @@ class HybridRecordsGraphDataSource(RecordsGraphDataSource):
         )
         record_type = "TX" if hot else "TN"
 
-        if request.period_type == "month":
-            period_value: str | None = str(request.month)
-        elif request.period_type == "season":
-            period_value = request.season
-        else:
-            period_value = None
-
-        period_clause = "TRUE"
-        period_named_params: dict = {}
-        if request.period_type == "month" and request.month is not None:
-            period_clause = "EXTRACT(MONTH FROM q.date) = %(period_month)s"
-            period_named_params = {"period_month": request.month}
-        elif request.period_type == "season" and request.season is not None:
-            months = list(SEASON_MONTHS[request.season])
-            period_named_params = {
-                f"period_season_{i}": m for i, m in enumerate(months)
-            }
-            placeholders = ", ".join(
-                f"%(period_season_{i})s" for i in range(len(months))
-            )
-            period_clause = f"EXTRACT(MONTH FROM q.date) IN ({placeholders})"
+        (
+            derived_period_expr,
+            seeds_value_clause,
+            date_period_clause,
+            period_named_params,
+            period_value,
+        ) = _hybrid_period_sql_parts(request)
 
         terr_clause, terr_named_params = _territoire_clause_named(
             request.territoire,
@@ -2171,12 +2209,12 @@ class HybridRecordsGraphDataSource(RecordsGraphDataSource):
 
         sql = f"""
             WITH mv_seeds AS (
-                SELECT station_code, {agg}(record_value) AS seed_val
+                SELECT station_code, period_value, {agg}(record_value) AS seed_val
                 FROM public.mv_records_battus
                 WHERE record_type = %(record_type)s
                   AND period_type = %(period_type)s
-                  AND period_value IS NOT DISTINCT FROM %(period_value)s
-                GROUP BY station_code
+                  {seeds_value_clause}
+                GROUP BY station_code, period_value
             ),
             ordered AS (
                 SELECT
@@ -2187,7 +2225,7 @@ class HybridRecordsGraphDataSource(RecordsGraphDataSource):
                         COALESCE(s.seed_val, {neutral_val}),
                         COALESCE(
                             {agg}(q.{col}) OVER (
-                                PARTITION BY q.station_code
+                                PARTITION BY q.station_code, {derived_period_expr}
                                 ORDER BY q.date
                                 ROWS BETWEEN UNBOUNDED PRECEDING AND 1 PRECEDING
                             ),
@@ -2197,8 +2235,9 @@ class HybridRecordsGraphDataSource(RecordsGraphDataSource):
                 FROM public.v_quotidienne q
                     LEFT JOIN mv_seeds s
                         ON s.station_code = q.station_code
+                        AND s.period_value IS NOT DISTINCT FROM {derived_period_expr}
                 WHERE q.date > %(cutoff_date)s
-                    AND {period_clause}
+                    AND {date_period_clause}
                     AND q.{col} IS NOT NULL
             )
             SELECT
@@ -2220,13 +2259,14 @@ class HybridRecordsGraphDataSource(RecordsGraphDataSource):
         params = {
             "record_type": record_type,
             "period_type": request.period_type,
-            "period_value": period_value,
             "cutoff_date": cutoff_date,
             "date_start": request.date_start,
             "date_end": request.date_end,
             **period_named_params,
             **terr_named_params,
         }
+        if period_value is not None:
+            params["period_value"] = period_value
 
         with connection.cursor() as cur:
             cur.execute(sql, params)
