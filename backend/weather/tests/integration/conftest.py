@@ -1,98 +1,24 @@
 """
 Conftest pour les tests d'intégration.
 
-Tout ce qui touche à la DB de test (utilitaires d'insertion + setup du
-schéma) vit ici plutôt que dans un conftest partagé : sinon le seul fait
-de collecter les tests unitaires (au-dessus dans `weather/tests/unit/`)
-déclencherait pytest-django et tenterait de toucher la DB.
+Ne contient que le fixture autouse de setup du schéma : les utilitaires
+d'insertion (insert_mv_record, set_cutoff, clear_mv, insert_quotidienne)
+vivent dans `weather/tests/helpers/` et s'importent comme du Python normal.
+
+Pourquoi ce fichier vit-il dans `integration/` plutôt que dans un conftest
+partagé ? Pour éviter qu'une simple collecte de tests unitaires (au-dessus
+dans `weather/tests/unit/`) ne déclenche pytest-django et ne tente de
+toucher la DB.
 """
 
 from __future__ import annotations
 
-import datetime as dt
 import pathlib
 
 import pytest
 from django.db import connection
 
 BASE_DIR = pathlib.Path(__file__).resolve().parents[3]  # = backend/
-
-
-def insert_quotidienne(
-    day: dt.date,
-    code: str,
-    *,
-    tx: float | None = None,
-    tn: float | None = None,
-) -> None:
-    with connection.cursor() as cur:
-        cur.execute(
-            """
-            INSERT INTO public."Quotidienne"
-                ("NUM_POSTE", "NOM_USUEL", "LAT", "LON", "ALTI", "AAAAMMJJ", "TX", "TN", "TNTXM")
-            VALUES
-                (%(code)s, %(name)s, 0, 0, 0, %(day)s, %(tx)s, %(tn)s, %(tntxm)s)
-            ON CONFLICT ("NUM_POSTE", "AAAAMMJJ")
-            DO UPDATE SET "TX" = EXCLUDED."TX", "TN" = EXCLUDED."TN", "TNTXM" = EXCLUDED."TNTXM"
-            """,
-            {
-                "code": code,
-                "name": f"ST {code}",
-                "day": day,
-                "tx": tx,
-                "tn": tn,
-                "tntxm": (tx + tn) / 2 if tx is not None and tn is not None else None,
-            },
-        )
-
-
-def insert_mv_record(
-    station_code: str,
-    station_name: str,
-    period_type: str,
-    period_value: str | None,
-    record_type: str,
-    value: float,
-    date: dt.date,
-    department: int = 75,
-) -> None:
-    with connection.cursor() as cur:
-        cur.execute(
-            """
-            INSERT INTO public.mv_records_battus
-                (period_type,     period_value,     record_type,     station_code,     station_name,     department,     record_value,     record_date)
-            VALUES
-                (%(period_type)s, %(period_value)s, %(record_type)s, %(station_code)s, %(station_name)s, %(department)s, %(record_value)s, %(record_date)s)
-            """,
-            {
-                "period_type": period_type,
-                "period_value": period_value,
-                "record_type": record_type,
-                "station_code": station_code,
-                "station_name": station_name,
-                "department": department,
-                "record_value": value,
-                "record_date": date,
-            },
-        )
-
-
-def set_cutoff(date: dt.date) -> None:
-    with connection.cursor() as cur:
-        cur.execute("TRUNCATE public.mv_records_battus_meta;")
-        cur.execute(
-            """
-            INSERT INTO public.mv_records_battus_meta (cutoff_date)
-            VALUES (%(cutoff_date)s);
-            """,
-            {"cutoff_date": date},
-        )
-
-
-def clear_mv() -> None:
-    with connection.cursor() as cur:
-        cur.execute("TRUNCATE public.mv_records_battus;")
-        cur.execute("TRUNCATE public.mv_records_battus_meta;")
 
 
 def get_drop_mv_or_table_sql(

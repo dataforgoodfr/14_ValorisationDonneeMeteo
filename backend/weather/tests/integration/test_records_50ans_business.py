@@ -11,11 +11,9 @@ import pytest
 
 from weather.data_sources.timescale import HybridTemperatureRecordsDataSource
 from weather.services.temperature_records.types import TemperatureRecordsRequest
+from weather.tests.helpers.quotidienne import insert_quotidienne
+from weather.tests.helpers.records import set_cutoff
 from weather.tests.helpers.stations import insert_station
-from weather.tests.integration.conftest import (
-    insert_quotidienne,
-    set_cutoff,
-)
 
 
 @pytest.mark.django_db
