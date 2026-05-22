@@ -126,6 +126,28 @@ class TestByDateEndProfile:
         response = view(factory.get("/x?date_end=not-a-date"))
         assert _cache_control(response) == "public, s-maxage=900, max-age=60"
 
+    def test_fallback_short_when_date_end_absent(self, factory):
+        """Pour les endpoints dont la source évolue en continu (ex. matview
+        rafraîchie toutes les N minutes), un client qui n'envoie pas date_end
+        doit recevoir un TTL court."""
+        view = _make_view(
+            cache_profile="by_date_end",
+            cache_by_date_end_fallback="short",
+        ).as_view()
+        response = view(factory.get("/x"))
+        assert _cache_control(response) == "public, s-maxage=900, max-age=60"
+
+    def test_fallback_short_still_caches_long_for_historical_date_end(self, factory):
+        """Le fallback ne s'applique qu'en l'absence de date_end : si la query
+        précise une plage historique, on doit toujours bénéficier du TTL long."""
+        view = _make_view(
+            cache_profile="by_date_end",
+            cache_by_date_end_fallback="short",
+        ).as_view()
+        historical = (FIXED_TODAY - dt.timedelta(days=30)).isoformat()
+        response = view(factory.get(f"/x?date_end={historical}"))
+        assert _cache_control(response) == "public, s-maxage=86400, max-age=3600"
+
 
 class TestHeaderGuards:
     def test_no_header_on_400(self, factory):

@@ -21,6 +21,7 @@ from typing import Literal
 logger = logging.getLogger(__name__)
 
 CacheProfile = Literal["long", "by_date_end"]
+ByDateEndFallback = Literal["long", "short"]
 
 
 class CacheControlMixin:
@@ -34,6 +35,12 @@ class CacheControlMixin:
         cache_date_end_threshold_days : seuil en jours entre "historique" (long)
             et "récent" (court). Garde une marge pour le délai d'ingestion.
         cache_date_end_query_param : nom du paramètre query string à lire.
+        cache_by_date_end_fallback : TTL à appliquer en profil ``by_date_end``
+            quand ``date_end`` est absent de la query string. ``"long"`` par
+            défaut (la requête ne porte pas de notion de "récent") ; à passer
+            à ``"short"`` pour les endpoints dont la source de données évolue
+            indépendamment d'un ``date_end`` explicite (ex. matview rafraîchie
+            en continu).
     """
 
     cache_profile: CacheProfile | None = None
@@ -43,6 +50,7 @@ class CacheControlMixin:
     cache_short_max_age: int = 60
     cache_date_end_threshold_days: int = 2
     cache_date_end_query_param: str = "date_end"
+    cache_by_date_end_fallback: ByDateEndFallback = "long"
 
     def finalize_response(self, request, response, *args, **kwargs):
         response = super().finalize_response(request, response, *args, **kwargs)
@@ -66,6 +74,8 @@ class CacheControlMixin:
     def _ttls_by_date_end(self, request) -> tuple[int, int]:
         raw = request.query_params.get(self.cache_date_end_query_param)
         if not raw:
+            if self.cache_by_date_end_fallback == "short":
+                return self.cache_short_s_maxage, self.cache_short_max_age
             return self.cache_long_s_maxage, self.cache_long_max_age
 
         try:

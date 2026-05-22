@@ -308,8 +308,11 @@ class TemperatureRecordsAPIView(CacheControlMixin, APIView):
 
     authentication_classes = []
     permission_classes = []
-    # `mv_records_battus` n'est rafraîchie qu'à l'ingestion → TTL long + purge par tag.
-    cache_profile = "long"
+    # `mv_records_battus` est rafraîchie en continu (~6 min) : full cache pour les
+    # plages strictement historiques, TTL court sinon — et TTL court aussi quand
+    # `date_end` est absent (cas `period_type=all_time`).
+    cache_profile = "by_date_end"
+    cache_by_date_end_fallback = "short"
 
     @extend_schema(
         summary="Records de température",
@@ -444,7 +447,9 @@ class TemperatureAbsoluteRecordsAPIView(CacheControlMixin, APIView):
 
     authentication_classes = []
     permission_classes = []
-    cache_profile = "long"
+    # Même source matview que les records battus (rafraîchie en continu).
+    cache_profile = "by_date_end"
+    cache_by_date_end_fallback = "short"
 
     @extend_schema(
         summary="Records de température",
@@ -759,7 +764,8 @@ class RecordsGraphAPIView(CacheControlMixin, APIView):
 
     authentication_classes = []
     permission_classes = []
-    cache_profile = "long"
+    # `date_end` est requis ici (le fallback ne se déclenche jamais).
+    cache_profile = "by_date_end"
 
     def get(self, request):
         q = RecordsGraphQuerySerializer(data=request.query_params)
@@ -830,7 +836,7 @@ class AbsoluteRecordsGraphAPIView(CacheControlMixin, APIView):
 
     authentication_classes = []
     permission_classes = []
-    cache_profile = "long"
+    cache_profile = "by_date_end"
 
     def get(self, request):
         q = RecordsGraphQuerySerializer(data=request.query_params)
