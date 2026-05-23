@@ -57,6 +57,15 @@ const coldDiff = computed(() => {
     return kpi.value.cold_peak_count - kpi.value.previous.cold_peak_count;
 });
 
+const hotDiffColor = computed(() => {
+    if (hotDiff.value == null || hotDiff.value === 0) return "";
+    return hotDiff.value < 0 ? "text-blue-400" : "text-red-400";
+});
+const coldDiffColor = computed(() => {
+    if (coldDiff.value == null || coldDiff.value === 0) return "";
+    return coldDiff.value < 0 ? "text-red-400" : "text-blue-400";
+});
+
 async function exportInCsv(type: "hot" | "cold") {
     const itnDataForCsv = await apiFetch<NationalIndicatorResponse>(
         "/temperature/national-indicator",
@@ -191,21 +200,26 @@ async function exportInCsv(type: "hot" | "cold") {
                     </template>
                     <template v-if="hotDiff != null" #variation>
                         <UIcon
-                            v-if="hotDiff.toFixed(1) !== '0.0'"
+                            v-if="hotDiff !== 0"
                             :name="
                                 hotDiff < 0
                                     ? 'i-lucide-arrow-down-right'
                                     : 'i-lucide-arrow-up-right'
                             "
-                            class="text-red-400 font-semibold"
+                            :class="hotDiffColor"
+                            class="font-semibold"
                         />
                         <span
                             v-if="hotDiff !== 0"
-                            class="text-sm font-semibold text-red-400"
+                            class="text-sm font-semibold"
+                            :class="hotDiffColor"
                         >
                             {{ hotDiff > 0 ? "+" : "" }}{{ hotDiff }} jours
                         </span>
-                        <span v-else class="text-sm font-semibold text-red-400"
+                        <span
+                            v-else
+                            class="text-sm font-semibold"
+                            :class="hotDiffColor"
                             >=</span
                         >
                         vs. 365 jours précédents
@@ -241,15 +255,20 @@ async function exportInCsv(type: "hot" | "cold") {
                                     ? 'i-lucide-arrow-down-right'
                                     : 'i-lucide-arrow-up-right'
                             "
-                            class="text-blue-400 font-semibold"
+                            :class="coldDiffColor"
+                            class="font-semibold"
                         />
                         <span
                             v-if="coldDiff !== 0"
-                            class="text-sm font-semibold text-blue-400"
+                            class="text-sm font-semibold"
+                            :class="coldDiffColor"
                         >
                             {{ coldDiff > 0 ? "+" : "" }}{{ coldDiff }} jours
                         </span>
-                        <span v-else class="text-sm font-semibold text-blue-400"
+                        <span
+                            v-else
+                            class="text-sm font-semibold"
+                            :class="coldDiffColor"
                             >=</span
                         >
                         vs. 365 jours précédents
