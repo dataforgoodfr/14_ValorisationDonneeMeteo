@@ -14,6 +14,10 @@ from weather.tests.helpers.records import (
 )
 from weather.tests.helpers.stations import insert_station
 
+# NB : ces tests couvrent l'enrichissement post-cutoff du HybridRecordsGraphDataSource.
+# Cette pipeline n'est plus branchée en prod (bootstrap utilise le data source
+# MV-only) — les tests sont conservés pour quand la feature sera ré-activée.
+
 
 def _req(**kwargs) -> RecordsGraphRequest:
     defaults = {
@@ -235,6 +239,206 @@ def test_absolute_record_predates_50_year_filter_seeds_correctly():
         "12.3°C ne doit pas battre le record May de 0°C, "
         f"mais le hybride retourne : {for_station}"
     )
+
+
+@pytest.mark.django_db
+def test_real_new_cold_record_still_detected_against_absolute_seed():
+    """Vérifie que le fix MARIGNANE (seed via v_records_absolus_par_type)
+    n'a pas supprimé les vrais nouveaux records : si une TN post-cutoff
+    descend EN DESSOUS du record absolu, elle doit être détectée."""
+    code = "13054002"
+    insert_station(
+        code,
+        "Station Real New Cold",
+        departement=13,
+        first_temperature_date=dt.date(1920, 1, 1),
+    )
+    # Seed via les absolus : record May = 0°C en 1960.
+    insert_mv_records_absolus_par_mois(
+        station_code=code,
+        month=5,
+        txx_max=35.0,
+        txx_max_date=dt.date(2000, 5, 15),
+        tnn_min=0.0,
+        tnn_min_date=dt.date(1960, 5, 1),
+    )
+    set_cutoff(dt.date(2025, 12, 31))
+    # TN=-3°C → bat le record absolu de 0°C → vrai nouveau record.
+    insert_mv_quotidienne_realtime(code, dt.date(2026, 5, 10), tn=-3.0, tx=8.0)
+
+    ds = HybridRecordsGraphDataSource()
+    result = ds.fetch_graph(
+        _req(
+            date_start=dt.date(2026, 1, 1),
+            date_end=dt.date(2026, 5, 22),
+            granularity="year",
+            type_records="cold",
+            period_type="month",
+            month=5,
+        )
+    )
+
+    for_station = [r for r in result.records if r.station_id.strip() == code]
+    new = [
+        r
+        for r in for_station
+        if r.date == dt.date(2026, 5, 10) and r.type_records == "cold"
+    ]
+    assert (
+        len(new) == 1
+    ), f"-3°C bat le record May de 0°C, devrait être détecté : {for_station}"
+    assert new[0].valeur == -3.0
+
+
+@pytest.mark.django_db
+def test_real_new_records_detected_with_type_records_all():
+    """Réplique du cas staging : type_records=all, period_type=month, month=5
+    avec une station style MARIGNANE (records absolus en mv_records_absolus_par_mois,
+    rien en mv_records_battus). Une TN ET une TX battant respectivement le
+    cold et le hot absolu doivent BOTH être détectées."""
+    code = "13054004"
+    insert_station(
+        code,
+        "Station All Real Records",
+        departement=13,
+        first_temperature_date=dt.date(1920, 1, 1),
+    )
+    insert_mv_records_absolus_par_mois(
+        station_code=code,
+        month=5,
+        txx_max=35.0,
+        txx_max_date=dt.date(2000, 5, 15),
+        tnn_min=0.0,
+        tnn_min_date=dt.date(1960, 5, 1),
+    )
+    set_cutoff(dt.date(2025, 12, 31))
+    # TX=42 bat 35 ; TN=-3 bat 0 → deux nouveaux records.
+    insert_mv_quotidienne_realtime(code, dt.date(2026, 5, 10), tn=-3.0, tx=42.0)
+
+    ds = HybridRecordsGraphDataSource()
+    result = ds.fetch_graph(
+        _req(
+            date_start=dt.date(2026, 1, 1),
+            date_end=dt.date(2026, 5, 22),
+            granularity="year",
+            type_records="all",
+            period_type="month",
+            month=5,
+        )
+    )
+
+    for_station = [
+        r
+        for r in result.records
+        if r.station_id.strip() == code and r.date == dt.date(2026, 5, 10)
+    ]
+    hot = [r for r in for_station if r.type_records == "hot"]
+    cold = [r for r in for_station if r.type_records == "cold"]
+    assert (
+        len(hot) == 1 and hot[0].valeur == 42.0
+    ), f"42°C bat 35°C, manque dans la réponse : {for_station}"
+    assert (
+        len(cold) == 1 and cold[0].valeur == -3.0
+    ), f"-3°C bat 0°C, manque dans la réponse : {for_station}"
+
+
+@pytest.mark.django_db
+def test_today_real_new_hot_record_with_period_type_month_no_month():
+    """Réplique exacte de l'URL staging qui ne renvoie plus les vrais nouveaux
+    records après le fix MARIGNANE :
+    /api/v1/temperature/records/graph
+        ?type_records=hot&granularity=day
+        &date_start=2026-05-22&date_end=2026-05-22
+        &period_type=month
+    (period_type=month SANS paramètre month → mode 'tous les mois').
+
+    Une TX du jour qui bat le record absolu du mois courant doit apparaître."""
+    today = dt.date.today()
+    code = "13054005"
+    insert_station(
+        code,
+        "Station Today Hot Real",
+        departement=13,
+        first_temperature_date=dt.date(1920, 1, 1),
+    )
+    # Record absolu du mois courant (e.g. May) = 35°C dans les absolus
+    insert_mv_records_absolus_par_mois(
+        station_code=code,
+        month=today.month,
+        txx_max=35.0,
+        txx_max_date=dt.date(2000, today.month, 15),
+        tnn_min=0.0,
+        tnn_min_date=dt.date(1960, today.month, 1),
+    )
+    set_cutoff(today - dt.timedelta(days=180))
+    # TX=42°C → bat le record 35°C du mois courant → vrai nouveau record
+    insert_mv_quotidienne_realtime(code, today, tn=18.0, tx=42.0)
+
+    ds = HybridRecordsGraphDataSource()
+    result = ds.fetch_graph(
+        _req(
+            date_start=today,
+            date_end=today,
+            granularity="day",
+            type_records="hot",
+            period_type="month",
+            month=None,
+        )
+    )
+
+    for_station = [r for r in result.records if r.station_id.strip() == code]
+    new = [r for r in for_station if r.date == today and r.type_records == "hot"]
+    assert len(new) == 1, (
+        f"42°C bat le record {today.month:02d} absolu (35°C), "
+        f"devrait apparaître : {for_station}"
+    )
+    assert new[0].valeur == 42.0
+
+
+@pytest.mark.django_db
+def test_real_new_hot_record_still_detected_against_absolute_seed():
+    """Symétrique : un vrai nouveau record chaud doit toujours apparaître."""
+    code = "13054003"
+    insert_station(
+        code,
+        "Station Real New Hot",
+        departement=13,
+        first_temperature_date=dt.date(1920, 1, 1),
+    )
+    insert_mv_records_absolus_par_mois(
+        station_code=code,
+        month=5,
+        txx_max=35.0,
+        txx_max_date=dt.date(2000, 5, 15),
+        tnn_min=0.0,
+        tnn_min_date=dt.date(1960, 5, 1),
+    )
+    set_cutoff(dt.date(2025, 12, 31))
+    # TX=42°C → bat le record absolu de 35°C → vrai nouveau record.
+    insert_mv_quotidienne_realtime(code, dt.date(2026, 5, 10), tn=18.0, tx=42.0)
+
+    ds = HybridRecordsGraphDataSource()
+    result = ds.fetch_graph(
+        _req(
+            date_start=dt.date(2026, 1, 1),
+            date_end=dt.date(2026, 5, 22),
+            granularity="year",
+            type_records="hot",
+            period_type="month",
+            month=5,
+        )
+    )
+
+    for_station = [r for r in result.records if r.station_id.strip() == code]
+    new = [
+        r
+        for r in for_station
+        if r.date == dt.date(2026, 5, 10) and r.type_records == "hot"
+    ]
+    assert (
+        len(new) == 1
+    ), f"42°C bat le record May de 35°C, devrait être détecté : {for_station}"
+    assert new[0].valeur == 42.0
 
 
 @pytest.mark.django_db
