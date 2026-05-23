@@ -30,7 +30,7 @@
                         name="i-lucide-arrow-up-right"
                         class="text-red-400"
                     />
-                    vs normales 1991-2020
+                    vs. normales 1991-2020
                 </template>
 
                 <span v-else class="text-muted">—</span>
@@ -73,7 +73,7 @@
                         name="i-lucide-arrow-up-right"
                         class="text-red-400"
                     />
-                    vs période précédente
+                    vs. période précédente
                 </template>
 
                 <span v-else class="text-muted">—</span>
@@ -114,7 +114,7 @@
                         name="i-lucide-arrow-up-right"
                         class="text-blue-400"
                     />
-                    vs période précédente
+                    vs. période précédente
                 </template>
 
                 <span v-else class="text-muted">—</span>

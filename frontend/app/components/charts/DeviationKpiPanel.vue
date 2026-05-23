@@ -20,7 +20,7 @@
                     <span v-else class="text-muted">—</span>
                 </p>
             </template>
-            <template #kpi-context-text> vs normales 1991–2020 </template>
+            <template #kpi-context-text> vs. normales 1991–2020 </template>
         </Card>
 
         <Card
@@ -37,7 +37,7 @@
                     <span v-else class="text-muted">—</span>
                 </p>
             </template>
-            <template #kpi-context-text> vs normales 1991–2020 </template>
+            <template #kpi-context-text> vs. normales 1991–2020 </template>
         </Card>
 
         <Card
@@ -54,7 +54,7 @@
                     <span v-else class="text-muted">—</span>
                 </p>
             </template>
-            <template #kpi-context-text> vs normales 1991–2020 </template>
+            <template #kpi-context-text> vs. normales 1991–2020 </template>
         </Card>
 
         <HotColdRatioCard

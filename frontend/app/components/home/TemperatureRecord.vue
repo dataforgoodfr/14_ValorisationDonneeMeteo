@@ -94,7 +94,7 @@ function exportInCsv() {
                 <span class="text-sm font-semibold" :class="arrowColor">
                     {{ props.difference !== 0 ? props.difference : "=" }}
                 </span>
-                <span class="text-sm"> vs {{ props.compareTo }} </span>
+                <span class="text-sm"> vs. {{ props.compareTo }}</span>
             </template>
         </Card>
     </div>

@@ -88,7 +88,7 @@ const cardTitle = computed(() => {
 
         <template v-if="currentStreak" #kpi-context-box>
             {{ currentStreak.avgDeviation > 0 ? "+" : ""
-            }}{{ currentStreak.avgDeviation?.toFixed(1) }}°C vs normales
+            }}{{ currentStreak.avgDeviation?.toFixed(1) }}°C vs. normales
             1991-2020
         </template>
 

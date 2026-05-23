@@ -88,7 +88,7 @@ const exportOptions = ref<DropdownMenuItem[]>([
 
 <template>
     <HotColdRatioCard
-        title="Records mensuels de chaleur VS froid"
+        title="Records mensuels de chaleur vs. froid"
         tooltip-text="Proportion du nombre de records de chaleur mensuels par rapport aux records de froid mensuels battus en France Métropolitaine au cours des 365 derniers jours."
         :hot-value="hotCount"
         :cold-value="coldCount"
