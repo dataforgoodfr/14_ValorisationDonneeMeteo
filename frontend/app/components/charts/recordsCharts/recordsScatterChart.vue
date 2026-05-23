@@ -18,8 +18,10 @@ import {
     barSeries,
     buildTerritoryPlots,
     countByPeriod,
+    periodKey,
     scatterSeries,
 } from "~/utils/recordsChartUtils";
+import { dateToStringYMD } from "~/utils/date";
 import { useMapColors } from "~/constants/colors";
 import { FONT_CHARTS, GRAPH_RECORDS_POSITION } from "~/constants/fonts";
 import { xAxisTimeFormatter } from "~/utils/chartAxisFormatter";
@@ -70,24 +72,34 @@ const option = computed<ECOption>(() => {
     const barDataset = () => {
         const first = territoryPlots[0];
         if (!first) return [];
-        const hotByPeriod = countByPeriod(
-            first.hot,
-            props.adapter.granularity.value,
-        );
-        const coldByPeriod = countByPeriod(
-            first.cold,
-            props.adapter.granularity.value,
-        );
+        const granularity = props.adapter.granularity.value;
+        const hotByPeriod = countByPeriod(first.hot, granularity);
+        const coldByPeriod = countByPeriod(first.cold, granularity);
+
+        // Génère tous les buckets du range pour qu'ECharts calcule une largeur
+        // de barre d'1 période au lieu d'auto-scaler sur les rares points réels.
+        const allPeriodKeys: string[] = [];
+        const currentDate = new Date(props.adapter.pickedDateStart.value);
+        const dateEndTimestamp = props.adapter.pickedDateEnd.value.getTime();
+        while (currentDate.getTime() <= dateEndTimestamp) {
+            allPeriodKeys.push(
+                periodKey(dateToStringYMD(currentDate), granularity),
+            );
+            if (granularity === "year")
+                currentDate.setFullYear(currentDate.getFullYear() + 1);
+            else if (granularity === "month")
+                currentDate.setMonth(currentDate.getMonth() + 1);
+            else currentDate.setDate(currentDate.getDate() + 1);
+        }
+
         return [
             {
                 dimensions: ["period", "hot", "cold"],
-                source: Object.keys({ ...hotByPeriod, ...coldByPeriod })
-                    .sort()
-                    .map((period) => ({
-                        period,
-                        hot: hotByPeriod[period] ?? 0,
-                        cold: coldByPeriod[period] ?? 0,
-                    })),
+                source: allPeriodKeys.map((period) => ({
+                    period,
+                    hot: hotByPeriod[period] ?? 0,
+                    cold: coldByPeriod[period] ?? 0,
+                })),
             },
         ];
     };
@@ -124,8 +136,8 @@ const option = computed<ECOption>(() => {
         xAxis: plots.map((_, index) => ({
             type: "time",
             gridIndex: index,
-            min: props.adapter.pickedDateStart?.value,
-            max: props.adapter.pickedDateEnd?.value,
+            min: () => props.adapter.pickedDateStart?.value?.getTime(),
+            max: () => props.adapter.pickedDateEnd?.value?.getTime(),
             nameLocation: "middle",
             nameGap: 25,
             nameTextStyle: {
