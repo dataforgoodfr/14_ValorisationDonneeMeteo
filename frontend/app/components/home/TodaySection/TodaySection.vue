@@ -95,6 +95,7 @@ const lastYearColdRecordsCount = computed(
                 compare-to="même jour l'an dernier"
                 export-button-title="Exporter la liste des records de chaleur"
                 period-type="today"
+                export-period-type="month"
             />
             <TemperatureRecord
                 :records="coldRecordsCount"
@@ -105,6 +106,7 @@ const lastYearColdRecordsCount = computed(
                 compare-to="même jour l'an dernier"
                 export-button-title="Exporter la liste des records de froid"
                 period-type="today"
+                export-period-type="month"
             />
         </div>
         <GoToDataLink

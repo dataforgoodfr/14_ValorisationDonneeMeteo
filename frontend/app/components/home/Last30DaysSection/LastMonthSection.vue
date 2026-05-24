@@ -139,6 +139,7 @@ const lastYearColdRecordsCount = computed(
                 compare-to="année dernière"
                 export-button-title="Exporter la liste des records de chaleur"
                 period-type="month"
+                export-period-type="month"
             />
             <TemperatureRecord
                 :records="coldRecordsCount"
@@ -150,6 +151,7 @@ const lastYearColdRecordsCount = computed(
                 compare-to="année dernière"
                 export-button-title="Exporter la liste des records de froid"
                 period-type="month"
+                export-period-type="month"
             />
         </div>
         <div class="flex justify-end">

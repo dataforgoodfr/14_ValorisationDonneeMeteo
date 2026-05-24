@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import type { PeriodType } from "~/types/api";
 import Card from "./Card.vue";
 
 interface Props {
@@ -12,6 +13,7 @@ interface Props {
     temperatureTitle?: string;
     exportButtonTitle?: string;
     periodType: "today" | "month";
+    exportPeriodType: PeriodType;
 }
 
 const props = defineProps<Props>();
@@ -49,7 +51,7 @@ function exportInCsv() {
         props.type,
         params.dateStart,
         params.dateEnd,
-        props.periodType === "today" ? "all_time" : "month",
+        props.exportPeriodType,
     );
 }
 </script>
