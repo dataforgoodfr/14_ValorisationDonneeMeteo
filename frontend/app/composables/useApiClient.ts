@@ -35,13 +35,14 @@ export function useApiClient() {
             query: computed(() => toValue(params)),
             immediate: false,
             watch: false,
+            server: false,
             key: `${toValue(endpoint)}-${Math.random()}`, // Bypass useFetch cache sharing between pages
         });
 
         watch(
             [isEnabled, params],
             ([enabled]) => {
-                if (enabled) {
+                if (import.meta.client && enabled) {
                     result.execute();
                 }
             },
