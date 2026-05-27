@@ -8,13 +8,19 @@ import type {
 } from "~/components/ui/commons/FilterBar.vue";
 import type { PaginatedResponse, Station, StationFilters } from "~/types/api";
 
-const props = defineProps<{
-    filterFields: FilterField[];
-    filters: Record<string, FilterValue>;
-    staticOptions: Record<string, FilterOption[]>;
-    setFilter: (id: string, value: FilterValue) => void;
-    clearFilter: (id: string) => void;
-}>();
+const props = withDefaults(
+    defineProps<{
+        endpoint?: string;
+        filterFields: FilterField[];
+        filters: Record<string, FilterValue>;
+        staticOptions: Record<string, FilterOption[]>;
+        setFilter: (id: string, value: FilterValue) => void;
+        clearFilter: (id: string) => void;
+    }>(),
+    {
+        endpoint: "/stations/",
+    },
+);
 
 const searchQuery = ref("");
 const debouncedQuery = refDebounced(searchQuery, 300);
@@ -36,7 +42,7 @@ async function fetchStations() {
     stationPending.value = true;
     try {
         stationsData.value = await apiFetch<PaginatedResponse<Station>>(
-            "/stations/",
+            props.endpoint,
             { query: stationFilter.value },
         );
     } finally {

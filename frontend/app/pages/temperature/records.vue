@@ -15,6 +15,7 @@ import { useRecordsChartStore } from "~/stores/recordsChartStore";
 import { recordsHeroData, recordsSections } from "~/data/docRecords";
 import { EXPORT_BTN_UI } from "~/constants/tableUtils";
 import type { FilterField } from "~/components/ui/commons/FilterBar.vue";
+import TableFilterBar from "~/components/table/TableFilterBar.vue";
 
 const recordsFilterFields: FilterField[] = [
     { id: "name", label: "Station", type: "string-async" },
@@ -196,6 +197,7 @@ function exportCSV() {
                         class="flex flex-col lg:flex-row justify-between flex-1 gap-2"
                     >
                         <TableFilterBar
+                            endpoint="/stations/records/"
                             :filter-fields="recordsFilterFields"
                             :filters="store.filters"
                             :static-options="store.staticOptions"

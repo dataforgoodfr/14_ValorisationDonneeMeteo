@@ -20,6 +20,7 @@ import { buildDeviationCsv } from "~/utils/deviationCsv";
 import type { TemperatureDeviationResponse } from "~/types/api";
 import { EXPORT_BTN_UI } from "~/constants/tableUtils";
 import DatePresetPicker from "~/components/ui/commons/DatePresetPicker.vue";
+import TableFilterBar from "~/components/table/TableFilterBar.vue";
 
 const deviationFilterFields: FilterField[] = [
     { id: "name", label: "Station", type: "string-async" },
@@ -159,6 +160,7 @@ async function exportCSV() {
                         class="flex flex-col lg:flex-row justify-between flex-1 gap-2"
                     >
                         <TableFilterBar
+                            endpoint="/stations/deviation/"
                             :filter-fields="deviationFilterFields"
                             :filters="tableStore.filters"
                             :static-options="tableStore.staticOptions"
