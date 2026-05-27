@@ -40,6 +40,7 @@ export function useStationsWithInfiniteScroll(
         {
             watch: [params],
             immediate: true,
+            server: false,
         },
         endpoint,
     );
