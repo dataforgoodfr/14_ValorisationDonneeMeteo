@@ -80,8 +80,11 @@ const option = computed<ECOption>(() => {
         // de barre d'1 période au lieu d'auto-scaler sur les rares points réels.
         const allPeriodKeys: string[] = [];
         const currentDate = new Date(props.adapter.pickedDateStart.value);
-        const dateEndTimestamp = props.adapter.pickedDateEnd.value.getTime();
-        while (currentDate.getTime() <= dateEndTimestamp) {
+        // Comparaison en chaîne "YYYY-MM-DD" pour ignorer la composante heure :
+        // pickedDateStart/End peuvent être créés à l'heure courante (pas minuit),
+        // ce qui décalerait la borne de la boucle de quelques ms.
+        const dateEndStr = dateToStringYMD(props.adapter.pickedDateEnd.value);
+        while (dateToStringYMD(currentDate) <= dateEndStr) {
             allPeriodKeys.push(
                 periodKey(dateToStringYMD(currentDate), granularity),
             );
@@ -92,11 +95,22 @@ const option = computed<ECOption>(() => {
             else currentDate.setDate(currentDate.getDate() + 1);
         }
 
+        // ECharts centre les barres sur le timestamp du point. Pour que la barre
+        // de l'année/mois N occupe visuellement la bonne période, on positionne
+        // chaque barre au milieu de sa période (juillet pour une année, 16 pour un mois).
+        const periodMidpointUTC = (key: string): number => {
+            const [year, month, day] = key.split("-").map(Number);
+            if (granularity === "year") return Date.UTC(year!, 6, 2);
+            if (granularity === "month") return Date.UTC(year!, month! - 1, 16);
+            return Date.UTC(year!, month! - 1, day!);
+        };
+
         return [
             {
-                dimensions: ["period", "hot", "cold"],
+                dimensions: ["period", "x", "hot", "cold"],
                 source: allPeriodKeys.map((period) => ({
                     period,
+                    x: periodMidpointUTC(period),
                     hot: hotByPeriod[period] ?? 0,
                     cold: coldByPeriod[period] ?? 0,
                 })),
@@ -123,21 +137,51 @@ const option = computed<ECOption>(() => {
                 return {
                     top: `${index * (100 / plots.length) + 8}%`,
                     height: `${100 / plots.length - 15}%`,
-                    left: 30,
+                    left: 60,
                     right: 10,
                 };
             }
 
             if (plot === "scatter") {
-                return { top: "8%", height: "55%", left: 30, right: 10 };
+                return { top: "8%", height: "55%", left: 60, right: 10 };
             }
-            return { top: "72%", height: "20%", left: 30, right: 10 };
+            return { top: "72%", height: "20%", left: 60, right: 10 };
         }),
         xAxis: plots.map((_, index) => ({
             type: "time",
             gridIndex: index,
-            min: () => props.adapter.pickedDateStart?.value?.getTime(),
-            max: () => props.adapter.pickedDateEnd?.value?.getTime(),
+            // Date.UTC avec les composantes locales évite le décalage timezone :
+            // le date picker crée des dates à minuit LOCAL (ex. 1er mai 00:00 CEST
+            // = 30 avril 22:00 UTC). Utiliser .getTime() directement donnerait un
+            // max différent entre scatter et bar, ECharts auto-étendant l'axe bar
+            // pour loger la dernière barre → les deux grilles se désaligneraient.
+            min: () => {
+                const startDate = props.adapter.pickedDateStart?.value;
+                if (!startDate) return Date.now();
+                return Date.UTC(
+                    startDate.getFullYear(),
+                    startDate.getMonth(),
+                    startDate.getDate(),
+                );
+            },
+            max: () => {
+                const endDate = props.adapter.pickedDateEnd?.value;
+                if (!endDate) return Date.now();
+                const granularity = props.adapter.granularity.value;
+                if (granularity === "year")
+                    return Date.UTC(endDate.getFullYear() + 1, 0, 1);
+                if (granularity === "month")
+                    return Date.UTC(
+                        endDate.getFullYear(),
+                        endDate.getMonth() + 1,
+                        1,
+                    );
+                return Date.UTC(
+                    endDate.getFullYear(),
+                    endDate.getMonth(),
+                    endDate.getDate() + 1,
+                );
+            },
             nameLocation: "middle",
             nameGap: 25,
             nameTextStyle: {
@@ -189,26 +233,20 @@ const option = computed<ECOption>(() => {
                 }),
             ]),
             ...(showStackedBar
-                ? [
+                ? (["hot", "cold"] as const).map((type) =>
                       barSeries({
-                          name: "Records de chaleur",
+                          name:
+                              type === "hot"
+                                  ? "Records de chaleur"
+                                  : "Records de froid",
                           datasetIndex: territoryPlots.length * 2,
-                          encode: { x: "period", y: "hot" },
-                          color: mapColors.value.hot,
+                          encode: { x: "x", y: type },
+                          color: mapColors.value[type],
                           stack: "records",
                           xAxisIndex: 1,
                           yAxisIndex: 1,
                       }),
-                      barSeries({
-                          name: "Records de froid",
-                          datasetIndex: territoryPlots.length * 2,
-                          encode: { x: "period", y: "cold" },
-                          color: mapColors.value.cold,
-                          stack: "records",
-                          xAxisIndex: 1,
-                          yAxisIndex: 1,
-                      }),
-                  ]
+                  )
                 : []),
         ],
         title: territoryPlots.map((plot, index) => ({
