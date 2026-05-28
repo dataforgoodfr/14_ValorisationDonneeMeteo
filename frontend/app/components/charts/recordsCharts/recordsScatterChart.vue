@@ -151,21 +151,30 @@ const option = computed<ECOption>(() => {
             type: "time",
             gridIndex: index,
             min: () => {
-                const s = props.adapter.pickedDateStart?.value;
-                if (!s) return Date.now();
-                return Date.UTC(s.getFullYear(), s.getMonth(), s.getDate());
+                const startDate = props.adapter.pickedDateStart?.value;
+                if (!startDate) return Date.now();
+                return Date.UTC(
+                    startDate.getFullYear(),
+                    startDate.getMonth(),
+                    startDate.getDate(),
+                );
             },
             max: () => {
-                const end = props.adapter.pickedDateEnd?.value;
-                if (!end) return Date.now();
-                const g = props.adapter.granularity.value;
-                if (g === "year") return Date.UTC(end.getFullYear() + 1, 0, 1);
-                if (g === "month")
-                    return Date.UTC(end.getFullYear(), end.getMonth() + 1, 1);
+                const endDate = props.adapter.pickedDateEnd?.value;
+                if (!endDate) return Date.now();
+                const granularity = props.adapter.granularity.value;
+                if (granularity === "year")
+                    return Date.UTC(endDate.getFullYear() + 1, 0, 1);
+                if (granularity === "month")
+                    return Date.UTC(
+                        endDate.getFullYear(),
+                        endDate.getMonth() + 1,
+                        1,
+                    );
                 return Date.UTC(
-                    end.getFullYear(),
-                    end.getMonth(),
-                    end.getDate() + 1,
+                    endDate.getFullYear(),
+                    endDate.getMonth(),
+                    endDate.getDate() + 1,
                 );
             },
             nameLocation: "middle",
