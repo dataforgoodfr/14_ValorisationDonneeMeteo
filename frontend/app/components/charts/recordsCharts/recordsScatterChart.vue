@@ -80,8 +80,9 @@ const option = computed<ECOption>(() => {
         // de barre d'1 période au lieu d'auto-scaler sur les rares points réels.
         const allPeriodKeys: string[] = [];
         const currentDate = new Date(props.adapter.pickedDateStart.value);
-        const dateEndTimestamp = props.adapter.pickedDateEnd.value.getTime();
-        while (currentDate.getTime() <= dateEndTimestamp) {
+        const pickedEnd = props.adapter.pickedDateEnd.value;
+        const dateEndStr = dateToStringYMD(pickedEnd);
+        while (dateToStringYMD(currentDate) <= dateEndStr) {
             allPeriodKeys.push(
                 periodKey(dateToStringYMD(currentDate), granularity),
             );
@@ -92,11 +93,24 @@ const option = computed<ECOption>(() => {
             else currentDate.setDate(currentDate.getDate() + 1);
         }
 
+        const periodMidpointUTC = (key: string): number => {
+            if (granularity === "year") {
+                return Date.UTC(parseInt(key), 6, 2);
+            }
+            if (granularity === "month") {
+                const [year, month] = key.split("-").map(Number);
+                return Date.UTC(year!, month! - 1, 16);
+            }
+            const [year, month, day] = key.split("-").map(Number);
+            return Date.UTC(year!, month! - 1, day!);
+        };
+
         return [
             {
-                dimensions: ["period", "hot", "cold"],
+                dimensions: ["period", "x", "hot", "cold"],
                 source: allPeriodKeys.map((period) => ({
                     period,
+                    x: periodMidpointUTC(period),
                     hot: hotByPeriod[period] ?? 0,
                     cold: coldByPeriod[period] ?? 0,
                 })),
@@ -123,21 +137,37 @@ const option = computed<ECOption>(() => {
                 return {
                     top: `${index * (100 / plots.length) + 8}%`,
                     height: `${100 / plots.length - 15}%`,
-                    left: 30,
+                    left: 60,
                     right: 10,
                 };
             }
 
             if (plot === "scatter") {
-                return { top: "8%", height: "55%", left: 30, right: 10 };
+                return { top: "8%", height: "55%", left: 60, right: 10 };
             }
-            return { top: "72%", height: "20%", left: 30, right: 10 };
+            return { top: "72%", height: "20%", left: 60, right: 10 };
         }),
         xAxis: plots.map((_, index) => ({
             type: "time",
             gridIndex: index,
-            min: () => props.adapter.pickedDateStart?.value?.getTime(),
-            max: () => props.adapter.pickedDateEnd?.value?.getTime(),
+            min: () => {
+                const s = props.adapter.pickedDateStart?.value;
+                if (!s) return Date.now();
+                return Date.UTC(s.getFullYear(), s.getMonth(), s.getDate());
+            },
+            max: () => {
+                const end = props.adapter.pickedDateEnd?.value;
+                if (!end) return Date.now();
+                const g = props.adapter.granularity.value;
+                if (g === "year") return Date.UTC(end.getFullYear() + 1, 0, 1);
+                if (g === "month")
+                    return Date.UTC(end.getFullYear(), end.getMonth() + 1, 1);
+                return Date.UTC(
+                    end.getFullYear(),
+                    end.getMonth(),
+                    end.getDate() + 1,
+                );
+            },
             nameLocation: "middle",
             nameGap: 25,
             nameTextStyle: {
@@ -189,26 +219,20 @@ const option = computed<ECOption>(() => {
                 }),
             ]),
             ...(showStackedBar
-                ? [
+                ? (["hot", "cold"] as const).map((type) =>
                       barSeries({
-                          name: "Records de chaleur",
+                          name:
+                              type === "hot"
+                                  ? "Records de chaleur"
+                                  : "Records de froid",
                           datasetIndex: territoryPlots.length * 2,
-                          encode: { x: "period", y: "hot" },
-                          color: mapColors.value.hot,
+                          encode: { x: "x", y: type },
+                          color: mapColors.value[type],
                           stack: "records",
                           xAxisIndex: 1,
                           yAxisIndex: 1,
                       }),
-                      barSeries({
-                          name: "Records de froid",
-                          datasetIndex: territoryPlots.length * 2,
-                          encode: { x: "period", y: "cold" },
-                          color: mapColors.value.cold,
-                          stack: "records",
-                          xAxisIndex: 1,
-                          yAxisIndex: 1,
-                      }),
-                  ]
+                  )
                 : []),
         ],
         title: territoryPlots.map((plot, index) => ({

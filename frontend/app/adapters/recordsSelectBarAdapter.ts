@@ -94,7 +94,7 @@ export const useRecordsSelectBarAdapter =
                         if (!params.length) return '';
                         const first = params[0];
                         const toScatter = (v) => Array.isArray(v) ? {date: v[0], value: v[1], station: v[2]} : v;
-                        const toBar = (v) => Array.isArray(v) ? {period: v[0], hot: v[1], cold: v[2]} : v;
+                        const toBar = (v) => Array.isArray(v) ? {period: v[0], hot: v[2], cold: v[3]} : v;
                         if (first.seriesType === 'bar') {
                             const d = toBar(first.value);
                             const hotMarker = '<span style="display:inline-block;margin-right:4px;border-radius:10px;width:10px;height:10px;background-color:#d32F2F;"></span>';
