@@ -80,8 +80,10 @@ const option = computed<ECOption>(() => {
         // de barre d'1 période au lieu d'auto-scaler sur les rares points réels.
         const allPeriodKeys: string[] = [];
         const currentDate = new Date(props.adapter.pickedDateStart.value);
-        const pickedEnd = props.adapter.pickedDateEnd.value;
-        const dateEndStr = dateToStringYMD(pickedEnd);
+        // Comparaison en chaîne "YYYY-MM-DD" pour ignorer la composante heure :
+        // pickedDateStart/End peuvent être créés à l'heure courante (pas minuit),
+        // ce qui décalerait la borne de la boucle de quelques ms.
+        const dateEndStr = dateToStringYMD(props.adapter.pickedDateEnd.value);
         while (dateToStringYMD(currentDate) <= dateEndStr) {
             allPeriodKeys.push(
                 periodKey(dateToStringYMD(currentDate), granularity),
@@ -93,15 +95,13 @@ const option = computed<ECOption>(() => {
             else currentDate.setDate(currentDate.getDate() + 1);
         }
 
+        // ECharts centre les barres sur le timestamp du point. Pour que la barre
+        // de l'année/mois N occupe visuellement la bonne période, on positionne
+        // chaque barre au milieu de sa période (juillet pour une année, 16 pour un mois).
         const periodMidpointUTC = (key: string): number => {
-            if (granularity === "year") {
-                return Date.UTC(parseInt(key), 6, 2);
-            }
-            if (granularity === "month") {
-                const [year, month] = key.split("-").map(Number);
-                return Date.UTC(year!, month! - 1, 16);
-            }
             const [year, month, day] = key.split("-").map(Number);
+            if (granularity === "year") return Date.UTC(year!, 6, 2);
+            if (granularity === "month") return Date.UTC(year!, month! - 1, 16);
             return Date.UTC(year!, month! - 1, day!);
         };
 
@@ -150,6 +150,11 @@ const option = computed<ECOption>(() => {
         xAxis: plots.map((_, index) => ({
             type: "time",
             gridIndex: index,
+            // Date.UTC avec les composantes locales évite le décalage timezone :
+            // le date picker crée des dates à minuit LOCAL (ex. 1er mai 00:00 CEST
+            // = 30 avril 22:00 UTC). Utiliser .getTime() directement donnerait un
+            // max différent entre scatter et bar, ECharts auto-étendant l'axe bar
+            // pour loger la dernière barre → les deux grilles se désaligneraient.
             min: () => {
                 const startDate = props.adapter.pickedDateStart?.value;
                 if (!startDate) return Date.now();
