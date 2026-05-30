@@ -23,6 +23,7 @@ import {
 } from "~/utils/recordsChartUtils";
 import { dateToStringYMD } from "~/utils/date";
 import { useMapColors } from "~/constants/colors";
+import { CHART_ATTRIBUTION_GRAPHIC } from "~/constants/chartAttribution";
 import { FONT_CHARTS, GRAPH_RECORDS_POSITION } from "~/constants/fonts";
 import { xAxisTimeFormatter } from "~/utils/chartAxisFormatter";
 
@@ -279,6 +280,7 @@ const option = computed<ECOption>(() => {
                 minSpan: 20,
             },
         ],
+        graphic: CHART_ATTRIBUTION_GRAPHIC,
     };
 });
 </script>

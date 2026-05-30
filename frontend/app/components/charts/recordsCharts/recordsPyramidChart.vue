@@ -13,7 +13,7 @@ import {
 } from "~/utils/recordsChartUtils";
 import { recordsPyramidTooltipFormatter } from "~/components/charts/tooltipFormatters/recordsPyramidTooltipFormatter";
 import { useMapColors } from "~/constants/colors";
-
+import { CHART_ATTRIBUTION_GRAPHIC } from "~/constants/chartAttribution";
 import { FONT_CHARTS, GRAPH_RECORDS_POSITION } from "~/constants/fonts";
 type CategoryYAxisOption = Extract<YAXisOption, { type?: "category" }>;
 type ValueXAxisOption = Extract<XAXisOption, { type?: "value" }>;
@@ -210,6 +210,7 @@ const option = computed<ECOption>(() => {
                 yAxisIndex: 2 * i + 1,
             }),
         ]),
+        graphic: CHART_ATTRIBUTION_GRAPHIC,
     };
     return option;
 });
