@@ -2,6 +2,7 @@
 import type { DropdownMenuItem } from "@nuxt/ui";
 import type { SelectBarAdapter } from "./selectBar/types";
 import { useMapColors } from "~/constants/colors";
+import langFR from "~/i18n/langFR.js";
 
 const mapColors = useMapColors();
 const colorMode = useColorMode();
@@ -142,7 +143,8 @@ function exportAsHTML() {
 <body>
     <div id="chart"></div>
     <${scriptTag}>
-        const chart = echarts.init(document.getElementById('chart'));
+        echarts.registerLocale('FR', ${JSON.stringify(langFR)});
+        const chart = echarts.init(document.getElementById('chart'), null, { locale: 'FR' });
         const options = ${JSON.stringify(options)};
         ${tooltipFormatterScript}
         chart.setOption(options);
