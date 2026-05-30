@@ -117,6 +117,16 @@ function exportAsHTML() {
     if (!import.meta.client) return;
     if (!chartRef?.value) return;
     const options = chartRef.value.getOption();
+    // JSON.stringify supprime les fonctions : on évalue min/max avant sérialisation
+    // pour que l'export HTML ait les mêmes bornes d'axe que le graphe interactif.
+    if (Array.isArray(options.xAxis)) {
+        (options.xAxis as { min?: unknown; max?: unknown }[]).forEach(
+            (axis) => {
+                if (typeof axis.min === "function") axis.min = axis.min();
+                if (typeof axis.max === "function") axis.max = axis.max();
+            },
+        );
+    }
     const scriptTag = "script";
     const tooltipFormatterScript = exportConfig.htmlTooltipFormatter
         ? `[options.tooltip].flat().filter(Boolean).forEach(function(t){ t.formatter = ${exportConfig.htmlTooltipFormatter}; });`
