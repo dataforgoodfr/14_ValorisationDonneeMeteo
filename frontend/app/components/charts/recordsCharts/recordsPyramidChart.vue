@@ -99,7 +99,7 @@ const option = computed<ECOption>(() => {
     // Positions verticales du subplot i dans le conteneur (en %)
     const gridTop = (i: number) => `${i * slotSize + 4}%`;
     const gridBottom = (i: number) =>
-        i === N - 1 ? "12%" : `${(N - 1 - i) * slotSize + 4}%`;
+        i === N - 1 ? "14%" : `${(N - 1 - i) * slotSize + 4}%`;
 
     const xAxisBase: Partial<ValueXAxisOption> = {
         min: 0,
@@ -177,7 +177,7 @@ const option = computed<ECOption>(() => {
             ...periodData.map((pd, i) => ({
                 text: pd.name,
                 right: "right",
-                top: `${i * slotSize + 2}%`,
+                top: `${i * slotSize}%`,
                 textStyle: { fontSize: FONT_CHARTS.title },
             })),
             {
