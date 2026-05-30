@@ -207,6 +207,7 @@ const option = computed<ECOption>(() => {
                 fontWeight: "bold",
             },
             axisLabel: { fontSize: FONT_CHARTS.axis },
+            axisPointer: { label: { show: false } },
             splitLine: {
                 lineStyle: { type: "dashed", color: mapColors.value.splitLine },
             },
