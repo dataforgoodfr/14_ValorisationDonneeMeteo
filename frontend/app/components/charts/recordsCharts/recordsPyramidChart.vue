@@ -186,7 +186,10 @@ const option = computed<ECOption>(() => {
                 bottom: 25,
                 left: "50%",
                 textAlign: "center",
-                textStyle: { fontSize: FONT_CHARTS.title, color: "#fff" },
+                textStyle: {
+                    fontSize: FONT_CHARTS.title,
+                    color: mapColors.value.foreground,
+                },
             },
         ],
         legend: {
