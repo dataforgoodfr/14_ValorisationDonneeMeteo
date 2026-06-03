@@ -38,9 +38,12 @@ export const faqItems: AccordionItem[] = [
             "L'ITN est la température moyenne quotidienne de la France métropolitaine, calculée à partir de 30 stations de référence définies par Météo-France. Ces stations existent depuis au moins 1945 et sont situées en plaine, à l'abri des microclimats locaux, pour garantir une mesure représentative à l'échelle nationale.",
     },
     {
-        label: "Pourquoi certaines stations ne disposent-elles pas de normale calculée ?",
-        content:
-            "Pour qu'une station soit éligible au calcul d'un écart à la normale, elle doit remplir deux conditions : avoir au moins 24 années de données sur la période 1991–2020, et avoir une classe de qualité de mesure de température comprise entre 1 et 4 selon la classification de Météo-France.",
+        label: "Pourquoi je ne trouve pas ma station dans la page d'écart de température à la normale ?",
+        content: `Pour qu'une station soit éligible au calcul d'un écart à la normale, elle doit remplir deux conditions : avoir au moins 24 années de données sur la période 1991–2020, et avoir une classe de qualité de mesure de température comprise entre 1 et 4 selon la classification de Météo-France: si ces${+" deux critères ne sont pas remplies, la station n'apparait pas dans la page d'écart de température à la normale."}`,
+    },
+    {
+        label: "Pourquoi je ne trouve pas ma station dans la page des records de température ?",
+        content: `Pour qu'une station soit éligible à l'établissement d'un record, elle doit remplir deux conditions : avoir au moins 50 années de données de mesure de température, et avoir une classe de qualité de mesure de température comprise entre 1 et 3 selon la classification de Météo-France: si ces${+" deux critères ne sont pas remplies, la station n'apparait pas dans la page des records de température."}`,
     },
     {
         label: "Qu'est-ce qu'un record de température ?",
