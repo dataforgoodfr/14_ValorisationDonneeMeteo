@@ -43,6 +43,35 @@ notebooks = [
 target-version = "py311"
 line-length = 88
 
+# Exclude a variety of commonly ignored directories.
+exclude = [
+    "data",
+    "calcul_itn_old.py",
+    "calcul_itn_back.py",
+
+    "cache_control.py",
+    "models.py",
+    "temperature_deviation_fake.py",
+    "timescale.py",
+    "views.py",
+
+    "test_records_station_lifecycle_filter.py",
+    "test_timescale_records_business.py",
+    "test_temperature_deviation_classe_filter.py",
+    "test_temperature_records_classe_filter.py",
+    "test_temperature_deviation_station_lifecycle_filter.py",
+
+    "test_cache_control.py",
+    "test_temperature_records_business.py",
+    "test_temperature_deviation_graph_business.py",
+    "test_temperature_deviation_overview_business.py",
+    "test_temperature_deviation_graph_acceptance.py",
+
+    # to double check
+    "test_national_indicator_endpoint.py",
+    "conftest.py"
+]
+
 [tool.ruff.lint]
 select = [
     "E",      # pycodestyle errors
@@ -53,12 +82,16 @@ select = [
     "C4",     # flake8-comprehensions
     "UP",     # pyupgrade
     "DJ",     # flake8-django
-    "N", # pep8-naming
+    "N",      # pep8-naming
+    "ANN",    # flake8-annotations
 ]
 ignore = [
     "E501",
     "DJ001",
-]
+    "ANN002",
+    "ANN003",
+    "ANN101",
+    "ANN102"]
 
 [tool.ruff.lint.pep8-naming]
 ignore-names = ["_", "i", "j", "k"]
