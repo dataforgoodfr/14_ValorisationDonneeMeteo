@@ -71,7 +71,7 @@ async function exportCSV() {
     if (!import.meta.client) return;
     const data = await apiFetch<TemperatureDeviationResponse>(
         "/temperature/deviation",
-        { query: exportParams.value },
+        { query: { ...exportParams.value, limit: 9999 } },
     );
 
     downloadCSV(
