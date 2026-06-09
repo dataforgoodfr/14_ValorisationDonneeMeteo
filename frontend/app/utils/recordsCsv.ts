@@ -12,6 +12,7 @@ export function buildRecordsCsv(
     valueLabel = "Record absolu (°C)",
 ): string {
     const headers = [
+        "ID Station",
         "Station",
         "Département",
         valueLabel,
@@ -23,6 +24,7 @@ export function buildRecordsCsv(
     const rows = records
         .map((s) =>
             [
+                escapeCsvValue(s.station_id),
                 escapeCsvValue(s.station_name),
                 escapeCsvValue(s.department),
                 s.record_value.toFixed(1),
