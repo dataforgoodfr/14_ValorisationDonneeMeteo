@@ -19,7 +19,7 @@ horaire_temps_reel AS (
         tn AS tn,
         tx AS tx
     FROM "HoraireTempsReel"
-    WHERE date_trunc('hour', now()) - interval '36 hours' <= validity_time AND validity_time <= date_trunc('hour', now()) - interval '3 hours'
+    WHERE date_trunc('hour', now()) - interval '3 days' <= validity_time AND validity_time <= date_trunc('hour', now()) - interval '3 hours'
 ),
 
 horaire AS (
@@ -30,7 +30,7 @@ horaire AS (
         "TN" AS tn,
         "TX" AS tx
     FROM "Horaire"
-    WHERE date_trunc('day', now()) - interval '4 days' <= "AAAAMMJJHH" AND "AAAAMMJJHH" < date_trunc('hour', now()) - interval '36 hours'
+    WHERE date_trunc('day', now()) - interval '4 days' <= "AAAAMMJJHH" AND "AAAAMMJJHH" < date_trunc('hour', now()) - interval '3 days'
 ),
 
 combined_horaire AS (
