@@ -3,7 +3,7 @@ import { buildDeviationCsv } from "./deviationCsv";
 import type { TemperatureDeviationStation } from "~/types/api";
 
 const HEADERS =
-    "Station,Département,Région,Écart à la normale (°C),Température Moyenne (°C),Classe,Année de création";
+    "ID Station,Station,Département,Région,Écart à la normale (°C),Température Moyenne (°C),Classe,Année de création";
 
 function makeStation(
     overrides: Partial<TemperatureDeviationStation> = {},
@@ -33,7 +33,7 @@ describe("buildDeviationCsv", () => {
     test("une station — ligne correcte", () => {
         const result = buildDeviationCsv([makeStation()]);
         expect(result).toBe(
-            `${HEADERS}\nParis,Paris,Île-de-France,1.5,12.3,1,1872`,
+            `${HEADERS}\n75001,Paris,Paris,Île-de-France,1.5,12.3,1,1872`,
         );
     });
 
@@ -55,7 +55,7 @@ describe("buildDeviationCsv", () => {
             }),
         ]);
         expect(result).toBe(
-            `${HEADERS}\nParis,Paris,Île-de-France,1.5,12.3,1,1872\nLyon,Rhône,Auvergne-Rhône-Alpes,-0.3,11.1,2,1920`,
+            `${HEADERS}\n75001,Paris,Paris,Île-de-France,1.5,12.3,1,1872\n75001,Lyon,Rhône,Auvergne-Rhône-Alpes,-0.3,11.1,2,1920`,
         );
     });
 
@@ -64,7 +64,7 @@ describe("buildDeviationCsv", () => {
             makeStation({ station_name: "Paris, 7e" }),
         ]);
         expect(result).toBe(
-            `${HEADERS}\n"Paris, 7e",Paris,Île-de-France,1.5,12.3,1,1872`,
+            `${HEADERS}\n75001,"Paris, 7e",Paris,Île-de-France,1.5,12.3,1,1872`,
         );
     });
 });

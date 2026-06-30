@@ -2,6 +2,7 @@ import type { TemperatureDeviationStation } from "~/types/api";
 import { escapeCsvValue } from "./string";
 
 const HEADERS = [
+    "ID Station",
     "Station",
     "Département",
     "Région",
@@ -17,6 +18,7 @@ export function buildDeviationCsv(
     const rows = stations
         .map((s) =>
             [
+                escapeCsvValue(s.station_id),
                 escapeCsvValue(s.station_name),
                 escapeCsvValue(s.department),
                 escapeCsvValue(s.region),
