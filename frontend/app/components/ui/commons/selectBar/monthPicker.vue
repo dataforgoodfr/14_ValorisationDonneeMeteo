@@ -9,7 +9,7 @@ const localEndDate = defineModel<Date | undefined>("endDate");
 const adapter = inject<SelectBarAdapter>("selectBarAdapter")!;
 const dates = useCustomDate();
 
-const maxEndDate = adapter?.maxDate?.value ?? dates.today.value;
+const maxEndDate = computed(() => adapter?.maxDate?.value ?? dates.today.value);
 
 watch(localStartDate, (newStart) => {
     if (!newStart || !localEndDate.value) return;
